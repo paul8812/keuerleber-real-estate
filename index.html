@@ -3,560 +3,510 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shinwari Immobilien - Ihr Immobilienexperte</title>
-<meta name="description" content="Shinwari Immobilien - Professionelle Immobilienvermittlung. Kaufen, verkaufen und vermieten mit persoenlicher Beratung.">
+<title>Shinwari Immobilien – Ihr Makler in München</title>
+<meta name="description" content="Shinwari Immobilien – Ihr persönlicher Immobilienmakler in München und Umgebung.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-:root{--blue-dark:#0D2B5E;--blue:#1A4494;--blue-mid:#2558C0;--blue-light:#EBF0FA;--gold:#C8A050;--gold-light:#E8D5A3;--gold-dark:#9A7530;--white:#FFFFFF;--off-white:#F7F8FC;--gray-100:#F0F2F8;--gray-300:#C8CDD8;--gray-500:#7A839A;--gray-700:#3A4155;--dark:#0D1425;--radius:12px;--shadow-sm:0 2px 10px rgba(13,43,94,.08);--shadow-md:0 6px 30px rgba(13,43,94,.14);--shadow-lg:0 16px 60px rgba(13,43,94,.2);--transition:.3s ease}
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0B1D3A;
+  --gold:#B8960C;
+  --white:#FFFFFF;
+  --off:#F8F7F4;
+  --text:#1C1C1C;
+  --muted:#6B6560;
+  --border:#E5E2DA;
+}
 html{scroll-behavior:smooth}
-body{font-family:'Inter',sans-serif;color:var(--gray-700);background:var(--white);overflow-x:hidden}
-img{display:block;max-width:100%}a{text-decoration:none;color:inherit}ul{list-style:none}button{cursor:pointer;border:none;background:none;font-family:inherit}
-h1,h2,h3{font-family:'Playfair Display',serif;line-height:1.2;color:var(--blue-dark)}
-h2{font-size:clamp(1.8rem,3.5vw,2.8rem)}h3{font-size:clamp(1.1rem,2vw,1.4rem)}
-.container{max-width:1200px;margin:0 auto;padding:0 24px}.section{padding:100px 0}
-.section-label{display:inline-block;font-size:.75rem;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
-.section-subtitle{font-size:1.05rem;color:var(--gray-500);line-height:1.7;max-width:560px}
-.gold-line{display:block;width:48px;height:3px;background:linear-gradient(90deg,var(--gold),var(--gold-light));border-radius:2px;margin-bottom:24px}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 30px;border-radius:8px;font-size:.95rem;font-weight:600;transition:all var(--transition);white-space:nowrap}
-.btn-primary{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:var(--white);box-shadow:0 4px 18px rgba(200,160,80,.4)}
-.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(200,160,80,.5)}
-.btn-outline{background:transparent;color:var(--white);border:2px solid rgba(255,255,255,.6)}
-.btn-outline:hover{background:rgba(255,255,255,.12);border-color:var(--white)}
-.btn-blue{background:var(--blue);color:var(--white);box-shadow:0 4px 18px rgba(26,68,148,.35)}
-.btn-blue:hover{background:var(--blue-dark);transform:translateY(-2px)}
+body{font-family:'Inter',sans-serif;color:var(--text);background:var(--white)}
+h1,h2,h3{font-family:'Playfair Display',serif;font-weight:400}
 
 /* NAV */
-#navbar{position:fixed;top:0;left:0;right:0;z-index:1000;transition:all var(--transition)}
-#navbar.scrolled{background:var(--white);box-shadow:var(--shadow-md)}
-.nav-inner{display:flex;align-items:center;justify-content:space-between;height:80px}
-.logo{display:flex;align-items:center;gap:14px}
-.logo-icon{width:44px;height:44px;background:linear-gradient(135deg,var(--gold),var(--gold-dark));border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.logo-icon svg{width:22px;height:22px;fill:var(--white)}
-.logo-name{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:var(--white);line-height:1;transition:color var(--transition)}
-.logo-tag{font-size:.65rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-light);transition:color var(--transition)}
-#navbar.scrolled .logo-name{color:var(--blue-dark)}
-#navbar.scrolled .logo-tag{color:var(--gold-dark)}
-.nav-links{display:flex;align-items:center;gap:4px}
-.nav-links a{padding:8px 14px;font-size:.88rem;font-weight:500;color:rgba(255,255,255,.88);border-radius:6px;transition:all var(--transition)}
-.nav-links a:hover{color:var(--white);background:rgba(255,255,255,.12)}
-#navbar.scrolled .nav-links a{color:var(--gray-700)}
-#navbar.scrolled .nav-links a:hover{color:var(--blue);background:var(--blue-light)}
-.nav-cta{display:flex;align-items:center;gap:16px}
-.nav-phone{display:flex;align-items:center;gap:6px;font-size:.88rem;font-weight:600;color:var(--gold-light);transition:color var(--transition)}
-.nav-phone svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-#navbar.scrolled .nav-phone{color:var(--gold-dark)}
-.nav-phone:hover{color:var(--gold)!important}
-.hamburger{display:none;flex-direction:column;gap:5px;padding:8px}
-.hamburger span{display:block;width:22px;height:2px;background:var(--white);border-radius:2px;transition:all var(--transition)}
-#navbar.scrolled .hamburger span{background:var(--blue-dark)}
-.mobile-nav{display:none;position:fixed;inset:0;z-index:999;background:var(--blue-dark);flex-direction:column;align-items:center;justify-content:center;gap:28px}
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:0 56px;height:76px;
+  display:flex;align-items:center;justify-content:space-between;
+  transition:background .35s,box-shadow .35s;
+}
+nav.s{background:var(--white);box-shadow:0 1px 0 var(--border)}
+.nav-logo{font-family:'Playfair Display',serif;font-size:17px;letter-spacing:.1em;color:#fff;text-decoration:none;transition:color .35s}
+nav.s .nav-logo{color:var(--navy)}
+.nav-links{display:flex;align-items:center;gap:32px;list-style:none}
+.nav-links a{font-size:12px;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;color:rgba(255,255,255,.8);transition:color .25s}
+nav.s .nav-links a{color:var(--muted)}
+.nav-links a:hover,.nav-links a:focus{color:var(--gold)}
+.nav-cta{
+  border:1px solid rgba(255,255,255,.45);color:#fff;
+  padding:9px 22px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+  text-decoration:none;transition:all .25s;
+}
+nav.s .nav-cta{border-color:var(--navy);color:var(--navy)}
+.nav-cta:hover{background:var(--gold);border-color:var(--gold);color:#fff !important}
+.nav-hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px}
+.nav-hamburger span{display:block;width:22px;height:1.5px;background:var(--white);transition:background .3s}
+nav.s .nav-hamburger span{background:var(--navy)}
+.mobile-nav{display:none;position:fixed;inset:0;background:var(--white);z-index:99;flex-direction:column;align-items:center;justify-content:center;gap:28px}
 .mobile-nav.open{display:flex}
-.mobile-nav a{font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--white);transition:color var(--transition)}
+.mobile-nav a{font-family:'Playfair Display',serif;font-size:24px;color:var(--navy);text-decoration:none}
 .mobile-nav a:hover{color:var(--gold)}
-.mobile-close-btn{position:absolute;top:24px;right:24px;color:var(--white);font-size:1.5rem;padding:8px}
+.mobile-close{position:absolute;top:24px;right:28px;font-size:28px;cursor:pointer;color:var(--navy);line-height:1}
 
 /* HERO */
-#hero{position:relative;height:100vh;min-height:700px;display:flex;align-items:center;overflow:hidden}
-.hero-bg{position:absolute;inset:0;background-image:url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1920&auto=format&fit=crop&q=85');background-size:cover;background-position:center 40%;transform:scale(1.05);transition:transform 8s ease}
-.hero-bg.loaded{transform:scale(1)}
-.hero-overlay{position:absolute;inset:0;background:linear-gradient(105deg,rgba(13,27,60,.82) 0%,rgba(13,43,94,.65) 50%,rgba(13,27,60,.4) 100%)}
-.hero-content{position:relative;z-index:2;max-width:760px}
-.hero-badge{display:inline-flex;align-items:center;gap:10px;background:rgba(200,160,80,.18);border:1px solid rgba(200,160,80,.35);border-radius:100px;padding:8px 18px;margin-bottom:28px}
-.hero-badge span{font-size:.75rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-light)}
-.hero-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.hero-title{font-size:clamp(2.4rem,5.5vw,4rem);color:var(--white);line-height:1.15;margin-bottom:20px}
-.hero-title .accent{color:var(--gold)}
-.hero-text{font-size:1.1rem;color:rgba(255,255,255,.8);line-height:1.7;margin-bottom:40px;max-width:560px}
-.hero-actions{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:60px}
-.hero-stats{display:flex;gap:36px}
-.hero-stat-num{font-family:'Playfair Display',serif;font-size:2rem;color:var(--gold);line-height:1}
-.hero-stat-label{font-size:.78rem;color:rgba(255,255,255,.6);margin-top:4px}
-.scroll-hint{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);z-index:2;display:flex;flex-direction:column;align-items:center;gap:8px;color:rgba(255,255,255,.5);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;animation:bounce 2.5s infinite}
-.scroll-wheel{width:24px;height:38px;border:2px solid rgba(255,255,255,.3);border-radius:12px;display:flex;justify-content:center;padding-top:6px}
-.scroll-wheel::before{content:'';width:4px;height:8px;background:rgba(255,255,255,.5);border-radius:2px;animation:scrolldot 2.5s infinite}
-@keyframes scrolldot{0%{transform:translateY(0);opacity:1}100%{transform:translateY(12px);opacity:0}}
-@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(5px)}}
+.hero{
+  height:100vh;min-height:640px;
+  background:url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1920&auto=format&fit=crop&q=85') center/cover no-repeat;
+  position:relative;display:flex;align-items:center;justify-content:center;
+}
+.hero::after{content:'';position:absolute;inset:0;background:rgba(11,29,58,.48)}
+.hero-inner{position:relative;z-index:1;text-align:center;padding:0 24px;max-width:780px}
+.hero-eyebrow{font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:24px}
+.hero h1{font-size:clamp(40px,6vw,78px);color:#fff;line-height:1.12;margin-bottom:20px}
+.hero h1 em{font-style:italic}
+.hero-sub{font-size:15px;color:rgba(255,255,255,.68);font-weight:300;letter-spacing:.02em;margin-bottom:44px;line-height:1.7}
+.hero-btns{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.btn-gold{
+  font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  background:var(--gold);color:#fff;padding:15px 36px;
+  text-decoration:none;transition:background .25s;
+}
+.btn-gold:hover{background:#9a7d0a}
+.btn-ghost{
+  font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  border:1px solid rgba(255,255,255,.5);color:#fff;
+  padding:15px 36px;text-decoration:none;transition:all .25s;
+}
+.btn-ghost:hover{border-color:#fff;background:rgba(255,255,255,.08)}
 
-/* SEARCH */
-#searchbar{background:var(--white);box-shadow:var(--shadow-lg);border-radius:16px;padding:28px 32px;margin-top:-70px;position:relative;z-index:10}
-.search-label{font-size:.8rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-dark);margin-bottom:18px}
-.search-grid{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:14px;align-items:end}
-.sf label{display:block;font-size:.78rem;font-weight:600;color:var(--gray-700);margin-bottom:6px}
-.sf select,.sf input{width:100%;padding:12px 14px;border:1.5px solid var(--gray-300);border-radius:8px;font-family:inherit;font-size:.9rem;color:var(--gray-700);background:var(--off-white);outline:none;transition:border-color var(--transition);appearance:none;-webkit-appearance:none}
-.sf select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%237A839A'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:16px;padding-right:36px}
-.sf select:focus,.sf input:focus{border-color:var(--blue);background:var(--white)}
-.search-btn{padding:13px 26px;background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:var(--white);border-radius:8px;font-size:.9rem;font-weight:600;display:flex;align-items:center;gap:8px;transition:all var(--transition);box-shadow:0 4px 14px rgba(26,68,148,.3);white-space:nowrap;cursor:pointer;font-family:inherit;border:none}
-.search-btn:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(26,68,148,.4)}
+/* NUMBERS STRIP */
+.strip{background:var(--navy);display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap}
+.strip-item{
+  flex:1;min-width:160px;max-width:260px;
+  padding:32px 24px;text-align:center;
+  border-right:1px solid rgba(255,255,255,.08);
+}
+.strip-item:last-child{border-right:none}
+.strip-num{font-family:'Playfair Display',serif;font-size:32px;color:#fff;letter-spacing:.02em}
+.strip-label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-top:4px}
+
+/* SECTIONS */
+section{padding:112px 56px}
+.section-header{text-align:center;margin-bottom:72px}
+.tag{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+.section-title{font-size:clamp(26px,3.5vw,40px);color:var(--navy);line-height:1.2}
+.gold-rule{width:36px;height:1px;background:var(--gold);margin:20px auto 0}
 
 /* SERVICES */
-#services{background:var(--off-white)}
-.services-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-top:56px}
-.svc-card{background:var(--white);border-radius:var(--radius);padding:36px 28px;position:relative;overflow:hidden;box-shadow:var(--shadow-sm);border:1px solid transparent;transition:all var(--transition)}
-.svc-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--gold),var(--gold-light));opacity:0;transition:opacity var(--transition)}
-.svc-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-md);border-color:var(--gold-light)}
-.svc-card:hover::before{opacity:1}
-.svc-icon{width:60px;height:60px;background:var(--blue-light);border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:22px;transition:background var(--transition)}
-.svc-card:hover .svc-icon{background:var(--gold-light)}
-.svc-icon svg{width:28px;height:28px;stroke:var(--blue);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:stroke var(--transition)}
-.svc-card:hover .svc-icon svg{stroke:var(--gold-dark)}
-.svc-card h3{font-size:1.15rem;margin-bottom:12px}
-.svc-card p{font-size:.88rem;color:var(--gray-500);line-height:1.6}
+.services{background:var(--white)}
+.svc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+.svc-card{
+  padding:52px 40px;
+  border:1px solid var(--border);
+  margin:-1px 0 0 -1px;
+  transition:box-shadow .3s,z-index 0s;
+  background:var(--white);
+}
+.svc-card:hover{box-shadow:0 8px 32px rgba(11,29,58,.1);z-index:1;position:relative}
+.svc-icon{width:32px;height:32px;color:var(--gold);margin-bottom:22px}
+.svc-card h3{font-size:17px;color:var(--navy);margin-bottom:12px}
+.svc-card p{font-size:13.5px;line-height:1.75;color:var(--muted)}
 
 /* PROPERTIES */
-.prop-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:48px;gap:20px}
-.prop-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
-.prop-card{background:var(--white);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm);border:1px solid var(--gray-100);transition:all var(--transition)}
-.prop-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-md)}
+.properties{background:var(--off)}
+.props-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border)}
+.prop{background:var(--white);overflow:hidden}
 .prop-img{position:relative;overflow:hidden;aspect-ratio:4/3}
-.prop-img img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
-.prop-card:hover .prop-img img{transform:scale(1.06)}
-.prop-badge{position:absolute;top:14px;left:14px;background:var(--blue);color:var(--white);font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;border-radius:6px}
-.prop-fav{position:absolute;top:14px;right:14px;width:36px;height:36px;background:var(--white);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);cursor:pointer;transition:all var(--transition)}
-.prop-fav:hover{background:#FEE2E2}
-.prop-fav svg{width:18px;height:18px;stroke:var(--gray-500);fill:none;stroke-width:1.8}
-.prop-fav:hover svg{stroke:#DC2626}
-.prop-body{padding:22px 22px 18px}
-.prop-price{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--blue-dark);font-weight:700;margin-bottom:6px}
-.prop-price span{font-size:.85rem;font-family:'Inter',sans-serif;color:var(--gray-500);font-weight:400}
-.prop-title{font-size:.97rem;font-weight:600;color:var(--gray-700);margin-bottom:10px;line-height:1.4}
-.prop-loc{display:flex;align-items:center;gap:5px;font-size:.82rem;color:var(--gray-500);margin-bottom:16px}
-.prop-loc svg{width:14px;height:14px;stroke:var(--gold);fill:none;stroke-width:2;flex-shrink:0}
-.prop-specs{display:flex;gap:16px;padding-top:16px;border-top:1px solid var(--gray-100)}
-.prop-spec{display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--gray-500)}
-.prop-spec svg{width:15px;height:15px;stroke:var(--blue-mid);fill:none;stroke-width:2;flex-shrink:0}
+.prop-img img{width:100%;height:100%;object-fit:cover;transition:transform .6s ease;display:block}
+.prop:hover .prop-img img{transform:scale(1.04)}
+.prop-badge{
+  position:absolute;top:16px;left:16px;
+  background:var(--navy);color:#fff;
+  font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:5px 13px;
+}
+.prop-body{padding:28px 28px 32px}
+.prop-price{font-family:'Playfair Display',serif;font-size:22px;color:var(--navy);margin-bottom:6px}
+.prop-name{font-size:13.5px;color:var(--text);margin-bottom:14px}
+.prop-details{display:flex;gap:18px}
+.prop-details span{font-size:12px;color:var(--muted);letter-spacing:.04em}
+.prop-link{
+  display:inline-block;margin-top:18px;font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--gold);text-decoration:none;
+  border-bottom:1px solid var(--gold);padding-bottom:2px;
+  transition:color .2s;
+}
 
 /* ABOUT */
-.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
-.about-imgs{position:relative}
-.about-main{border-radius:16px;overflow:hidden;aspect-ratio:4/5;box-shadow:var(--shadow-lg)}
-.about-main img{width:100%;height:100%;object-fit:cover}
-.about-sub{position:absolute;bottom:-30px;right:-30px;width:55%;border-radius:12px;overflow:hidden;aspect-ratio:4/3;box-shadow:var(--shadow-lg);border:6px solid var(--white)}
-.about-sub img{width:100%;height:100%;object-fit:cover}
-.about-badge{position:absolute;top:28px;right:-20px;background:var(--white);border-radius:12px;padding:16px 22px;box-shadow:var(--shadow-md);text-align:center;border-left:4px solid var(--gold)}
-.about-badge .num{font-family:'Playfair Display',serif;font-size:2.2rem;color:var(--gold-dark);line-height:1}
-.about-badge .txt{font-size:.78rem;color:var(--gray-500);margin-top:4px}
-.about-p{font-size:1rem;color:var(--gray-500);line-height:1.8;margin:18px 0 24px}
-.about-features{display:flex;flex-direction:column;gap:16px;margin-bottom:32px}
-.about-feat{display:flex;gap:14px;align-items:flex-start}
-.check-circle{width:24px;height:24px;background:var(--gold-light);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
-.check-circle svg{width:13px;height:13px;stroke:var(--gold-dark);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
-.about-feat p{font-size:.9rem;color:var(--gray-700);line-height:1.5}
-.about-feat p strong{color:var(--blue-dark)}
-
-/* WHY */
-#why{background:linear-gradient(135deg,var(--blue-dark),#0a2050);position:relative;overflow:hidden}
-#why::before{content:'';position:absolute;top:-100px;right:-100px;width:600px;height:600px;background:radial-gradient(circle,rgba(200,160,80,.06),transparent 70%)}
-#why .section-subtitle{color:rgba(255,255,255,.65)}
-#why h2{color:var(--white)}
-.why-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px 64px;margin-top:56px}
-.why-item{display:flex;gap:22px;align-items:flex-start}
-.why-num{font-family:'Playfair Display',serif;font-size:3rem;color:rgba(200,160,80,.18);line-height:1;font-weight:700;flex-shrink:0;width:48px;text-align:right}
-.why-text h3{color:var(--gold-light);font-size:1.1rem;margin-bottom:10px}
-.why-text p{color:rgba(255,255,255,.6);font-size:.9rem;line-height:1.7}
-
-/* STATS */
-#stats{background:var(--white);border-top:1px solid var(--gray-100);border-bottom:1px solid var(--gray-100);padding:70px 0}
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;text-align:center}
-.stat-item{padding:32px 24px;border-radius:var(--radius);border:1px solid var(--gray-100);transition:all var(--transition)}
-.stat-item:hover{border-color:var(--gold-light);box-shadow:var(--shadow-sm)}
-.stat-num{font-family:'Playfair Display',serif;font-size:3rem;font-weight:700;color:var(--blue-dark);line-height:1;margin-bottom:8px}
-.stat-num .suf{color:var(--gold)}
-.stat-lbl{font-size:.85rem;color:var(--gray-500);font-weight:500}
-
-/* PROCESS */
-#process{background:var(--off-white)}
-.steps-grid{display:grid;grid-template-columns:repeat(4,1fr);margin-top:56px;position:relative}
-.steps-grid::before{content:'';position:absolute;top:40px;left:14%;right:14%;height:2px;background:linear-gradient(90deg,var(--gold-light),var(--gold),var(--gold-light));z-index:0}
-.step{text-align:center;padding:0 20px;position:relative;z-index:1}
-.step-circle{width:80px;height:80px;background:var(--white);border:3px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--gold-dark);font-weight:700;box-shadow:var(--shadow-sm);transition:all var(--transition)}
-.step:hover .step-circle{background:var(--gold);color:var(--white);box-shadow:0 6px 24px rgba(200,160,80,.4)}
-.step h3{font-size:1rem;margin-bottom:10px}
-.step p{font-size:.85rem;color:var(--gray-500);line-height:1.6}
-
-/* TESTIMONIALS */
-.testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:56px}
-.testi-card{background:var(--off-white);border-radius:var(--radius);padding:32px 28px;border:1px solid var(--gray-100);transition:all var(--transition)}
-.testi-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-md);border-color:var(--gold-light)}
-.testi-quote{font-family:'Playfair Display',serif;font-size:5rem;color:var(--gold-light);line-height:.5;margin-bottom:20px;display:block}
-.testi-text{font-size:.93rem;color:var(--gray-700);line-height:1.75;margin-bottom:24px;font-style:italic}
-.testi-author{display:flex;align-items:center;gap:12px}
-.testi-avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--blue-light),var(--gold-light));display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--blue-dark);font-weight:700;flex-shrink:0}
-.testi-name{font-weight:600;font-size:.9rem;color:var(--blue-dark)}
-.testi-info{font-size:.78rem;color:var(--gray-500);margin-top:2px}
-.stars{display:flex;gap:3px;margin-bottom:16px}
-.stars svg{width:16px;height:16px;fill:var(--gold)}
+.about{background:var(--white);padding:0}
+.about-inner{display:grid;grid-template-columns:1fr 1fr;min-height:580px}
+.about-text{
+  padding:96px 80px 96px 56px;
+  display:flex;flex-direction:column;justify-content:center;
+}
+.about-text .tag{text-align:left}
+.about-text h2{font-size:clamp(26px,3vw,38px);color:var(--navy);margin-bottom:24px;line-height:1.25}
+.about-text p{font-size:14.5px;line-height:1.8;color:var(--muted);margin-bottom:14px}
+.about-text .btn-gold{align-self:flex-start;margin-top:12px}
+.about-img{overflow:hidden}
+.about-img img{width:100%;height:100%;object-fit:cover;display:block}
 
 /* CONTACT */
-.contact-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:60px;align-items:start}
-.contact-items{display:flex;flex-direction:column;gap:20px;margin-top:28px}
-.ci{display:flex;gap:16px;align-items:flex-start}
-.ci-icon{width:46px;height:46px;background:var(--blue-light);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.ci-icon svg{width:20px;height:20px;stroke:var(--blue);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.ci-lbl{font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gray-500);margin-bottom:3px}
-.ci-val{font-size:.95rem;font-weight:600;color:var(--blue-dark)}
-.cform{background:var(--white);border-radius:16px;padding:40px;box-shadow:var(--shadow-md)}
-.cform-title{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--blue-dark);margin-bottom:6px}
-.cform-sub{font-size:.87rem;color:var(--gray-500);margin-bottom:28px}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.fg{margin-bottom:18px}
-.fg label{display:block;font-size:.8rem;font-weight:600;color:var(--gray-700);margin-bottom:6px}
-.fg input,.fg select,.fg textarea{width:100%;padding:13px 16px;border:1.5px solid var(--gray-300);border-radius:8px;font-family:inherit;font-size:.9rem;color:var(--gray-700);background:var(--off-white);outline:none;transition:border-color var(--transition);resize:none;appearance:none;-webkit-appearance:none}
-.fg select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%237A839A'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;background-size:16px;padding-right:40px}
-.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--blue);background:var(--white)}
-.form-submit{width:100%;padding:15px;background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:var(--white);border-radius:8px;font-size:1rem;font-weight:700;transition:all var(--transition);box-shadow:0 4px 16px rgba(200,160,80,.4);cursor:pointer;border:none;font-family:inherit}
-.form-submit:hover{transform:translateY(-2px);box-shadow:0 8px 26px rgba(200,160,80,.5)}
+.contact{background:var(--off)}
+.contact-wrap{display:grid;grid-template-columns:1fr 1.6fr;gap:80px;max-width:960px;margin:0 auto}
+.cinfo h3{font-size:20px;color:var(--navy);margin-bottom:32px}
+.cinfo-row{margin-bottom:24px}
+.cinfo-label{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+.cinfo-val{font-size:14px;color:var(--text);line-height:1.6}
+.cform .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-group{margin-bottom:16px}
+.form-group label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:7px}
+.form-group input,.form-group textarea,.form-group select{
+  width:100%;border:1px solid var(--border);background:var(--white);
+  padding:13px 16px;font-size:13.5px;font-family:'Inter',sans-serif;
+  outline:none;transition:border-color .2s;color:var(--text);
+  -webkit-appearance:none;border-radius:0;
+}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:var(--navy)}
+.form-group textarea{height:116px;resize:vertical}
+.btn-submit{width:100%;cursor:pointer;border:none;font-family:'Inter',sans-serif}
 
 /* FOOTER */
-#footer{background:var(--dark);padding:70px 0 30px}
-.footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:48px;margin-bottom:60px}
-.footer-desc{font-size:.87rem;color:rgba(255,255,255,.45);line-height:1.75;margin:18px 0 24px}
-.footer-social{display:flex;gap:10px}
-.social-a{width:38px;height:38px;background:rgba(255,255,255,.06);border-radius:8px;display:flex;align-items:center;justify-content:center;transition:all var(--transition)}
-.social-a:hover{background:var(--gold)}
-.social-a svg{width:17px;height:17px;stroke:rgba(255,255,255,.6);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.social-a:hover svg{stroke:var(--white)}
-.footer-col h4{font-size:.8rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:20px}
-.footer-links{display:flex;flex-direction:column;gap:10px}
-.footer-links a{font-size:.87rem;color:rgba(255,255,255,.5);transition:color var(--transition)}
-.footer-links a:hover{color:var(--gold-light)}
-.fci{display:flex;gap:10px;align-items:flex-start;margin-bottom:14px}
-.fci svg{width:16px;height:16px;stroke:var(--gold);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;margin-top:2px}
-.fci span{font-size:.85rem;color:rgba(255,255,255,.5);line-height:1.5}
-.footer-bottom{border-top:1px solid rgba(255,255,255,.06);padding-top:28px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
-.footer-copy{font-size:.8rem;color:rgba(255,255,255,.3)}
-.footer-legal{display:flex;gap:24px}
-.footer-legal a{font-size:.8rem;color:rgba(255,255,255,.3);transition:color var(--transition)}
-.footer-legal a:hover{color:var(--gold-light)}
+footer{background:var(--navy);padding:64px 56px 36px}
+.footer-top{
+  display:grid;grid-template-columns:1.6fr 1fr 1fr;
+  gap:48px;padding-bottom:48px;border-bottom:1px solid rgba(255,255,255,.08);
+}
+.footer-brand h3{font-family:'Playfair Display',serif;font-size:19px;color:#fff;margin-bottom:14px}
+.footer-brand p{font-size:12.5px;color:rgba(255,255,255,.38);line-height:1.75}
+.footer-col h4{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:20px}
+.footer-col ul{list-style:none}
+.footer-col ul li{margin-bottom:10px}
+.footer-col ul li a{font-size:12.5px;color:rgba(255,255,255,.4);text-decoration:none;transition:color .2s}
+.footer-col ul li a:hover{color:rgba(255,255,255,.85)}
+.footer-bottom{
+  padding-top:28px;display:flex;
+  justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;
+}
+.footer-bottom span{font-size:11.5px;color:rgba(255,255,255,.25)}
 
-/* FLOAT */
-.wa-float{position:fixed;bottom:28px;right:28px;z-index:500;width:56px;height:56px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(37,211,102,.45);transition:all var(--transition)}
-.wa-float:hover{transform:scale(1.08)}
-.wa-float svg{width:28px;height:28px;fill:var(--white)}
-.back-top{position:fixed;bottom:96px;right:28px;z-index:500;width:44px;height:44px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-md);opacity:0;pointer-events:none;transition:all var(--transition)}
-.back-top.visible{opacity:1;pointer-events:all}
-.back-top:hover{background:var(--blue-dark);transform:translateY(-3px)}
-.back-top svg{width:18px;height:18px;stroke:var(--white);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+/* SCROLL TOP */
+.to-top{
+  position:fixed;bottom:32px;right:32px;z-index:98;
+  width:44px;height:44px;background:var(--navy);color:#fff;
+  border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .3s,background .2s;
+}
+.to-top.vis{opacity:1}
+.to-top:hover{background:var(--gold)}
 
-/* ANIMS */
-.fi{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
-.fi.vis{opacity:1;transform:translateY(0)}
-.fi-1{transition-delay:.1s}.fi-2{transition-delay:.2s}.fi-3{transition-delay:.3s}
+/* FADE */
+.fade{opacity:0;transform:translateY(22px);transition:opacity .75s ease,transform .75s ease}
+.fade.in{opacity:1;transform:none}
 
 /* RESPONSIVE */
-@media(max-width:1024px){.services-grid{grid-template-columns:repeat(2,1fr)}.prop-grid{grid-template-columns:repeat(2,1fr)}.stats-grid{grid-template-columns:repeat(2,1fr)}.footer-grid{grid-template-columns:1fr 1fr}.about-sub{display:none}.search-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:768px){.section{padding:70px 0}.nav-links,.nav-cta{display:none}.hamburger{display:flex}.hero-stats{gap:24px}.prop-grid{grid-template-columns:1fr}.about-grid{grid-template-columns:1fr}.why-grid{grid-template-columns:1fr}.steps-grid{grid-template-columns:1fr 1fr}.steps-grid::before{display:none}.testi-grid{grid-template-columns:1fr}.contact-grid{grid-template-columns:1fr}.footer-grid{grid-template-columns:1fr;gap:32px}.search-grid{grid-template-columns:1fr}.footer-bottom{flex-direction:column;align-items:flex-start}.form-row{grid-template-columns:1fr}.cform{padding:28px 22px}.prop-header{flex-direction:column;align-items:flex-start}}
-@media(max-width:480px){.hero-stats{flex-direction:column;gap:16px}.steps-grid{grid-template-columns:1fr}.stats-grid{grid-template-columns:1fr 1fr}.hero-actions{flex-direction:column}.hero-actions .btn{width:100%;justify-content:center}}
+@media(max-width:1024px){
+  nav{padding:0 32px}
+  section{padding:80px 32px}
+  .svc-grid{grid-template-columns:repeat(2,1fr)}
+  .props-grid{grid-template-columns:repeat(2,1fr)}
+  .about-text{padding:72px 48px}
+  .contact-wrap{grid-template-columns:1fr;gap:48px}
+  .footer-top{grid-template-columns:1fr 1fr}
+}
+@media(max-width:768px){
+  nav{padding:0 20px}
+  .nav-links{display:none}
+  .nav-hamburger{display:flex}
+  section{padding:64px 20px}
+  .hero h1{font-size:36px}
+  .svc-grid{grid-template-columns:1fr}
+  .props-grid{grid-template-columns:1fr}
+  .about-inner{grid-template-columns:1fr}
+  .about-img{height:280px}
+  .about-text{padding:52px 20px}
+  .strip{flex-wrap:wrap}
+  .strip-item{min-width:50%;border-bottom:1px solid rgba(255,255,255,.08)}
+  .cform .form-row{grid-template-columns:1fr}
+  .footer-top{grid-template-columns:1fr}
+  .footer-bottom{flex-direction:column;text-align:center}
+}
 </style>
 </head>
 <body>
 
-<nav id="navbar">
-  <div class="container">
-    <div class="nav-inner">
-      <a href="#hero" class="logo">
-        <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V21H15v-6H9v6H3V9.5z"/></svg></div>
-        <div><div class="logo-name">Shinwari</div><div class="logo-tag">Immobilien</div></div>
-      </a>
-      <nav class="nav-links">
-        <a href="#services">Leistungen</a><a href="#properties">Objekte</a><a href="#about">&#220;ber uns</a><a href="#process">Ablauf</a><a href="#contact">Kontakt</a>
-      </nav>
-      <div class="nav-cta">
-        <a href="tel:+49000000000" class="nav-phone">
-          <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.1 10.82a19.79 19.79 0 01-3.07-8.67A2 2 0 012 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14.92z"/></svg>
-          Jetzt anrufen
-        </a>
-        <a href="#contact" class="btn btn-primary" style="padding:10px 22px;font-size:.85rem;">Kostenlose Beratung</a>
-      </div>
-      <button class="hamburger" id="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
-    </div>
+<nav id="nav">
+  <a href="#" class="nav-logo">Shinwari Immobilien</a>
+  <ul class="nav-links">
+    <li><a href="#leistungen">Leistungen</a></li>
+    <li><a href="#objekte">Objekte</a></li>
+    <li><a href="#ueber-uns">Über uns</a></li>
+    <li><a href="#kontakt" class="nav-cta">Kontakt</a></li>
+  </ul>
+  <div class="nav-hamburger" id="hamburger" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
   </div>
 </nav>
 
 <div class="mobile-nav" id="mobileNav">
-  <button class="mobile-close-btn" id="mobileClose">&#10005;</button>
-  <a href="#services" onclick="closeMobile()">Leistungen</a>
-  <a href="#properties" onclick="closeMobile()">Objekte</a>
-  <a href="#about" onclick="closeMobile()">&#220;ber uns</a>
-  <a href="#process" onclick="closeMobile()">Ablauf</a>
-  <a href="#contact" onclick="closeMobile()">Kontakt</a>
-  <a href="tel:+49000000000" class="btn btn-primary" style="margin-top:10px;">Jetzt anrufen</a>
+  <span class="mobile-close" onclick="toggleMenu()">&#215;</span>
+  <a href="#leistungen" onclick="toggleMenu()">Leistungen</a>
+  <a href="#objekte" onclick="toggleMenu()">Objekte</a>
+  <a href="#ueber-uns" onclick="toggleMenu()">Über uns</a>
+  <a href="#kontakt" onclick="toggleMenu()">Kontakt</a>
 </div>
 
-<section id="hero">
-  <div class="hero-bg" id="heroBg"></div>
-  <div class="hero-overlay"></div>
-  <div class="container">
-    <div class="hero-content">
-      <div class="hero-badge"><span class="hero-dot"></span><span>Ihr vertrauensvoller Immobilienpartner</span></div>
-      <h1 class="hero-title">Ihr Traum vom<br><span class="accent">Eigentum</span> &#8211;<br>Wir machen ihn wahr.</h1>
-      <p class="hero-text">Shinwari Immobilien steht f&#252;r kompetente, pers&#246;nliche Beratung beim Kauf, Verkauf und der Vermietung von Immobilien. Profitieren Sie von unserer Marktkenntnis und Leidenschaft.</p>
-      <div class="hero-actions">
-        <a href="#properties" class="btn btn-primary">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-          Immobilien entdecken
-        </a>
-        <a href="#contact" class="btn btn-outline">Kostenlose Bewertung</a>
-      </div>
-      <div class="hero-stats">
-        <div><div class="hero-stat-num">15+</div><div class="hero-stat-label">Jahre Erfahrung</div></div>
-        <div><div class="hero-stat-num">500+</div><div class="hero-stat-label">Objekte vermittelt</div></div>
-        <div><div class="hero-stat-num">98%</div><div class="hero-stat-label">Kundenzufriedenheit</div></div>
-      </div>
-    </div>
-  </div>
-  <div class="scroll-hint"><div class="scroll-wheel"></div>Scrollen</div>
-</section>
-
-<div class="container">
-  <div id="searchbar" class="fi">
-    <div class="search-label">Immobilie finden</div>
-    <div class="search-grid">
-      <div class="sf"><label>Art der Immobilie</label><select><option value="">Alle Typen</option><option>Wohnung</option><option>Haus</option><option>Grundst&#252;ck</option><option>Gewerbe</option></select></div>
-      <div class="sf"><label>Kaufen oder Mieten?</label><select><option>Kaufen</option><option>Mieten</option></select></div>
-      <div class="sf"><label>Ort / Region</label><input type="text" placeholder="Stadt oder PLZ eingeben"></div>
-      <button class="search-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Suchen</button>
+<div class="hero" id="home">
+  <div class="hero-inner">
+    <p class="hero-eyebrow">Shinwari Immobilien &mdash; München</p>
+    <h1>Ihr Zuhause.<br><em>Unsere Leidenschaft.</em></h1>
+    <p class="hero-sub">Persönliche Beratung &middot; Tiefes Marktverständnis &middot; Ergebnisse die überzeugen</p>
+    <div class="hero-btns">
+      <a href="#objekte" class="btn-gold">Aktuelle Objekte</a>
+      <a href="#kontakt" class="btn-ghost">Beratungsgespräch</a>
     </div>
   </div>
 </div>
 
-<section id="services" class="section">
-  <div class="container">
-    <div style="text-align:center;max-width:560px;margin:0 auto;">
-      <span class="section-label">Was wir f&#252;r Sie tun</span>
-      <span class="gold-line" style="margin:0 auto 24px;"></span>
-      <h2 class="fi">Unsere Leistungen</h2>
-      <p class="section-subtitle fi fi-1" style="margin:0 auto;">Vom ersten Gespr&#228;ch bis zur Schl&#252;ssel&#252;bergabe begleiten wir Sie durch jeden Schritt.</p>
+<div class="strip">
+  <div class="strip-item">
+    <div class="strip-num">200+</div>
+    <div class="strip-label">Vermittelte Objekte</div>
+  </div>
+  <div class="strip-item">
+    <div class="strip-num">15</div>
+    <div class="strip-label">Jahre Erfahrung</div>
+  </div>
+  <div class="strip-item">
+    <div class="strip-num">98 %</div>
+    <div class="strip-label">Zufriedene Kunden</div>
+  </div>
+  <div class="strip-item">
+    <div class="strip-num">Kostenlos</div>
+    <div class="strip-label">Erstberatung</div>
+  </div>
+</div>
+
+<section class="services" id="leistungen">
+  <div class="section-header fade">
+    <p class="tag">Leistungen</p>
+    <h2 class="section-title">Was wir für Sie tun</h2>
+    <div class="gold-rule"></div>
+  </div>
+  <div class="svc-grid">
+    <div class="svc-card fade">
+      <svg class="svc-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>
+      <h3>Immobilienverkauf</h3>
+      <p>Wir vermarkten Ihre Immobilie professionell und erzielen den bestmöglichen Preis — diskret und zuverlässig.</p>
     </div>
-    <div class="services-grid">
-      <div class="svc-card fi"><div class="svc-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><h3>Immobilienkauf</h3><p>Wir finden die Immobilie, die zu Ihnen passt &#8211; mit fundierter Marktkenntnis und pers&#246;nlicher Begleitung bis zur &#220;bergabe.</p></div>
-      <div class="svc-card fi fi-1"><div class="svc-icon"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><h3>Immobilienverkauf</h3><p>Wir vermarkten Ihre Immobilie professionell, erzielen den bestm&#246;glichen Preis und k&#252;mmern uns um den gesamten Prozess.</p></div>
-      <div class="svc-card fi fi-2"><div class="svc-icon"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div><h3>Vermietung</h3><p>Ob als Eigent&#252;mer oder Mieter &#8211; wir vermitteln zuverl&#228;ssig und sorgen f&#252;r reibungslose Abwicklung.</p></div>
-      <div class="svc-card fi fi-3"><div class="svc-icon"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div><h3>Marktwertermittlung</h3><p>Wir bewerten Ihre Immobilie kostenlos und realistisch auf Basis aktueller Marktdaten.</p></div>
+    <div class="svc-card fade">
+      <svg class="svc-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0015.803 15.803z"/></svg>
+      <h3>Immobiliensuche</h3>
+      <p>Schildern Sie uns Ihre Wünsche — wir finden das passende Objekt, auch abseits des öffentlichen Marktes.</p>
+    </div>
+    <div class="svc-card fade">
+      <svg class="svc-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>
+      <h3>Marktwertanalyse</h3>
+      <p>Eine fundierte, kostenlose Bewertung Ihrer Immobilie — transparent, nachvollziehbar und unverbindlich.</p>
+    </div>
+    <div class="svc-card fade">
+      <svg class="svc-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+      <h3>Persönliche Begleitung</h3>
+      <p>Vom ersten Gespräch bis zum Notartermin — wir sind an Ihrer Seite und begleiten jeden Schritt.</p>
     </div>
   </div>
 </section>
 
-<section id="properties" class="section" style="background:var(--off-white);">
-  <div class="container">
-    <div class="prop-header">
-      <div>
-        <span class="section-label">Aktuelle Angebote</span>
-        <span class="gold-line"></span>
-        <h2 class="fi">Ausgew&#228;hlte Objekte</h2>
-        <p class="section-subtitle fi">Sorgf&#228;ltig ausgew&#228;hlt f&#252;r h&#246;chste Anspr&#252;che.</p>
-      </div>
-      <a href="#contact" class="btn btn-blue fi" style="flex-shrink:0;">Alle Objekte anfragen</a>
-    </div>
-    <div class="prop-grid">
-      <div class="prop-card fi">
-        <div class="prop-img"><img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&auto=format&fit=crop&q=80" alt="Einfamilienhaus" loading="lazy"><span class="prop-badge" style="background:#16A34A;">Neu</span><div class="prop-fav"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div></div>
-        <div class="prop-body"><div class="prop-price">&#8364; 485.000 <span>Kaufpreis</span></div><div class="prop-title">Modernes Einfamilienhaus mit Garten</div><div class="prop-loc"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>M&#252;nchen, Gr&#252;nwald</div><div class="prop-specs"><div class="prop-spec"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>150 m&#178;</div><div class="prop-spec"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>5 Zimmer</div><div class="prop-spec"><svg viewBox="0 0 24 24"><path d="M3 22V8a2 2 0 012-2h6a2 2 0 012 2v14M3 22h12M13 8V6a2 2 0 012-2h4a2 2 0 012 2v16"/></svg>2 B&#228;der</div></div></div>
-      </div>
-      <div class="prop-card fi fi-1">
-        <div class="prop-img"><img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&auto=format&fit=crop&q=80" alt="Villa" loading="lazy"><span class="prop-badge">Premium</span><div class="prop-fav"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div></div>
-        <div class="prop-body"><div class="prop-price">&#8364; 1.250.000 <span>Kaufpreis</span></div><div class="prop-title">Exklusive Villa mit Pool und Panoramablick</div><div class="prop-loc"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>M&#252;nchen, Bogenhausen</div><div class="prop-specs"><div class="prop-spec"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>320 m&#178;</div><div class="prop-spec"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>7 Zimmer</div><div class="prop-spec"><svg viewBox="0 0 24 24"><path d="M3 22V8a2 2 0 012-2h6a2 2 0 012 2v14M3 22h12M13 8V6a2 2 0 012-2h4a2 2 0 012 2v16"/></svg>3 B&#228;der</div></div></div>
-      </div>
-      <div class="prop-card fi fi-2">
-        <div class="prop-img"><img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&auto=format&fit=crop&q=80" alt="Wohnung" loading="lazy"><span class="prop-badge" style="background:var(--gold-dark);">Zu vermieten</span><div class="prop-fav"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div></div>
-        <div class="prop-body"><div class="prop-price">&#8364; 1.850 <span>/ Monat</span></div><div class="prop-title">Helle 3-Zimmer-Wohnung mit Balkon</div><div class="prop-loc"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>M&#252;nchen, Schwabing</div><div class="prop-specs"><div class="prop-spec"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>82 m&#178;</div><div class="prop-spec"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>3 Zimmer</div><div class="prop-spec"><svg viewBox="0 0 24 24"><path d="M3 22V8a2 2 0 012-2h6a2 2 0 012 2v14M3 22h12M13 8V6a2 2 0 012-2h4a2 2 0 012 2v16"/></svg>1 Bad</div></div></div>
-      </div>
-    </div>
+<section class="properties" id="objekte">
+  <div class="section-header fade">
+    <p class="tag">Aktuelle Objekte</p>
+    <h2 class="section-title">Ausgewählte Immobilien</h2>
+    <div class="gold-rule"></div>
   </div>
-</section>
-
-<section id="about" class="section">
-  <div class="container">
-    <div class="about-grid">
-      <div class="about-imgs fi">
-        <div class="about-main"><img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=900&auto=format&fit=crop&q=80" alt="Team" loading="lazy"></div>
-        <div class="about-sub"><img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&auto=format&fit=crop&q=80" alt="Beratung" loading="lazy"></div>
-        <div class="about-badge"><div class="num">15+</div><div class="txt">Jahre<br>Erfahrung</div></div>
+  <div class="props-grid">
+    <div class="prop fade">
+      <div class="prop-img">
+        <img src="https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=800&auto=format&fit=crop&q=80" alt="Einfamilienhaus" loading="lazy">
+        <span class="prop-badge">Verkauf</span>
       </div>
-      <div>
-        <span class="section-label">Wer wir sind</span>
-        <span class="gold-line"></span>
-        <h2 class="fi">Pers&#246;nlich. Kompetent.<br>Zuverl&#228;ssig.</h2>
-        <p class="about-p fi">Shinwari Immobilien steht seit &#252;ber 15 Jahren f&#252;r ehrliche, kompetente und pers&#246;nliche Immobilienberatung. Was uns antreibt: die &#220;berzeugung, dass jeder Mensch das richtige Zuhause verdient &#8211; und jeder Eigent&#252;mer den fairen Preis f&#252;r sein Objekt.</p>
-        <p class="about-p fi" style="margin-top:-8px;">Unser Team verbindet tief verwurzelte Marktkenntnisse mit modernsten Vermarktungsmethoden. Wir sind nicht nur Makler &#8211; wir sind Ihr Partner auf dem gesamten Weg.</p>
-        <div class="about-features fi">
-          <div class="about-feat"><div class="check-circle"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><p><strong>Lokale Marktkenntnis</strong> &#8211; Jahrelange Erfahrung in der Region, jeder Stadtteil bekannt.</p></div>
-          <div class="about-feat"><div class="check-circle"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><p><strong>Professionelle Vermarktung</strong> &#8211; Hochwertige Fotos, 3D-Grundrisse und gezielte Online-Pr&#228;senz.</p></div>
-          <div class="about-feat"><div class="check-circle"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><p><strong>Pers&#246;nliche Betreuung</strong> &#8211; Fester Ansprechpartner von der Anfrage bis zum Notartermin.</p></div>
-          <div class="about-feat"><div class="check-circle"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><p><strong>Transparente Kommunikation</strong> &#8211; Keine versteckten Kosten. Nur ehrliche Beratung.</p></div>
+      <div class="prop-body">
+        <div class="prop-price">895.000 &#8364;</div>
+        <div class="prop-name">Modernes Einfamilienhaus &middot; Bogenhausen</div>
+        <div class="prop-details">
+          <span>180 m&#178;</span>
+          <span>5 Zimmer</span>
+          <span>Garten</span>
         </div>
-        <a href="#contact" class="btn btn-primary fi">Uns kennenlernen</a>
+        <a href="#kontakt" class="prop-link">Anfrage stellen</a>
       </div>
     </div>
-  </div>
-</section>
-
-<section id="stats">
-  <div class="container">
-    <div class="stats-grid">
-      <div class="stat-item fi"><div class="stat-num"><span class="counter" data-target="15">0</span><span class="suf">+</span></div><div class="stat-lbl">Jahre Markterfahrung</div></div>
-      <div class="stat-item fi fi-1"><div class="stat-num"><span class="counter" data-target="500">0</span><span class="suf">+</span></div><div class="stat-lbl">Erfolgreich vermittelte Objekte</div></div>
-      <div class="stat-item fi fi-2"><div class="stat-num"><span class="counter" data-target="98">0</span><span class="suf">%</span></div><div class="stat-lbl">Zufriedene Kunden</div></div>
-      <div class="stat-item fi fi-3"><div class="stat-num"><span class="counter" data-target="120">0</span><span class="suf">+</span></div><div class="stat-lbl">Aktive Kaufinteressenten</div></div>
-    </div>
-  </div>
-</section>
-
-<section id="why" class="section">
-  <div class="container">
-    <div style="max-width:560px;">
-      <span class="section-label">Ihre Vorteile</span>
-      <span class="gold-line"></span>
-      <h2 class="fi">Warum Shinwari Immobilien?</h2>
-      <p class="section-subtitle fi">Wir liefern nicht nur Ergebnisse &#8211; wir sorgen daf&#252;r, dass der Weg dorthin so angenehm wie m&#246;glich ist.</p>
-    </div>
-    <div class="why-grid">
-      <div class="why-item fi"><div class="why-num">01</div><div class="why-text"><h3>Kostenlose Immobilienbewertung</h3><p>Wir ermitteln den realistischen Marktwert Ihrer Immobilie &#8211; schnell, professionell und v&#246;llig kostenfrei.</p></div></div>
-      <div class="why-item fi fi-1"><div class="why-num">02</div><div class="why-text"><h3>Exklusives K&#228;ufernetzwerk</h3><p>&#220;ber 120 vorgemerkte Kaufinteressenten erm&#246;glichen oft einen Verkauf noch vor dem &#246;ffentlichen Angebot.</p></div></div>
-      <div class="why-item fi fi-2"><div class="why-num">03</div><div class="why-text"><h3>Professionelle Fotografie &amp; Expos&#233;</h3><p>Hochwertige Fotos, ansprechende Expos&#233;s und optionale 3D-Rundg&#228;nge f&#252;r maximale Aufmerksamkeit.</p></div></div>
-      <div class="why-item fi fi-3"><div class="why-num">04</div><div class="why-text"><h3>Volle Begleitung bis zur &#220;bergabe</h3><p>Von der Preisfindung &#252;ber Besichtigungen und Notartermin bis zur finalen Schl&#252;ssel&#252;bergabe.</p></div></div>
-    </div>
-  </div>
-</section>
-
-<section id="process" class="section">
-  <div class="container">
-    <div style="text-align:center;max-width:560px;margin:0 auto;">
-      <span class="section-label">So funktioniert es</span>
-      <span class="gold-line" style="margin:0 auto 24px;"></span>
-      <h2 class="fi">Ihr Weg zur Immobilie</h2>
-      <p class="section-subtitle fi" style="margin:0 auto;">Transparent, einfach und ohne Stress &#8211; mit Shinwari Immobilien an Ihrer Seite.</p>
-    </div>
-    <div class="steps-grid">
-      <div class="step fi"><div class="step-circle">1</div><h3>Erstgespr&#228;ch</h3><p>Kostenloses, unverbindliches Beratungsgespr&#228;ch &#8211; pers&#246;nlich oder telefonisch.</p></div>
-      <div class="step fi fi-1"><div class="step-circle">2</div><h3>Analyse &amp; Strategie</h3><p>Marktwertermittlung und Entwicklung der optimalen Strategie f&#252;r Ihr Ziel.</p></div>
-      <div class="step fi fi-2"><div class="step-circle">3</div><h3>Vermarktung &amp; Besichtigung</h3><p>Professionelle Fotos, Expos&#233; und alle Besichtigungstermine aus einer Hand.</p></div>
-      <div class="step fi fi-3"><div class="step-circle">4</div><h3>Abschluss &amp; &#220;bergabe</h3><p>Vertragsverhandlung, Notartermin und pers&#246;nliche Schl&#252;ssel&#252;bergabe.</p></div>
-    </div>
-  </div>
-</section>
-
-<section id="testimonials" class="section" style="background:var(--off-white);">
-  <div class="container">
-    <div style="text-align:center;max-width:560px;margin:0 auto;">
-      <span class="section-label">Das sagen unsere Kunden</span>
-      <span class="gold-line" style="margin:0 auto 24px;"></span>
-      <h2 class="fi">Zufriedene Kunden,<br>echte Erfahrungen</h2>
-    </div>
-    <div class="testi-grid">
-      <div class="testi-card fi">
-        <span class="testi-quote">&#8220;</span>
-        <div class="stars"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
-        <p class="testi-text">&#8222;Shinwari Immobilien hat unser Haus innerhalb von 3 Wochen zum gew&#252;nschten Preis verkauft. Die Betreuung war von Anfang bis Ende professionell und pers&#246;nlich.&#8220;</p>
-        <div class="testi-author"><div class="testi-avatar">MK</div><div><div class="testi-name">Maria &amp; Klaus H.</div><div class="testi-info">Verk&#228;ufer &middot; M&#252;nchen</div></div></div>
+    <div class="prop fade">
+      <div class="prop-img">
+        <img src="https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800&auto=format&fit=crop&q=80" alt="Villa" loading="lazy">
+        <span class="prop-badge">Exklusiv</span>
       </div>
-      <div class="testi-card fi fi-1">
-        <span class="testi-quote">&#8220;</span>
-        <div class="stars"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
-        <p class="testi-text">&#8222;Als Erstk&#228;ufer war ich v&#246;llig unsicher. Das Team von Shinwari hat mich bei jedem Schritt begleitet und beraten. Ohne sie h&#228;tte ich nie meine Traumwohnung gefunden!&#8220;</p>
-        <div class="testi-author"><div class="testi-avatar">TA</div><div><div class="testi-name">Thomas A.</div><div class="testi-info">K&#228;ufer &middot; Schwabing</div></div></div>
-      </div>
-      <div class="testi-card fi fi-2">
-        <span class="testi-quote">&#8220;</span>
-        <div class="stars"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
-        <p class="testi-text">&#8222;Die Zusammenarbeit war absolut reibungslos. Innerhalb k&#252;rzester Zeit war ein seri&#246;ser Mieter gefunden, alle Unterlagen professionell abgewickelt. Immer wieder gerne!&#8220;</p>
-        <div class="testi-author"><div class="testi-avatar">SB</div><div><div class="testi-name">Sandra B.</div><div class="testi-info">Vermieterin &middot; Maxvorstadt</div></div></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="contact" class="section">
-  <div class="container">
-    <div class="contact-grid">
-      <div>
-        <span class="section-label">Kontakt aufnehmen</span>
-        <span class="gold-line"></span>
-        <h2 class="fi" style="margin-bottom:16px;">Sprechen wir &#252;ber<br>Ihre Immobilie.</h2>
-        <p class="about-p fi">Wir sind f&#252;r Sie da &#8211; f&#252;r eine kostenlose Erstberatung, eine Marktwertermittlung oder einfach ein unverbindliches Gespr&#228;ch.</p>
-        <div class="contact-items">
-          <div class="ci fi"><div class="ci-icon"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.1 10.82a19.79 19.79 0 01-3.07-8.67A2 2 0 012 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14.92z"/></svg></div><div><div class="ci-lbl">Telefon</div><div class="ci-val">+49 (0) 000 000 000</div></div></div>
-          <div class="ci fi fi-1"><div class="ci-icon"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div><div><div class="ci-lbl">E-Mail</div><div class="ci-val">info@shinwari-immobilien.de</div></div></div>
-          <div class="ci fi fi-2"><div class="ci-icon"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div><div><div class="ci-lbl">Adresse</div><div class="ci-val">Musterstra&#223;e 1, 80333 M&#252;nchen</div></div></div>
-          <div class="ci fi fi-3"><div class="ci-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div><div class="ci-lbl">&#214;ffnungszeiten</div><div class="ci-val">Mo&#8211;Fr: 9&#8211;18 Uhr &middot; Sa: 10&#8211;14 Uhr</div></div></div>
+      <div class="prop-body">
+        <div class="prop-price">2.450.000 &#8364;</div>
+        <div class="prop-name">Architektenvilla &middot; Gr&#252;nwald</div>
+        <div class="prop-details">
+          <span>380 m&#178;</span>
+          <span>7 Zimmer</span>
+          <span>Pool</span>
         </div>
+        <a href="#kontakt" class="prop-link">Anfrage stellen</a>
       </div>
-      <div class="cform fi">
-        <div class="cform-title">Kostenlose Beratung anfragen</div>
-        <div class="cform-sub">Wir melden uns innerhalb von 24 Stunden bei Ihnen zur&#252;ck.</div>
-        <form onsubmit="handleSubmit(event)">
-          <div class="form-row"><div class="fg"><label>Vorname</label><input type="text" placeholder="Max" required></div><div class="fg"><label>Nachname</label><input type="text" placeholder="Mustermann" required></div></div>
-          <div class="form-row"><div class="fg"><label>E-Mail</label><input type="email" placeholder="max@beispiel.de" required></div><div class="fg"><label>Telefon</label><input type="tel" placeholder="+49 ..."></div></div>
-          <div class="fg"><label>Ich interessiere mich f&#252;r</label><select><option value="">Bitte w&#228;hlen...</option><option>Immobilie kaufen</option><option>Immobilie verkaufen</option><option>Immobilie vermieten</option><option>Wohnung mieten</option><option>Kostenlose Bewertung</option><option>Allgemeine Beratung</option></select></div>
-          <div class="fg"><label>Ihre Nachricht</label><textarea rows="4" placeholder="Beschreiben Sie kurz Ihr Anliegen..."></textarea></div>
-          <button type="submit" class="form-submit" id="submitBtn">Anfrage absenden</button>
-        </form>
+    </div>
+    <div class="prop fade">
+      <div class="prop-img">
+        <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&auto=format&fit=crop&q=80" alt="Penthouse" loading="lazy">
+        <span class="prop-badge">Neu</span>
+      </div>
+      <div class="prop-body">
+        <div class="prop-price">1.290.000 &#8364;</div>
+        <div class="prop-name">Penthouse mit Dachterrasse &middot; Maxvorstadt</div>
+        <div class="prop-details">
+          <span>145 m&#178;</span>
+          <span>4 Zimmer</span>
+          <span>Terrasse</span>
+        </div>
+        <a href="#kontakt" class="prop-link">Anfrage stellen</a>
       </div>
     </div>
   </div>
 </section>
 
-<footer id="footer">
-  <div class="container">
-    <div class="footer-grid">
-      <div>
-        <a href="#hero" class="logo" style="display:inline-flex;">
-          <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V21H15v-6H9v6H3V9.5z"/></svg></div>
-          <div><div class="logo-name" style="color:var(--white);">Shinwari</div><div class="logo-tag" style="color:var(--gold-light);">Immobilien</div></div>
-        </a>
-        <p class="footer-desc">Ihr pers&#246;nlicher Immobilienexperte. Wir begleiten Sie beim Kaufen, Verkaufen und Vermieten &#8211; professionell, ehrlich und leidenschaftlich.</p>
-        <div class="footer-social">
-          <a href="#" class="social-a" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
-          <a href="#" class="social-a" aria-label="Instagram"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-          <a href="#" class="social-a" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
+<section class="about" id="ueber-uns">
+  <div class="about-inner">
+    <div class="about-text fade">
+      <p class="tag">&#220;ber uns</p>
+      <h2>Vertrauen, das auf Erfahrung basiert</h2>
+      <p>Shinwari Immobilien steht f&#252;r pers&#246;nliche Betreuung, tiefes Marktverst&#228;ndnis und ein Netzwerk, das T&#252;ren &#246;ffnet. Seit &#252;ber 15 Jahren vermitteln wir Immobilien in M&#252;nchen und dem M&#252;nchner Umland.</p>
+      <p>Jede Immobilie erz&#228;hlt eine Geschichte. Wir sorgen daf&#252;r, dass Ihre Geschichte das richtige Ende findet &#8212; ob Sie kaufen, verkaufen oder bewerten lassen m&#246;chten.</p>
+      <a href="#kontakt" class="btn-gold">Gespr&#228;ch vereinbaren</a>
+    </div>
+    <div class="about-img">
+      <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=900&auto=format&fit=crop&q=85" alt="B&#252;ro Shinwari Immobilien" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<section class="contact" id="kontakt">
+  <div class="section-header fade">
+    <p class="tag">Kontakt</p>
+    <h2 class="section-title">Sprechen wir miteinander</h2>
+    <div class="gold-rule"></div>
+  </div>
+  <div class="contact-wrap fade">
+    <div class="cinfo">
+      <h3>Wir sind f&#252;r Sie da</h3>
+      <div class="cinfo-row">
+        <div class="cinfo-label">Adresse</div>
+        <div class="cinfo-val">Musterstra&#223;e 1<br>80333 M&#252;nchen</div>
+      </div>
+      <div class="cinfo-row">
+        <div class="cinfo-label">Telefon</div>
+        <div class="cinfo-val">+49 (0) 000 000 000</div>
+      </div>
+      <div class="cinfo-row">
+        <div class="cinfo-label">E-Mail</div>
+        <div class="cinfo-val">info@shinwari-immobilien.de</div>
+      </div>
+      <div class="cinfo-row">
+        <div class="cinfo-label">&#214;ffnungszeiten</div>
+        <div class="cinfo-val">Mo &#8211; Fr: 9:00 &#8211; 18:00 Uhr</div>
+      </div>
+    </div>
+    <div class="cform">
+      <form id="cf">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fn">Name</label>
+            <input type="text" id="fn" placeholder="Ihr vollst&#228;ndiger Name">
+          </div>
+          <div class="form-group">
+            <label for="fe">E-Mail</label>
+            <input type="email" id="fe" placeholder="ihre@email.de">
+          </div>
         </div>
-      </div>
-      <div class="footer-col">
-        <h4>Navigation</h4>
-        <div class="footer-links"><a href="#services">Leistungen</a><a href="#properties">Aktuelle Objekte</a><a href="#about">&#220;ber uns</a><a href="#process">Unser Ablauf</a><a href="#testimonials">Referenzen</a><a href="#contact">Kontakt</a></div>
-      </div>
-      <div class="footer-col">
-        <h4>Leistungen</h4>
-        <div class="footer-links"><a href="#services">Immobilienkauf</a><a href="#services">Immobilienverkauf</a><a href="#services">Vermietung</a><a href="#services">Marktwertermittlung</a><a href="#services">Beratung</a></div>
-      </div>
-      <div class="footer-col">
-        <h4>Kontakt</h4>
-        <div class="fci"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Musterstra&#223;e 1<br>80333 M&#252;nchen</span></div>
-        <div class="fci"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.1 10.82a19.79 19.79 0 01-3.07-8.67A2 2 0 012 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14.92z"/></svg><span>+49 (0) 000 000 000</span></div>
-        <div class="fci"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><span>info@shinwari-immobilien.de</span></div>
+        <div class="form-group">
+          <label for="fs">Anliegen</label>
+          <select id="fs">
+            <option value="">Bitte w&#228;hlen &#8230;</option>
+            <option>Immobilie verkaufen</option>
+            <option>Immobilie kaufen</option>
+            <option>Bewertung anfragen</option>
+            <option>Allgemeine Anfrage</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="fm">Nachricht</label>
+          <textarea id="fm" placeholder="Ihre Nachricht an uns &#8230;"></textarea>
+        </div>
+        <button type="submit" class="btn-gold btn-submit">Nachricht senden</button>
+      </form>
+      <div id="cf-ok" style="display:none;text-align:center;padding:52px 0">
+        <p style="font-family:'Playfair Display',serif;font-size:24px;color:var(--navy);margin-bottom:10px">Vielen Dank.</p>
+        <p style="font-size:14px;color:var(--muted)">Wir melden uns innerhalb von 24 Stunden bei Ihnen.</p>
       </div>
     </div>
-    <div class="footer-bottom">
-      <p class="footer-copy">&#169; 2026 Shinwari Immobilien. Alle Rechte vorbehalten.</p>
-      <div class="footer-legal"><a href="#">Impressum</a><a href="#">Datenschutz</a><a href="#">AGB</a></div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <h3>Shinwari Immobilien</h3>
+      <p>Ihr pers&#246;nlicher Immobilienmakler in M&#252;nchen und Umgebung. Vertrauen, Erfahrung, Ergebnis.</p>
     </div>
+    <div class="footer-col">
+      <h4>Navigation</h4>
+      <ul>
+        <li><a href="#leistungen">Leistungen</a></li>
+        <li><a href="#objekte">Objekte</a></li>
+        <li><a href="#ueber-uns">&#220;ber uns</a></li>
+        <li><a href="#kontakt">Kontakt</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Rechtliches</h4>
+      <ul>
+        <li><a href="#">Impressum</a></li>
+        <li><a href="#">Datenschutz</a></li>
+        <li><a href="#">AGB</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>&#169; 2024 Shinwari Immobilien. Alle Rechte vorbehalten.</span>
+    <span>M&#252;nchen &middot; Gr&#252;nwald &middot; Umgebung</span>
   </div>
 </footer>
 
-<a href="https://wa.me/49000000000" class="wa-float" target="_blank" rel="noopener" aria-label="WhatsApp">
-  <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-</a>
-<button class="back-top" id="backTop" aria-label="Nach oben"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg></button>
+<button class="to-top" id="toTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5"/></svg>
+</button>
 
 <script>
-const nb=document.getElementById('navbar');
-let ticking=false;
-window.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(()=>{const s=window.scrollY;nb.classList.toggle('scrolled',s>60);document.getElementById('backTop').classList.toggle('visible',s>400);ticking=false;});ticking=true;}});
-window.addEventListener('load',()=>{setTimeout(()=>document.getElementById('heroBg').classList.add('loaded'),100);});
-document.getElementById('hamburger').addEventListener('click',()=>{document.getElementById('mobileNav').classList.add('open');document.body.style.overflow='hidden';});
-document.getElementById('mobileClose').addEventListener('click',closeMobile);
-function closeMobile(){document.getElementById('mobileNav').classList.remove('open');document.body.style.overflow='';}
-document.getElementById('backTop').addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
-const io=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('vis');io.unobserve(x.target);}});},{threshold:.12,rootMargin:'0px 0px -40px 0px'});
-document.querySelectorAll('.fi').forEach(el=>io.observe(el));
-function animateCounter(el){const t=parseInt(el.getAttribute('data-target'));const s=performance.now();function u(n){const p=Math.min((n-s)/1800,1);el.textContent=Math.floor((1-Math.pow(1-p,3))*t);if(p<1)requestAnimationFrame(u);else el.textContent=t;}requestAnimationFrame(u);}
-const cio=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){animateCounter(x.target);cio.unobserve(x.target);}});},{threshold:.5});
-document.querySelectorAll('.counter').forEach(el=>cio.observe(el));
-function handleSubmit(e){e.preventDefault();const btn=document.getElementById('submitBtn');btn.textContent='Wird gesendet...';btn.disabled=true;setTimeout(()=>{btn.innerHTML='&#10003; Erfolgreich gesendet!';btn.style.background='linear-gradient(135deg,#16A34A,#15803D)';setTimeout(()=>{btn.textContent='Anfrage absenden';btn.style.background='';btn.disabled=false;e.target.reset();},3500);},1200);}
-document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',function(e){const t=document.querySelector(this.getAttribute('href'));if(t){e.preventDefault();window.scrollTo({top:t.getBoundingClientRect().top+window.scrollY-88,behavior:'smooth'});}});});
+const nav=document.getElementById('nav');
+const tt=document.getElementById('toTop');
+window.addEventListener('scroll',()=>{
+  nav.classList.toggle('s',window.scrollY>60);
+  tt.classList.toggle('vis',window.scrollY>500);
+});
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');obs.unobserve(e.target);}});
+},{threshold:0.12});
+document.querySelectorAll('.fade').forEach(el=>obs.observe(el));
+document.getElementById('cf').addEventListener('submit',e=>{
+  e.preventDefault();
+  document.getElementById('cf').style.display='none';
+  document.getElementById('cf-ok').style.display='block';
+});
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    const t=document.querySelector(a.getAttribute('href'));
+    if(t){e.preventDefault();const off=76;const y=t.getBoundingClientRect().top+window.scrollY-off;window.scrollTo({top:y,behavior:'smooth'});}
+  });
+});
+function toggleMenu(){document.getElementById('mobileNav').classList.toggle('open');}
 </script>
 </body>
 </html>
