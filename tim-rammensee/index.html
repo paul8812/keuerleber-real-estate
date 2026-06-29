@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Tim Rammensee — Fotograf. Authentische Porträt-, Hochzeits- und Naturfotografie mit Gespür für Licht, Stimmung und den richtigen Moment.">
+<meta name="author" content="Tim Rammensee">
+<meta property="og:title" content="Tim Rammensee — Fotograf">
+<meta property="og:description" content="Authentische Fotografie mit Gespür für den richtigen Moment.">
+<meta property="og:type" content="website">
+<title>Tim Rammensee — Fotograf</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23111'/%3E%3Ctext x='16' y='22' font-family='Georgia,serif' font-size='17' fill='%23e8c39a' text-anchor='middle'%3ETR%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#0e0e0f;
+    --bg-soft:#16161a;
+    --ink:#f3efe9;
+    --muted:#9b958c;
+    --line:rgba(255,255,255,0.10);
+    --accent:#e0b384;       /* warm sand */
+    --accent-deep:#b88a55;
+    --serif:'Cormorant Garamond',Georgia,serif;
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:var(--sans);
+    background:var(--bg);
+    color:var(--ink);
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  img{display:block;max-width:100%;}
+  a{color:inherit;text-decoration:none;}
+  ::selection{background:var(--accent);color:#0e0e0f;}
+
+  .wrap{max-width:1200px;margin:0 auto;padding:0 28px;}
+  .eyebrow{
+    font-size:11px;letter-spacing:0.35em;text-transform:uppercase;
+    color:var(--accent);font-weight:500;margin-bottom:18px;
+  }
+  h1,h2,h3{font-family:var(--serif);font-weight:500;line-height:1.08;letter-spacing:-0.01em;}
+  .section{padding:110px 0;}
+
+  /* ---------- NAV ---------- */
+  header{
+    position:fixed;top:0;left:0;right:0;z-index:100;
+    transition:background .4s ease,backdrop-filter .4s ease,border-color .4s ease,padding .4s ease;
+    border-bottom:1px solid transparent;
+  }
+  header.scrolled{
+    background:rgba(14,14,15,0.82);
+    backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{display:flex;align-items:center;justify-content:space-between;padding:24px 28px;transition:padding .4s ease;}
+  header.scrolled .nav{padding:16px 28px;}
+  .brand{font-family:var(--serif);font-size:22px;letter-spacing:0.02em;color:var(--ink);display:flex;align-items:center;gap:11px;}
+  .brand b{font-weight:600;}
+  .brand .mark{
+    width:30px;height:30px;border:1px solid var(--accent);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:11px;letter-spacing:.04em;color:var(--accent);
+    font-family:var(--sans);
+  }
+  .nav-links{display:flex;gap:34px;align-items:center;}
+  .nav-links a{font-size:13px;letter-spacing:0.08em;color:var(--muted);text-transform:uppercase;transition:color .25s;}
+  .nav-links a:hover{color:var(--ink);}
+  .nav-cta{
+    border:1px solid var(--line);border-radius:40px;padding:10px 22px !important;
+    color:var(--ink) !important;transition:all .25s;
+  }
+  .nav-cta:hover{background:var(--accent);border-color:var(--accent);color:#0e0e0f !important;}
+  .burger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:6px;}
+  .burger span{width:24px;height:1.5px;background:var(--ink);transition:.3s;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;min-height:100vh;display:flex;align-items:flex-end;
+    background:radial-gradient(120% 90% at 70% 10%,#1d1a17 0%,#0e0e0f 60%);
+    overflow:hidden;
+  }
+  .hero-bg{
+    position:absolute;inset:0;
+    background-image:url('https://images.unsplash.com/photo-1452587925148-ce544e77e70d?auto=format&fit=crop&w=1920&q=80');
+    background-size:cover;background-position:center;
+    filter:grayscale(15%) contrast(1.02);
+    opacity:0.55;
+  }
+  .hero::after{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(180deg,rgba(14,14,15,.55) 0%,rgba(14,14,15,.15) 35%,rgba(14,14,15,.92) 100%);
+  }
+  .hero-inner{position:relative;z-index:2;width:100%;padding-bottom:84px;}
+  .hero h1{font-size:clamp(48px,9vw,128px);color:#fff;font-weight:500;}
+  .hero h1 em{font-style:italic;color:var(--accent);}
+  .hero p.lead{
+    max-width:540px;margin-top:24px;font-size:17px;color:#d8d2c8;font-weight:300;
+  }
+  .hero-meta{
+    display:flex;gap:40px;margin-top:40px;flex-wrap:wrap;align-items:center;
+  }
+  .hero-meta a.scrollto{
+    display:inline-flex;align-items:center;gap:12px;font-size:13px;letter-spacing:.15em;
+    text-transform:uppercase;color:var(--ink);
+  }
+  .hero-meta .arrow{width:46px;height:46px;border:1px solid var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--accent);transition:.3s;}
+  .hero-meta a.scrollto:hover .arrow{background:var(--accent);color:#0e0e0f;}
+  .hero-tags{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);}
+
+  /* ---------- MARQUEE ---------- */
+  .strip{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:22px 0;overflow:hidden;background:var(--bg-soft);}
+  .strip-track{display:flex;gap:48px;white-space:nowrap;animation:marquee 32s linear infinite;width:max-content;}
+  .strip-track span{font-family:var(--serif);font-size:26px;font-style:italic;color:var(--muted);display:inline-flex;align-items:center;gap:48px;}
+  .strip-track span::after{content:'✦';font-size:13px;color:var(--accent);font-style:normal;}
+  @keyframes marquee{to{transform:translateX(-50%);}}
+
+  /* ---------- ABOUT ---------- */
+  .about-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:70px;align-items:center;}
+  .about-img{position:relative;}
+  .about-img img{width:100%;border-radius:4px;aspect-ratio:4/5;object-fit:cover;filter:grayscale(10%);}
+  .about-img .badge{
+    position:absolute;bottom:-26px;left:-26px;background:var(--accent);color:#0e0e0f;
+    padding:22px 26px;border-radius:4px;font-family:var(--serif);
+  }
+  .about-img .badge b{display:block;font-size:34px;line-height:1;font-weight:600;}
+  .about-img .badge small{font-family:var(--sans);font-size:11px;letter-spacing:.14em;text-transform:uppercase;}
+  .about h2{font-size:clamp(34px,4.5vw,52px);margin-bottom:26px;}
+  .about p{color:var(--muted);margin-bottom:18px;font-weight:300;font-size:16.5px;}
+  .about .sign{font-family:var(--serif);font-style:italic;font-size:30px;color:var(--ink);margin-top:28px;}
+
+  /* ---------- SECTION HEAD ---------- */
+  .sec-head{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;margin-bottom:54px;flex-wrap:wrap;}
+  .sec-head h2{font-size:clamp(34px,5vw,60px);}
+  .sec-head p{color:var(--muted);max-width:380px;font-weight:300;}
+
+  /* ---------- GALLERY ---------- */
+  .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:40px;}
+  .filters button{
+    font-family:var(--sans);font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+    background:none;border:1px solid var(--line);color:var(--muted);padding:9px 20px;border-radius:40px;cursor:pointer;transition:.25s;
+  }
+  .filters button:hover{color:var(--ink);border-color:var(--muted);}
+  .filters button.active{background:var(--ink);color:#0e0e0f;border-color:var(--ink);}
+  .gallery{columns:3;column-gap:16px;}
+  .shot{position:relative;margin-bottom:16px;break-inside:avoid;overflow:hidden;border-radius:4px;cursor:pointer;background:var(--bg-soft);}
+  .shot img{width:100%;transition:transform .8s cubic-bezier(.2,.8,.2,1),filter .5s;filter:grayscale(8%);}
+  .shot:hover img{transform:scale(1.06);filter:grayscale(0%);}
+  .shot .cap{
+    position:absolute;inset:auto 0 0 0;padding:46px 18px 16px;color:#fff;
+    background:linear-gradient(180deg,transparent,rgba(0,0,0,.78));
+    opacity:0;transform:translateY(10px);transition:.4s;
+  }
+  .shot:hover .cap{opacity:1;transform:translateY(0);}
+  .shot .cap b{font-family:var(--serif);font-size:20px;font-weight:500;display:block;}
+  .shot .cap small{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);}
+
+  /* ---------- SERVICES ---------- */
+  #leistungen{background:var(--bg-soft);}
+  .services{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden;}
+  .svc{background:var(--bg-soft);padding:46px 34px;transition:background .35s;}
+  .svc:hover{background:#1c1c20;}
+  .svc .num{font-family:var(--serif);font-style:italic;font-size:22px;color:var(--accent);}
+  .svc h3{font-size:27px;margin:18px 0 14px;}
+  .svc p{color:var(--muted);font-weight:300;font-size:15px;margin-bottom:22px;}
+  .svc .price{font-size:13px;letter-spacing:.04em;color:var(--ink);border-top:1px solid var(--line);padding-top:18px;}
+  .svc .price b{font-family:var(--serif);font-size:22px;color:var(--accent);font-weight:600;}
+
+  /* ---------- QUOTE ---------- */
+  .quote{text-align:center;}
+  .quote blockquote{font-family:var(--serif);font-size:clamp(28px,4.4vw,52px);line-height:1.25;max-width:900px;margin:0 auto;font-style:italic;color:var(--ink);}
+  .quote blockquote span{color:var(--accent);}
+  .quote cite{display:block;margin-top:30px;font-style:normal;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);}
+
+  /* ---------- CONTACT ---------- */
+  #kontakt{background:radial-gradient(120% 80% at 30% 0%,#1b1814 0%,#0e0e0f 55%);}
+  .contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;}
+  .contact-left h2{font-size:clamp(38px,5.5vw,64px);margin-bottom:24px;}
+  .contact-left h2 em{font-style:italic;color:var(--accent);}
+  .contact-left p{color:var(--muted);max-width:420px;font-weight:300;margin-bottom:40px;}
+  .contact-info{display:flex;flex-direction:column;gap:22px;}
+  .contact-info a,.contact-info div{display:flex;gap:16px;align-items:center;color:var(--ink);font-size:15px;}
+  .contact-info .ic{width:42px;height:42px;border:1px solid var(--line);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0;}
+  .contact-info small{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
+  form{display:flex;flex-direction:column;gap:16px;}
+  form .row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  form label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:block;}
+  input,textarea,select{
+    width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--line);border-radius:6px;
+    padding:14px 16px;color:var(--ink);font-family:inherit;font-size:15px;outline:none;transition:border-color .25s;
+  }
+  input:focus,textarea:focus,select:focus{border-color:var(--accent);}
+  textarea{resize:vertical;min-height:120px;}
+  button.submit{
+    background:var(--accent);color:#0e0e0f;border:none;border-radius:6px;padding:16px;
+    font-family:var(--sans);font-size:14px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:.25s;margin-top:6px;
+  }
+  button.submit:hover{background:var(--accent-deep);}
+  .form-note{font-size:12px;color:var(--muted);margin-top:6px;}
+
+  /* ---------- FOOTER ---------- */
+  footer{border-top:1px solid var(--line);padding:54px 0 40px;}
+  .foot-grid{display:flex;justify-content:space-between;align-items:flex-start;gap:30px;flex-wrap:wrap;}
+  .foot-brand{font-family:var(--serif);font-size:26px;}
+  .foot-soc{display:flex;gap:14px;}
+  .foot-soc a{width:42px;height:42px;border:1px solid var(--line);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:.25s;}
+  .foot-soc a:hover{color:#0e0e0f;background:var(--accent);border-color:var(--accent);}
+  .foot-bottom{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:44px;padding-top:24px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);letter-spacing:.04em;}
+  .foot-bottom a:hover{color:var(--ink);}
+
+  /* ---------- LIGHTBOX ---------- */
+  .lb{position:fixed;inset:0;z-index:200;background:rgba(8,8,9,.96);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:30px;}
+  .lb.open{display:flex;}
+  .lb img{max-width:90vw;max-height:86vh;border-radius:4px;box-shadow:0 30px 80px rgba(0,0,0,.6);}
+  .lb-close{position:absolute;top:24px;right:30px;background:none;border:none;color:#fff;font-size:34px;cursor:pointer;line-height:1;}
+  .lb-nav{position:absolute;top:50%;transform:translateY(-50%);background:none;border:1px solid var(--line);color:#fff;width:54px;height:54px;border-radius:50%;font-size:22px;cursor:pointer;transition:.25s;}
+  .lb-nav:hover{background:var(--accent);color:#0e0e0f;border-color:var(--accent);}
+  .lb-prev{left:24px;}.lb-next{right:24px;}
+
+  /* ---------- REVEAL ---------- */
+  .reveal{opacity:0;transform:translateY(30px);transition:opacity .9s cubic-bezier(.2,.8,.2,1),transform .9s cubic-bezier(.2,.8,.2,1);}
+  .reveal.in{opacity:1;transform:none;}
+
+  /* ---------- RESPONSIVE ---------- */
+  @media(max-width:980px){
+    .gallery{columns:2;}
+    .services{grid-template-columns:1fr;}
+    .about-grid,.contact-grid{grid-template-columns:1fr;gap:48px;}
+    .about-img{max-width:420px;}
+  }
+  @media(max-width:760px){
+    .section{padding:78px 0;}
+    .nav-links{
+      position:fixed;inset:0 0 0 auto;width:78%;max-width:320px;background:#121214;
+      flex-direction:column;justify-content:center;align-items:flex-start;padding:60px 36px;gap:24px;
+      transform:translateX(100%);transition:transform .4s ease;border-left:1px solid var(--line);
+    }
+    .nav-links.open{transform:translateX(0);}
+    .nav-links a{font-size:17px;}
+    .burger{display:flex;z-index:120;}
+    .gallery{columns:1;}
+    form .row{grid-template-columns:1fr;}
+    .hero-meta{gap:24px;}
+    .about-img .badge{left:0;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ====== NAV ====== -->
+<header id="top">
+  <nav class="nav">
+    <a href="#top" class="brand"><span class="mark">TR</span> <span>Tim&nbsp;<b>Rammensee</b></span></a>
+    <div class="nav-links" id="navLinks">
+      <a href="#portfolio">Portfolio</a>
+      <a href="#about">Über mich</a>
+      <a href="#leistungen">Leistungen</a>
+      <a href="#kontakt" class="nav-cta">Anfragen</a>
+    </div>
+    <button class="burger" id="burger" aria-label="Menü"><span></span><span></span><span></span></button>
+  </nav>
+</header>
+
+<!-- ====== HERO ====== -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-inner wrap">
+    <p class="eyebrow reveal">Fotograf · Oberfranken &amp; überall</p>
+    <h1 class="reveal">Momente, die<br><em>bleiben.</em></h1>
+    <p class="lead reveal">Ich fotografiere Menschen, Liebe und Landschaften so, wie sie sich anfühlen — ehrlich, ruhig und voller Licht. Keine gestellten Posen, sondern echte Geschichten.</p>
+    <div class="hero-meta reveal">
+      <a href="#portfolio" class="scrollto"><span class="arrow">↓</span> Arbeiten ansehen</a>
+      <span class="hero-tags">Porträt · Hochzeit · Natur</span>
+    </div>
+  </div>
+</section>
+
+<!-- ====== MARQUEE ====== -->
+<div class="strip" aria-hidden="true">
+  <div class="strip-track">
+    <span>Porträts</span><span>Hochzeiten</span><span>Paare</span><span>Natur &amp; Reise</span><span>Events</span><span>Business</span>
+    <span>Porträts</span><span>Hochzeiten</span><span>Paare</span><span>Natur &amp; Reise</span><span>Events</span><span>Business</span>
+  </div>
+</div>
+
+<!-- ====== ABOUT ====== -->
+<section class="section about" id="about">
+  <div class="wrap about-grid">
+    <div class="about-img reveal">
+      <img src="https://images.unsplash.com/photo-1554048612-b6a482bc67e5?auto=format&fit=crop&w=900&q=80" alt="Tim Rammensee, Fotograf">
+      <div class="badge"><b>8+</b><small>Jahre hinter<br>der Kamera</small></div>
+    </div>
+    <div class="reveal">
+      <p class="eyebrow">Über mich</p>
+      <h2>Hinter jeder Aufnahme<br>steht ein Gefühl.</h2>
+      <p>Mein Name ist Tim Rammensee. Seit über acht Jahren halte ich Augenblicke fest, die man sonst zu schnell vergisst — ein Lachen, einen Blick, das letzte Licht eines Sommerabends.</p>
+      <p>Ich arbeite reduziert und nah am Menschen. Mir ist wichtiger, dass du dich wohlfühlst, als dass alles perfekt sitzt. Denn die schönsten Bilder entstehen genau dann, wenn die Kamera kurz vergessen wird.</p>
+      <p>Ob Porträt, Hochzeit oder ein Tag in der Natur — ich bringe Ruhe, ein gutes Auge und die Zeit mit, die deine Geschichte verdient.</p>
+      <div class="sign">— Tim</div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== PORTFOLIO ====== -->
+<section class="section" id="portfolio">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div>
+        <p class="eyebrow">Ausgewählte Arbeiten</p>
+        <h2>Portfolio</h2>
+      </div>
+      <p>Eine Auswahl meiner liebsten Aufnahmen aus den letzten Jahren. Klick auf ein Bild für die große Ansicht.</p>
+    </div>
+
+    <div class="filters reveal" id="filters">
+      <button class="active" data-filter="all">Alle</button>
+      <button data-filter="portrait">Porträt</button>
+      <button data-filter="wedding">Hochzeit</button>
+      <button data-filter="nature">Natur</button>
+      <button data-filter="event">Event</button>
+    </div>
+
+    <div class="gallery" id="gallery">
+      <!-- Demo-Bilder von Unsplash – durch Tims eigene Fotos ersetzen -->
+      <div class="shot" data-cat="portrait"><img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=700&q=80" alt="Porträt im Gegenlicht"><div class="cap"><small>Porträt</small><b>Goldene Stunde</b></div></div>
+      <div class="shot" data-cat="wedding"><img src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=700&q=80" alt="Brautpaar"><div class="cap"><small>Hochzeit</small><b>Ja, für immer</b></div></div>
+      <div class="shot" data-cat="nature"><img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=700&q=80" alt="Wald im Nebel"><div class="cap"><small>Natur</small><b>Morgennebel</b></div></div>
+      <div class="shot" data-cat="portrait"><img src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=700&q=80" alt="Porträt einer Frau"><div class="cap"><small>Porträt</small><b>Stille</b></div></div>
+      <div class="shot" data-cat="event"><img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=700&q=80" alt="Eventfotografie"><div class="cap"><small>Event</small><b>Feiern</b></div></div>
+      <div class="shot" data-cat="wedding"><img src="https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=700&q=80" alt="Hochzeitsdetails"><div class="cap"><small>Hochzeit</small><b>Die kleinen Dinge</b></div></div>
+      <div class="shot" data-cat="nature"><img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=700&q=80" alt="Berglandschaft"><div class="cap"><small>Natur</small><b>Weite</b></div></div>
+      <div class="shot" data-cat="portrait"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=700&q=80" alt="Männerporträt"><div class="cap"><small>Porträt</small><b>Charakter</b></div></div>
+      <div class="shot" data-cat="event"><img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=700&q=80" alt="Konzert"><div class="cap"><small>Event</small><b>Energie</b></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== QUOTE ====== -->
+<section class="section quote">
+  <div class="wrap reveal">
+    <blockquote>„Tim hat unseren Tag eingefangen, ohne dass wir ihn je gespürt haben. Beim Durchsehen der Bilder haben wir <span>geweint</span> — vor Glück."</blockquote>
+    <cite>Lena &amp; Jakob · Hochzeit am See</cite>
+  </div>
+</section>
+
+<!-- ====== SERVICES ====== -->
+<section class="section" id="leistungen">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div>
+        <p class="eyebrow">Leistungen</p>
+        <h2>Pakete &amp; Preise</h2>
+      </div>
+      <p>Transparente Richtwerte. Jedes Shooting passe ich gern individuell an deine Wünsche an.</p>
+    </div>
+    <div class="services">
+      <div class="svc reveal">
+        <span class="num">01</span>
+        <h3>Porträt</h3>
+        <p>Ob für dich, deine Familie oder Bewerbung — ein entspanntes Shooting an einem Ort deiner Wahl.</p>
+        <div class="price">ab <b>180&nbsp;€</b> · ca. 1,5 Std · 15 bearbeitete Bilder</div>
+      </div>
+      <div class="svc reveal">
+        <span class="num">02</span>
+        <h3>Hochzeit</h3>
+        <p>Von den ersten Vorbereitungen bis zum letzten Tanz — eure Geschichte, ehrlich erzählt.</p>
+        <div class="price">ab <b>1.290&nbsp;€</b> · ganztägig · 400+ Bilder</div>
+      </div>
+      <div class="svc reveal">
+        <span class="num">03</span>
+        <h3>Natur &amp; Business</h3>
+        <p>Authentische Aufnahmen für Marke, Website oder einfach für den Moment in der Natur.</p>
+        <div class="price">auf <b>Anfrage</b> · individuell geplant</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== CONTACT ====== -->
+<section class="section" id="kontakt">
+  <div class="wrap contact-grid">
+    <div class="contact-left reveal">
+      <p class="eyebrow">Kontakt</p>
+      <h2>Lass uns deine<br><em>Geschichte</em> festhalten.</h2>
+      <p>Erzähl mir kurz von deinem Vorhaben — ich melde mich meist innerhalb von 24 Stunden mit einem persönlichen Vorschlag.</p>
+      <div class="contact-info">
+        <a href="mailto:hallo@tim-rammensee.de">
+          <span class="ic">✉</span>
+          <span><small>E-Mail</small>hallo@tim-rammensee.de</span>
+        </a>
+        <a href="tel:+4915112345678">
+          <span class="ic">☎</span>
+          <span><small>Telefon</small>+49 151 123 456 78</span>
+        </a>
+        <div>
+          <span class="ic">⌖</span>
+          <span><small>Standort</small>Oberkotzau · Oberfranken</span>
+        </div>
+      </div>
+    </div>
+    <form class="reveal" id="contactForm" action="mailto:hallo@tim-rammensee.de" method="post" enctype="text/plain">
+      <div class="row">
+        <div><label for="name">Name</label><input id="name" name="Name" type="text" placeholder="Dein Name" required></div>
+        <div><label for="email">E-Mail</label><input id="email" name="E-Mail" type="email" placeholder="du@beispiel.de" required></div>
+      </div>
+      <div>
+        <label for="art">Anlass</label>
+        <select id="art" name="Anlass">
+          <option>Porträt</option>
+          <option>Hochzeit</option>
+          <option>Natur / Reise</option>
+          <option>Event</option>
+          <option>Business</option>
+          <option>Sonstiges</option>
+        </select>
+      </div>
+      <div>
+        <label for="msg">Nachricht</label>
+        <textarea id="msg" name="Nachricht" placeholder="Erzähl mir von deinem Vorhaben, Datum und Ort …"></textarea>
+      </div>
+      <button class="submit" type="submit">Anfrage senden</button>
+      <p class="form-note">Mit dem Absenden öffnet sich dein E-Mail-Programm. Alternativ direkt an hallo@tim-rammensee.de schreiben.</p>
+    </form>
+  </div>
+</section>
+
+<!-- ====== FOOTER ====== -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <div class="foot-brand">Tim Rammensee</div>
+        <p style="color:var(--muted);font-weight:300;margin-top:8px;max-width:320px;">Fotograf für ehrliche Momente — Porträt, Hochzeit &amp; Natur.</p>
+      </div>
+      <div class="foot-soc">
+        <a href="https://instagram.com/" target="_blank" rel="noopener" aria-label="Instagram">◎</a>
+        <a href="mailto:hallo@tim-rammensee.de" aria-label="E-Mail">✉</a>
+        <a href="tel:+4915112345678" aria-label="Telefon">☎</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© <span id="year"></span> Tim Rammensee — Alle Rechte vorbehalten.</span>
+      <span><a href="#kontakt">Impressum</a> &nbsp;·&nbsp; <a href="#kontakt">Datenschutz</a></span>
+    </div>
+  </div>
+</footer>
+
+<!-- ====== LIGHTBOX ====== -->
+<div class="lb" id="lb">
+  <button class="lb-close" id="lbClose" aria-label="Schließen">×</button>
+  <button class="lb-nav lb-prev" id="lbPrev" aria-label="Zurück">‹</button>
+  <img id="lbImg" src="" alt="">
+  <button class="lb-nav lb-next" id="lbNext" aria-label="Weiter">›</button>
+</div>
+
+<script>
+(function(){
+  // year
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // sticky nav
+  const header = document.getElementById('top');
+  const onScroll = () => header.classList.toggle('scrolled', window.scrollY > 40);
+  onScroll(); window.addEventListener('scroll', onScroll, {passive:true});
+
+  // mobile menu
+  const burger = document.getElementById('burger');
+  const links = document.getElementById('navLinks');
+  burger.addEventListener('click', () => links.classList.toggle('open'));
+  links.querySelectorAll('a').forEach(a => a.addEventListener('click', () => links.classList.remove('open')));
+
+  // reveal on scroll
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, {threshold:0.12});
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // gallery filter
+  const shots = Array.from(document.querySelectorAll('.shot'));
+  document.getElementById('filters').addEventListener('click', (e) => {
+    const btn = e.target.closest('button'); if(!btn) return;
+    document.querySelectorAll('#filters button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const f = btn.dataset.filter;
+    shots.forEach(s => { s.style.display = (f==='all' || s.dataset.cat===f) ? '' : 'none'; });
+  });
+
+  // lightbox
+  const lb = document.getElementById('lb'), lbImg = document.getElementById('lbImg');
+  let visible = [], idx = 0;
+  const show = () => { const img = visible[idx].querySelector('img'); lbImg.src = img.src.replace('w=700','w=1600'); lbImg.alt = img.alt; };
+  shots.forEach(s => s.addEventListener('click', () => { visible = shots.filter(x => x.style.display !== 'none'); idx = visible.indexOf(s); show(); lb.classList.add('open'); }));
+  const close = () => lb.classList.remove('open');
+  document.getElementById('lbClose').onclick = close;
+  lb.addEventListener('click', e => { if(e.target === lb) close(); });
+  document.getElementById('lbNext').onclick = () => { idx = (idx+1)%visible.length; show(); };
+  document.getElementById('lbPrev').onclick = () => { idx = (idx-1+visible.length)%visible.length; show(); };
+  document.addEventListener('keydown', e => {
+    if(!lb.classList.contains('open')) return;
+    if(e.key==='Escape') close();
+    if(e.key==='ArrowRight') document.getElementById('lbNext').click();
+    if(e.key==='ArrowLeft') document.getElementById('lbPrev').click();
+  });
+})();
+</script>
+</body>
+</html>
