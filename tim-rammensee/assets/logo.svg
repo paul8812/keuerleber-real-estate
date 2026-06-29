@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 100" fill="none" role="img" aria-label="Tim Rammensee — Photography & Film">
+  <!-- Horizontale Logo-Sperre: Blenden-Bildmarke + Wortmarke. Bildmarke in Akzent, Text in currentColor. -->
+  <g transform="translate(8,18)" stroke="#e0b384" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <g transform="scale(0.64)">
+      <circle cx="50" cy="50" r="40" stroke-width="2.6"/>
+      <path d="M80 50 L35 75.98"/>
+      <path d="M65 75.98 L20 50"/>
+      <path d="M35 75.98 L35 24.02"/>
+      <path d="M20 50 L65 24.02"/>
+      <path d="M35 24.02 L80 50"/>
+      <path d="M65 24.02 L65 75.98"/>
+    </g>
+  </g>
+  <g fill="currentColor">
+    <text x="92" y="48" font-family="'Helvetica Neue', Arial, sans-serif" font-size="27" font-weight="500" letter-spacing="5">TIM RAMMENSEE</text>
+    <text x="94" y="70" font-family="'Helvetica Neue', Arial, sans-serif" font-size="10.5" font-weight="400" letter-spacing="6.5" fill="#e0b384">PHOTOGRAPHY · FILM</text>
+  </g>
+</svg>

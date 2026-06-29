@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" role="img" aria-label="Tim Rammensee Bildmarke">
+  <!-- Aperture / Blende — minimalistische Fotografen-Bildmarke. Nutzt currentColor, also überall einfärbbar. -->
+  <g stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="50" cy="50" r="40" stroke-width="2"/>
+    <path d="M80 50 L35 75.98"/>
+    <path d="M65 75.98 L20 50"/>
+    <path d="M35 75.98 L35 24.02"/>
+    <path d="M20 50 L65 24.02"/>
+    <path d="M35 24.02 L80 50"/>
+    <path d="M65 24.02 L65 75.98"/>
+  </g>
+</svg>
