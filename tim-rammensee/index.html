@@ -1,14 +1,16 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Tim Rammensee — Cinematic Fotografie & Film. Hochzeiten, Automotive, Reels & Social-Media-Content mit Gespür für Licht, Tempo und Emotion.">
+<meta name="description" content="Tim Rammensee — Cinematic photography & film. Weddings, automotive, reels & social-media content with a feel for light, motion and emotion.">
 <meta name="author" content="Tim Rammensee">
-<meta property="og:title" content="Tim Rammensee — Cinematic Fotografie & Film">
-<meta property="og:description" content="Hochzeiten · Automotive · Reels · Social Media. Bilder, die sich bewegen.">
+<meta name="theme-color" content="#0b0b0c">
+<meta property="og:title" content="Tim Rammensee — Cinematic Photography & Film">
+<meta property="og:description" content="Weddings · Automotive · Reels · Social Media. Stories that move.">
 <meta property="og:type" content="website">
-<title>Tim Rammensee — Cinematic Fotografie &amp; Film</title>
+<meta property="og:locale" content="en_US">
+<title>Tim Rammensee — Cinematic Photography &amp; Film</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -31,6 +33,7 @@
   img,video{display:block;max-width:100%;}
   a{color:inherit;text-decoration:none;}
   ::selection{background:var(--accent);color:#0b0b0c;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
 
   /* subtle film grain for cinematic feel */
   body::after{
@@ -43,6 +46,10 @@
   h1,h2,h3{font-family:var(--serif);font-weight:500;line-height:1.06;letter-spacing:-0.01em;}
   .section{padding:120px 0;}
   em{font-style:italic;color:var(--accent);}
+
+  /* skip link */
+  .skip{position:absolute;left:-999px;top:8px;z-index:500;background:var(--accent);color:#0b0b0c;padding:10px 16px;border-radius:6px;font-size:13px;}
+  .skip:focus{left:16px;}
 
   /* ---------- NAV ---------- */
   header{position:fixed;top:0;left:0;right:0;z-index:120;transition:background .4s,backdrop-filter .4s,border-color .4s,padding .4s;border-bottom:1px solid transparent;}
@@ -75,7 +82,7 @@
   .hero h1{font-size:clamp(46px,8.5vw,124px);color:#fff;font-weight:500;}
   .hero .lead{max-width:560px;margin-top:22px;font-size:17px;color:#ddd6cc;font-weight:300;}
   .hero-actions{display:flex;gap:26px;margin-top:38px;flex-wrap:wrap;align-items:center;}
-  .btn{display:inline-flex;align-items:center;gap:12px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;padding:15px 28px;border-radius:40px;transition:.3s;}
+  .btn{display:inline-flex;align-items:center;gap:12px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;padding:15px 28px;border-radius:40px;transition:.3s;cursor:pointer;}
   .btn-primary{background:var(--accent);color:#0b0b0c;font-weight:600;}
   .btn-primary:hover{background:var(--accent-deep);}
   .btn-ghost{border:1px solid rgba(255,255,255,.3);color:#fff;}
@@ -96,7 +103,7 @@
   .sec-head h2{font-size:clamp(34px,5vw,62px);}
   .sec-head p{color:var(--muted);max-width:400px;font-weight:300;}
 
-  /* ---------- FEATURE (Hochzeit) ---------- */
+  /* ---------- FEATURE (Weddings) ---------- */
   .feature{display:grid;grid-template-columns:1.15fr 0.85fr;gap:64px;align-items:center;}
   .feature .media{position:relative;}
   .feature .media img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:5px;}
@@ -123,7 +130,7 @@
 
   /* ---------- REELS ---------- */
   .reels{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;}
-  .reel{position:relative;aspect-ratio:9/16;border-radius:12px;overflow:hidden;background:#000;cursor:pointer;box-shadow:0 14px 40px rgba(0,0,0,.4);}
+  .reel{position:relative;aspect-ratio:9/16;border-radius:12px;overflow:hidden;background:#000;cursor:pointer;box-shadow:0 14px 40px rgba(0,0,0,.4);border:none;padding:0;width:100%;text-align:left;color:inherit;font:inherit;}
   .reel video,.reel img{width:100%;height:100%;object-fit:cover;}
   .reel::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,.75));}
   .reel .meta{position:absolute;left:14px;right:14px;bottom:14px;z-index:2;}
@@ -133,17 +140,24 @@
   .reel .pp{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;width:54px;height:54px;border-radius:50%;border:1.5px solid rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;opacity:.85;transition:.3s;}
   .reel:hover .pp{opacity:1;background:var(--accent);color:#0b0b0c;border-color:var(--accent);}
 
+  /* ---------- PROCESS ---------- */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;}
+  .step{border-top:1px solid var(--line);padding-top:26px;}
+  .step .n{font-family:var(--serif);font-style:italic;font-size:40px;color:var(--accent);line-height:1;}
+  .step h3{font-size:25px;margin:16px 0 12px;}
+  .step p{color:var(--muted);font-weight:300;font-size:15px;}
+
   /* ---------- PORTFOLIO ---------- */
   .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:40px;}
   .filters button{font-family:var(--sans);font-size:12px;letter-spacing:.12em;text-transform:uppercase;background:none;border:1px solid var(--line);color:var(--muted);padding:9px 20px;border-radius:40px;cursor:pointer;transition:.25s;}
   .filters button:hover{color:var(--ink);border-color:var(--muted);}
   .filters button.active{background:var(--ink);color:#0b0b0c;border-color:var(--ink);}
   .gallery{columns:3;column-gap:16px;}
-  .shot{position:relative;margin-bottom:16px;break-inside:avoid;overflow:hidden;border-radius:5px;cursor:pointer;background:var(--bg-soft);}
+  .shot{position:relative;margin-bottom:16px;break-inside:avoid;overflow:hidden;border-radius:5px;cursor:pointer;background:var(--bg-soft);display:block;width:100%;border:none;padding:0;font:inherit;color:inherit;}
   .shot img{width:100%;transition:transform .8s cubic-bezier(.2,.8,.2,1),filter .5s;filter:grayscale(8%);}
   .shot:hover img{transform:scale(1.06);filter:grayscale(0);}
-  .shot .cap{position:absolute;inset:auto 0 0 0;padding:46px 18px 16px;color:#fff;background:linear-gradient(180deg,transparent,rgba(0,0,0,.78));opacity:0;transform:translateY(10px);transition:.4s;}
-  .shot:hover .cap{opacity:1;transform:translateY(0);}
+  .shot .cap{position:absolute;inset:auto 0 0 0;padding:46px 18px 16px;color:#fff;text-align:left;background:linear-gradient(180deg,transparent,rgba(0,0,0,.78));opacity:0;transform:translateY(10px);transition:.4s;}
+  .shot:hover .cap,.shot:focus-visible .cap{opacity:1;transform:translateY(0);}
   .shot .cap b{font-family:var(--serif);font-size:20px;font-weight:500;display:block;}
   .shot .cap small{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);}
 
@@ -156,10 +170,13 @@
   .about-img .badge small{font-family:var(--sans);font-size:11px;letter-spacing:.14em;text-transform:uppercase;}
   .about h2{font-size:clamp(34px,4.5vw,52px);margin-bottom:26px;}
   .about p{color:var(--muted);margin-bottom:18px;font-weight:300;font-size:16.5px;}
+  .about .stats{display:flex;gap:36px;margin-top:30px;flex-wrap:wrap;}
+  .about .stats div b{font-family:var(--serif);font-size:34px;color:var(--accent);font-weight:600;display:block;line-height:1;}
+  .about .stats div small{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
   .about .sign{font-family:var(--serif);font-style:italic;font-size:30px;color:var(--ink);margin-top:28px;}
 
   /* ---------- SERVICES ---------- */
-  #leistungen{background:var(--bg-soft);}
+  #services{background:var(--bg-soft);}
   .services{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden;}
   .svc{background:var(--bg-soft);padding:44px 30px;transition:background .35s;display:flex;flex-direction:column;}
   .svc:hover{background:#1b1b1f;}
@@ -177,8 +194,17 @@
   .quote blockquote span{color:var(--accent);}
   .quote cite{display:block;margin-top:30px;font-style:normal;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);}
 
+  /* ---------- FAQ ---------- */
+  .faq-grid{max-width:820px;margin:0 auto;}
+  .faq-item{border-bottom:1px solid var(--line);}
+  .faq-q{width:100%;background:none;border:none;color:var(--ink);font-family:var(--serif);font-size:clamp(20px,2.6vw,27px);text-align:left;padding:26px 40px 26px 0;cursor:pointer;position:relative;}
+  .faq-q::after{content:'+';position:absolute;right:4px;top:50%;transform:translateY(-50%);color:var(--accent);font-size:26px;font-family:var(--sans);transition:transform .3s;}
+  .faq-item.open .faq-q::after{transform:translateY(-50%) rotate(45deg);}
+  .faq-a{max-height:0;overflow:hidden;transition:max-height .4s ease;}
+  .faq-a p{color:var(--muted);font-weight:300;padding:0 40px 26px 0;font-size:15.5px;}
+
   /* ---------- CONTACT ---------- */
-  #kontakt{background:radial-gradient(120% 80% at 30% 0%,#1a1712 0%,#0b0b0c 55%);}
+  #contact{background:radial-gradient(120% 80% at 30% 0%,#1a1712 0%,#0b0b0c 55%);}
   .contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;}
   .contact-left h2{font-size:clamp(38px,5.5vw,64px);margin-bottom:24px;}
   .contact-left p{color:var(--muted);max-width:430px;font-weight:300;margin-bottom:40px;}
@@ -228,6 +254,8 @@
   @media(max-width:980px){
     .gallery{columns:2;}
     .services{grid-template-columns:repeat(2,1fr);}
+    .steps{grid-template-columns:1fr;gap:0;}
+    .step{margin-top:24px;}
     .feature,.about-grid,.contact-grid{grid-template-columns:1fr;gap:48px;}
     .feature .media .stack{position:static;width:60%;margin:18px auto 0;border-width:0;box-shadow:none;}
     .about-img{max-width:420px;}
@@ -246,72 +274,82 @@
     .hero .bar{height:5vh;}
     .about-img .badge{left:0;}
   }
+
+  /* ---------- REDUCED MOTION ---------- */
+  @media(prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto;}
+    *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;}
+    .reveal{opacity:1;transform:none;}
+  }
 </style>
 </head>
 <body>
+<a href="#main" class="skip">Skip to content</a>
 
 <!-- ====== NAV ====== -->
 <header id="top">
-  <nav class="nav">
-    <a href="#top" class="brand"><span class="mark"><svg viewBox="0 0 120 90" fill="none" aria-hidden="true"><text x="34" y="64" text-anchor="middle" fill="currentColor" font-family="'Cormorant Garamond',Georgia,serif" font-size="58" font-weight="600">T</text><line class="ln" x1="60" y1="22" x2="60" y2="68" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><text class="r" x="87" y="64" text-anchor="middle" fill="currentColor" font-family="'Cormorant Garamond',Georgia,serif" font-size="58" font-weight="600">R</text></svg></span> <span>Tim&nbsp;<b>Rammensee</b></span></a>
+  <nav class="nav" aria-label="Primary">
+    <a href="#top" class="brand" aria-label="Tim Rammensee — home"><span class="mark"><svg viewBox="0 0 120 90" fill="none" aria-hidden="true"><text x="34" y="64" text-anchor="middle" fill="currentColor" font-family="'Cormorant Garamond',Georgia,serif" font-size="58" font-weight="600">T</text><line class="ln" x1="60" y1="22" x2="60" y2="68" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><text class="r" x="87" y="64" text-anchor="middle" fill="currentColor" font-family="'Cormorant Garamond',Georgia,serif" font-size="58" font-weight="600">R</text></svg></span> <span>Tim&nbsp;<b>Rammensee</b></span></a>
     <div class="nav-links" id="navLinks">
-      <a href="#hochzeit">Hochzeit</a>
+      <a href="#weddings">Weddings</a>
       <a href="#automotive">Automotive</a>
       <a href="#reels">Reels</a>
-      <a href="#about">Über mich</a>
-      <a href="#leistungen">Leistungen</a>
-      <a href="#kontakt" class="nav-cta">Anfragen</a>
+      <a href="#about">About</a>
+      <a href="#services">Services</a>
+      <a href="#contact" class="nav-cta">Get in touch</a>
     </div>
-    <button class="burger" id="burger" aria-label="Menü"><span></span><span></span><span></span></button>
+    <button class="burger" id="burger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks"><span></span><span></span><span></span></button>
   </nav>
 </header>
 
+<main id="main">
+
 <!-- ====== HERO (Video) ====== -->
-<section class="hero">
+<section class="hero" aria-label="Intro">
   <div class="bar top"></div>
-  <!-- STOCK-VIDEO – später durch Tims eigenen Showreel ersetzen. poster = Standbild als Fallback -->
+  <!-- STOCK VIDEO – replace later with Tim's own showreel. poster = still image fallback -->
   <video autoplay muted loop playsinline poster="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80">
     <source src="https://videos.pexels.com/video-files/2022395/2022395-hd_1920_1080_30fps.mp4" type="video/mp4">
   </video>
   <div class="bar bottom"></div>
   <div class="hero-inner wrap">
-    <p class="eyebrow reveal">Cinematic Fotografie &amp; Film · Oberfranken</p>
-    <h1 class="reveal">Bilder, die sich<br><em>bewegen.</em></h1>
-    <p class="lead reveal">Hochzeiten, Automotive und Social-Media-Content — eingefangen wie im Kino. Emotion, Tempo und Licht in jedem Frame.</p>
+    <p class="eyebrow reveal">Cinematic Photography &amp; Film · Bavaria, Germany</p>
+    <h1 class="reveal">Stories that<br><em>move.</em></h1>
+    <p class="lead reveal">Weddings, automotive and social-media content — captured like cinema. Emotion, motion and light in every single frame.</p>
     <div class="hero-actions reveal">
-      <a href="#kontakt" class="btn btn-primary">Projekt anfragen</a>
-      <a href="#reels" class="btn btn-ghost"><span class="play">▶</span> Showreel ansehen</a>
+      <a href="#contact" class="btn btn-primary">Start a project</a>
+      <a href="#reels" class="btn btn-ghost"><span class="play" aria-hidden="true">▶</span> Watch the showreel</a>
     </div>
   </div>
-  <div class="scroll-cue"><span>Scroll</span><span class="line"></span></div>
+  <div class="scroll-cue" aria-hidden="true"><span>Scroll</span><span class="line"></span></div>
 </section>
 
 <!-- ====== MARQUEE ====== -->
 <div class="strip" aria-hidden="true">
   <div class="strip-track">
-    <span>Hochzeiten</span><span>Automotive</span><span>Reels</span><span>Social Media</span><span>Porträt</span><span>Events</span>
-    <span>Hochzeiten</span><span>Automotive</span><span>Reels</span><span>Social Media</span><span>Porträt</span><span>Events</span>
+    <span>Weddings</span><span>Automotive</span><span>Reels</span><span>Social Media</span><span>Portrait</span><span>Events</span>
+    <span>Weddings</span><span>Automotive</span><span>Reels</span><span>Social Media</span><span>Portrait</span><span>Events</span>
   </div>
 </div>
 
-<!-- ====== HOCHZEIT (Feature) ====== -->
-<section class="section" id="hochzeit">
+<!-- ====== WEDDINGS (Feature) ====== -->
+<section class="section" id="weddings">
   <div class="wrap feature">
     <div class="media reveal">
-      <img src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1100&q=80" alt="Brautpaar im Sonnenuntergang">
-      <img class="stack" src="https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=600&q=80" alt="Hochzeitsdetails">
+      <img src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1100&q=80" alt="Bride and groom at sunset" loading="lazy">
+      <img class="stack" src="https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=600&q=80" alt="Wedding details" loading="lazy">
     </div>
     <div class="reveal">
-      <p class="eyebrow">Schwerpunkt · Hochzeit</p>
-      <h2>Euer Tag,<br>cinematisch erzählt.</h2>
-      <p>Die Hochzeit ist meine Leidenschaft. Ich begleite euch unaufdringlich durch den ganzen Tag und halte die echten Momente fest — Tränen, Lachen, den ersten Tanz.</p>
+      <p class="eyebrow">Focus · Weddings</p>
+      <h2>Your day,<br>told like a film.</h2>
+      <p>Weddings are my passion. I move through your whole day unobtrusively and capture the real moments — the tears, the laughter, the first dance.</p>
       <ul>
-        <li>Foto-Reportage vom Getting-Ready bis zur Party</li>
-        <li>Cinematischer Hochzeitsfilm &amp; Highlight-Reel für Social Media</li>
-        <li>Paar-Shooting an eurem Lieblingsort</li>
-        <li>Edle Bildbearbeitung &amp; schnelle Vorschau-Galerie</li>
+        <li>Documentary coverage from getting ready to the party</li>
+        <li>Cinematic wedding film &amp; highlight reel for social media</li>
+        <li>Couple session at your favourite location</li>
+        <li>Refined editing &amp; a fast preview gallery</li>
       </ul>
-      <a href="#kontakt" class="btn btn-primary">Termin sichern</a>
+      <a href="#contact" class="btn btn-primary">Check your date</a>
     </div>
   </div>
 </section>
@@ -321,17 +359,17 @@
   <div class="auto-bg" style="background-image:url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1920&q=80')"></div>
   <div class="wrap">
     <div class="reveal">
-      <p class="eyebrow">Schwerpunkt · Automotive</p>
-      <h2>Maschinen, die<br>man <em>spüren</em> kann.</h2>
-      <p>Vom Daily zum Traumwagen — ich setze dein Auto so in Szene, dass Lack, Linien und Charakter zur Geltung kommen. Rolling Shots, Details, Studio-Look.</p>
+      <p class="eyebrow">Focus · Automotive</p>
+      <h2>Machines you<br>can <em>feel.</em></h2>
+      <p>From daily driver to dream car — I stage your vehicle so the paint, the lines and the character truly come alive. Rolling shots, details, studio look.</p>
     </div>
     <div class="auto-grid reveal">
-      <div class="cell wide"><img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1000&q=80" alt="Sportwagen bei Nacht"></div>
-      <div class="cell"><img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=700&q=80" alt="Muscle Car"></div>
-      <div class="cell"><img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=700&q=80" alt="Porsche"></div>
-      <div class="cell"><img src="https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=700&q=80" alt="Sportwagen Detail"></div>
-      <div class="cell"><img src="https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=700&q=80" alt="Oldtimer"></div>
-      <div class="cell wide"><img src="https://images.unsplash.com/photo-1542362567-b07e54358753?auto=format&fit=crop&w=1000&q=80" alt="Auto Rolling Shot"></div>
+      <div class="cell wide"><img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1000&q=80" alt="Sports car at night" loading="lazy"></div>
+      <div class="cell"><img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=700&q=80" alt="Muscle car" loading="lazy"></div>
+      <div class="cell"><img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=700&q=80" alt="Porsche" loading="lazy"></div>
+      <div class="cell"><img src="https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=700&q=80" alt="Sports car detail" loading="lazy"></div>
+      <div class="cell"><img src="https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=700&q=80" alt="Classic car" loading="lazy"></div>
+      <div class="cell wide"><img src="https://images.unsplash.com/photo-1542362567-b07e54358753?auto=format&fit=crop&w=1000&q=80" alt="Car rolling shot" loading="lazy"></div>
     </div>
   </div>
 </section>
@@ -342,31 +380,61 @@
     <div class="sec-head reveal">
       <div>
         <p class="eyebrow">Reels &amp; Video</p>
-        <h2>Content, der scrollt-stoppt.</h2>
+        <h2>Content that stops the scroll.</h2>
       </div>
-      <p>Hochformat-Clips für Instagram &amp; TikTok — geschnitten auf den Beat, gemacht für Reichweite. Tippe an für die Vorschau.</p>
+      <p>Vertical clips for Instagram &amp; TikTok — cut to the beat, built for reach. Tap any reel for a preview.</p>
     </div>
     <div class="reels reveal" id="reelGrid">
-      <!-- STOCK-VIDEOS – durch Tims eigene Reels ersetzen -->
-      <div class="reel" data-video="https://videos.pexels.com/video-files/4434150/4434150-uhd_1440_2560_25fps.mp4">
+      <!-- STOCK VIDEOS – replace with Tim's own reels -->
+      <button class="reel" type="button" data-video="https://videos.pexels.com/video-files/4434150/4434150-uhd_1440_2560_25fps.mp4" aria-label="Play reel: First Dance">
         <video muted loop playsinline preload="none" poster="https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=500&q=80"></video>
-        <span class="ig">Reel</span><span class="pp">▶</span>
-        <div class="meta"><small>Hochzeit</small><b>First Dance</b></div>
-      </div>
-      <div class="reel" data-video="https://videos.pexels.com/video-files/3066464/3066464-uhd_1440_2560_24fps.mp4">
+        <span class="ig">Reel</span><span class="pp" aria-hidden="true">▶</span>
+        <span class="meta"><small>Wedding</small><b>First Dance</b></span>
+      </button>
+      <button class="reel" type="button" data-video="https://videos.pexels.com/video-files/3066464/3066464-uhd_1440_2560_24fps.mp4" aria-label="Play reel: Night Drive">
         <video muted loop playsinline preload="none" poster="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=500&q=80"></video>
-        <span class="ig">Reel</span><span class="pp">▶</span>
-        <div class="meta"><small>Automotive</small><b>Night Drive</b></div>
-      </div>
-      <div class="reel" data-video="https://videos.pexels.com/video-files/4434242/4434242-uhd_1440_2560_25fps.mp4">
+        <span class="ig">Reel</span><span class="pp" aria-hidden="true">▶</span>
+        <span class="meta"><small>Automotive</small><b>Night Drive</b></span>
+      </button>
+      <button class="reel" type="button" data-video="https://videos.pexels.com/video-files/4434242/4434242-uhd_1440_2560_25fps.mp4" aria-label="Play reel: Getting Ready">
         <video muted loop playsinline preload="none" poster="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=500&q=80"></video>
-        <span class="ig">Reel</span><span class="pp">▶</span>
-        <div class="meta"><small>Hochzeit</small><b>Getting Ready</b></div>
-      </div>
-      <div class="reel" data-video="https://videos.pexels.com/video-files/3066465/3066465-uhd_1440_2560_24fps.mp4">
+        <span class="ig">Reel</span><span class="pp" aria-hidden="true">▶</span>
+        <span class="meta"><small>Wedding</small><b>Getting Ready</b></span>
+      </button>
+      <button class="reel" type="button" data-video="https://videos.pexels.com/video-files/3066465/3066465-uhd_1440_2560_24fps.mp4" aria-label="Play reel: Roll Out">
         <video muted loop playsinline preload="none" poster="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=500&q=80"></video>
-        <span class="ig">Reel</span><span class="pp">▶</span>
-        <div class="meta"><small>Automotive</small><b>Roll Out</b></div>
+        <span class="ig">Reel</span><span class="pp" aria-hidden="true">▶</span>
+        <span class="meta"><small>Automotive</small><b>Roll Out</b></span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ====== PROCESS ====== -->
+<section class="section" id="process">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div>
+        <p class="eyebrow">How it works</p>
+        <h2>From first hello to final cut.</h2>
+      </div>
+      <p>A simple, relaxed process — so you always know what happens next.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal">
+        <span class="n">01</span>
+        <h3>Discovery call</h3>
+        <p>We talk through your vision, dates and locations, and I put together a tailored quote — no pressure, no templates.</p>
+      </div>
+      <div class="step reveal">
+        <span class="n">02</span>
+        <h3>The shoot</h3>
+        <p>On the day I keep it calm and natural. You enjoy the moment, I take care of light, angles and timing.</p>
+      </div>
+      <div class="step reveal">
+        <span class="n">03</span>
+        <h3>Edit &amp; deliver</h3>
+        <p>You get a fast sneak peek, then the full gallery and cinematic reels — ready to relive and to share.</p>
       </div>
     </div>
   </div>
@@ -376,48 +444,53 @@
 <section class="section" id="about">
   <div class="wrap about-grid">
     <div class="about-img reveal">
-      <img src="https://images.unsplash.com/photo-1554048612-b6a482bc67e5?auto=format&fit=crop&w=900&q=80" alt="Tim Rammensee, Fotograf">
-      <div class="badge"><b>8+</b><small>Jahre hinter<br>der Kamera</small></div>
+      <img src="https://images.unsplash.com/photo-1554048612-b6a482bc67e5?auto=format&fit=crop&w=900&q=80" alt="Portrait of Tim Rammensee, photographer" loading="lazy">
+      <div class="badge"><b>8+</b><small>years behind<br>the camera</small></div>
     </div>
     <div class="reveal">
-      <p class="eyebrow">Über mich</p>
-      <h2>Ein Auge fürs Kino,<br>ein Herz für den Moment.</h2>
-      <p>Mein Name ist Tim Rammensee. Ich verbinde Fotografie und Film zu einer Sprache: ruhige, cinematische Bilder, die Geschichten erzählen — egal ob Brautpaar oder Sportwagen.</p>
-      <p>Ich arbeite nah dran, plane sauber und liefere schnell. Vom einzelnen Reel bis zur kompletten Hochzeitsproduktion bekommst du alles aus einer Hand.</p>
-      <p>Mir ist wichtig, dass du dich wohlfühlst. Denn die stärksten Aufnahmen entstehen, wenn die Kamera kurz vergessen wird.</p>
+      <p class="eyebrow">About me</p>
+      <h2>An eye for cinema,<br>a heart for the moment.</h2>
+      <p>I'm Tim Rammensee. I blend photography and film into one language: calm, cinematic images that tell a story — whether it's a couple or a sports car.</p>
+      <p>I work close to the action, plan carefully and deliver fast. From a single reel to a full wedding production, you get everything from one hand.</p>
+      <p>What matters most is that you feel at ease — because the strongest shots happen the moment the camera is forgotten.</p>
+      <div class="stats">
+        <div><b>150+</b><small>Projects shot</small></div>
+        <div><b>60+</b><small>Weddings</small></div>
+        <div><b>4.9★</b><small>Client rating</small></div>
+      </div>
       <div class="sign">— Tim</div>
     </div>
   </div>
 </section>
 
 <!-- ====== PORTFOLIO ====== -->
-<section class="section" id="portfolio">
+<section class="section" id="work">
   <div class="wrap">
     <div class="sec-head reveal">
       <div>
-        <p class="eyebrow">Ausgewählte Arbeiten</p>
+        <p class="eyebrow">Selected work</p>
         <h2>Portfolio</h2>
       </div>
-      <p>Eine Auswahl meiner liebsten Frames. Klick auf ein Bild für die große Ansicht.</p>
+      <p>A selection of my favourite frames. Click any image for the full view.</p>
     </div>
     <div class="filters reveal" id="filters">
-      <button class="active" data-filter="all">Alle</button>
-      <button data-filter="wedding">Hochzeit</button>
+      <button class="active" data-filter="all">All</button>
+      <button data-filter="wedding">Weddings</button>
       <button data-filter="auto">Automotive</button>
-      <button data-filter="portrait">Porträt</button>
-      <button data-filter="event">Event</button>
+      <button data-filter="portrait">Portrait</button>
+      <button data-filter="event">Events</button>
     </div>
     <div class="gallery" id="gallery">
-      <!-- Demo-Bilder – durch Tims eigene Fotos ersetzen -->
-      <div class="shot" data-cat="wedding"><img src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=700&q=80" alt="Brautpaar"><div class="cap"><small>Hochzeit</small><b>Ja, für immer</b></div></div>
-      <div class="shot" data-cat="auto"><img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=700&q=80" alt="Porsche"><div class="cap"><small>Automotive</small><b>Silhouette</b></div></div>
-      <div class="shot" data-cat="portrait"><img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=700&q=80" alt="Porträt im Gegenlicht"><div class="cap"><small>Porträt</small><b>Goldene Stunde</b></div></div>
-      <div class="shot" data-cat="auto"><img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=700&q=80" alt="Muscle Car"><div class="cap"><small>Automotive</small><b>V8</b></div></div>
-      <div class="shot" data-cat="wedding"><img src="https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=700&q=80" alt="Hochzeitsdetails"><div class="cap"><small>Hochzeit</small><b>Die kleinen Dinge</b></div></div>
-      <div class="shot" data-cat="event"><img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=700&q=80" alt="Eventfotografie"><div class="cap"><small>Event</small><b>Feiern</b></div></div>
-      <div class="shot" data-cat="auto"><img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=700&q=80" alt="Sportwagen"><div class="cap"><small>Automotive</small><b>Open Road</b></div></div>
-      <div class="shot" data-cat="portrait"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=700&q=80" alt="Männerporträt"><div class="cap"><small>Porträt</small><b>Charakter</b></div></div>
-      <div class="shot" data-cat="wedding"><img src="https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=700&q=80" alt="Brautpaar Kuss"><div class="cap"><small>Hochzeit</small><b>Der Moment</b></div></div>
+      <!-- Demo images – replace with Tim's own photos -->
+      <button class="shot" type="button" data-cat="wedding"><img src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=700&q=80" alt="Bride and groom" loading="lazy"><span class="cap"><small>Wedding</small><b>Yes, forever</b></span></button>
+      <button class="shot" type="button" data-cat="auto"><img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=700&q=80" alt="Porsche" loading="lazy"><span class="cap"><small>Automotive</small><b>Silhouette</b></span></button>
+      <button class="shot" type="button" data-cat="portrait"><img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=700&q=80" alt="Backlit portrait" loading="lazy"><span class="cap"><small>Portrait</small><b>Golden hour</b></span></button>
+      <button class="shot" type="button" data-cat="auto"><img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=700&q=80" alt="Muscle car" loading="lazy"><span class="cap"><small>Automotive</small><b>V8</b></span></button>
+      <button class="shot" type="button" data-cat="wedding"><img src="https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=700&q=80" alt="Wedding details" loading="lazy"><span class="cap"><small>Wedding</small><b>The little things</b></span></button>
+      <button class="shot" type="button" data-cat="event"><img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=700&q=80" alt="Event photography" loading="lazy"><span class="cap"><small>Event</small><b>Celebrate</b></span></button>
+      <button class="shot" type="button" data-cat="auto"><img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=700&q=80" alt="Sports car" loading="lazy"><span class="cap"><small>Automotive</small><b>Open road</b></span></button>
+      <button class="shot" type="button" data-cat="portrait"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=700&q=80" alt="Portrait of a man" loading="lazy"><span class="cap"><small>Portrait</small><b>Character</b></span></button>
+      <button class="shot" type="button" data-cat="wedding"><img src="https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=700&q=80" alt="Couple kissing" loading="lazy"><span class="cap"><small>Wedding</small><b>The moment</b></span></button>
     </div>
   </div>
 </section>
@@ -425,89 +498,125 @@
 <!-- ====== QUOTE ====== -->
 <section class="section quote">
   <div class="wrap reveal">
-    <blockquote>„Tim hat unseren Tag eingefangen, ohne dass wir ihn je gespürt haben. Beim Reel sind wir <span>Gänsehaut</span> pur gewesen."</blockquote>
-    <cite>Lena &amp; Jakob · Hochzeit am See</cite>
+    <blockquote>"Tim captured our whole day without us ever noticing him. When we watched the reel, we had <span>goosebumps</span> from start to finish."</blockquote>
+    <cite>Lena &amp; Jakob · Lakeside wedding</cite>
   </div>
 </section>
 
 <!-- ====== SERVICES ====== -->
-<section class="section" id="leistungen">
+<section class="section" id="services">
   <div class="wrap">
     <div class="sec-head reveal">
       <div>
-        <p class="eyebrow">Leistungen</p>
-        <h2>Pakete &amp; Preise</h2>
+        <p class="eyebrow">Services</p>
+        <h2>Packages &amp; pricing</h2>
       </div>
-      <p>Transparente Richtwerte — jedes Projekt passe ich individuell an.</p>
+      <p>Transparent starting points — every project is tailored to you.</p>
     </div>
     <div class="services">
       <div class="svc reveal">
         <span class="num">01</span>
-        <h3>Hochzeit</h3>
-        <p>Foto &amp; Film vom ganzen Tag, inkl. cinematischem Highlight-Reel und Online-Galerie.</p>
-        <div class="price">ab <b>1.490&nbsp;€</b></div>
+        <h3>Weddings</h3>
+        <p>Photo &amp; film of your full day, including a cinematic highlight reel and online gallery.</p>
+        <div class="price">from <b>€1,490</b></div>
       </div>
       <div class="svc reveal">
         <span class="num">02</span>
         <h3>Automotive</h3>
-        <p>Foto- &amp; Video-Shooting für dein Fahrzeug — Static, Details und Rolling Shots.</p>
-        <div class="price">ab <b>290&nbsp;€</b></div>
+        <p>Photo &amp; video shoot for your vehicle — statics, details and rolling shots.</p>
+        <div class="price">from <b>€290</b></div>
       </div>
       <div class="svc reveal">
         <span class="num">03</span>
         <h3>Reels &amp; Video</h3>
-        <p>Hochformat-Clips für Social Media, geschnitten und farboptimiert — ab Idee bis Upload.</p>
-        <div class="price">ab <b>149&nbsp;€</b> / Reel</div>
+        <p>Vertical clips for social media, edited and colour-graded — from idea to upload.</p>
+        <div class="price">from <b>€149</b> / reel</div>
       </div>
       <div class="svc highlight reveal">
         <span class="num">04</span>
-        <h3>Social-Media-Marketing</h3>
-        <p>Mehr als Bilder: Content-Planung, regelmäßige Reels &amp; Betreuung deiner Kanäle für echtes Wachstum.</p>
-        <div class="price">Pakete ab <b>390&nbsp;€</b> / Monat</div>
+        <h3>Social-Media Marketing</h3>
+        <p>More than images: content planning, regular reels &amp; ongoing channel management for real growth.</p>
+        <div class="price">plans from <b>€390</b> / month</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== FAQ ====== -->
+<section class="section" id="faq">
+  <div class="wrap">
+    <div class="sec-head reveal" style="justify-content:center;text-align:center;">
+      <div>
+        <p class="eyebrow">Good to know</p>
+        <h2>Frequently asked</h2>
+      </div>
+    </div>
+    <div class="faq-grid reveal">
+      <div class="faq-item">
+        <button class="faq-q" type="button" aria-expanded="false">How far in advance should I book?</button>
+        <div class="faq-a"><p>For weddings, 6–12 months ahead is ideal as dates fill up quickly. Automotive and reel shoots are usually possible within a few weeks — just ask.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" type="button" aria-expanded="false">Do you travel?</button>
+        <div class="faq-a"><p>Absolutely. I'm based in Bavaria but shoot all over Germany and beyond. Travel beyond the region is added at cost and always agreed upfront.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" type="button" aria-expanded="false">When will I get my photos and videos?</button>
+        <div class="faq-a"><p>You'll receive a small sneak peek within a few days. Full galleries land in 2–4 weeks, wedding films in 4–6 weeks, depending on the season.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" type="button" aria-expanded="false">Do you also handle posting and social media?</button>
+        <div class="faq-a"><p>Yes — with the social-media package I plan, cut and schedule your content, so your channels stay active and keep growing without you lifting a finger.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" type="button" aria-expanded="false">What does a shoot cost?</button>
+        <div class="faq-a"><p>See the starting points above. After a short call I send a fixed, tailored quote — so there are no surprises later.</p></div>
       </div>
     </div>
   </div>
 </section>
 
 <!-- ====== CONTACT ====== -->
-<section class="section" id="kontakt">
+<section class="section" id="contact">
   <div class="wrap contact-grid">
     <div class="contact-left reveal">
-      <p class="eyebrow">Kontakt</p>
-      <h2>Lass uns deine<br><em>Geschichte</em> drehen.</h2>
-      <p>Erzähl mir kurz von deinem Projekt — ich melde mich meist innerhalb von 24 Stunden mit einem persönlichen Vorschlag.</p>
+      <p class="eyebrow">Contact</p>
+      <h2>Let's shoot your<br><em>story.</em></h2>
+      <p>Tell me a little about your project — I usually reply within 24 hours with a personal proposal.</p>
       <div class="contact-info">
-        <a href="mailto:hallo@tim-rammensee.de"><span class="ic">✉</span><span><small>E-Mail</small>hallo@tim-rammensee.de</span></a>
-        <a href="tel:+4915112345678"><span class="ic">☎</span><span><small>Telefon</small>+49 151 123 456 78</span></a>
-        <a href="https://instagram.com/" target="_blank" rel="noopener"><span class="ic">◎</span><span><small>Instagram</small>@tim.rammensee</span></a>
-        <div><span class="ic">⌖</span><span><small>Standort</small>Oberkotzau · Oberfranken</span></div>
+        <a href="mailto:hello@tim-rammensee.de"><span class="ic" aria-hidden="true">✉</span><span><small>Email</small>hello@tim-rammensee.de</span></a>
+        <a href="tel:+4915112345678"><span class="ic" aria-hidden="true">☎</span><span><small>Phone</small>+49 151 123 456 78</span></a>
+        <a href="https://instagram.com/" target="_blank" rel="noopener"><span class="ic" aria-hidden="true">◎</span><span><small>Instagram</small>@tim.rammensee</span></a>
+        <div><span class="ic" aria-hidden="true">⌖</span><span><small>Based in</small>Bavaria, Germany</span></div>
       </div>
     </div>
-    <form class="reveal" id="contactForm" action="mailto:hallo@tim-rammensee.de" method="post" enctype="text/plain">
+    <form class="reveal" id="contactForm" action="mailto:hello@tim-rammensee.de" method="post" enctype="text/plain">
       <div class="row">
-        <div><label for="name">Name</label><input id="name" name="Name" type="text" placeholder="Dein Name" required></div>
-        <div><label for="email">E-Mail</label><input id="email" name="E-Mail" type="email" placeholder="du@beispiel.de" required></div>
+        <div><label for="name">Name</label><input id="name" name="Name" type="text" placeholder="Your name" required></div>
+        <div><label for="email">Email</label><input id="email" name="Email" type="email" placeholder="you@example.com" required></div>
       </div>
       <div>
-        <label for="art">Projekt</label>
-        <select id="art" name="Projekt">
-          <option>Hochzeit</option>
+        <label for="art">Project</label>
+        <select id="art" name="Project">
+          <option>Wedding</option>
           <option>Automotive</option>
           <option>Reels / Video</option>
-          <option>Social-Media-Marketing</option>
-          <option>Porträt</option>
-          <option>Sonstiges</option>
+          <option>Social-Media Marketing</option>
+          <option>Portrait</option>
+          <option>Other</option>
         </select>
       </div>
       <div>
-        <label for="msg">Nachricht</label>
-        <textarea id="msg" name="Nachricht" placeholder="Erzähl mir von deinem Vorhaben, Datum und Ort …"></textarea>
+        <label for="msg">Message</label>
+        <textarea id="msg" name="Message" placeholder="Tell me about your plans, date and location …"></textarea>
       </div>
-      <button class="submit" type="submit">Anfrage senden</button>
-      <p class="form-note">Mit dem Absenden öffnet sich dein E-Mail-Programm. Alternativ direkt an hallo@tim-rammensee.de schreiben.</p>
+      <button class="submit" type="submit">Send enquiry</button>
+      <p class="form-note">Submitting opens your email app. You can also write directly to hello@tim-rammensee.de.</p>
     </form>
   </div>
 </section>
+
+</main>
 
 <!-- ====== FOOTER ====== -->
 <footer>
@@ -515,27 +624,27 @@
     <div class="foot-grid">
       <div>
         <div class="foot-brand">Tim Rammensee</div>
-        <p style="color:var(--muted);font-weight:300;margin-top:8px;max-width:340px;">Cinematic Fotografie &amp; Film — Hochzeit, Automotive, Reels &amp; Social Media.</p>
+        <p style="color:var(--muted);font-weight:300;margin-top:8px;max-width:340px;">Cinematic photography &amp; film — weddings, automotive, reels &amp; social media.</p>
       </div>
       <div class="foot-soc">
         <a href="https://instagram.com/" target="_blank" rel="noopener" aria-label="Instagram">◎</a>
-        <a href="mailto:hallo@tim-rammensee.de" aria-label="E-Mail">✉</a>
-        <a href="tel:+4915112345678" aria-label="Telefon">☎</a>
+        <a href="mailto:hello@tim-rammensee.de" aria-label="Email">✉</a>
+        <a href="tel:+4915112345678" aria-label="Phone">☎</a>
       </div>
     </div>
     <div class="foot-bottom">
-      <span>© <span id="year"></span> Tim Rammensee — Alle Rechte vorbehalten.</span>
-      <span><a href="#kontakt">Impressum</a> &nbsp;·&nbsp; <a href="#kontakt">Datenschutz</a></span>
+      <span>© <span id="year"></span> Tim Rammensee — All rights reserved.</span>
+      <span><a href="#contact">Imprint</a> &nbsp;·&nbsp; <a href="#contact">Privacy</a></span>
     </div>
   </div>
 </footer>
 
 <!-- ====== LIGHTBOX ====== -->
-<div class="lb" id="lb">
-  <button class="lb-close" id="lbClose" aria-label="Schließen">×</button>
-  <button class="lb-nav lb-prev" id="lbPrev" aria-label="Zurück">‹</button>
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Media viewer">
+  <button class="lb-close" id="lbClose" aria-label="Close">×</button>
+  <button class="lb-nav lb-prev" id="lbPrev" aria-label="Previous">‹</button>
   <div id="lbStage"></div>
-  <button class="lb-nav lb-next" id="lbNext" aria-label="Weiter">›</button>
+  <button class="lb-nav lb-next" id="lbNext" aria-label="Next">›</button>
 </div>
 
 <script>
@@ -550,8 +659,9 @@
   // mobile menu
   const burger = document.getElementById('burger');
   const links = document.getElementById('navLinks');
-  burger.addEventListener('click', () => links.classList.toggle('open'));
-  links.querySelectorAll('a').forEach(a => a.addEventListener('click', () => links.classList.remove('open')));
+  const setMenu = (open) => { links.classList.toggle('open', open); burger.setAttribute('aria-expanded', open ? 'true' : 'false'); };
+  burger.addEventListener('click', () => setMenu(!links.classList.contains('open')));
+  links.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setMenu(false)));
 
   // reveal on scroll
   const io = new IntersectionObserver((entries) => {
@@ -559,7 +669,7 @@
   }, {threshold:0.12});
   document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-  // reels: play on hover (desktop), tap opens lightbox video
+  // reels: play on hover (desktop), click/tap opens lightbox video
   document.querySelectorAll('.reel').forEach(reel => {
     const v = reel.querySelector('video');
     const src = reel.dataset.video;
@@ -578,25 +688,43 @@
     shots.forEach(s => { s.style.display = (f==='all' || s.dataset.cat===f) ? '' : 'none'; });
   });
 
+  // FAQ accordion
+  document.querySelectorAll('.faq-q').forEach(q => {
+    const item = q.parentElement, ans = q.nextElementSibling;
+    q.addEventListener('click', () => {
+      const open = item.classList.toggle('open');
+      q.setAttribute('aria-expanded', open ? 'true' : 'false');
+      ans.style.maxHeight = open ? ans.scrollHeight + 'px' : null;
+    });
+  });
+
   // lightbox (images + video)
   const lb = document.getElementById('lb'), stage = document.getElementById('lbStage');
   const prevBtn = document.getElementById('lbPrev'), nextBtn = document.getElementById('lbNext');
-  let visible = [], idx = 0;
+  let visible = [], idx = 0, lastFocus = null;
+  const hiRes = (src) => src.replace(/w=\d+/, 'w=1600');
   const showImg = () => {
     const img = visible[idx].querySelector('img');
-    stage.innerHTML = '<img src="'+img.src.replace('w=700','w=1600')+'" alt="'+img.alt+'">';
+    stage.replaceChildren();
+    const el = document.createElement('img');
+    el.src = hiRes(img.src); el.alt = img.alt;
+    stage.appendChild(el);
     prevBtn.style.display = nextBtn.style.display = '';
   };
+  const openLb = () => { lastFocus = document.activeElement; lb.classList.add('open'); document.getElementById('lbClose').focus(); };
   shots.forEach(s => s.addEventListener('click', () => {
     visible = shots.filter(x => x.style.display !== 'none');
-    idx = visible.indexOf(s); showImg(); lb.classList.add('open');
+    idx = visible.indexOf(s); showImg(); openLb();
   }));
   function openVideo(src){
-    stage.innerHTML = '<video src="'+src+'" autoplay loop controls playsinline></video>';
-    prevBtn.style.display = nextBtn.style.display = 'none';
-    lb.classList.add('open');
+    stage.replaceChildren();
+    const v = document.createElement('video');
+    v.src = src; v.autoplay = v.loop = v.controls = v.playsInline = true;
+    stage.appendChild(v);
+    visible = []; prevBtn.style.display = nextBtn.style.display = 'none';
+    openLb();
   }
-  const close = () => { lb.classList.remove('open'); stage.innerHTML = ''; };
+  const close = () => { lb.classList.remove('open'); stage.replaceChildren(); if(lastFocus) lastFocus.focus(); };
   document.getElementById('lbClose').onclick = close;
   lb.addEventListener('click', e => { if(e.target === lb) close(); });
   nextBtn.onclick = () => { if(!visible.length) return; idx = (idx+1)%visible.length; showImg(); };
