@@ -1,0 +1,25 @@
+# Netlify deploy config — publishes the Tim Rammensee photographer site.
+#
+# Deploy in 2 minutes:
+#   1. netlify.com → "Add new site" → "Import an existing project"
+#   2. Pick this repository and the branch  claude/tim-rammensee-website-rdxqb5
+#   3. No build command needed — this file already points Netlify at the right folder.
+#
+# (Alternative without Git: open  app.netlify.com/drop  and drag the
+#  "tim-rammensee" folder onto the page.)
+
+[build]
+  publish = "tim-rammensee"
+  command = ""
+
+# Contact form (Netlify Forms) works automatically once deployed here —
+# no Formspree or account ID required. Submissions appear under
+# Netlify → your site → Forms.
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "SAMEORIGIN"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=()"

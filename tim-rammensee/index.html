@@ -667,10 +667,11 @@
         <div><span class="ic" aria-hidden="true">⌖</span><span><small data-i18n="c.loc">Based in</small><span data-i18n="c.locval">Bavaria, Germany</span></span></div>
       </div>
     </div>
-    <!-- To receive enquiries: create a free form at https://formspree.io , then replace
-         "yourFormId" below with your form ID (e.g. https://formspree.io/f/abcdwxyz). -->
-    <form class="reveal" id="contactForm" action="https://formspree.io/f/yourFormId" method="post">
-      <input type="hidden" name="_subject" value="New enquiry from tim-rammensee.de">
+    <!-- Netlify Forms: works automatically once the site is deployed on Netlify.
+         Submissions appear under Netlify → your site → Forms. No external service needed. -->
+    <form class="reveal" id="contactForm" name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+      <input type="hidden" name="form-name" value="contact">
+      <p hidden><label>Don’t fill this out if you’re human: <input name="bot-field"></label></p>
       <div class="row">
         <div><label for="name" data-i18n="form.name">Name</label><input id="name" name="name" type="text" placeholder="Your name" data-i18n-ph="form.namePh" required></div>
         <div><label for="email" data-i18n="form.email">Email</label><input id="email" name="email" type="email" placeholder="you@example.com" data-i18n-ph="form.emailPh" required></div>
@@ -932,13 +933,11 @@ const I18N = {
       e.preventDefault();
       const btn = cf.querySelector('button[type=submit]');
       const note = document.getElementById('formNote');
-      if(cf.action.includes('yourFormId')){
-        note.textContent = t('form.noendpoint'); note.style.color = 'var(--accent)';
-        return;
-      }
       btn.disabled = true; btn.textContent = t('form.sending');
       try{
-        const res = await fetch(cf.action, { method:'POST', body:new FormData(cf), headers:{Accept:'application/json'} });
+        // Netlify Forms: POST url-encoded data (incl. form-name) to the current page
+        const body = new URLSearchParams(new FormData(cf)).toString();
+        const res = await fetch('/', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body });
         if(!res.ok) throw new Error('bad response');
         cf.reset();
         btn.textContent = t('form.sent');
