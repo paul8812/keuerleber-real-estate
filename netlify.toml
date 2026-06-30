@@ -1,11 +1,8 @@
 # Netlify deploy config — publishes the Tim Rammensee photographer site.
 #
-# Deploy in 2 minutes:
-#   1. netlify.com → "Add new site" → "Import an existing project"
-#   2. Pick this repository and the branch  claude/tim-rammensee-website-rdxqb5
-#   3. No build command needed — this file already points Netlify at the right folder.
-#
-# (Alternative without Git: open  app.netlify.com/drop  and drag the
+# Deploy: import this repository in Netlify and select the correct branch.
+# No build command needed — this file points Netlify at the site folder.
+# (Alternative without Git: open app.netlify.com/drop and drag the
 #  "tim-rammensee" folder onto the page.)
 
 [build]
