@@ -10,6 +10,7 @@
 <meta property="og:description" content="Weddings · Automotive · Reels · Social Media. Stories that move.">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="de_DE">
 <meta property="og:url" content="https://tim-rammensee.de/">
 <meta property="og:image" content="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80">
 <meta name="twitter:card" content="summary_large_image">
@@ -65,7 +66,7 @@
     --sans:'Inter',-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;
   }
   *{margin:0;padding:0;box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;}
   body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
   img,video{display:block;max-width:100%;}
   a{color:inherit;text-decoration:none;}
@@ -104,11 +105,15 @@
   .nav-links a:hover{color:var(--ink);}
   .nav-cta{border:1px solid var(--line);border-radius:40px;padding:10px 22px !important;color:var(--ink) !important;transition:all .25s;}
   .nav-cta:hover{background:var(--accent);border-color:var(--accent);color:#0b0b0c !important;}
-  .burger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:6px;z-index:130;}
+  .lang-switch{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:40px;padding:5px 10px;}
+  .lang-switch button{background:none;border:none;color:var(--muted);font-family:var(--sans);font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;padding:3px 5px;transition:color .25s;border-radius:20px;}
+  .lang-switch button.active{color:var(--accent);font-weight:600;}
+  .lang-switch .sep{color:rgba(255,255,255,.22);font-size:11px;padding:0;}
+  .burger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:10px;margin:-10px;z-index:130;}
   .burger span{width:24px;height:1.5px;background:var(--ink);transition:.3s;}
 
   /* ---------- HERO ---------- */
-  .hero{position:relative;height:100vh;min-height:640px;display:flex;align-items:flex-end;overflow:hidden;background:#000;}
+  .hero{position:relative;height:100vh;min-height:600px;display:flex;align-items:flex-end;overflow:hidden;background:#000;}
   .hero video,.hero .poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
   .hero .poster{background-size:cover;background-position:center;}
   .hero::before{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(11,11,12,.45) 0%,rgba(11,11,12,.15) 30%,rgba(11,11,12,.55) 65%,rgba(11,11,12,.97) 100%);}
@@ -118,15 +123,15 @@
   .hero-inner{position:relative;z-index:3;width:100%;padding-bottom:13vh;}
   .hero h1{font-size:clamp(46px,8.5vw,124px);color:#fff;font-weight:500;}
   .hero .lead{max-width:560px;margin-top:22px;font-size:17px;color:#ddd6cc;font-weight:300;}
-  .hero-actions{display:flex;gap:26px;margin-top:38px;flex-wrap:wrap;align-items:center;}
+  .hero-actions{display:flex;gap:18px;margin-top:38px;flex-wrap:wrap;align-items:center;}
   .hero-trust{margin-top:26px;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#cfc8bd;}
   .hero-trust b{color:var(--accent);font-weight:600;}
-  .btn{display:inline-flex;align-items:center;gap:12px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;padding:15px 28px;border-radius:40px;transition:.3s;cursor:pointer;}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:12px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;padding:15px 28px;border-radius:40px;transition:.3s;cursor:pointer;}
   .btn-primary{background:var(--accent);color:#0b0b0c;font-weight:600;}
   .btn-primary:hover{background:var(--accent-deep);}
   .btn-ghost{border:1px solid rgba(255,255,255,.3);color:#fff;}
   .btn-ghost:hover{background:#fff;color:#0b0b0c;border-color:#fff;}
-  .btn .play{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:11px;}
+  .btn .play{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
   .scroll-cue{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:3;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:10px;}
   .scroll-cue .line{width:1px;height:42px;background:linear-gradient(var(--accent),transparent);}
 
@@ -254,7 +259,7 @@
   form{display:flex;flex-direction:column;gap:16px;}
   form .row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
   form label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:block;}
-  input,textarea,select{width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--line);border-radius:6px;padding:14px 16px;color:var(--ink);font-family:inherit;font-size:15px;outline:none;transition:border-color .25s;}
+  input,textarea,select{width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--line);border-radius:6px;padding:14px 16px;color:var(--ink);font-family:inherit;font-size:16px;outline:none;transition:border-color .25s;}
   input:focus,textarea:focus,select:focus{border-color:var(--accent);}
   textarea{resize:vertical;min-height:120px;}
   button.submit{background:var(--accent);color:#0b0b0c;border:none;border-radius:6px;padding:16px;font-family:var(--sans);font-size:14px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:.25s;margin-top:6px;}
@@ -276,10 +281,10 @@
   .lb.open{display:flex;}
   .lb img,.lb video{max-width:92vw;max-height:88vh;border-radius:5px;box-shadow:0 30px 80px rgba(0,0,0,.6);}
   .lb video{max-width:min(92vw,420px);}
-  .lb-close{position:absolute;top:24px;right:30px;background:none;border:none;color:#fff;font-size:34px;cursor:pointer;line-height:1;}
-  .lb-nav{position:absolute;top:50%;transform:translateY(-50%);background:none;border:1px solid var(--line);color:#fff;width:54px;height:54px;border-radius:50%;font-size:22px;cursor:pointer;transition:.25s;}
+  .lb-close{position:absolute;top:20px;right:20px;background:rgba(0,0,0,.4);border:none;color:#fff;font-size:30px;cursor:pointer;line-height:1;width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+  .lb-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.4);border:1px solid var(--line);color:#fff;width:54px;height:54px;border-radius:50%;font-size:22px;cursor:pointer;transition:.25s;}
   .lb-nav:hover{background:var(--accent);color:#0b0b0c;border-color:var(--accent);}
-  .lb-prev{left:24px;}.lb-next{right:24px;}
+  .lb-prev{left:18px;}.lb-next{right:18px;}
 
   /* ---------- REVEAL ---------- */
   .reveal{opacity:0;transform:translateY(30px);transition:opacity .9s cubic-bezier(.2,.8,.2,1),transform .9s cubic-bezier(.2,.8,.2,1);}
@@ -300,18 +305,42 @@
     .about-img{max-width:420px;}
   }
   @media(max-width:760px){
-    .section{padding:84px 0;}
-    .auto{padding:90px 0;}
-    .nav-links{position:fixed;inset:0 0 0 auto;width:80%;max-width:330px;background:#111114;flex-direction:column;justify-content:center;align-items:flex-start;padding:60px 36px;gap:22px;transform:translateX(100%);visibility:hidden;transition:transform .4s,visibility .4s;border-left:1px solid var(--line);}
+    .section{padding:80px 0;}
+    .auto{padding:84px 0;}
+    .wrap{padding:0 22px;}
+    .nav{padding:18px 22px;}
+    header.scrolled .nav{padding:13px 22px;}
+    .nav-links{position:fixed;inset:0 0 0 auto;width:82%;max-width:340px;background:#111114;flex-direction:column;justify-content:center;align-items:flex-start;padding:90px 34px 40px;gap:8px;transform:translateX(100%);visibility:hidden;transition:transform .4s,visibility .4s;border-left:1px solid var(--line);overflow-y:auto;}
     .nav-links.open{transform:translateX(0);visibility:visible;}
-    .nav-links a{font-size:17px;}
+    .nav-links a{font-size:19px;padding:10px 0;width:100%;}
+    .nav-links .nav-cta{margin-top:8px;padding:13px 24px !important;}
+    .lang-switch{margin-top:20px;}
+    .lang-switch button{font-size:13px;padding:6px 10px;}
     .burger{display:flex;}
+    .sec-head{margin-bottom:40px;}
     .gallery{columns:1;}
     .services{grid-template-columns:1fr;}
     .reels{grid-template-columns:repeat(2,1fr);gap:12px;}
     form .row{grid-template-columns:1fr;}
-    .hero .bar{height:5vh;}
+    .hero{min-height:560px;}
+    .hero .bar{height:4vh;}
+    .hero-inner{padding-bottom:16vh;}
+    .hero .lead{font-size:16px;}
+    .hero-actions{gap:12px;}
+    .hero-actions .btn{flex:1 1 auto;}
+    .scroll-cue{display:none;}
     .about-img .badge{left:0;}
+    .about .stats{gap:26px;}
+    .feature li{font-size:14.5px;}
+  }
+  @media(max-width:420px){
+    .wrap{padding:0 18px;}
+    .hero-actions{flex-direction:column;align-items:stretch;}
+    .hero-actions .btn{width:100%;}
+    .hero-trust{font-size:11px;letter-spacing:.12em;}
+    .about .stats{gap:20px;}
+    .about .stats div b{font-size:28px;}
+    .svc{padding:36px 26px;}
   }
 
   /* ---------- REDUCED MOTION ---------- */
@@ -324,20 +353,23 @@
 </style>
 </head>
 <body>
-<a href="#main" class="skip">Skip to content</a>
+<a href="#main" class="skip" data-i18n="skip">Skip to content</a>
 
 <!-- ====== NAV ====== -->
 <header id="top">
   <nav class="nav" aria-label="Primary">
     <a href="#top" class="brand" aria-label="Tim Rammensee — home"><span class="mark"><svg viewBox="0 0 120 90" fill="none" aria-hidden="true"><text x="34" y="64" text-anchor="middle" fill="currentColor" font-family="'Cormorant Garamond',Georgia,serif" font-size="58" font-weight="600">T</text><line class="ln" x1="60" y1="22" x2="60" y2="68" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><text class="r" x="87" y="64" text-anchor="middle" fill="currentColor" font-family="'Cormorant Garamond',Georgia,serif" font-size="58" font-weight="600">R</text></svg></span> <span>Tim&nbsp;<b>Rammensee</b></span></a>
     <div class="nav-links" id="navLinks">
-      <a href="#weddings">Weddings</a>
-      <a href="#automotive">Automotive</a>
-      <a href="#reels">Reels</a>
-      <a href="#work">Work</a>
-      <a href="#about">About</a>
-      <a href="#services">Services</a>
-      <a href="#contact" class="nav-cta">Get in touch</a>
+      <a href="#weddings" data-i18n="nav.weddings">Weddings</a>
+      <a href="#automotive" data-i18n="nav.automotive">Automotive</a>
+      <a href="#reels" data-i18n="nav.reels">Reels</a>
+      <a href="#work" data-i18n="nav.work">Work</a>
+      <a href="#about" data-i18n="nav.about">About</a>
+      <a href="#services" data-i18n="nav.services">Services</a>
+      <a href="#contact" class="nav-cta" data-i18n="nav.contact">Get in touch</a>
+      <div class="lang-switch" role="group" aria-label="Language">
+        <button type="button" data-lang="de">DE</button><span class="sep">/</span><button type="button" data-lang="en">EN</button>
+      </div>
     </div>
     <button class="burger" id="burger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks"><span></span><span></span><span></span></button>
   </nav>
@@ -348,20 +380,20 @@
 <!-- ====== HERO (Video) ====== -->
 <section class="hero" aria-label="Intro">
   <div class="bar top"></div>
-  <!-- STOCK VIDEO – replace later with Tim's own showreel. poster = still image fallback -->
+  <!-- STOCK VIDEO – replace later with Tim's own showreel. poster = still image fallback (also used alone on mobile) -->
   <video autoplay muted loop playsinline preload="metadata" poster="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80">
     <source src="https://videos.pexels.com/video-files/2022395/2022395-hd_1920_1080_30fps.mp4" type="video/mp4">
   </video>
   <div class="bar bottom"></div>
   <div class="hero-inner wrap">
-    <p class="eyebrow reveal">Cinematic Photography &amp; Film · Bavaria, Germany</p>
-    <h1 class="reveal">Stories that<br><em>move.</em></h1>
-    <p class="lead reveal">Bavaria-based photographer &amp; filmmaker. I turn your wedding, your car or your brand into films and photos people actually feel — and want to share.</p>
+    <p class="eyebrow reveal" data-i18n="hero.eyebrow">Cinematic Photography &amp; Film · Bavaria, Germany</p>
+    <h1 class="reveal" data-i18n="hero.h1">Stories that<br><em>move.</em></h1>
+    <p class="lead reveal" data-i18n="hero.lead">Bavaria-based photographer &amp; filmmaker. I turn your wedding, your car or your brand into films and photos people actually feel — and want to share.</p>
     <div class="hero-actions reveal">
-      <a href="#contact" class="btn btn-primary">Start a project</a>
-      <a href="#reels" class="btn btn-ghost"><span class="play" aria-hidden="true">▶</span> Watch the reels</a>
+      <a href="#contact" class="btn btn-primary" data-i18n="hero.cta1">Start a project</a>
+      <a href="#reels" class="btn btn-ghost"><span class="play" aria-hidden="true">▶</span> <span data-i18n="hero.cta2">Watch the reels</span></a>
     </div>
-    <p class="hero-trust reveal"><b>60+</b> weddings &nbsp;·&nbsp; <b>150+</b> projects &nbsp;·&nbsp; <b>4.9★</b> rated</p>
+    <p class="hero-trust reveal" data-i18n="hero.trust"><b>60+</b> weddings &nbsp;·&nbsp; <b>150+</b> projects &nbsp;·&nbsp; <b>4.9★</b> rated</p>
   </div>
   <div class="scroll-cue" aria-hidden="true"><span>Scroll</span><span class="line"></span></div>
 </section>
@@ -382,16 +414,16 @@
       <img class="stack" src="https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=600&q=80" alt="Wedding details" loading="lazy">
     </div>
     <div class="reveal">
-      <p class="eyebrow">Focus · Weddings</p>
-      <h2>Your day,<br>told like a film.</h2>
-      <p>Weddings are my passion. I move through your whole day unobtrusively and capture the real moments — the tears, the laughter, the first dance.</p>
+      <p class="eyebrow" data-i18n="w.eyebrow">Focus · Weddings</p>
+      <h2 data-i18n="w.h2">Your day,<br>told like a film.</h2>
+      <p data-i18n="w.p">Weddings are my passion. I move through your whole day unobtrusively and capture the real moments — the tears, the laughter, the first dance.</p>
       <ul>
-        <li>Documentary coverage from getting ready to the party</li>
-        <li>Cinematic wedding film &amp; highlight reel for social media</li>
-        <li>Couple's session at your favourite location</li>
-        <li>Refined editing &amp; a fast preview gallery</li>
+        <li data-i18n="w.li1">Documentary coverage from getting ready to the party</li>
+        <li data-i18n="w.li2">Cinematic wedding film &amp; highlight reel for social media</li>
+        <li data-i18n="w.li3">Couple's session at your favourite location</li>
+        <li data-i18n="w.li4">Refined editing &amp; a fast preview gallery</li>
       </ul>
-      <a href="#contact" class="btn btn-primary">Check your date</a>
+      <a href="#contact" class="btn btn-primary" data-i18n="w.cta">Check your date</a>
     </div>
   </div>
 </section>
@@ -401,10 +433,10 @@
   <div class="auto-bg" style="background-image:url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1280&q=70')"></div>
   <div class="wrap">
     <div class="reveal">
-      <p class="eyebrow">Focus · Automotive</p>
-      <h2>Machines you<br>can <em>feel.</em></h2>
-      <p>From daily driver to dream car, I shoot your vehicle so the paint, the lines and the character truly come alive. Rolling shots, detail shots, studio look.</p>
-      <a href="#contact" class="btn btn-primary" style="margin-top:30px">Book a car shoot</a>
+      <p class="eyebrow" data-i18n="a.eyebrow">Focus · Automotive</p>
+      <h2 data-i18n="a.h2">Machines you<br>can <em>feel.</em></h2>
+      <p data-i18n="a.p">From daily driver to dream car, I shoot your vehicle so the paint, the lines and the character truly come alive. Rolling shots, detail shots, studio look.</p>
+      <a href="#contact" class="btn btn-primary" style="margin-top:30px" data-i18n="a.cta">Book a car shoot</a>
     </div>
     <div class="auto-grid reveal">
       <div class="cell wide"><img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1000&q=80" alt="Sports car at night" loading="lazy"></div>
@@ -422,35 +454,35 @@
   <div class="wrap">
     <div class="sec-head reveal">
       <div>
-        <p class="eyebrow">Reels &amp; Video</p>
-        <h2>Content that stops the scroll.</h2>
+        <p class="eyebrow" data-i18n="r.eyebrow">Reels &amp; Video</p>
+        <h2 data-i18n="r.h2">Content that stops the scroll.</h2>
       </div>
-      <p>I cut your vertical clips for Instagram &amp; TikTok to the beat and build them for reach. Tap any reel for a preview.</p>
+      <p data-i18n="r.p">I cut your vertical clips for Instagram &amp; TikTok to the beat and build them for reach. Tap any reel for a preview.</p>
     </div>
     <div class="reels reveal" id="reelGrid">
       <!-- STOCK VIDEOS – replace with Tim's own reels -->
       <button class="reel" type="button" data-video="https://videos.pexels.com/video-files/4434150/4434150-uhd_1440_2560_25fps.mp4" aria-label="Play reel: First Dance">
         <video muted loop playsinline preload="none" poster="https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=500&q=80"></video>
         <span class="ig">Reel</span><span class="pp" aria-hidden="true">▶</span>
-        <span class="meta"><small>Wedding</small><b>First Dance</b></span>
+        <span class="meta"><small data-i18n="cat.wedding">Wedding</small><b>First Dance</b></span>
       </button>
       <button class="reel" type="button" data-video="https://videos.pexels.com/video-files/3066464/3066464-uhd_1440_2560_24fps.mp4" aria-label="Play reel: Night Drive">
         <video muted loop playsinline preload="none" poster="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=500&q=80"></video>
         <span class="ig">Reel</span><span class="pp" aria-hidden="true">▶</span>
-        <span class="meta"><small>Automotive</small><b>Night Drive</b></span>
+        <span class="meta"><small data-i18n="cat.auto">Automotive</small><b>Night Drive</b></span>
       </button>
       <button class="reel" type="button" data-video="https://videos.pexels.com/video-files/4434242/4434242-uhd_1440_2560_25fps.mp4" aria-label="Play reel: Getting Ready">
         <video muted loop playsinline preload="none" poster="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=500&q=80"></video>
         <span class="ig">Reel</span><span class="pp" aria-hidden="true">▶</span>
-        <span class="meta"><small>Wedding</small><b>Getting Ready</b></span>
+        <span class="meta"><small data-i18n="cat.wedding">Wedding</small><b>Getting Ready</b></span>
       </button>
       <button class="reel" type="button" data-video="https://videos.pexels.com/video-files/3066465/3066465-uhd_1440_2560_24fps.mp4" aria-label="Play reel: Roll Out">
         <video muted loop playsinline preload="none" poster="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=500&q=80"></video>
         <span class="ig">Reel</span><span class="pp" aria-hidden="true">▶</span>
-        <span class="meta"><small>Automotive</small><b>Roll Out</b></span>
+        <span class="meta"><small data-i18n="cat.auto">Automotive</small><b>Roll Out</b></span>
       </button>
     </div>
-    <div class="reveal" style="margin-top:40px"><a href="#contact" class="btn btn-primary">Plan your reels</a></div>
+    <div class="reveal" style="margin-top:40px"><a href="#contact" class="btn btn-primary" data-i18n="r.cta">Plan your reels</a></div>
   </div>
 </section>
 
@@ -459,26 +491,26 @@
   <div class="wrap">
     <div class="sec-head reveal">
       <div>
-        <p class="eyebrow">How it works</p>
-        <h2>From first hello to final cut.</h2>
+        <p class="eyebrow" data-i18n="p.eyebrow">How it works</p>
+        <h2 data-i18n="p.h2">From first hello to final cut.</h2>
       </div>
-      <p>A simple, relaxed process — so you always know what happens next.</p>
+      <p data-i18n="p.p">A simple, relaxed process — so you always know what happens next.</p>
     </div>
     <div class="steps">
       <div class="step reveal">
         <span class="n">01</span>
-        <h3>Discovery call</h3>
-        <p>We talk through your vision, dates and locations, and I put together a tailored quote — no pressure, no templates.</p>
+        <h3 data-i18n="p.s1h">Discovery call</h3>
+        <p data-i18n="p.s1p">We talk through your vision, dates and locations, and I put together a tailored quote — no pressure, no templates.</p>
       </div>
       <div class="step reveal">
         <span class="n">02</span>
-        <h3>The shoot</h3>
-        <p>On the day I keep it calm and natural. You enjoy the moment, I take care of light, angles and timing.</p>
+        <h3 data-i18n="p.s2h">The shoot</h3>
+        <p data-i18n="p.s2p">On the day I keep it calm and natural. You enjoy the moment, I take care of light, angles and timing.</p>
       </div>
       <div class="step reveal">
         <span class="n">03</span>
-        <h3>Edit &amp; deliver</h3>
-        <p>You get a fast sneak peek, then the full gallery and cinematic reels — ready to relive and to share.</p>
+        <h3 data-i18n="p.s3h">Edit &amp; deliver</h3>
+        <p data-i18n="p.s3p">You get a fast sneak peek, then the full gallery and cinematic reels — ready to relive and to share.</p>
       </div>
     </div>
   </div>
@@ -489,18 +521,18 @@
   <div class="wrap about-grid">
     <div class="about-img reveal">
       <img src="https://images.unsplash.com/photo-1554048612-b6a482bc67e5?auto=format&fit=crop&w=900&q=80" alt="Portrait of Tim Rammensee, photographer" loading="lazy">
-      <div class="badge"><b>8+</b><small>years behind<br>the camera</small></div>
+      <div class="badge"><b>8+</b><small data-i18n="ab.badge">years behind<br>the camera</small></div>
     </div>
     <div class="reveal">
-      <p class="eyebrow">About me</p>
-      <h2>An eye for cinema,<br>a heart for the moment.</h2>
-      <p>I'm Tim Rammensee. I blend photography and film into one language: calm, cinematic images that tell a story — whether it's a couple or a sports car.</p>
-      <p>I work close to the action, plan carefully and deliver fast. From a single reel to a full wedding production, it's all handled by one person, start to finish.</p>
-      <p>What matters most is that you feel at ease — because the strongest shots happen the moment the camera is forgotten.</p>
+      <p class="eyebrow" data-i18n="ab.eyebrow">About me</p>
+      <h2 data-i18n="ab.h2">An eye for cinema,<br>a heart for the moment.</h2>
+      <p data-i18n="ab.p1">I'm Tim Rammensee. I blend photography and film into one language: calm, cinematic images that tell a story — whether it's a couple or a sports car.</p>
+      <p data-i18n="ab.p2">I work close to the action, plan carefully and deliver fast. From a single reel to a full wedding production, it's all handled by one person, start to finish.</p>
+      <p data-i18n="ab.p3">What matters most is that you feel at ease — because the strongest shots happen the moment the camera is forgotten.</p>
       <div class="stats">
-        <div><b>150+</b><small>Projects shot</small></div>
-        <div><b>60+</b><small>Weddings</small></div>
-        <div><b>4.9★</b><small>Client rating</small></div>
+        <div><b>150+</b><small data-i18n="ab.stat1">Projects shot</small></div>
+        <div><b>60+</b><small data-i18n="ab.stat2">Weddings</small></div>
+        <div><b>4.9★</b><small data-i18n="ab.stat3">Client rating</small></div>
       </div>
       <div class="sign">— Tim</div>
     </div>
@@ -512,29 +544,29 @@
   <div class="wrap">
     <div class="sec-head reveal">
       <div>
-        <p class="eyebrow">Selected work</p>
-        <h2>Portfolio</h2>
+        <p class="eyebrow" data-i18n="wk.eyebrow">Selected work</p>
+        <h2 data-i18n="wk.h2">Portfolio</h2>
       </div>
-      <p>A selection of my favourite frames. Click any image for the full view.</p>
+      <p data-i18n="wk.p">A selection of my favourite frames. Click any image for the full view.</p>
     </div>
     <div class="filters reveal" id="filters">
-      <button class="active" data-filter="all">All</button>
-      <button data-filter="wedding">Weddings</button>
-      <button data-filter="auto">Automotive</button>
-      <button data-filter="portrait">Portrait</button>
-      <button data-filter="event">Events</button>
+      <button class="active" data-filter="all" data-i18n="filter.all">All</button>
+      <button data-filter="wedding" data-i18n="filter.wedding">Weddings</button>
+      <button data-filter="auto" data-i18n="filter.auto">Automotive</button>
+      <button data-filter="portrait" data-i18n="filter.portrait">Portrait</button>
+      <button data-filter="event" data-i18n="filter.event">Events</button>
     </div>
     <div class="gallery" id="gallery">
       <!-- Demo images – replace with Tim's own photos -->
-      <button class="shot" type="button" data-cat="wedding"><img src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=700&q=80" alt="Bride and groom" loading="lazy"><span class="cap"><small>Wedding</small><b>Yes, forever</b></span></button>
-      <button class="shot" type="button" data-cat="auto"><img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=700&q=80" alt="Porsche" loading="lazy"><span class="cap"><small>Automotive</small><b>Silhouette</b></span></button>
-      <button class="shot" type="button" data-cat="portrait"><img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=700&q=80" alt="Backlit portrait" loading="lazy"><span class="cap"><small>Portrait</small><b>Golden hour</b></span></button>
-      <button class="shot" type="button" data-cat="auto"><img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=700&q=80" alt="Muscle car" loading="lazy"><span class="cap"><small>Automotive</small><b>V8</b></span></button>
-      <button class="shot" type="button" data-cat="wedding"><img src="https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=700&q=80" alt="Wedding details" loading="lazy"><span class="cap"><small>Wedding</small><b>The little things</b></span></button>
-      <button class="shot" type="button" data-cat="event"><img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=700&q=80" alt="Event photography" loading="lazy"><span class="cap"><small>Event</small><b>Celebrate</b></span></button>
-      <button class="shot" type="button" data-cat="auto"><img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=700&q=80" alt="Sports car" loading="lazy"><span class="cap"><small>Automotive</small><b>Open road</b></span></button>
-      <button class="shot" type="button" data-cat="portrait"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=700&q=80" alt="Portrait of a man" loading="lazy"><span class="cap"><small>Portrait</small><b>Character</b></span></button>
-      <button class="shot" type="button" data-cat="wedding"><img src="https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=700&q=80" alt="Couple kissing" loading="lazy"><span class="cap"><small>Wedding</small><b>The moment</b></span></button>
+      <button class="shot" type="button" data-cat="wedding"><img src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=700&q=80" alt="Bride and groom" loading="lazy"><span class="cap"><small data-i18n="cat.wedding">Wedding</small><b>Yes, forever</b></span></button>
+      <button class="shot" type="button" data-cat="auto"><img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=700&q=80" alt="Porsche" loading="lazy"><span class="cap"><small data-i18n="cat.auto">Automotive</small><b>Silhouette</b></span></button>
+      <button class="shot" type="button" data-cat="portrait"><img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=700&q=80" alt="Backlit portrait" loading="lazy"><span class="cap"><small data-i18n="cat.portrait">Portrait</small><b>Golden hour</b></span></button>
+      <button class="shot" type="button" data-cat="auto"><img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=700&q=80" alt="Muscle car" loading="lazy"><span class="cap"><small data-i18n="cat.auto">Automotive</small><b>V8</b></span></button>
+      <button class="shot" type="button" data-cat="wedding"><img src="https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=700&q=80" alt="Wedding details" loading="lazy"><span class="cap"><small data-i18n="cat.wedding">Wedding</small><b>The little things</b></span></button>
+      <button class="shot" type="button" data-cat="event"><img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=700&q=80" alt="Event photography" loading="lazy"><span class="cap"><small data-i18n="cat.event">Event</small><b>Celebrate</b></span></button>
+      <button class="shot" type="button" data-cat="auto"><img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=700&q=80" alt="Sports car" loading="lazy"><span class="cap"><small data-i18n="cat.auto">Automotive</small><b>Open road</b></span></button>
+      <button class="shot" type="button" data-cat="portrait"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=700&q=80" alt="Portrait of a man" loading="lazy"><span class="cap"><small data-i18n="cat.portrait">Portrait</small><b>Character</b></span></button>
+      <button class="shot" type="button" data-cat="wedding"><img src="https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=700&q=80" alt="Couple kissing" loading="lazy"><span class="cap"><small data-i18n="cat.wedding">Wedding</small><b>The moment</b></span></button>
     </div>
   </div>
 </section>
@@ -542,8 +574,8 @@
 <!-- ====== QUOTE ====== -->
 <section class="section quote">
   <div class="wrap reveal">
-    <blockquote>"Tim captured our whole day without us ever noticing him. When we watched the reel, we had <span>goosebumps</span> from start to finish."</blockquote>
-    <cite>Lena &amp; Jakob · Lakeside wedding</cite>
+    <blockquote data-i18n="q.text">"Tim captured our whole day without us ever noticing him. When we watched the reel, we had <span>goosebumps</span> from start to finish."</blockquote>
+    <cite data-i18n="q.cite">Lena &amp; Jakob · Lakeside wedding</cite>
   </div>
 </section>
 
@@ -552,38 +584,38 @@
   <div class="wrap">
     <div class="sec-head reveal">
       <div>
-        <p class="eyebrow">Services</p>
-        <h2>Packages &amp; pricing</h2>
+        <p class="eyebrow" data-i18n="s.eyebrow">Services</p>
+        <h2 data-i18n="s.h2">Packages &amp; pricing</h2>
       </div>
-      <p>Transparent starting points — every project is tailored to you.</p>
+      <p data-i18n="s.p">Transparent starting points — every project is tailored to you.</p>
     </div>
     <div class="services">
       <div class="svc reveal">
         <span class="num">01</span>
-        <h3>Weddings</h3>
-        <p>Photo &amp; film of your full day, including a cinematic highlight reel and online gallery.</p>
-        <div class="price">from <b>€1,490</b></div>
+        <h3 data-i18n="s1.h">Weddings</h3>
+        <p data-i18n="s1.p">Photo &amp; film of your full day, including a cinematic highlight reel and online gallery.</p>
+        <div class="price" data-i18n="s1.price">from <b>€1,490</b></div>
       </div>
       <div class="svc reveal">
         <span class="num">02</span>
-        <h3>Automotive</h3>
-        <p>Photo &amp; video shoot for your vehicle — static shots, detail shots and rolling shots.</p>
-        <div class="price">from <b>€290</b></div>
+        <h3 data-i18n="s2.h">Automotive</h3>
+        <p data-i18n="s2.p">Photo &amp; video shoot for your vehicle — static shots, detail shots and rolling shots.</p>
+        <div class="price" data-i18n="s2.price">from <b>€290</b></div>
       </div>
       <div class="svc reveal">
         <span class="num">03</span>
-        <h3>Reels &amp; Video</h3>
-        <p>Vertical clips for social media, edited and colour-graded — from idea to upload.</p>
-        <div class="price">from <b>€149</b> / reel</div>
+        <h3 data-i18n="s3.h">Reels &amp; Video</h3>
+        <p data-i18n="s3.p">Vertical clips for social media, edited and colour-graded — from idea to upload.</p>
+        <div class="price" data-i18n="s3.price">from <b>€149</b> / reel</div>
       </div>
       <div class="svc highlight reveal">
         <span class="num">04</span>
-        <h3>Social-Media Marketing</h3>
-        <p>More than images: content planning, regular reels &amp; ongoing channel management for real growth.</p>
-        <div class="price">plans from <b>€390</b> / month</div>
+        <h3 data-i18n="s4.h">Social-Media Marketing</h3>
+        <p data-i18n="s4.p">More than images: content planning, regular reels &amp; ongoing channel management for real growth.</p>
+        <div class="price" data-i18n="s4.price">plans from <b>€390</b> / month</div>
       </div>
     </div>
-    <div class="reveal" style="margin-top:40px;text-align:center"><a href="#contact" class="btn btn-primary">Request a quote</a></div>
+    <div class="reveal" style="margin-top:40px;text-align:center"><a href="#contact" class="btn btn-primary" data-i18n="s.cta">Request a quote</a></div>
   </div>
 </section>
 
@@ -592,30 +624,30 @@
   <div class="wrap">
     <div class="sec-head reveal" style="justify-content:center;text-align:center;">
       <div>
-        <p class="eyebrow">Good to know</p>
-        <h2>Frequently asked</h2>
+        <p class="eyebrow" data-i18n="f.eyebrow">Good to know</p>
+        <h2 data-i18n="f.h2">Frequently asked</h2>
       </div>
     </div>
     <div class="faq-grid reveal">
       <div class="faq-item">
-        <button class="faq-q" type="button" aria-expanded="false">How far in advance should I book?</button>
-        <div class="faq-a"><p>For weddings, 6–12 months ahead is ideal as dates fill up quickly. Automotive and reel shoots are usually possible within a few weeks — just ask.</p></div>
+        <button class="faq-q" type="button" aria-expanded="false" data-i18n="f.q1">How far in advance should I book?</button>
+        <div class="faq-a"><p data-i18n="f.a1">For weddings, 6–12 months ahead is ideal as dates fill up quickly. Automotive and reel shoots are usually possible within a few weeks — just ask.</p></div>
       </div>
       <div class="faq-item">
-        <button class="faq-q" type="button" aria-expanded="false">Do you travel?</button>
-        <div class="faq-a"><p>Absolutely. I'm based in Bavaria but shoot all over Germany and beyond. Travel beyond the region is added at cost and always agreed upfront.</p></div>
+        <button class="faq-q" type="button" aria-expanded="false" data-i18n="f.q2">Do you travel?</button>
+        <div class="faq-a"><p data-i18n="f.a2">Absolutely. I'm based in Bavaria but shoot all over Germany and beyond. Travel beyond the region is added at cost and always agreed upfront.</p></div>
       </div>
       <div class="faq-item">
-        <button class="faq-q" type="button" aria-expanded="false">When will I get my photos and videos?</button>
-        <div class="faq-a"><p>You'll receive a small sneak peek within a few days. Full galleries land in 2–4 weeks, wedding films in 4–6 weeks, depending on the season.</p></div>
+        <button class="faq-q" type="button" aria-expanded="false" data-i18n="f.q3">When will I get my photos and videos?</button>
+        <div class="faq-a"><p data-i18n="f.a3">You'll receive a small sneak peek within a few days. Full galleries land in 2–4 weeks, wedding films in 4–6 weeks, depending on the season.</p></div>
       </div>
       <div class="faq-item">
-        <button class="faq-q" type="button" aria-expanded="false">Do you also handle posting and social media?</button>
-        <div class="faq-a"><p>Yes — with the social-media package I plan, cut and schedule your content, so your channels stay active and keep growing without you lifting a finger.</p></div>
+        <button class="faq-q" type="button" aria-expanded="false" data-i18n="f.q4">Do you also handle posting and social media?</button>
+        <div class="faq-a"><p data-i18n="f.a4">Yes — with the social-media package I plan, cut and schedule your content, so your channels stay active and keep growing without you lifting a finger.</p></div>
       </div>
       <div class="faq-item">
-        <button class="faq-q" type="button" aria-expanded="false">What does a shoot cost?</button>
-        <div class="faq-a"><p>See the starting points above. After a short call I send a fixed, tailored quote — so there are no surprises later.</p></div>
+        <button class="faq-q" type="button" aria-expanded="false" data-i18n="f.q5">What does a shoot cost?</button>
+        <div class="faq-a"><p data-i18n="f.a5">See the starting points above. After a short call I send a fixed, tailored quote — so there are no surprises later.</p></div>
       </div>
     </div>
   </div>
@@ -625,14 +657,14 @@
 <section class="section" id="contact">
   <div class="wrap contact-grid">
     <div class="contact-left reveal">
-      <p class="eyebrow">Contact</p>
-      <h2>Let's shoot your<br><em>story.</em></h2>
-      <p>Tell me a little about your project — I usually reply within 24 hours with a personal proposal.</p>
+      <p class="eyebrow" data-i18n="c.eyebrow">Contact</p>
+      <h2 data-i18n="c.h2">Let's shoot your<br><em>story.</em></h2>
+      <p data-i18n="c.p">Tell me a little about your project — I usually reply within 24 hours with a personal proposal.</p>
       <div class="contact-info">
-        <a href="mailto:hello@tim-rammensee.de"><span class="ic" aria-hidden="true">✉</span><span><small>Email</small>hello@tim-rammensee.de</span></a>
-        <a href="tel:+4915112345678"><span class="ic" aria-hidden="true">☎</span><span><small>Phone</small>+49 151 123 456 78</span></a>
-        <a href="https://instagram.com/" target="_blank" rel="noopener"><span class="ic" aria-hidden="true">◎</span><span><small>Instagram</small>@tim.rammensee</span></a>
-        <div><span class="ic" aria-hidden="true">⌖</span><span><small>Based in</small>Bavaria, Germany</span></div>
+        <a href="mailto:hello@tim-rammensee.de"><span class="ic" aria-hidden="true">✉</span><span><small data-i18n="c.email">Email</small>hello@tim-rammensee.de</span></a>
+        <a href="tel:+4915112345678"><span class="ic" aria-hidden="true">☎</span><span><small data-i18n="c.phone">Phone</small>+49 151 123 456 78</span></a>
+        <a href="https://instagram.com/" target="_blank" rel="noopener"><span class="ic" aria-hidden="true">◎</span><span><small data-i18n="c.ig">Instagram</small>@tim.rammensee</span></a>
+        <div><span class="ic" aria-hidden="true">⌖</span><span><small data-i18n="c.loc">Based in</small><span data-i18n="c.locval">Bavaria, Germany</span></span></div>
       </div>
     </div>
     <!-- To receive enquiries: create a free form at https://formspree.io , then replace
@@ -640,26 +672,26 @@
     <form class="reveal" id="contactForm" action="https://formspree.io/f/yourFormId" method="post">
       <input type="hidden" name="_subject" value="New enquiry from tim-rammensee.de">
       <div class="row">
-        <div><label for="name">Name</label><input id="name" name="name" type="text" placeholder="Your name" required></div>
-        <div><label for="email">Email</label><input id="email" name="email" type="email" placeholder="you@example.com" required></div>
+        <div><label for="name" data-i18n="form.name">Name</label><input id="name" name="name" type="text" placeholder="Your name" data-i18n-ph="form.namePh" required></div>
+        <div><label for="email" data-i18n="form.email">Email</label><input id="email" name="email" type="email" placeholder="you@example.com" data-i18n-ph="form.emailPh" required></div>
       </div>
       <div>
-        <label for="art">Project</label>
+        <label for="art" data-i18n="form.project">Project</label>
         <select id="art" name="project">
-          <option>Wedding</option>
-          <option>Automotive</option>
-          <option>Reels / Video</option>
-          <option>Social-Media Marketing</option>
-          <option>Portrait</option>
-          <option>Other</option>
+          <option data-i18n="opt.wedding">Wedding</option>
+          <option data-i18n="opt.auto">Automotive</option>
+          <option data-i18n="opt.reels">Reels / Video</option>
+          <option data-i18n="opt.smm">Social-Media Marketing</option>
+          <option data-i18n="opt.portrait">Portrait</option>
+          <option data-i18n="opt.other">Other</option>
         </select>
       </div>
       <div>
-        <label for="msg">Message</label>
-        <textarea id="msg" name="message" placeholder="Tell me about your plans, date and location …"></textarea>
+        <label for="msg" data-i18n="form.message">Message</label>
+        <textarea id="msg" name="message" placeholder="Tell me about your plans, date and location …" data-i18n-ph="form.messagePh"></textarea>
       </div>
-      <button class="submit" type="submit">Send enquiry</button>
-      <p class="form-note" id="formNote">I usually reply within 24 hours. You can also write directly to hello@tim-rammensee.de.</p>
+      <button class="submit" type="submit" data-i18n="form.send">Send enquiry</button>
+      <p class="form-note" id="formNote" data-i18n="form.note">I usually reply within 24 hours. You can also write directly to hello@tim-rammensee.de.</p>
     </form>
   </div>
 </section>
@@ -672,7 +704,7 @@
     <div class="foot-grid">
       <div>
         <div class="foot-brand">Tim Rammensee</div>
-        <p style="color:var(--muted);font-weight:300;margin-top:8px;max-width:340px;">Cinematic photography &amp; film — weddings, automotive, reels &amp; social media.</p>
+        <p style="color:var(--muted);font-weight:300;margin-top:8px;max-width:340px;" data-i18n="foot.tagline">Cinematic photography &amp; film — weddings, automotive, reels &amp; social media.</p>
       </div>
       <div class="foot-soc">
         <a href="https://instagram.com/" target="_blank" rel="noopener" aria-label="Instagram">◎</a>
@@ -681,8 +713,8 @@
       </div>
     </div>
     <div class="foot-bottom">
-      <span>© <span id="year"></span> Tim Rammensee — All rights reserved.</span>
-      <span><a href="imprint.html">Imprint</a> &nbsp;·&nbsp; <a href="privacy.html">Privacy</a></span>
+      <span>© <span id="year"></span> <span data-i18n="foot.rights">Tim Rammensee — All rights reserved.</span></span>
+      <span><a href="imprint.html" data-i18n="foot.imprint">Imprint</a> &nbsp;·&nbsp; <a href="privacy.html" data-i18n="foot.privacy">Privacy</a></span>
     </div>
   </div>
 </footer>
@@ -696,16 +728,148 @@
 </div>
 
 <script>
+const I18N = {
+  en: {
+    "title": "Tim Rammensee — Cinematic Photography & Film",
+    "skip": "Skip to content",
+    "nav.weddings": "Weddings", "nav.automotive": "Automotive", "nav.reels": "Reels", "nav.work": "Work", "nav.about": "About", "nav.services": "Services", "nav.contact": "Get in touch",
+    "hero.eyebrow": "Cinematic Photography &amp; Film · Bavaria, Germany",
+    "hero.h1": "Stories that<br><em>move.</em>",
+    "hero.lead": "Bavaria-based photographer &amp; filmmaker. I turn your wedding, your car or your brand into films and photos people actually feel — and want to share.",
+    "hero.cta1": "Start a project", "hero.cta2": "Watch the reels",
+    "hero.trust": "<b>60+</b> weddings &nbsp;·&nbsp; <b>150+</b> projects &nbsp;·&nbsp; <b>4.9★</b> rated",
+    "w.eyebrow": "Focus · Weddings", "w.h2": "Your day,<br>told like a film.",
+    "w.p": "Weddings are my passion. I move through your whole day unobtrusively and capture the real moments — the tears, the laughter, the first dance.",
+    "w.li1": "Documentary coverage from getting ready to the party", "w.li2": "Cinematic wedding film &amp; highlight reel for social media", "w.li3": "Couple's session at your favourite location", "w.li4": "Refined editing &amp; a fast preview gallery", "w.cta": "Check your date",
+    "a.eyebrow": "Focus · Automotive", "a.h2": "Machines you<br>can <em>feel.</em>",
+    "a.p": "From daily driver to dream car, I shoot your vehicle so the paint, the lines and the character truly come alive. Rolling shots, detail shots, studio look.", "a.cta": "Book a car shoot",
+    "r.eyebrow": "Reels &amp; Video", "r.h2": "Content that stops the scroll.",
+    "r.p": "I cut your vertical clips for Instagram &amp; TikTok to the beat and build them for reach. Tap any reel for a preview.", "r.cta": "Plan your reels",
+    "cat.wedding": "Wedding", "cat.auto": "Automotive", "cat.portrait": "Portrait", "cat.event": "Event",
+    "p.eyebrow": "How it works", "p.h2": "From first hello to final cut.", "p.p": "A simple, relaxed process — so you always know what happens next.",
+    "p.s1h": "Discovery call", "p.s1p": "We talk through your vision, dates and locations, and I put together a tailored quote — no pressure, no templates.",
+    "p.s2h": "The shoot", "p.s2p": "On the day I keep it calm and natural. You enjoy the moment, I take care of light, angles and timing.",
+    "p.s3h": "Edit &amp; deliver", "p.s3p": "You get a fast sneak peek, then the full gallery and cinematic reels — ready to relive and to share.",
+    "ab.badge": "years behind<br>the camera", "ab.eyebrow": "About me", "ab.h2": "An eye for cinema,<br>a heart for the moment.",
+    "ab.p1": "I'm Tim Rammensee. I blend photography and film into one language: calm, cinematic images that tell a story — whether it's a couple or a sports car.",
+    "ab.p2": "I work close to the action, plan carefully and deliver fast. From a single reel to a full wedding production, it's all handled by one person, start to finish.",
+    "ab.p3": "What matters most is that you feel at ease — because the strongest shots happen the moment the camera is forgotten.",
+    "ab.stat1": "Projects shot", "ab.stat2": "Weddings", "ab.stat3": "Client rating",
+    "wk.eyebrow": "Selected work", "wk.h2": "Portfolio", "wk.p": "A selection of my favourite frames. Click any image for the full view.",
+    "filter.all": "All", "filter.wedding": "Weddings", "filter.auto": "Automotive", "filter.portrait": "Portrait", "filter.event": "Events",
+    "q.text": "\"Tim captured our whole day without us ever noticing him. When we watched the reel, we had <span>goosebumps</span> from start to finish.\"", "q.cite": "Lena &amp; Jakob · Lakeside wedding",
+    "s.eyebrow": "Services", "s.h2": "Packages &amp; pricing", "s.p": "Transparent starting points — every project is tailored to you.",
+    "s1.h": "Weddings", "s1.p": "Photo &amp; film of your full day, including a cinematic highlight reel and online gallery.", "s1.price": "from <b>€1,490</b>",
+    "s2.h": "Automotive", "s2.p": "Photo &amp; video shoot for your vehicle — static shots, detail shots and rolling shots.", "s2.price": "from <b>€290</b>",
+    "s3.h": "Reels &amp; Video", "s3.p": "Vertical clips for social media, edited and colour-graded — from idea to upload.", "s3.price": "from <b>€149</b> / reel",
+    "s4.h": "Social-Media Marketing", "s4.p": "More than images: content planning, regular reels &amp; ongoing channel management for real growth.", "s4.price": "plans from <b>€390</b> / month", "s.cta": "Request a quote",
+    "f.eyebrow": "Good to know", "f.h2": "Frequently asked",
+    "f.q1": "How far in advance should I book?", "f.a1": "For weddings, 6–12 months ahead is ideal as dates fill up quickly. Automotive and reel shoots are usually possible within a few weeks — just ask.",
+    "f.q2": "Do you travel?", "f.a2": "Absolutely. I'm based in Bavaria but shoot all over Germany and beyond. Travel beyond the region is added at cost and always agreed upfront.",
+    "f.q3": "When will I get my photos and videos?", "f.a3": "You'll receive a small sneak peek within a few days. Full galleries land in 2–4 weeks, wedding films in 4–6 weeks, depending on the season.",
+    "f.q4": "Do you also handle posting and social media?", "f.a4": "Yes — with the social-media package I plan, cut and schedule your content, so your channels stay active and keep growing without you lifting a finger.",
+    "f.q5": "What does a shoot cost?", "f.a5": "See the starting points above. After a short call I send a fixed, tailored quote — so there are no surprises later.",
+    "c.eyebrow": "Contact", "c.h2": "Let's shoot your<br><em>story.</em>", "c.p": "Tell me a little about your project — I usually reply within 24 hours with a personal proposal.",
+    "c.email": "Email", "c.phone": "Phone", "c.ig": "Instagram", "c.loc": "Based in", "c.locval": "Bavaria, Germany",
+    "form.name": "Name", "form.namePh": "Your name", "form.email": "Email", "form.emailPh": "you@example.com", "form.project": "Project", "form.message": "Message", "form.messagePh": "Tell me about your plans, date and location …", "form.send": "Send enquiry",
+    "form.note": "I usually reply within 24 hours. You can also write directly to hello@tim-rammensee.de.",
+    "form.sending": "Sending…", "form.sent": "Sent ✓", "form.thanks": "Thanks! Your enquiry is on its way — I’ll be in touch within 24 hours.", "form.error": "Something went wrong — please email hello@tim-rammensee.de directly.", "form.noendpoint": "Form endpoint not set up yet — add your Formspree ID in the code, then enquiries arrive by email.",
+    "opt.wedding": "Wedding", "opt.auto": "Automotive", "opt.reels": "Reels / Video", "opt.smm": "Social-Media Marketing", "opt.portrait": "Portrait", "opt.other": "Other",
+    "foot.tagline": "Cinematic photography &amp; film — weddings, automotive, reels &amp; social media.", "foot.rights": "Tim Rammensee — All rights reserved.", "foot.imprint": "Imprint", "foot.privacy": "Privacy"
+  },
+  de: {
+    "title": "Tim Rammensee — Cinematic Fotografie & Film",
+    "skip": "Zum Inhalt springen",
+    "nav.weddings": "Hochzeit", "nav.automotive": "Automotive", "nav.reels": "Reels", "nav.work": "Portfolio", "nav.about": "Über mich", "nav.services": "Leistungen", "nav.contact": "Kontakt",
+    "hero.eyebrow": "Cinematic Fotografie &amp; Film · Bayern",
+    "hero.h1": "Bilder, die sich<br><em>bewegen.</em>",
+    "hero.lead": "Fotograf &amp; Filmemacher aus Bayern. Ich mache aus deiner Hochzeit, deinem Auto oder deiner Marke Filme und Fotos, die man wirklich fühlt — und teilen will.",
+    "hero.cta1": "Projekt anfragen", "hero.cta2": "Reels ansehen",
+    "hero.trust": "<b>60+</b> Hochzeiten &nbsp;·&nbsp; <b>150+</b> Projekte &nbsp;·&nbsp; <b>4.9★</b> Bewertung",
+    "w.eyebrow": "Schwerpunkt · Hochzeit", "w.h2": "Euer Tag,<br>cinematisch erzählt.",
+    "w.p": "Hochzeiten sind meine Leidenschaft. Ich begleite euch unaufdringlich durch den ganzen Tag und halte die echten Momente fest — Tränen, Lachen, den ersten Tanz.",
+    "w.li1": "Foto-Reportage vom Getting-Ready bis zur Party", "w.li2": "Cinematischer Hochzeitsfilm &amp; Highlight-Reel für Social Media", "w.li3": "Paar-Shooting an eurem Lieblingsort", "w.li4": "Edle Bildbearbeitung &amp; schnelle Vorschau-Galerie", "w.cta": "Termin anfragen",
+    "a.eyebrow": "Schwerpunkt · Automotive", "a.h2": "Maschinen, die<br>man <em>spüren</em> kann.",
+    "a.p": "Vom Daily zum Traumwagen — ich setze dein Auto so in Szene, dass Lack, Linien und Charakter zur Geltung kommen. Rolling Shots, Details, Studio-Look.", "a.cta": "Auto-Shooting anfragen",
+    "r.eyebrow": "Reels &amp; Video", "r.h2": "Content, der den Scroll stoppt.",
+    "r.p": "Ich schneide deine Hochformat-Clips für Instagram &amp; TikTok auf den Beat — gemacht für Reichweite. Tippe ein Reel für die Vorschau an.", "r.cta": "Reels planen",
+    "cat.wedding": "Hochzeit", "cat.auto": "Automotive", "cat.portrait": "Porträt", "cat.event": "Event",
+    "p.eyebrow": "Ablauf", "p.h2": "Vom ersten Hallo bis zum fertigen Film.", "p.p": "Ein einfacher, entspannter Ablauf — du weißt immer, was als Nächstes kommt.",
+    "p.s1h": "Kennenlernen", "p.s1p": "Wir sprechen über deine Vision, Termine und Orte, und ich stelle dir ein individuelles Angebot zusammen — ohne Druck, ohne Vorlagen.",
+    "p.s2h": "Das Shooting", "p.s2p": "Am Tag selbst bleibt alles ruhig und natürlich. Du genießt den Moment, ich kümmere mich um Licht, Perspektive und Timing.",
+    "p.s3h": "Bearbeitung &amp; Übergabe", "p.s3p": "Du bekommst eine schnelle Vorschau, dann die komplette Galerie und cinematische Reels — zum Wiedererleben und Teilen.",
+    "ab.badge": "Jahre hinter<br>der Kamera", "ab.eyebrow": "Über mich", "ab.h2": "Ein Auge fürs Kino,<br>ein Herz für den Moment.",
+    "ab.p1": "Ich bin Tim Rammensee. Ich verbinde Fotografie und Film zu einer Sprache: ruhige, cinematische Bilder, die Geschichten erzählen — egal ob Brautpaar oder Sportwagen.",
+    "ab.p2": "Ich arbeite nah dran, plane sauber und liefere schnell. Vom einzelnen Reel bis zur kompletten Hochzeitsproduktion — alles aus einer Hand.",
+    "ab.p3": "Das Wichtigste: dass du dich wohlfühlst — denn die stärksten Aufnahmen entstehen, wenn die Kamera vergessen wird.",
+    "ab.stat1": "Projekte", "ab.stat2": "Hochzeiten", "ab.stat3": "Bewertung",
+    "wk.eyebrow": "Ausgewählte Arbeiten", "wk.h2": "Portfolio", "wk.p": "Eine Auswahl meiner liebsten Frames. Klick auf ein Bild für die große Ansicht.",
+    "filter.all": "Alle", "filter.wedding": "Hochzeit", "filter.auto": "Automotive", "filter.portrait": "Porträt", "filter.event": "Events",
+    "q.text": "„Tim hat unseren ganzen Tag eingefangen, ohne dass wir ihn je bemerkt haben. Beim Reel hatten wir <span>Gänsehaut</span> von Anfang bis Ende.“", "q.cite": "Lena &amp; Jakob · Hochzeit am See",
+    "s.eyebrow": "Leistungen", "s.h2": "Pakete &amp; Preise", "s.p": "Transparente Richtwerte — jedes Projekt passe ich individuell an.",
+    "s1.h": "Hochzeit", "s1.p": "Foto &amp; Film vom ganzen Tag, inkl. cinematischem Highlight-Reel und Online-Galerie.", "s1.price": "ab <b>1.490 €</b>",
+    "s2.h": "Automotive", "s2.p": "Foto- &amp; Video-Shooting für dein Fahrzeug — Standaufnahmen, Details und Rolling Shots.", "s2.price": "ab <b>290 €</b>",
+    "s3.h": "Reels &amp; Video", "s3.p": "Hochformat-Clips für Social Media, geschnitten und farboptimiert — von der Idee bis zum Upload.", "s3.price": "ab <b>149 €</b> / Reel",
+    "s4.h": "Social-Media-Marketing", "s4.p": "Mehr als Bilder: Content-Planung, regelmäßige Reels &amp; laufende Betreuung deiner Kanäle für echtes Wachstum.", "s4.price": "Pakete ab <b>390 €</b> / Monat", "s.cta": "Angebot anfragen",
+    "f.eyebrow": "Gut zu wissen", "f.h2": "Häufige Fragen",
+    "f.q1": "Wie früh sollte ich buchen?", "f.a1": "Für Hochzeiten sind 6–12 Monate Vorlauf ideal, da Termine schnell vergeben sind. Automotive- und Reel-Shootings gehen meist innerhalb weniger Wochen — frag einfach.",
+    "f.q2": "Reist du auch an?", "f.a2": "Klar. Ich bin in Bayern zu Hause, fotografiere aber in ganz Deutschland und darüber hinaus. Anfahrt über die Region hinaus wird nach Aufwand berechnet und immer vorab abgesprochen.",
+    "f.q3": "Wann bekomme ich meine Fotos und Videos?", "f.a3": "Eine kleine Vorschau gibt's innerhalb weniger Tage. Komplette Galerien in 2–4 Wochen, Hochzeitsfilme in 4–6 Wochen — je nach Saison.",
+    "f.q4": "Übernimmst du auch das Posten und Social Media?", "f.a4": "Ja — mit dem Social-Media-Paket plane, schneide und terminiere ich deine Inhalte, damit deine Kanäle aktiv bleiben und wachsen, ganz ohne deinen Aufwand.",
+    "f.q5": "Was kostet ein Shooting?", "f.a5": "Die Richtwerte stehen oben. Nach einem kurzen Gespräch bekommst du ein fixes, individuelles Angebot — ohne spätere Überraschungen.",
+    "c.eyebrow": "Kontakt", "c.h2": "Lass uns deine<br><em>Geschichte</em> drehen.", "c.p": "Erzähl mir kurz von deinem Projekt — ich melde mich meist innerhalb von 24 Stunden mit einem persönlichen Vorschlag.",
+    "c.email": "E-Mail", "c.phone": "Telefon", "c.ig": "Instagram", "c.loc": "Standort", "c.locval": "Bayern, Deutschland",
+    "form.name": "Name", "form.namePh": "Dein Name", "form.email": "E-Mail", "form.emailPh": "du@beispiel.de", "form.project": "Projekt", "form.message": "Nachricht", "form.messagePh": "Erzähl mir von deinem Vorhaben, Datum und Ort …", "form.send": "Anfrage senden",
+    "form.note": "Ich melde mich meist innerhalb von 24 Stunden. Du kannst auch direkt an hello@tim-rammensee.de schreiben.",
+    "form.sending": "Senden…", "form.sent": "Gesendet ✓", "form.thanks": "Danke! Deine Anfrage ist unterwegs — ich melde mich innerhalb von 24 Stunden.", "form.error": "Etwas ist schiefgelaufen — bitte schreib direkt an hello@tim-rammensee.de.", "form.noendpoint": "Formular noch nicht eingerichtet — trag deine Formspree-ID im Code ein, dann kommen Anfragen per E-Mail an.",
+    "opt.wedding": "Hochzeit", "opt.auto": "Automotive", "opt.reels": "Reels / Video", "opt.smm": "Social-Media-Marketing", "opt.portrait": "Porträt", "opt.other": "Sonstiges",
+    "foot.tagline": "Cinematic Fotografie &amp; Film — Hochzeit, Automotive, Reels &amp; Social Media.", "foot.rights": "Tim Rammensee — Alle Rechte vorbehalten.", "foot.imprint": "Impressum", "foot.privacy": "Datenschutz"
+  }
+};
+
 (function(){
   document.getElementById('year').textContent = new Date().getFullYear();
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const smallScreen = window.matchMedia('(max-width: 760px)').matches;
+  const saveData = navigator.connection && navigator.connection.saveData;
 
-  // respect reduced motion: stop the autoplaying hero video, keep the poster
-  if(reduceMotion){
-    const hv = document.querySelector('.hero video');
-    if(hv){ hv.removeAttribute('autoplay'); hv.pause(); }
+  // Mobile / reduced-motion / data-saver: don't autoplay the heavy hero video, show the poster instead
+  const hv = document.querySelector('.hero video');
+  if(hv && (reduceMotion || smallScreen || saveData)){
+    hv.removeAttribute('autoplay'); hv.setAttribute('preload','none'); hv.pause();
   }
+
+  /* ---------- i18n ---------- */
+  let currentLang = 'en';
+  const t = (k) => (I18N[currentLang] && I18N[currentLang][k]) || (I18N.en[k] || '');
+  function applyI18n(lang){
+    if(!I18N[lang]) lang = 'en';
+    currentLang = lang;
+    document.documentElement.lang = lang;
+    const d = I18N[lang];
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const k = el.getAttribute('data-i18n');
+      if(d[k] != null) el.innerHTML = d[k];
+    });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+      const k = el.getAttribute('data-i18n-ph');
+      if(d[k] != null) el.setAttribute('placeholder', d[k]);
+    });
+    if(d['title']) document.title = d['title'];
+    document.querySelectorAll('.lang-switch button').forEach(b => {
+      const on = b.dataset.lang === lang;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    try{ localStorage.setItem('lang', lang); }catch(e){}
+    // recompute any open FAQ heights after text length changes
+    document.querySelectorAll('.faq-item.open .faq-a').forEach(a => { a.style.maxHeight = a.scrollHeight + 'px'; });
+  }
+  let saved = null; try{ saved = localStorage.getItem('lang'); }catch(e){}
+  const initial = saved || ((navigator.language || 'en').toLowerCase().startsWith('de') ? 'de' : 'en');
+  document.querySelectorAll('.lang-switch button').forEach(b => b.addEventListener('click', () => applyI18n(b.dataset.lang)));
+  applyI18n(initial);
 
   // sticky nav
   const header = document.getElementById('top');
@@ -757,7 +921,6 @@
       ans.style.maxHeight = open ? ans.scrollHeight + 'px' : null;
     });
   });
-  // recompute open FAQ heights after resize/orientation change so text never clips
   window.addEventListener('resize', () => {
     document.querySelectorAll('.faq-item.open .faq-a').forEach(a => { a.style.maxHeight = a.scrollHeight + 'px'; });
   });
@@ -770,23 +933,19 @@
       const btn = cf.querySelector('button[type=submit]');
       const note = document.getElementById('formNote');
       if(cf.action.includes('yourFormId')){
-        note.textContent = 'Form endpoint not set up yet — add your Formspree ID in the code, then enquiries arrive by email.';
-        note.style.color = 'var(--accent)';
+        note.textContent = t('form.noendpoint'); note.style.color = 'var(--accent)';
         return;
       }
-      const original = btn.textContent;
-      btn.disabled = true; btn.textContent = 'Sending…';
+      btn.disabled = true; btn.textContent = t('form.sending');
       try{
         const res = await fetch(cf.action, { method:'POST', body:new FormData(cf), headers:{Accept:'application/json'} });
         if(!res.ok) throw new Error('bad response');
         cf.reset();
-        btn.textContent = 'Sent ✓';
-        note.textContent = 'Thanks! Your enquiry is on its way — I’ll be in touch within 24 hours.';
-        note.style.color = 'var(--accent)';
+        btn.textContent = t('form.sent');
+        note.textContent = t('form.thanks'); note.style.color = 'var(--accent)';
       }catch(err){
-        btn.disabled = false; btn.textContent = original;
-        note.textContent = 'Something went wrong — please email hello@tim-rammensee.de directly.';
-        note.style.color = '#e08a6a';
+        btn.disabled = false; btn.textContent = t('form.send');
+        note.textContent = t('form.error'); note.style.color = '#e08a6a';
       }
     });
   }
@@ -828,7 +987,6 @@
     if(e.key==='ArrowRight' && visible.length) nextBtn.click();
     if(e.key==='ArrowLeft' && visible.length) prevBtn.click();
     if(e.key==='Tab'){
-      // trap focus within the dialog
       const f = [document.getElementById('lbClose'), prevBtn, nextBtn].filter(b => b.style.display !== 'none' && b.offsetParent !== null);
       if(!f.length) return;
       const first = f[0], last = f[f.length-1];
