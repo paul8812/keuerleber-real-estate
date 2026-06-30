@@ -635,14 +635,17 @@
         <div><span class="ic" aria-hidden="true">⌖</span><span><small>Based in</small>Bavaria, Germany</span></div>
       </div>
     </div>
-    <form class="reveal" id="contactForm" action="mailto:hello@tim-rammensee.de" method="post" enctype="text/plain">
+    <!-- To receive enquiries: create a free form at https://formspree.io , then replace
+         "yourFormId" below with your form ID (e.g. https://formspree.io/f/abcdwxyz). -->
+    <form class="reveal" id="contactForm" action="https://formspree.io/f/yourFormId" method="post">
+      <input type="hidden" name="_subject" value="New enquiry from tim-rammensee.de">
       <div class="row">
-        <div><label for="name">Name</label><input id="name" name="Name" type="text" placeholder="Your name" required></div>
-        <div><label for="email">Email</label><input id="email" name="Email" type="email" placeholder="you@example.com" required></div>
+        <div><label for="name">Name</label><input id="name" name="name" type="text" placeholder="Your name" required></div>
+        <div><label for="email">Email</label><input id="email" name="email" type="email" placeholder="you@example.com" required></div>
       </div>
       <div>
         <label for="art">Project</label>
-        <select id="art" name="Project">
+        <select id="art" name="project">
           <option>Wedding</option>
           <option>Automotive</option>
           <option>Reels / Video</option>
@@ -653,10 +656,10 @@
       </div>
       <div>
         <label for="msg">Message</label>
-        <textarea id="msg" name="Message" placeholder="Tell me about your plans, date and location …"></textarea>
+        <textarea id="msg" name="message" placeholder="Tell me about your plans, date and location …"></textarea>
       </div>
       <button class="submit" type="submit">Send enquiry</button>
-      <p class="form-note">Submitting opens your email app. You can also write directly to hello@tim-rammensee.de.</p>
+      <p class="form-note" id="formNote">I usually reply within 24 hours. You can also write directly to hello@tim-rammensee.de.</p>
     </form>
   </div>
 </section>
@@ -679,7 +682,7 @@
     </div>
     <div class="foot-bottom">
       <span>© <span id="year"></span> Tim Rammensee — All rights reserved.</span>
-      <span><a href="#contact">Imprint</a> &nbsp;·&nbsp; <a href="#contact">Privacy</a></span>
+      <span><a href="imprint.html">Imprint</a> &nbsp;·&nbsp; <a href="privacy.html">Privacy</a></span>
     </div>
   </div>
 </footer>
@@ -758,6 +761,35 @@
   window.addEventListener('resize', () => {
     document.querySelectorAll('.faq-item.open .faq-a').forEach(a => { a.style.maxHeight = a.scrollHeight + 'px'; });
   });
+
+  // contact form: submit via fetch (Formspree) with inline feedback, no page reload
+  const cf = document.getElementById('contactForm');
+  if(cf){
+    cf.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = cf.querySelector('button[type=submit]');
+      const note = document.getElementById('formNote');
+      if(cf.action.includes('yourFormId')){
+        note.textContent = 'Form endpoint not set up yet — add your Formspree ID in the code, then enquiries arrive by email.';
+        note.style.color = 'var(--accent)';
+        return;
+      }
+      const original = btn.textContent;
+      btn.disabled = true; btn.textContent = 'Sending…';
+      try{
+        const res = await fetch(cf.action, { method:'POST', body:new FormData(cf), headers:{Accept:'application/json'} });
+        if(!res.ok) throw new Error('bad response');
+        cf.reset();
+        btn.textContent = 'Sent ✓';
+        note.textContent = 'Thanks! Your enquiry is on its way — I’ll be in touch within 24 hours.';
+        note.style.color = 'var(--accent)';
+      }catch(err){
+        btn.disabled = false; btn.textContent = original;
+        note.textContent = 'Something went wrong — please email hello@tim-rammensee.de directly.';
+        note.style.color = '#e08a6a';
+      }
+    });
+  }
 
   // lightbox (images + video)
   const lb = document.getElementById('lb'), stage = document.getElementById('lbStage');
