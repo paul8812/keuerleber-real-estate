@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="description" content="Tim Rammensee — Cinematic photography & film. Weddings, automotive, reels & social-media content with a feel for light, motion and emotion.">
 <meta name="author" content="Tim Rammensee">
 <meta name="theme-color" content="#0b0b0c">
@@ -342,12 +342,97 @@
     .svc{padding:36px 26px;}
   }
 
+  /* ---------- ENHANCEMENTS ---------- */
+  :where(section[id], #top){scroll-margin-top:84px;}
+  @media(max-width:760px){:where(section[id], #top){scroll-margin-top:64px;}}
+
+  .nav-links a:not(.nav-cta){position:relative;}
+  .nav-links a:not(.nav-cta)::after{content:'';position:absolute;left:0;right:100%;bottom:-5px;height:1px;background:var(--accent);transition:right .35s cubic-bezier(.2,.8,.2,1);}
+  .nav-links a:not(.nav-cta):hover::after,.nav-links a.current::after{right:0;}
+  .nav-links a.current{color:var(--ink);}
+
+  .eyebrow{display:inline-flex;align-items:center;}
+  .eyebrow::before{content:'';width:24px;height:1px;background:var(--accent);margin-right:12px;opacity:.85;flex-shrink:0;}
+
+  .btn{position:relative;overflow:hidden;transition:transform .3s cubic-bezier(.2,.8,.2,1),background .3s,box-shadow .3s,color .3s,border-color .3s;}
+  .btn-primary{box-shadow:0 8px 24px -10px rgba(224,179,132,.55);}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 16px 34px -10px rgba(224,179,132,.7);}
+  .btn:active{transform:translateY(0) scale(.985);}
+  .btn-primary::after{content:'';position:absolute;inset:0;background:linear-gradient(120deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);transform:translateX(-130%);transition:transform .6s;pointer-events:none;}
+  .btn-primary:hover::after{transform:translateX(130%);}
+
+  .hero::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 90% at 50% 42%,transparent 55%,rgba(0,0,0,.5) 100%);}
+  .hero video{animation:heroZoom 26s ease-out forwards;}
+  @keyframes heroZoom{from{transform:scale(1.08);}to{transform:scale(1);}}
+  .scroll-cue .line{width:1px;height:42px;background:rgba(255,255,255,.14);overflow:hidden;position:relative;}
+  .scroll-cue .line::after{content:'';position:absolute;inset:0;background:linear-gradient(var(--accent),transparent);animation:cue 2.1s ease-in-out infinite;}
+  @keyframes cue{0%{transform:translateY(-100%);}60%,100%{transform:translateY(100%);}}
+
+  .strip{-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);}
+  .strip-track{animation-duration:42s;}
+  .strip:hover .strip-track{animation-play-state:paused;}
+
+  .step{position:relative;transition:border-color .4s;}
+  .step::before{content:'';position:absolute;top:-1px;left:0;width:0;height:1px;background:var(--accent);transition:width .8s cubic-bezier(.2,.8,.2,1);}
+  .step.in::before{width:38px;}
+  .step:hover::before{width:100%;}
+  .step .n{font-size:48px;}
+
+  .svc{position:relative;border-top:2px solid transparent;transition:background .35s,border-color .35s;}
+  .svc:hover{border-top-color:var(--accent);}
+  .svc .tag{position:absolute;top:16px;right:16px;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);border-radius:40px;padding:4px 9px;}
+
+  .quote{position:relative;}
+  .quote::before{content:'\201C';position:absolute;top:-.18em;left:50%;transform:translateX(-50%);font-family:var(--serif);font-size:clamp(140px,20vw,280px);line-height:1;color:var(--accent);opacity:.1;pointer-events:none;z-index:0;}
+  .quote .wrap{position:relative;z-index:1;}
+  .quote .stars{color:var(--accent);letter-spacing:.3em;font-size:14px;margin-bottom:24px;}
+  .quote blockquote{transition:opacity .4s;}
+  .quote cite{transition:opacity .4s;}
+  .quote .dots{display:flex;gap:9px;justify-content:center;margin-top:34px;}
+  .quote .dots button{width:7px;height:7px;border-radius:50%;padding:0;border:none;cursor:pointer;background:rgba(255,255,255,.22);transition:.3s;}
+  .quote .dots button.active{background:var(--accent);width:22px;border-radius:4px;}
+
+  .services .reveal,.steps .reveal{transition-delay:calc(var(--i,0)*80ms);}
+
+  .feature .media img,.about-img img{clip-path:inset(0 0 0 0);transition:clip-path 1s cubic-bezier(.2,.8,.2,1),transform .8s;}
+  .feature .media.reveal:not(.in) img,.about-img.reveal:not(.in) img{clip-path:inset(0 0 100% 0);}
+
+  @media(hover:none){ .reel .pp{opacity:1;background:var(--accent);color:#0b0b0c;border-color:var(--accent);width:60px;height:60px;} }
+
+  /* lightbox caption + touch arrows */
+  .lb figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:14px;}
+  .lb-cap{font-family:var(--serif);color:#fff;font-size:16px;}
+  .lb-cap small{color:var(--accent);text-transform:uppercase;letter-spacing:.16em;font-size:10px;margin-right:8px;font-family:var(--sans);}
+  @media(max-width:520px){
+    .lb{padding:16px;}
+    .lb-nav{width:44px;height:44px;top:auto;bottom:calc(16px + env(safe-area-inset-bottom));transform:none;}
+    .lb-close{top:calc(14px + env(safe-area-inset-top));}
+  }
+
+  /* mobile sticky contact bar */
+  .mobile-cta{display:none;}
+  .lang-mini{display:none;}
+  @media(max-width:760px){
+    .mobile-cta{display:flex;gap:8px;position:fixed;left:0;right:0;bottom:0;z-index:135;padding:9px 14px calc(9px + env(safe-area-inset-bottom));background:rgba(11,11,12,.92);backdrop-filter:blur(12px);border-top:1px solid var(--line);}
+    .mobile-cta a{flex:1;min-height:46px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:40px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);}
+    .mobile-cta a.primary{background:var(--accent);color:#0b0b0c;font-weight:600;border-color:var(--accent);flex:1.35;}
+    footer{padding-bottom:calc(40px + 72px + env(safe-area-inset-bottom));}
+    .lang-mini{display:inline-flex;align-items:center;gap:2px;margin-left:auto;margin-right:8px;padding:4px 8px;}
+    .lang-mini button{font-size:11px;padding:5px 5px;min-height:34px;}
+    .nav-links .lang-switch{display:none;}
+    .nav{padding-left:max(22px,env(safe-area-inset-left));padding-right:max(22px,env(safe-area-inset-right));}
+  }
+
   /* ---------- REDUCED MOTION ---------- */
   @media(prefers-reduced-motion:reduce){
     html{scroll-behavior:auto;}
     *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;}
     .reveal{opacity:1;transform:none;}
     .strip-track{animation:none;transform:none;}
+    .hero video{animation:none !important;}
+    .scroll-cue .line::after{animation:none;}
+    .feature .media img,.about-img img{clip-path:none !important;}
+    .btn-primary::after{display:none;}
   }
 </style>
 </head>
@@ -370,7 +455,7 @@
         <button type="button" data-lang="de">DE</button><span class="sep">/</span><button type="button" data-lang="en">EN</button>
       </div>
     </div>
-    <button class="burger" id="burger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks"><span></span><span></span><span></span></button>
+    <button class="burger" id="burger" aria-label="Toggle menu" data-i18n-aria="aria.menu" aria-expanded="false" aria-controls="navLinks"><span></span><span></span><span></span></button>
   </nav>
 </header>
 
@@ -567,11 +652,13 @@
   </div>
 </section>
 
-<!-- ====== QUOTE ====== -->
-<section class="section quote">
+<!-- ====== TESTIMONIALS ====== -->
+<section class="section quote" id="testimonials">
   <div class="wrap reveal">
-    <blockquote data-i18n="q.text">"Tim captured our whole day without us ever noticing him. When we watched the reel, we had <span>goosebumps</span> from start to finish."</blockquote>
-    <cite data-i18n="q.cite">Lena &amp; Jakob · Lakeside wedding</cite>
+    <div class="stars" aria-hidden="true">★★★★★</div>
+    <blockquote id="qText"></blockquote>
+    <cite id="qCite"></cite>
+    <div class="dots" id="qDots"></div>
   </div>
 </section>
 
@@ -602,6 +689,7 @@
         <p data-i18n="s3.p">Vertical clips for social media, edited and colour-graded — from idea to upload.</p>
       </div>
       <div class="svc highlight reveal">
+        <span class="tag" data-i18n="s.badge">Most booked</span>
         <span class="num">04</span>
         <h3 data-i18n="s4.h">Social-Media Marketing</h3>
         <p data-i18n="s4.p">More than images: content planning, regular reels &amp; ongoing channel management for real growth.</p>
@@ -669,12 +757,12 @@
       <div>
         <label for="art" data-i18n="form.project">Project</label>
         <select id="art" name="project">
-          <option data-i18n="opt.wedding">Wedding</option>
-          <option data-i18n="opt.auto">Automotive</option>
-          <option data-i18n="opt.reels">Reels / Video</option>
-          <option data-i18n="opt.smm">Social-Media Marketing</option>
-          <option data-i18n="opt.portrait">Portrait</option>
-          <option data-i18n="opt.other">Other</option>
+          <option value="wedding" data-i18n="opt.wedding">Wedding</option>
+          <option value="automotive" data-i18n="opt.auto">Automotive</option>
+          <option value="reels" data-i18n="opt.reels">Reels / Video</option>
+          <option value="social-media" data-i18n="opt.smm">Social-Media Marketing</option>
+          <option value="portrait" data-i18n="opt.portrait">Portrait</option>
+          <option value="other" data-i18n="opt.other">Other</option>
         </select>
       </div>
       <div>
@@ -682,7 +770,7 @@
         <textarea id="msg" name="message" placeholder="Tell me about your plans, date and location …" data-i18n-ph="form.messagePh"></textarea>
       </div>
       <button class="submit" type="submit" data-i18n="form.send">Send enquiry</button>
-      <p class="form-note" id="formNote" data-i18n="form.note">I usually reply within 24 hours. You can also write directly to smmmtimrammensee@icloud.com.</p>
+      <p class="form-note" id="formNote" role="status" aria-live="polite" tabindex="-1" data-i18n="form.note">I usually reply within 24 hours. You can also write directly to smmmtimrammensee@icloud.com.</p>
     </form>
   </div>
 </section>
@@ -712,10 +800,16 @@
 
 <!-- ====== LIGHTBOX ====== -->
 <div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Media viewer">
-  <button class="lb-close" id="lbClose" aria-label="Close">×</button>
-  <button class="lb-nav lb-prev" id="lbPrev" aria-label="Previous">‹</button>
+  <button class="lb-close" id="lbClose" aria-label="Close" data-i18n-aria="lb.close">×</button>
+  <button class="lb-nav lb-prev" id="lbPrev" aria-label="Previous" data-i18n-aria="lb.prev">‹</button>
   <div id="lbStage"></div>
-  <button class="lb-nav lb-next" id="lbNext" aria-label="Next">›</button>
+  <button class="lb-nav lb-next" id="lbNext" aria-label="Next" data-i18n-aria="lb.next">›</button>
+</div>
+
+<div class="mobile-cta" aria-label="Quick contact">
+  <a href="https://wa.me/4915753118177" target="_blank" rel="noopener">WhatsApp</a>
+  <a href="tel:+4915753118177" data-i18n="mcta.call">Call</a>
+  <a href="#contact" class="primary" data-i18n="nav.contact">Get in touch</a>
 </div>
 
 <script>
@@ -766,7 +860,8 @@ const I18N = {
     "form.note": "I usually reply within 24 hours. You can also write directly to smmmtimrammensee@icloud.com.",
     "form.sending": "Sending…", "form.sent": "Sent ✓", "form.thanks": "Thanks! Your enquiry is on its way — I’ll be in touch within 24 hours.", "form.error": "Something went wrong — please email smmmtimrammensee@icloud.com directly.", "form.noendpoint": "Form endpoint not set up yet — add your Formspree ID in the code, then enquiries arrive by email.",
     "opt.wedding": "Wedding", "opt.auto": "Automotive", "opt.reels": "Reels / Video", "opt.smm": "Social-Media Marketing", "opt.portrait": "Portrait", "opt.other": "Other",
-    "foot.tagline": "Cinematic photography &amp; film — weddings, automotive, reels &amp; social media.", "foot.rights": "Tim Rammensee — All rights reserved.", "foot.imprint": "Imprint", "foot.privacy": "Privacy"
+    "foot.tagline": "Cinematic photography &amp; film — weddings, automotive, reels &amp; social media.", "foot.rights": "Tim Rammensee — All rights reserved.", "foot.imprint": "Imprint", "foot.privacy": "Privacy",
+    "aria.menu": "Toggle menu", "lb.close": "Close", "lb.prev": "Previous", "lb.next": "Next", "s.badge": "Most booked", "mcta.call": "Call", "meta.desc": "Tim Rammensee — cinematic photographer & filmmaker in Bavaria. Weddings, automotive, reels & social-media content."
   },
   de: {
     "title": "Tim Rammensee — Cinematic Fotografie & Film",
@@ -814,7 +909,8 @@ const I18N = {
     "form.note": "Ich melde mich meist innerhalb von 24 Stunden. Du kannst auch direkt an smmmtimrammensee@icloud.com schreiben.",
     "form.sending": "Senden…", "form.sent": "Gesendet ✓", "form.thanks": "Danke! Deine Anfrage ist unterwegs — ich melde mich innerhalb von 24 Stunden.", "form.error": "Etwas ist schiefgelaufen — bitte schreib direkt an smmmtimrammensee@icloud.com.", "form.noendpoint": "Formular noch nicht eingerichtet — trag deine Formspree-ID im Code ein, dann kommen Anfragen per E-Mail an.",
     "opt.wedding": "Hochzeit", "opt.auto": "Automotive", "opt.reels": "Reels / Video", "opt.smm": "Social-Media-Marketing", "opt.portrait": "Porträt", "opt.other": "Sonstiges",
-    "foot.tagline": "Cinematic Fotografie &amp; Film — Hochzeit, Automotive, Reels &amp; Social Media.", "foot.rights": "Tim Rammensee — Alle Rechte vorbehalten.", "foot.imprint": "Impressum", "foot.privacy": "Datenschutz"
+    "foot.tagline": "Cinematic Fotografie &amp; Film — Hochzeit, Automotive, Reels &amp; Social Media.", "foot.rights": "Tim Rammensee — Alle Rechte vorbehalten.", "foot.imprint": "Impressum", "foot.privacy": "Datenschutz",
+    "aria.menu": "Menü öffnen", "lb.close": "Schließen", "lb.prev": "Zurück", "lb.next": "Weiter", "s.badge": "Beliebteste", "mcta.call": "Anrufen", "meta.desc": "Tim Rammensee — cinematischer Fotograf & Filmemacher aus Bayern. Hochzeiten, Automotive, Reels & Social-Media-Content."
   }
 };
 
@@ -829,6 +925,35 @@ const I18N = {
   const hv = document.querySelector('.hero video');
   if(hv && (reduceMotion || smallScreen || saveData)){
     hv.removeAttribute('autoplay'); hv.setAttribute('preload','none'); hv.pause();
+  }
+
+  /* ---------- testimonials ---------- */
+  const TESTI = {
+    en: [
+      {t:'"Tim captured our whole day without us ever noticing him. When we watched the reel, we had <span>goosebumps</span> from start to finish."', c:'Lena &amp; Jakob · Wedding'},
+      {t:'"He shot my car like a <span>movie poster</span>. The rolling shots are unreal — exactly the vibe I wanted."', c:'Marco · Automotive'},
+      {t:'"Our reels finally look professional — and the <span>enquiries</span> started coming in within weeks."', c:'Café Nord · Social media'}
+    ],
+    de: [
+      {t:'„Tim hat unseren ganzen Tag eingefangen, ohne dass wir ihn je bemerkt haben. Beim Reel hatten wir <span>Gänsehaut</span> von Anfang bis Ende.“', c:'Lena &amp; Jakob · Hochzeit'},
+      {t:'„Er hat mein Auto wie ein <span>Filmplakat</span> in Szene gesetzt. Die Rolling Shots sind der Wahnsinn — genau der Vibe, den ich wollte.“', c:'Marco · Automotive'},
+      {t:'„Unsere Reels sehen endlich professionell aus — kurz nach dem Posten kamen spürbar mehr <span>Anfragen</span>.“', c:'Café Nord · Social Media'}
+    ]
+  };
+  let tIdx = 0, tTimer = null;
+  function renderTesti(lang){
+    const list = TESTI[lang] || TESTI.en;
+    const qt = document.getElementById('qText'), qc = document.getElementById('qCite'), dots = document.getElementById('qDots');
+    if(!qt) return;
+    if(tIdx >= list.length) tIdx = 0;
+    const show = i => { tIdx = i; qt.innerHTML = list[i].t; qc.innerHTML = list[i].c;
+      dots.querySelectorAll('button').forEach((b,j)=>b.classList.toggle('active', j===i)); };
+    dots.innerHTML = list.map((_,i)=>`<button type="button" aria-label="Testimonial ${i+1}"></button>`).join('');
+    dots.querySelectorAll('button').forEach((b,i)=>b.onclick = ()=>{ show(i); restart(); });
+    show(tIdx);
+    function restart(){ if(tTimer) clearInterval(tTimer); if(reduceMotion || list.length<2) return;
+      tTimer = setInterval(()=>show((tIdx+1)%list.length), 6000); }
+    restart();
   }
 
   /* ---------- i18n ---------- */
@@ -854,11 +979,16 @@ const I18N = {
       b.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
     try{ localStorage.setItem('lang', lang); }catch(e){}
+    document.querySelectorAll('[data-i18n-aria]').forEach(el => { const k=el.getAttribute('data-i18n-aria'); if(d[k]!=null) el.setAttribute('aria-label', d[k]); });
+    const _md = document.querySelector('meta[name="description"]'); if(_md && d['meta.desc']) _md.setAttribute('content', d['meta.desc']);
+    renderTesti(lang);
     // recompute any open FAQ heights after text length changes
     document.querySelectorAll('.faq-item.open .faq-a').forEach(a => { a.style.maxHeight = a.scrollHeight + 'px'; });
   }
   let saved = null; try{ saved = localStorage.getItem('lang'); }catch(e){}
   const initial = saved || ((navigator.language || 'en').toLowerCase().startsWith('de') ? 'de' : 'en');
+  // compact language switch in the top bar (mobile)
+  document.getElementById('burger').insertAdjacentHTML('beforebegin', '<div class="lang-switch lang-mini" role="group" aria-label="Language"><button type="button" data-lang="de">DE</button><span class="sep">/</span><button type="button" data-lang="en">EN</button></div>');
   document.querySelectorAll('.lang-switch button').forEach(b => b.addEventListener('click', () => applyI18n(b.dataset.lang)));
   applyI18n(initial);
 
@@ -870,9 +1000,11 @@ const I18N = {
   // mobile menu
   const burger = document.getElementById('burger');
   const links = document.getElementById('navLinks');
-  const setMenu = (open) => { links.classList.toggle('open', open); burger.setAttribute('aria-expanded', open ? 'true' : 'false'); };
+  const setMenu = (open) => { links.classList.toggle('open', open); burger.setAttribute('aria-expanded', open ? 'true' : 'false'); document.body.style.overflow = open ? 'hidden' : ''; };
   burger.addEventListener('click', () => setMenu(!links.classList.contains('open')));
   links.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setMenu(false)));
+  document.addEventListener('keydown', e => { if(e.key==='Escape' && links.classList.contains('open')) setMenu(false); });
+  document.addEventListener('click', e => { if(links.classList.contains('open') && !links.contains(e.target) && e.target!==burger && !burger.contains(e.target) && !e.target.closest('.lang-mini')) setMenu(false); });
 
   // reveal on scroll
   const io = new IntersectionObserver((entries) => {
@@ -890,15 +1022,15 @@ const I18N = {
     reel.addEventListener('mouseleave', stop);
     reel.addEventListener('focus', preview);
     reel.addEventListener('blur', stop);
-    reel.addEventListener('click', () => openVideo(src));
+    reel.addEventListener('click', () => { v.pause(); openVideo(src); });
   });
 
   // gallery filter
   const shots = Array.from(document.querySelectorAll('.shot'));
   document.getElementById('filters').addEventListener('click', (e) => {
     const btn = e.target.closest('button'); if(!btn) return;
-    document.querySelectorAll('#filters button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+    document.querySelectorAll('#filters button').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
+    btn.classList.add('active'); btn.setAttribute('aria-pressed','true');
     const f = btn.dataset.filter;
     shots.forEach(s => { s.style.display = (f==='all' || s.dataset.cat===f) ? '' : 'none'; });
   });
@@ -932,6 +1064,7 @@ const I18N = {
         cf.reset();
         btn.textContent = t('form.sent');
         note.textContent = t('form.thanks'); note.style.color = 'var(--accent)';
+        note.focus();
       }catch(err){
         btn.disabled = false; btn.textContent = t('form.send');
         note.textContent = t('form.error'); note.style.color = '#e08a6a';
@@ -944,13 +1077,21 @@ const I18N = {
   const prevBtn = document.getElementById('lbPrev'), nextBtn = document.getElementById('lbNext');
   let visible = [], idx = 0, lastFocus = null;
   const hiRes = (src) => src.replace(/w=\d+/, 'w=1600');
+  const preload = (i) => { const im = visible[i] && visible[i].querySelector('img'); if(im){ const pi = new Image(); pi.src = hiRes(im.src); } };
   const showImg = () => {
-    const img = visible[idx].querySelector('img');
+    const shot = visible[idx];
+    const img = shot.querySelector('img');
+    const cap = shot.querySelector('.cap');
     stage.replaceChildren();
+    const fig = document.createElement('figure');
     const el = document.createElement('img');
     el.src = hiRes(img.src); el.alt = img.alt;
-    stage.appendChild(el);
-    prevBtn.style.display = nextBtn.style.display = '';
+    fig.appendChild(el);
+    if(cap){ const fc = document.createElement('figcaption'); fc.className = 'lb-cap'; fc.innerHTML = cap.innerHTML; fig.appendChild(fc); lb.setAttribute('aria-label', cap.textContent.trim()); }
+    stage.appendChild(fig);
+    const multi = visible.length > 1;
+    prevBtn.style.display = nextBtn.style.display = multi ? '' : 'none';
+    if(multi){ preload((idx+1)%visible.length); preload((idx-1+visible.length)%visible.length); }
   };
   const openLb = () => { lastFocus = document.activeElement; lb.classList.add('open'); document.body.style.overflow = 'hidden'; document.getElementById('lbClose').focus(); };
   shots.forEach(s => s.addEventListener('click', () => {
@@ -984,6 +1125,24 @@ const I18N = {
       else if(!f.includes(document.activeElement)){ e.preventDefault(); first.focus(); }
     }
   });
+
+  // lightbox: swipe on touch
+  let sx = 0;
+  stage.addEventListener('touchstart', e => { sx = e.changedTouches[0].clientX; }, {passive:true});
+  stage.addEventListener('touchend', e => { if(!visible.length) return; const dx = e.changedTouches[0].clientX - sx; if(Math.abs(dx) > 45){ dx < 0 ? nextBtn.click() : prevBtn.click(); } }, {passive:true});
+
+  // scroll-spy: highlight current nav link
+  const navMap = {}; document.querySelectorAll('.nav-links a[href^="#"]').forEach(a => navMap[a.getAttribute('href').slice(1)] = a);
+  const spy = new IntersectionObserver(es => { es.forEach(e => { if(e.isIntersecting){ const a = navMap[e.target.id]; if(a){ document.querySelectorAll('.nav-links a.current').forEach(x => { x.classList.remove('current'); x.removeAttribute('aria-current'); }); a.classList.add('current'); a.setAttribute('aria-current','true'); } } }); }, {rootMargin:'-45% 0px -50% 0px'});
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+
+  // staggered reveals for grids
+  ['.services','.steps'].forEach(sel => document.querySelectorAll(sel+' .reveal').forEach((el,i) => el.style.setProperty('--i', i%4)));
+
+  // count-up numbers on scroll
+  const countUp = el => { if(reduceMotion) return; const raw = el.textContent.trim(); const m = raw.match(/([\d.]+)(.*)/); if(!m) return; const target = parseFloat(m[1]), suffix = m[2], dec = (m[1].split('.')[1]||'').length; let start = null; const step = ts => { start = start || ts; const pr = Math.min((ts-start)/1300,1); const e = 1-Math.pow(1-pr,3); el.textContent = (target*e).toFixed(dec)+suffix; if(pr<1) requestAnimationFrame(step); else el.textContent = raw; }; requestAnimationFrame(step); };
+  const cIO = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ countUp(e.target); cIO.unobserve(e.target); } }), {threshold:.6});
+  document.querySelectorAll('.about .stats div b, .hero-trust b').forEach(el => cIO.observe(el));
 })();
 </script>
 </body>
