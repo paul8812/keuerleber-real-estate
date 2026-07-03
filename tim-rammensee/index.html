@@ -30,7 +30,7 @@
       "url": "https://tim-rammensee.de/",
       "email": "smmmtimrammensee@icloud.com",
       "telephone": "+49 157 5311 8177",
-      "areaServed": "Bavaria, Germany",
+      "areaServed": ["Germany", "Worldwide"],
       "founder": { "@type": "Person", "name": "Tim Rammensee", "jobTitle": "Photographer & Filmmaker" },
       "sameAs": ["https://instagram.com/tim.rxme"],
       "address": { "@type": "PostalAddress", "streetAddress": "Jungholzweg 24", "postalCode": "95030", "addressLocality": "Hof", "addressRegion": "Bavaria", "addressCountry": "DE" }
@@ -39,7 +39,7 @@
       "@type": "FAQPage",
       "mainEntity": [
         { "@type": "Question", "name": "How far in advance should I book?", "acceptedAnswer": { "@type": "Answer", "text": "For weddings, 6–12 months ahead is ideal as dates fill up quickly. Automotive and reel shoots are usually possible within a few weeks — just ask." } },
-        { "@type": "Question", "name": "Do you travel?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. I'm based in Bavaria but shoot all over Germany and beyond. Travel beyond the region is added at cost and always agreed upfront." } },
+        { "@type": "Question", "name": "Do you travel?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. I'm based in Bavaria but shoot all over Germany and internationally. Travel beyond the region is added at cost and always agreed upfront." } },
         { "@type": "Question", "name": "When will I get my photos and videos?", "acceptedAnswer": { "@type": "Answer", "text": "You'll receive a small sneak peek within a few days. Full galleries land in 2–4 weeks, wedding films in 4–6 weeks, depending on the season." } },
         { "@type": "Question", "name": "Do you also handle posting and social media?", "acceptedAnswer": { "@type": "Answer", "text": "Yes — with the social-media package I plan, cut and schedule your content, so your channels stay active and keep growing." } },
         { "@type": "Question", "name": "What does a shoot cost?", "acceptedAnswer": { "@type": "Answer", "text": "After a short call I send a fixed, tailored quote — so there are no surprises." } }
@@ -436,6 +436,16 @@
     .feature .media img,.about-img img{clip-path:none !important;}
     .btn-primary::after{display:none;}
   }
+
+  /* cookie banner */
+  .cookie-bar{position:fixed;left:0;right:0;bottom:0;z-index:150;background:rgba(11,11,12,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:16px 22px calc(16px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:center;}
+  .cookie-bar p{font-size:13px;color:var(--muted);margin:0;max-width:660px;flex:1 1 320px;line-height:1.55;}
+  .cookie-bar p a{color:var(--accent);text-decoration:underline;}
+  .cookie-actions{display:flex;gap:10px;flex-shrink:0;}
+  .cookie-actions button{font-family:var(--sans);font-size:12px;letter-spacing:.06em;text-transform:uppercase;border-radius:40px;padding:11px 20px;cursor:pointer;border:1px solid var(--line);background:none;color:var(--ink);transition:.25s;}
+  .cookie-actions button:hover{border-color:var(--muted);}
+  .cookie-actions button.primary{background:var(--accent);color:#0b0b0c;border-color:var(--accent);font-weight:600;}
+  @media(max-width:600px){.cookie-bar{flex-direction:column;text-align:center;gap:12px;}.cookie-actions{width:100%;}.cookie-actions button{flex:1;}}
 </style>
 </head>
 <body>
@@ -444,7 +454,7 @@
 <!-- ====== NAV ====== -->
 <header id="top">
   <nav class="nav" aria-label="Primary">
-    <a href="#top" class="brand" aria-label="Tim Rammensee — home"><span class="mark"><svg viewBox="0 0 100 104" fill="none" aria-hidden="true"><line class="ln" x1="14" y1="16" x2="14" y2="88" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><text x="58" y="46" text-anchor="middle" fill="currentColor" font-family="Arial,Helvetica,sans-serif" font-size="46" font-weight="800">T</text><text class="r" x="58" y="92" text-anchor="middle" fill="currentColor" font-family="Arial,Helvetica,sans-serif" font-size="46" font-weight="800">R</text></svg></span> <span>Tim&nbsp;<b>Rammensee</b></span></a>
+    <a href="#top" class="brand" aria-label="Tim Rammensee — home"><span class="mark"><svg viewBox="0 0 100 104" fill="none" aria-hidden="true"><line class="ln" x1="14" y1="16" x2="14" y2="88" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><text x="58" y="46" text-anchor="middle" fill="currentColor" font-family="Arial,Helvetica,sans-serif" font-size="46" font-weight="800">T</text><text class="r" x="58" y="92" text-anchor="middle" fill="currentColor" font-family="Arial,Helvetica,sans-serif" font-size="46" font-weight="800">R</text></svg></span></a>
     <div class="nav-links" id="navLinks">
       <a href="#weddings" data-i18n="nav.weddings">Weddings</a>
       <a href="#automotive" data-i18n="nav.automotive">Automotive</a>
@@ -471,14 +481,14 @@
   </video>
   <div class="bar bottom"></div>
   <div class="hero-inner wrap">
-    <p class="eyebrow reveal" data-i18n="hero.eyebrow">Cinematic Photography &amp; Film · Bavaria, Germany</p>
+    <p class="eyebrow reveal" data-i18n="hero.eyebrow">Cinematic Photography &amp; Film · Germany &amp; worldwide</p>
     <h1 class="reveal" data-i18n="hero.h1">Stories that<br><em>move.</em></h1>
-    <p class="lead reveal" data-i18n="hero.lead">Bavaria-based photographer &amp; filmmaker. I turn your wedding, your car or your brand into films and photos people actually feel — and want to share.</p>
+    <p class="lead reveal" data-i18n="hero.lead">Photographer &amp; filmmaker from Bavaria — working across Germany and internationally. I turn your wedding, your car or your brand into films and photos people actually feel — and want to share.</p>
     <div class="hero-actions reveal">
       <a href="#contact" class="btn btn-primary" data-i18n="hero.cta1">Start a project</a>
       <a href="#reels" class="btn btn-ghost"><span class="play" aria-hidden="true">▶</span> <span data-i18n="hero.cta2">Watch the reels</span></a>
     </div>
-    <p class="hero-trust reveal" data-i18n="hero.trust">Cinematic weddings, cars &amp; reels — based in <b>Hof, Bavaria</b></p>
+    <p class="hero-trust reveal" data-i18n="hero.trust">Cinematic weddings, cars &amp; reels — Germany &amp; <b>worldwide</b></p>
   </div>
   <div class="scroll-cue" aria-hidden="true"><span>Scroll</span><span class="line"></span></div>
 </section>
@@ -610,7 +620,7 @@
     <div class="reveal">
       <p class="eyebrow" data-i18n="ab.eyebrow">About me</p>
       <h2 data-i18n="ab.h2">An eye for cinema,<br>a heart for the moment.</h2>
-      <p data-i18n="ab.p1">I'm Tim Rammensee. For the past four years I've blended photography and film into one language: calm, cinematic images that tell a story — whether it's a couple or a sports car.</p>
+      <p data-i18n="ab.p1">I'm Tim. For the past four years I've blended photography and film into one language: calm, cinematic images that tell a story — whether it's a couple or a sports car.</p>
       <p data-i18n="ab.p2">I work close to the action, plan carefully and deliver fast. From a single reel to a full wedding production, it's all handled by one person, start to finish.</p>
       <p data-i18n="ab.p3">What matters most is that you feel at ease — because the strongest shots happen the moment the camera is forgotten.</p>
       <div class="stats">
@@ -717,7 +727,7 @@
       </div>
       <div class="faq-item">
         <button class="faq-q" type="button" aria-expanded="false" data-i18n="f.q2">Do you travel?</button>
-        <div class="faq-a"><p data-i18n="f.a2">Absolutely. I'm based in Bavaria but shoot all over Germany and beyond. Travel beyond the region is added at cost and always agreed upfront.</p></div>
+        <div class="faq-a"><p data-i18n="f.a2">Absolutely. I'm based in Bavaria but shoot all over Germany and internationally. Travel beyond the region is added at cost and always agreed upfront.</p></div>
       </div>
       <div class="faq-item">
         <button class="faq-q" type="button" aria-expanded="false" data-i18n="f.q3">When will I get my photos and videos?</button>
@@ -795,7 +805,7 @@
     </div>
     <div class="foot-bottom">
       <span>© <span id="year"></span> <span data-i18n="foot.rights">Tim Rammensee — All rights reserved.</span></span>
-      <span><a href="imprint.html" data-i18n="foot.imprint">Imprint</a> &nbsp;·&nbsp; <a href="privacy.html" data-i18n="foot.privacy">Privacy</a></span>
+      <span><a href="imprint.html" data-i18n="foot.imprint">Imprint</a> &nbsp;·&nbsp; <a href="privacy.html" data-i18n="foot.privacy">Privacy</a> &nbsp;·&nbsp; <a href="agb.html" data-i18n="foot.agb">Terms</a> &nbsp;·&nbsp; <a href="cookies.html" data-i18n="foot.cookies">Cookies</a></span>
     </div>
   </div>
 </footer>
@@ -814,17 +824,25 @@
   <a href="#contact" class="primary" data-i18n="nav.contact">Get in touch</a>
 </div>
 
+<div class="cookie-bar" id="cookieBar" role="dialog" aria-live="polite" aria-label="Cookie notice" hidden>
+  <p><span data-i18n="cookie.text">This site uses only technically necessary storage. External fonts &amp; media may transmit your IP address.</span> <a href="cookies.html" data-i18n="cookie.more">Cookie policy</a></p>
+  <div class="cookie-actions">
+    <button type="button" id="ckNec" data-i18n="cookie.nec">Necessary only</button>
+    <button type="button" id="ckAll" class="primary" data-i18n="cookie.acc">Accept</button>
+  </div>
+</div>
+
 <script>
 const I18N = {
   en: {
     "title": "Tim Rammensee — Cinematic Photography & Film",
     "skip": "Skip to content",
     "nav.weddings": "Weddings", "nav.automotive": "Automotive", "nav.reels": "Reels", "nav.work": "Work", "nav.about": "About", "nav.services": "Services", "nav.contact": "Get in touch",
-    "hero.eyebrow": "Cinematic Photography &amp; Film · Bavaria, Germany",
+    "hero.eyebrow": "Cinematic Photography &amp; Film · Germany &amp; worldwide",
     "hero.h1": "Stories that<br><em>move.</em>",
-    "hero.lead": "Bavaria-based photographer &amp; filmmaker. I turn your wedding, your car or your brand into films and photos people actually feel — and want to share.",
+    "hero.lead": "Photographer &amp; filmmaker from Bavaria — working across Germany and internationally. I turn your wedding, your car or your brand into films and photos people actually feel — and want to share.",
     "hero.cta1": "Start a project", "hero.cta2": "Watch the reels",
-    "hero.trust": "Cinematic weddings, cars &amp; reels — based in <b>Hof, Bavaria</b>",
+    "hero.trust": "Cinematic weddings, cars &amp; reels — Germany &amp; <b>worldwide</b>",
     "w.eyebrow": "Focus · Weddings", "w.h2": "Your day,<br>told like a film.",
     "w.p": "Weddings are my passion. I move through your whole day unobtrusively and capture the real moments — the tears, the laughter, the first dance.",
     "w.li1": "Documentary coverage from getting ready to the party", "w.li2": "Cinematic wedding film &amp; highlight reel for social media", "w.li3": "Couple's session at your favourite location", "w.li4": "Refined editing &amp; a fast preview gallery", "w.cta": "Check your date",
@@ -838,7 +856,7 @@ const I18N = {
     "p.s2h": "The shoot", "p.s2p": "On the day I keep it calm and natural. You enjoy the moment, I take care of light, angles and timing.",
     "p.s3h": "Edit &amp; deliver", "p.s3p": "You get a fast sneak peek, then the full gallery and cinematic reels — ready to relive and to share.",
     "ab.badge": "years behind<br>the camera", "ab.eyebrow": "About me", "ab.h2": "An eye for cinema,<br>a heart for the moment.",
-    "ab.p1": "I'm Tim Rammensee. For the past four years I've blended photography and film into one language: calm, cinematic images that tell a story — whether it's a couple or a sports car.",
+    "ab.p1": "I'm Tim. For the past four years I've blended photography and film into one language: calm, cinematic images that tell a story — whether it's a couple or a sports car.",
     "ab.p2": "I work close to the action, plan carefully and deliver fast. From a single reel to a full wedding production, it's all handled by one person, start to finish.",
     "ab.p3": "What matters most is that you feel at ease — because the strongest shots happen the moment the camera is forgotten.",
     "ab.stat1": "Years shooting", "ab.stat2": "Based in Bavaria", "ab.stat3": "Personal service",
@@ -852,7 +870,7 @@ const I18N = {
     "s4.h": "Social-Media Marketing", "s4.p": "More than images: content planning, regular reels &amp; ongoing channel management for real growth.", "s.cta": "Request a quote",
     "f.eyebrow": "Good to know", "f.h2": "Frequently asked",
     "f.q1": "How far in advance should I book?", "f.a1": "For weddings, 6–12 months ahead is ideal as dates fill up quickly. Automotive and reel shoots are usually possible within a few weeks — just ask.",
-    "f.q2": "Do you travel?", "f.a2": "Absolutely. I'm based in Bavaria but shoot all over Germany and beyond. Travel beyond the region is added at cost and always agreed upfront.",
+    "f.q2": "Do you travel?", "f.a2": "Absolutely. I'm based in Bavaria but shoot all over Germany and internationally. Travel beyond the region is added at cost and always agreed upfront.",
     "f.q3": "When will I get my photos and videos?", "f.a3": "You'll receive a small sneak peek within a few days. Full galleries land in 2–4 weeks, wedding films in 4–6 weeks, depending on the season.",
     "f.q4": "Do you also handle posting and social media?", "f.a4": "Yes — with the social-media package I plan, cut and schedule your content, so your channels stay active and keep growing without you lifting a finger.",
     "f.q5": "What does a shoot cost?", "f.a5": "After a short call I send a fixed, tailored quote — so there are no surprises.",
@@ -863,17 +881,18 @@ const I18N = {
     "form.sending": "Sending…", "form.sent": "Sent ✓", "form.thanks": "Thanks! Your enquiry is on its way — I’ll be in touch within 24 hours.", "form.error": "Something went wrong — please email smmmtimrammensee@icloud.com directly.", "form.noendpoint": "Form endpoint not set up yet — add your Formspree ID in the code, then enquiries arrive by email.",
     "opt.wedding": "Wedding", "opt.auto": "Automotive", "opt.reels": "Reels / Video", "opt.smm": "Social-Media Marketing", "opt.portrait": "Portrait", "opt.other": "Other",
     "foot.tagline": "Cinematic photography &amp; film — weddings, automotive, reels &amp; social media.", "foot.rights": "Tim Rammensee — All rights reserved.", "foot.imprint": "Imprint", "foot.privacy": "Privacy",
-    "aria.menu": "Toggle menu", "lb.close": "Close", "lb.prev": "Previous", "lb.next": "Next", "s.badge": "Most booked", "mcta.call": "Call", "meta.desc": "Tim Rammensee — cinematic photographer & filmmaker in Bavaria. Weddings, automotive, reels & social-media content."
+    "aria.menu": "Toggle menu", "lb.close": "Close", "lb.prev": "Previous", "lb.next": "Next", "s.badge": "Most booked", "mcta.call": "Call", "meta.desc": "Tim Rammensee — cinematic photographer & filmmaker in Bavaria. Weddings, automotive, reels & social-media content.",
+    "foot.agb": "Terms", "foot.cookies": "Cookies", "cookie.text": "This site uses only technically necessary storage. External fonts &amp; media may transmit your IP address.", "cookie.more": "Cookie policy", "cookie.nec": "Necessary only", "cookie.acc": "Accept"
   },
   de: {
     "title": "Tim Rammensee — Cinematic Fotografie & Film",
     "skip": "Zum Inhalt springen",
     "nav.weddings": "Hochzeit", "nav.automotive": "Automotive", "nav.reels": "Reels", "nav.work": "Portfolio", "nav.about": "Über mich", "nav.services": "Leistungen", "nav.contact": "Kontakt",
-    "hero.eyebrow": "Cinematic Fotografie &amp; Film · Bayern",
+    "hero.eyebrow": "Cinematic Fotografie &amp; Film · deutschlandweit &amp; international",
     "hero.h1": "Bilder, die sich<br><em>bewegen.</em>",
-    "hero.lead": "Fotograf &amp; Filmemacher aus Bayern. Ich mache aus deiner Hochzeit, deinem Auto oder deiner Marke Filme und Fotos, die man wirklich fühlt — und teilen will.",
+    "hero.lead": "Fotograf &amp; Filmemacher aus Bayern — deutschlandweit und international im Einsatz. Ich mache aus deiner Hochzeit, deinem Auto oder deiner Marke Filme und Fotos, die man wirklich fühlt — und teilen will.",
     "hero.cta1": "Projekt anfragen", "hero.cta2": "Reels ansehen",
-    "hero.trust": "Cinematische Hochzeiten, Autos &amp; Reels — aus <b>Hof, Bayern</b>",
+    "hero.trust": "Cinematische Hochzeiten, Autos &amp; Reels — deutschlandweit &amp; <b>international</b>",
     "w.eyebrow": "Schwerpunkt · Hochzeit", "w.h2": "Euer Tag,<br>cinematisch erzählt.",
     "w.p": "Hochzeiten sind meine Leidenschaft. Ich begleite euch unaufdringlich durch den ganzen Tag und halte die echten Momente fest — Tränen, Lachen, den ersten Tanz.",
     "w.li1": "Foto-Reportage vom Getting-Ready bis zur Party", "w.li2": "Cinematischer Hochzeitsfilm &amp; Highlight-Reel für Social Media", "w.li3": "Paar-Shooting an eurem Lieblingsort", "w.li4": "Edle Bildbearbeitung &amp; schnelle Vorschau-Galerie", "w.cta": "Termin anfragen",
@@ -887,7 +906,7 @@ const I18N = {
     "p.s2h": "Das Shooting", "p.s2p": "Am Tag selbst bleibt alles ruhig und natürlich. Du genießt den Moment, ich kümmere mich um Licht, Perspektive und Timing.",
     "p.s3h": "Bearbeitung &amp; Übergabe", "p.s3p": "Du bekommst eine schnelle Vorschau, dann die komplette Galerie und cinematische Reels — zum Wiedererleben und Teilen.",
     "ab.badge": "Jahre hinter<br>der Kamera", "ab.eyebrow": "Über mich", "ab.h2": "Ein Auge fürs Kino,<br>ein Herz für den Moment.",
-    "ab.p1": "Ich bin Tim Rammensee. Seit rund vier Jahren verbinde ich Fotografie und Film zu einer Sprache: ruhige, cinematische Bilder, die Geschichten erzählen — egal ob Brautpaar oder Sportwagen.",
+    "ab.p1": "Ich bin Tim. Seit rund vier Jahren verbinde ich Fotografie und Film zu einer Sprache: ruhige, cinematische Bilder, die Geschichten erzählen — egal ob Brautpaar oder Sportwagen.",
     "ab.p2": "Ich arbeite nah dran, plane sauber und liefere schnell. Vom einzelnen Reel bis zur kompletten Hochzeitsproduktion — alles aus einer Hand.",
     "ab.p3": "Das Wichtigste: dass du dich wohlfühlst — denn die stärksten Aufnahmen entstehen, wenn die Kamera vergessen wird.",
     "ab.stat1": "Jahre aktiv", "ab.stat2": "aus Bayern", "ab.stat3": "Persönlich, 1:1",
@@ -901,7 +920,7 @@ const I18N = {
     "s4.h": "Social-Media-Marketing", "s4.p": "Mehr als Bilder: Content-Planung, regelmäßige Reels &amp; laufende Betreuung deiner Kanäle für echtes Wachstum.", "s.cta": "Angebot anfragen",
     "f.eyebrow": "Gut zu wissen", "f.h2": "Häufige Fragen",
     "f.q1": "Wie früh sollte ich buchen?", "f.a1": "Für Hochzeiten sind 6–12 Monate Vorlauf ideal, da Termine schnell vergeben sind. Automotive- und Reel-Shootings gehen meist innerhalb weniger Wochen — frag einfach.",
-    "f.q2": "Reist du auch an?", "f.a2": "Klar. Ich bin in Bayern zu Hause, fotografiere aber in ganz Deutschland und darüber hinaus. Anfahrt über die Region hinaus wird nach Aufwand berechnet und immer vorab abgesprochen.",
+    "f.q2": "Reist du auch an?", "f.a2": "Klar. Ich bin in Bayern zu Hause, fotografiere aber in ganz Deutschland und international. Anfahrt über die Region hinaus wird nach Aufwand berechnet und immer vorab abgesprochen.",
     "f.q3": "Wann bekomme ich meine Fotos und Videos?", "f.a3": "Eine kleine Vorschau gibt's innerhalb weniger Tage. Komplette Galerien in 2–4 Wochen, Hochzeitsfilme in 4–6 Wochen — je nach Saison.",
     "f.q4": "Übernimmst du auch das Posten und Social Media?", "f.a4": "Ja — mit dem Social-Media-Paket plane, schneide und terminiere ich deine Inhalte, damit deine Kanäle aktiv bleiben und wachsen, ganz ohne deinen Aufwand.",
     "f.q5": "Was kostet ein Shooting?", "f.a5": "Nach einem kurzen Gespräch bekommst du ein fixes, individuelles Angebot — ohne spätere Überraschungen.",
@@ -912,7 +931,8 @@ const I18N = {
     "form.sending": "Senden…", "form.sent": "Gesendet ✓", "form.thanks": "Danke! Deine Anfrage ist unterwegs — ich melde mich innerhalb von 24 Stunden.", "form.error": "Etwas ist schiefgelaufen — bitte schreib direkt an smmmtimrammensee@icloud.com.", "form.noendpoint": "Formular noch nicht eingerichtet — trag deine Formspree-ID im Code ein, dann kommen Anfragen per E-Mail an.",
     "opt.wedding": "Hochzeit", "opt.auto": "Automotive", "opt.reels": "Reels / Video", "opt.smm": "Social-Media-Marketing", "opt.portrait": "Porträt", "opt.other": "Sonstiges",
     "foot.tagline": "Cinematic Fotografie &amp; Film — Hochzeit, Automotive, Reels &amp; Social Media.", "foot.rights": "Tim Rammensee — Alle Rechte vorbehalten.", "foot.imprint": "Impressum", "foot.privacy": "Datenschutz",
-    "aria.menu": "Menü öffnen", "lb.close": "Schließen", "lb.prev": "Zurück", "lb.next": "Weiter", "s.badge": "Beliebteste", "mcta.call": "Anrufen", "meta.desc": "Tim Rammensee — cinematischer Fotograf & Filmemacher aus Bayern. Hochzeiten, Automotive, Reels & Social-Media-Content."
+    "aria.menu": "Menü öffnen", "lb.close": "Schließen", "lb.prev": "Zurück", "lb.next": "Weiter", "s.badge": "Beliebteste", "mcta.call": "Anrufen", "meta.desc": "Tim Rammensee — cinematischer Fotograf & Filmemacher aus Bayern. Hochzeiten, Automotive, Reels & Social-Media-Content.",
+    "foot.agb": "AGB", "foot.cookies": "Cookies", "cookie.text": "Diese Seite nutzt nur technisch notwendige Speicherung. Externe Schriften &amp; Medien können deine IP-Adresse übertragen.", "cookie.more": "Cookie-Richtlinie", "cookie.nec": "Nur notwendige", "cookie.acc": "Akzeptieren"
   }
 };
 
@@ -1145,6 +1165,16 @@ const I18N = {
   const countUp = el => { if(reduceMotion) return; const raw = el.textContent.trim(); const m = raw.match(/([\d.]+)(.*)/); if(!m) return; const target = parseFloat(m[1]), suffix = m[2], dec = (m[1].split('.')[1]||'').length; let start = null; const step = ts => { start = start || ts; const pr = Math.min((ts-start)/1300,1); const e = 1-Math.pow(1-pr,3); el.textContent = (target*e).toFixed(dec)+suffix; if(pr<1) requestAnimationFrame(step); else el.textContent = raw; }; requestAnimationFrame(step); };
   const cIO = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ countUp(e.target); cIO.unobserve(e.target); } }), {threshold:.6});
   document.querySelectorAll('.about .stats div b, .hero-trust b').forEach(el => cIO.observe(el));
+
+  // cookie consent banner
+  const cbar = document.getElementById('cookieBar');
+  if(cbar){
+    let cc=null; try{ cc=localStorage.getItem('cookie-consent'); }catch(e){}
+    if(!cc) cbar.hidden = false;
+    const setC = v => { try{ localStorage.setItem('cookie-consent', v); }catch(e){} cbar.hidden = true; };
+    document.getElementById('ckAll').addEventListener('click', () => setC('all'));
+    document.getElementById('ckNec').addEventListener('click', () => setC('necessary'));
+  }
 })();
 </script>
 </body>

@@ -8,11 +8,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Plus+Jakarta+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230b0b0c'/%3E%3Ctext x='31' y='66' text-anchor='middle' fill='%23f5f5f5' font-family='Georgia,serif' font-size='48' font-weight='600'%3ET%3C/text%3E%3Cline x1='50' y1='29' x2='50' y2='67' stroke='%23cfcfcf' stroke-width='2.6' stroke-linecap='round'/%3E%3Ctext x='70' y='66' text-anchor='middle' fill='%23cfcfcf' font-family='Georgia,serif' font-size='48' font-weight='600'%3ER%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230c0c0d'/%3E%3Cline x1='30' y1='26' x2='30' y2='80' stroke='%23cfcfcf' stroke-width='3' stroke-linecap='round'/%3E%3Ctext x='60' y='50' text-anchor='middle' fill='%23f5f5f5' font-family='Arial,Helvetica,sans-serif' font-size='34' font-weight='800'%3ET%3C/text%3E%3Ctext x='60' y='84' text-anchor='middle' fill='%23cfcfcf' font-family='Arial,Helvetica,sans-serif' font-size='34' font-weight='800'%3ER%3C/text%3E%3C/svg%3E">
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
   body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:#0b0b0c;color:#f5f5f5;line-height:1.7;-webkit-font-smoothing:antialiased;}
-  .wrap{max-width:760px;margin:0 auto;padding:70px 24px 100px;}
+  .wrap{max-width:800px;margin:0 auto;padding:70px 24px 100px;}
   a{color:#cfcfcf;text-decoration:none;}
   a:hover{text-decoration:underline;}
   .top{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:50px;flex-wrap:wrap;}
@@ -21,14 +21,20 @@
   .lang-switch button{background:none;border:none;color:#a4a4a8;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;padding:3px 6px;border-radius:20px;}
   .lang-switch button.active{color:#cfcfcf;font-weight:600;}
   .lang-switch .sep{color:rgba(255,255,255,.22);}
-  h1{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:clamp(36px,7vw,56px);margin-bottom:14px;letter-spacing:-0.01em;}
-  .lead{color:#a4a4a8;font-weight:300;margin-bottom:48px;}
-  h2{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:26px;margin:38px 0 12px;}
-  p{color:#cfc8bd;font-weight:300;margin-bottom:14px;}
-  ul{color:#cfc8bd;font-weight:300;margin:0 0 14px 20px;}
-  li{margin-bottom:8px;}
+  h1{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:clamp(34px,7vw,52px);margin-bottom:14px;letter-spacing:-0.01em;}
+  .lead{color:#a4a4a8;font-weight:300;margin-bottom:20px;}
+  h2{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:23px;margin:40px 0 10px;}
+  h3{font-size:15px;font-weight:600;margin:22px 0 6px;color:#f5f5f5;}
+  p{color:#cbcbce;font-weight:300;margin-bottom:12px;font-size:15.5px;}
+  ul{color:#cbcbce;font-weight:300;margin:0 0 12px 20px;font-size:15.5px;}
+  li{margin-bottom:6px;}
+  .note{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:16px 18px;color:#d7d7da;font-size:14px;margin:16px 0;}
   .ph{color:#cfcfcf;}
-  footer{border-top:1px solid rgba(255,255,255,0.1);margin-top:60px;padding-top:24px;font-size:12px;color:#a4a4a8;}
+  table{width:100%;border-collapse:collapse;margin:10px 0 16px;font-size:14px;}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.1);color:#cbcbce;font-weight:300;vertical-align:top;}
+  th{color:#f5f5f5;font-weight:600;}
+  footer{border-top:1px solid rgba(255,255,255,0.1);margin-top:56px;padding-top:24px;font-size:12px;color:#a4a4a8;}
+  footer a{margin-right:16px;}
   :focus-visible{outline:2px solid #cfcfcf;outline-offset:3px;}
 </style>
 </head>
@@ -42,103 +48,132 @@
     </div>
 
     <h1 data-i18n="h1">Datenschutzerklärung</h1>
-    <p class="lead" data-i18n="lead">Wie deine Daten beim Besuch dieser Website verarbeitet werden — gemäß DSGVO.</p>
+    <p class="lead" data-i18n="lead">Der Schutz deiner personenbezogenen Daten ist mir wichtig. Nachfolgend informiere ich dich gemäß der Datenschutz-Grundverordnung (DSGVO) und dem Bundesdatenschutzgesetz (BDSG) über die Verarbeitung deiner Daten beim Besuch dieser Website.</p>
+    <div class="note" data-i18n="disclaimer">ℹ Diese Datenschutzerklärung ist eine sorgfältig erstellte Vorlage und keine Rechtsberatung. Bitte vor der Veröffentlichung anwaltlich bzw. über einen geprüften Generator prüfen und an die tatsächlich eingesetzten Dienste anpassen.</div>
 
-    <h2 data-i18n="h1.title">1. Verantwortlicher</h2>
-    <p>
-      Tim Rammensee<br>
-      Jungholzweg 24, 95030 Hof<br>
-      <span data-i18n="email">E-Mail</span>: smmmtimrammensee@icloud.com
-    </p>
+    <h2 data-i18n="s1.h">1. Verantwortlicher</h2>
+    <p data-i18n="s1.p">Verantwortlich für die Datenverarbeitung auf dieser Website ist:</p>
+    <p>Tim Rammensee<br>Jungholzweg 24, 95030 Hof, <span data-i18n="country">Deutschland</span><br><span data-i18n="email">E-Mail</span>: smmmtimrammensee@icloud.com<br><span data-i18n="phone">Telefon</span>: +49 157 5311 8177</p>
 
-    <h2 data-i18n="h2.title">2. Hosting</h2>
-    <p data-i18n="h2.body">Diese Website wird bei Netlify gehostet. Beim Aufruf der Seite erhebt und speichert der Anbieter automatisch Server-Logdaten (z. B. IP-Adresse, Browsertyp, Datum und Uhrzeit des Zugriffs) zur Sicherheit und für den Betrieb. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an sicherem, zuverlässigem Hosting).</p>
+    <h2 data-i18n="s2.h">2. Allgemeines zur Datenverarbeitung</h2>
+    <p data-i18n="s2.p">Ich verarbeite personenbezogene Daten nur, soweit dies zur Bereitstellung einer funktionsfähigen Website sowie meiner Inhalte und Leistungen erforderlich ist. Die Verarbeitung erfolgt regelmäßig nur nach deiner Einwilligung oder wenn ein gesetzlicher Erlaubnistatbestand vorliegt (Art. 6 DSGVO).</p>
 
-    <h2 data-i18n="h3.title">3. Kontaktformular &amp; E-Mail</h2>
-    <p data-i18n="h3.body">Wenn du eine Anfrage über das Kontaktformular oder per E-Mail sendest, werden die von dir angegebenen Daten (Name, E-Mail-Adresse, Projektart und Nachricht) ausschließlich zur Bearbeitung deiner Anfrage verarbeitet. Das Formular wird über Netlify Forms ausgeliefert. Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (vorvertragliche Maßnahmen) sowie Art. 6 Abs. 1 lit. f DSGVO. Deine Daten werden gelöscht, sobald deine Anfrage erledigt ist und keine Aufbewahrungspflichten entgegenstehen.</p>
+    <h2 data-i18n="s3.h">3. Hosting</h2>
+    <p data-i18n="s3.p">Diese Website wird bei <span class="ph">Netlify</span> (Netlify, Inc., USA) gehostet. Beim Aufruf werden technisch notwendige Daten (siehe Server-Logfiles) verarbeitet. Mit dem Anbieter besteht bzw. ist ein Vertrag zur Auftragsverarbeitung (Art. 28 DSGVO) abzuschließen. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einem sicheren, effizienten Betrieb). Bei Übermittlung in die USA erfolgt diese auf Grundlage geeigneter Garantien (z. B. EU-Standardvertragsklauseln / Data Privacy Framework).</p>
 
-    <h2 data-i18n="h4.title">4. Schriften &amp; externe Medien</h2>
-    <p data-i18n="h4.body">Diese Seite lädt Schriften von Google Fonts und kann Bilder/Videos von Drittanbieter-CDNs einbinden. Dabei wird deine IP-Adresse an die jeweiligen Anbieter übermittelt. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO.</p>
+    <h2 data-i18n="s4.h">4. Server-Logfiles</h2>
+    <p data-i18n="s4.p">Beim Besuch der Website werden automatisch Informationen erfasst, die dein Browser übermittelt (Server-Logfiles): Browsertyp/-version, verwendetes Betriebssystem, Referrer-URL, Uhrzeit der Anfrage sowie die (ggf. gekürzte) IP-Adresse. Diese Daten sind technisch erforderlich, um die Website anzuzeigen, ihre Stabilität und Sicherheit zu gewährleisten. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO. Die Daten werden nach kurzer Zeit gelöscht, soweit sie nicht zur Aufklärung von Missbrauch benötigt werden.</p>
 
-    <h2 data-i18n="h5.title">5. Deine Rechte</h2>
-    <p data-i18n="rights.intro">Nach der DSGVO hast du das Recht auf:</p>
+    <h2 data-i18n="s5.h">5. SSL-/TLS-Verschlüsselung</h2>
+    <p data-i18n="s5.p">Diese Seite nutzt aus Sicherheitsgründen eine SSL-/TLS-Verschlüsselung. Eine verschlüsselte Verbindung erkennst du am „https://" und dem Schloss-Symbol in der Adresszeile deines Browsers.</p>
+
+    <h2 data-i18n="s6.h">6. Cookies &amp; lokale Speicherung</h2>
+    <p data-i18n="s6.p">Diese Website setzt keine Tracking-, Analyse- oder Marketing-Cookies. Es werden lediglich technisch notwendige Einträge im lokalen Speicher (localStorage) deines Browsers abgelegt, um deine Auswahl zu speichern. Diese enthalten keine personenbezogenen Profile. Details findest du in der <a href="cookies.html" data-i18n="s6.link">Cookie-Richtlinie</a>.</p>
+
+    <h2 data-i18n="s7.h">7. Kontaktformular &amp; E-Mail</h2>
+    <p data-i18n="s7.p">Wenn du mir über das Kontaktformular oder per E-Mail eine Anfrage sendest, verarbeite ich die von dir angegebenen Daten (z. B. Name, E-Mail-Adresse, Projektart, Nachricht) ausschließlich zur Bearbeitung deiner Anfrage. Das Formular wird technisch über <span class="ph">Netlify Forms</span> ausgeliefert. Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (vorvertragliche Maßnahmen) sowie Art. 6 Abs. 1 lit. f DSGVO (effiziente Bearbeitung). Deine Daten werden gelöscht, sobald die Anfrage erledigt ist und keine gesetzlichen Aufbewahrungspflichten entgegenstehen.</p>
+
+    <h2 data-i18n="s8.h">8. Schriften &amp; externe Medien</h2>
+    <p data-i18n="s8.p">Diese Seite bindet Schriftarten von <span class="ph">Google Fonts</span> sowie ggf. Bilder/Videos von externen Diensten (CDNs) ein. Dabei wird deine IP-Adresse an die jeweiligen Anbieter übermittelt; dies ist technisch erforderlich, damit die Inhalte an deinen Browser ausgeliefert werden. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO bzw. deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO).</p>
+    <div class="note" data-i18n="s8.note">Empfehlung für maximale Datensparsamkeit: Schriften und Medien lokal auf dem eigenen Server einbinden (Self-Hosting). Dann entfällt die Übermittlung von IP-Adressen an Dritte vollständig.</div>
+
+    <h2 data-i18n="s9.h">9. Social-Media-Verlinkung</h2>
+    <p data-i18n="s9.p">Auf dieser Website ist ein Link zum Instagram-Profil eingebunden. Es handelt sich um eine reine Verlinkung, keine eingebettete Vorschau. Erst wenn du den Link anklickst und die Plattform besuchst, werden dort Daten durch den jeweiligen Anbieter (Meta Platforms Ireland Ltd.) verarbeitet. Hierauf habe ich keinen Einfluss; es gilt die Datenschutzerklärung des Anbieters.</p>
+
+    <h2 data-i18n="s10.h">10. Auftragsdaten (Foto- &amp; Videoproduktion)</h2>
+    <p data-i18n="s10.p">Im Rahmen einer Buchung verarbeite ich zur Vertragserfüllung die dafür notwendigen Daten (z. B. Name, Kontaktdaten, Termin, Ort sowie die im Auftrag entstehenden Bild- und Videoaufnahmen). Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO. Aufnahmen werden zur Bearbeitung, Übergabe und Archivierung gespeichert; eine Veröffentlichung (z. B. zu Referenzzwecken) erfolgt nur mit deiner gesonderten Einwilligung.</p>
+
+    <h2 data-i18n="s11.h">11. Speicherdauer</h2>
+    <p data-i18n="s11.p">Ich speichere personenbezogene Daten nur so lange, wie es für die jeweiligen Zwecke erforderlich ist oder gesetzliche Aufbewahrungsfristen (z. B. handels- und steuerrechtlich) bestehen. Danach werden die Daten gelöscht.</p>
+
+    <h2 data-i18n="s12.h">12. Deine Rechte</h2>
+    <p data-i18n="s12.p">Dir stehen nach der DSGVO folgende Rechte zu:</p>
     <ul>
       <li data-i18n="r1">Auskunft über deine gespeicherten Daten (Art. 15)</li>
-      <li data-i18n="r2">Berichtigung (Art. 16) und Löschung (Art. 17)</li>
-      <li data-i18n="r3">Einschränkung der Verarbeitung (Art. 18)</li>
+      <li data-i18n="r2">Berichtigung unrichtiger Daten (Art. 16)</li>
+      <li data-i18n="r3">Löschung (Art. 17) und Einschränkung der Verarbeitung (Art. 18)</li>
       <li data-i18n="r4">Datenübertragbarkeit (Art. 20)</li>
       <li data-i18n="r5">Widerspruch gegen die Verarbeitung (Art. 21)</li>
-      <li data-i18n="r6">Beschwerde bei einer Aufsichtsbehörde (Art. 77)</li>
+      <li data-i18n="r6">Widerruf einer erteilten Einwilligung mit Wirkung für die Zukunft (Art. 7 Abs. 3)</li>
+      <li data-i18n="r7">Beschwerde bei einer Aufsichtsbehörde (Art. 77)</li>
     </ul>
-    <p data-i18n="rights.contact">Zur Ausübung dieser Rechte genügt eine Nachricht an smmmtimrammensee@icloud.com.</p>
+    <p data-i18n="s12.p2">Zur Ausübung genügt eine Nachricht an smmmtimrammensee@icloud.com. Zuständige Aufsichtsbehörde ist das Bayerische Landesamt für Datenschutzaufsicht (BayLDA), Ansbach.</p>
 
-    <footer>© <span id="y"></span> Tim Rammensee — <span data-i18n="foot">Datenschutz</span></footer>
+    <h2 data-i18n="s13.h">13. Aktualität &amp; Änderungen</h2>
+    <p data-i18n="s13.p">Diese Datenschutzerklärung hat den Stand der Veröffentlichung. Durch die Weiterentwicklung der Website oder geänderte gesetzliche Vorgaben kann eine Anpassung erforderlich werden.</p>
+
+    <footer>
+      <span>© <span id="y"></span> Tim Rammensee</span><br><br>
+      <a href="imprint.html" data-i18n="f.imprint">Impressum</a>
+      <a href="privacy.html" data-i18n="f.privacy">Datenschutz</a>
+      <a href="agb.html" data-i18n="f.agb">AGB</a>
+      <a href="cookies.html" data-i18n="f.cookies">Cookies</a>
+    </footer>
   </div>
 
 <script>
 const I18N = {
   de: {
-    "title": "Datenschutz — Tim Rammensee",
-    "back": "‹ Zur Website",
-    "h1": "Datenschutzerklärung",
-    "lead": "Wie deine Daten beim Besuch dieser Website verarbeitet werden — gemäß DSGVO.",
-    "email": "E-Mail",
-    "h1.title": "1. Verantwortlicher",
-    "h2.title": "2. Hosting",
-    "h2.body": "Diese Website wird bei Netlify gehostet. Beim Aufruf der Seite erhebt und speichert der Anbieter automatisch Server-Logdaten (z. B. IP-Adresse, Browsertyp, Datum und Uhrzeit des Zugriffs) zur Sicherheit und für den Betrieb. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an sicherem, zuverlässigem Hosting).",
-    "h3.title": "3. Kontaktformular &amp; E-Mail",
-    "h3.body": "Wenn du eine Anfrage über das Kontaktformular oder per E-Mail sendest, werden die von dir angegebenen Daten (Name, E-Mail-Adresse, Projektart und Nachricht) ausschließlich zur Bearbeitung deiner Anfrage verarbeitet. Das Formular wird über Netlify Forms ausgeliefert. Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (vorvertragliche Maßnahmen) sowie Art. 6 Abs. 1 lit. f DSGVO. Deine Daten werden gelöscht, sobald deine Anfrage erledigt ist und keine Aufbewahrungspflichten entgegenstehen.",
-    "h4.title": "4. Schriften &amp; externe Medien",
-    "h4.body": "Diese Seite lädt Schriften von Google Fonts und kann Bilder/Videos von Drittanbieter-CDNs einbinden. Dabei wird deine IP-Adresse an die jeweiligen Anbieter übermittelt. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO.",
-    "h5.title": "5. Deine Rechte",
-    "rights.intro": "Nach der DSGVO hast du das Recht auf:",
-    "r1": "Auskunft über deine gespeicherten Daten (Art. 15)",
-    "r2": "Berichtigung (Art. 16) und Löschung (Art. 17)",
-    "r3": "Einschränkung der Verarbeitung (Art. 18)",
-    "r4": "Datenübertragbarkeit (Art. 20)",
-    "r5": "Widerspruch gegen die Verarbeitung (Art. 21)",
-    "r6": "Beschwerde bei einer Aufsichtsbehörde (Art. 77)",
-    "rights.contact": "Zur Ausübung dieser Rechte genügt eine Nachricht an smmmtimrammensee@icloud.com.",
-    "foot": "Datenschutz"
+    "title":"Datenschutz — Tim Rammensee","back":"‹ Zur Website",
+    "h1":"Datenschutzerklärung",
+    "lead":"Der Schutz deiner personenbezogenen Daten ist mir wichtig. Nachfolgend informiere ich dich gemäß der Datenschutz-Grundverordnung (DSGVO) und dem Bundesdatenschutzgesetz (BDSG) über die Verarbeitung deiner Daten beim Besuch dieser Website.",
+    "disclaimer":"ℹ Diese Datenschutzerklärung ist eine sorgfältig erstellte Vorlage und keine Rechtsberatung. Bitte vor der Veröffentlichung anwaltlich bzw. über einen geprüften Generator prüfen und an die tatsächlich eingesetzten Dienste anpassen.",
+    "country":"Deutschland","email":"E-Mail","phone":"Telefon",
+    "s1.h":"1. Verantwortlicher","s1.p":"Verantwortlich für die Datenverarbeitung auf dieser Website ist:",
+    "s2.h":"2. Allgemeines zur Datenverarbeitung","s2.p":"Ich verarbeite personenbezogene Daten nur, soweit dies zur Bereitstellung einer funktionsfähigen Website sowie meiner Inhalte und Leistungen erforderlich ist. Die Verarbeitung erfolgt regelmäßig nur nach deiner Einwilligung oder wenn ein gesetzlicher Erlaubnistatbestand vorliegt (Art. 6 DSGVO).",
+    "s3.h":"3. Hosting","s3.p":"Diese Website wird bei <span class='ph'>Netlify</span> (Netlify, Inc., USA) gehostet. Beim Aufruf werden technisch notwendige Daten (siehe Server-Logfiles) verarbeitet. Mit dem Anbieter besteht bzw. ist ein Vertrag zur Auftragsverarbeitung (Art. 28 DSGVO) abzuschließen. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einem sicheren, effizienten Betrieb). Bei Übermittlung in die USA erfolgt diese auf Grundlage geeigneter Garantien (z. B. EU-Standardvertragsklauseln / Data Privacy Framework).",
+    "s4.h":"4. Server-Logfiles","s4.p":"Beim Besuch der Website werden automatisch Informationen erfasst, die dein Browser übermittelt (Server-Logfiles): Browsertyp/-version, verwendetes Betriebssystem, Referrer-URL, Uhrzeit der Anfrage sowie die (ggf. gekürzte) IP-Adresse. Diese Daten sind technisch erforderlich, um die Website anzuzeigen, ihre Stabilität und Sicherheit zu gewährleisten. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO. Die Daten werden nach kurzer Zeit gelöscht, soweit sie nicht zur Aufklärung von Missbrauch benötigt werden.",
+    "s5.h":"5. SSL-/TLS-Verschlüsselung","s5.p":"Diese Seite nutzt aus Sicherheitsgründen eine SSL-/TLS-Verschlüsselung. Eine verschlüsselte Verbindung erkennst du am „https://“ und dem Schloss-Symbol in der Adresszeile deines Browsers.",
+    "s6.h":"6. Cookies & lokale Speicherung","s6.p":"Diese Website setzt keine Tracking-, Analyse- oder Marketing-Cookies. Es werden lediglich technisch notwendige Einträge im lokalen Speicher (localStorage) deines Browsers abgelegt, um deine Auswahl zu speichern. Diese enthalten keine personenbezogenen Profile. Details findest du in der <a href='cookies.html'>Cookie-Richtlinie</a>.",
+    "s7.h":"7. Kontaktformular & E-Mail","s7.p":"Wenn du mir über das Kontaktformular oder per E-Mail eine Anfrage sendest, verarbeite ich die von dir angegebenen Daten (z. B. Name, E-Mail-Adresse, Projektart, Nachricht) ausschließlich zur Bearbeitung deiner Anfrage. Das Formular wird technisch über <span class='ph'>Netlify Forms</span> ausgeliefert. Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (vorvertragliche Maßnahmen) sowie Art. 6 Abs. 1 lit. f DSGVO (effiziente Bearbeitung). Deine Daten werden gelöscht, sobald die Anfrage erledigt ist und keine gesetzlichen Aufbewahrungspflichten entgegenstehen.",
+    "s8.h":"8. Schriften & externe Medien","s8.p":"Diese Seite bindet Schriftarten von <span class='ph'>Google Fonts</span> sowie ggf. Bilder/Videos von externen Diensten (CDNs) ein. Dabei wird deine IP-Adresse an die jeweiligen Anbieter übermittelt; dies ist technisch erforderlich, damit die Inhalte an deinen Browser ausgeliefert werden. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO bzw. deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO).",
+    "s8.note":"Empfehlung für maximale Datensparsamkeit: Schriften und Medien lokal auf dem eigenen Server einbinden (Self-Hosting). Dann entfällt die Übermittlung von IP-Adressen an Dritte vollständig.",
+    "s9.h":"9. Social-Media-Verlinkung","s9.p":"Auf dieser Website ist ein Link zum Instagram-Profil eingebunden. Es handelt sich um eine reine Verlinkung, keine eingebettete Vorschau. Erst wenn du den Link anklickst und die Plattform besuchst, werden dort Daten durch den jeweiligen Anbieter (Meta Platforms Ireland Ltd.) verarbeitet. Hierauf habe ich keinen Einfluss; es gilt die Datenschutzerklärung des Anbieters.",
+    "s10.h":"10. Auftragsdaten (Foto- & Videoproduktion)","s10.p":"Im Rahmen einer Buchung verarbeite ich zur Vertragserfüllung die dafür notwendigen Daten (z. B. Name, Kontaktdaten, Termin, Ort sowie die im Auftrag entstehenden Bild- und Videoaufnahmen). Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO. Aufnahmen werden zur Bearbeitung, Übergabe und Archivierung gespeichert; eine Veröffentlichung (z. B. zu Referenzzwecken) erfolgt nur mit deiner gesonderten Einwilligung.",
+    "s11.h":"11. Speicherdauer","s11.p":"Ich speichere personenbezogene Daten nur so lange, wie es für die jeweiligen Zwecke erforderlich ist oder gesetzliche Aufbewahrungsfristen (z. B. handels- und steuerrechtlich) bestehen. Danach werden die Daten gelöscht.",
+    "s12.h":"12. Deine Rechte","s12.p":"Dir stehen nach der DSGVO folgende Rechte zu:",
+    "r1":"Auskunft über deine gespeicherten Daten (Art. 15)","r2":"Berichtigung unrichtiger Daten (Art. 16)","r3":"Löschung (Art. 17) und Einschränkung der Verarbeitung (Art. 18)","r4":"Datenübertragbarkeit (Art. 20)","r5":"Widerspruch gegen die Verarbeitung (Art. 21)","r6":"Widerruf einer erteilten Einwilligung mit Wirkung für die Zukunft (Art. 7 Abs. 3)","r7":"Beschwerde bei einer Aufsichtsbehörde (Art. 77)",
+    "s12.p2":"Zur Ausübung genügt eine Nachricht an smmmtimrammensee@icloud.com. Zuständige Aufsichtsbehörde ist das Bayerische Landesamt für Datenschutzaufsicht (BayLDA), Ansbach.",
+    "s13.h":"13. Aktualität & Änderungen","s13.p":"Diese Datenschutzerklärung hat den Stand der Veröffentlichung. Durch die Weiterentwicklung der Website oder geänderte gesetzliche Vorgaben kann eine Anpassung erforderlich werden.",
+    "f.imprint":"Impressum","f.privacy":"Datenschutz","f.agb":"AGB","f.cookies":"Cookies"
   },
   en: {
-    "title": "Privacy Policy — Tim Rammensee",
-    "back": "‹ Back to site",
-    "h1": "Privacy Policy",
-    "lead": "How your data is handled when you visit this website, in line with the GDPR.",
-    "email": "Email",
-    "h1.title": "1. Controller",
-    "h2.title": "2. Hosting",
-    "h2.body": "This website is hosted by Netlify. When you access the site, the provider automatically collects and stores server log data (such as IP address, browser type, date and time of access) for security and operation. Legal basis: Art. 6 (1)(f) GDPR (legitimate interest in secure, reliable hosting).",
-    "h3.title": "3. Contact form &amp; email",
-    "h3.body": "When you send an enquiry via the contact form or by email, the data you provide (name, email address, project type and message) is processed solely to handle your request. The form is delivered through Netlify Forms. Legal basis: Art. 6 (1)(b) GDPR (steps prior to entering a contract) and Art. 6 (1)(f) GDPR. Your data is deleted once your request has been dealt with and no retention obligations remain.",
-    "h4.title": "4. Fonts &amp; external media",
-    "h4.body": "This site loads fonts from Google Fonts and may embed images/videos from third-party CDNs. When doing so, your IP address is transmitted to those providers. Legal basis: Art. 6 (1)(f) GDPR.",
-    "h5.title": "5. Your rights",
-    "rights.intro": "Under the GDPR you have the right to:",
-    "r1": "access your stored data (Art. 15)",
-    "r2": "rectification (Art. 16) and erasure (Art. 17)",
-    "r3": "restriction of processing (Art. 18)",
-    "r4": "data portability (Art. 20)",
-    "r5": "object to processing (Art. 21)",
-    "r6": "lodge a complaint with a supervisory authority (Art. 77)",
-    "rights.contact": "To exercise any of these rights, contact smmmtimrammensee@icloud.com.",
-    "foot": "Privacy"
+    "title":"Privacy Policy — Tim Rammensee","back":"‹ Back to site",
+    "h1":"Privacy Policy",
+    "lead":"Protecting your personal data matters to me. Below I inform you, in accordance with the GDPR and the German Federal Data Protection Act (BDSG), about how your data is processed when you visit this website.",
+    "disclaimer":"ℹ This privacy policy is a carefully prepared template and not legal advice. Please have it reviewed by a lawyer or a vetted generator before publishing and adapt it to the services you actually use.",
+    "country":"Germany","email":"Email","phone":"Phone",
+    "s1.h":"1. Controller","s1.p":"The controller for data processing on this website is:",
+    "s2.h":"2. General information on data processing","s2.p":"I only process personal data where it is necessary to provide a functional website and my content and services. As a rule, processing takes place only with your consent or where a statutory basis applies (Art. 6 GDPR).",
+    "s3.h":"3. Hosting","s3.p":"This website is hosted by <span class='ph'>Netlify</span> (Netlify, Inc., USA). When the site is accessed, technically necessary data is processed (see server log files). A data processing agreement (Art. 28 GDPR) is/should be in place with the provider. Legal basis: Art. 6(1)(f) GDPR (legitimate interest in secure, efficient operation). Any transfer to the USA is based on appropriate safeguards (e.g. EU Standard Contractual Clauses / Data Privacy Framework).",
+    "s4.h":"4. Server log files","s4.p":"When you visit the website, information transmitted by your browser is automatically collected (server log files): browser type/version, operating system, referrer URL, time of the request and your (possibly shortened) IP address. This data is technically required to display the website and ensure its stability and security. Legal basis: Art. 6(1)(f) GDPR. The data is deleted after a short time unless needed to investigate misuse.",
+    "s5.h":"5. SSL/TLS encryption","s5.p":"For security reasons this site uses SSL/TLS encryption. You can recognise an encrypted connection by the \"https://\" and the padlock icon in your browser's address bar.",
+    "s6.h":"6. Cookies & local storage","s6.p":"This website sets no tracking, analytics or marketing cookies. It only stores technically necessary entries in your browser's local storage to remember your choices. These contain no personal profiles. Details can be found in the <a href='cookies.html'>Cookie Policy</a>.",
+    "s7.h":"7. Contact form & email","s7.p":"When you send an enquiry via the contact form or by email, I process the data you provide (e.g. name, email address, project type, message) solely to handle your request. The form is delivered technically via <span class='ph'>Netlify Forms</span>. Legal basis: Art. 6(1)(b) GDPR (pre-contractual measures) and Art. 6(1)(f) GDPR. Your data is deleted once the request has been handled and no statutory retention obligations apply.",
+    "s8.h":"8. Fonts & external media","s8.p":"This site embeds fonts from <span class='ph'>Google Fonts</span> and, where applicable, images/videos from external services (CDNs). In doing so your IP address is transmitted to the respective providers; this is technically necessary so the content can be delivered to your browser. Legal basis: Art. 6(1)(f) GDPR or your consent (Art. 6(1)(a) GDPR).",
+    "s8.note":"Recommendation for maximum data minimisation: host fonts and media locally on your own server (self-hosting). This eliminates the transfer of IP addresses to third parties entirely.",
+    "s9.h":"9. Social media links","s9.p":"This website contains a link to an Instagram profile. This is a plain link, not an embedded preview. Data is only processed by the respective provider (Meta Platforms Ireland Ltd.) once you click the link and visit the platform. I have no influence over this; the provider's privacy policy applies.",
+    "s10.h":"10. Commissioned data (photo & video production)","s10.p":"As part of a booking, I process the data necessary to perform the contract (e.g. name, contact details, date, location and the image and video recordings created for the commission). Legal basis: Art. 6(1)(b) GDPR. Recordings are stored for editing, delivery and archiving; any publication (e.g. for reference purposes) only takes place with your separate consent.",
+    "s11.h":"11. Retention period","s11.p":"I store personal data only for as long as necessary for the respective purposes or as long as statutory retention periods (e.g. under commercial and tax law) apply. The data is then deleted.",
+    "s12.h":"12. Your rights","s12.p":"Under the GDPR you have the following rights:",
+    "r1":"access to your stored data (Art. 15)","r2":"rectification of inaccurate data (Art. 16)","r3":"erasure (Art. 17) and restriction of processing (Art. 18)","r4":"data portability (Art. 20)","r5":"objection to processing (Art. 21)","r6":"withdrawal of consent with future effect (Art. 7(3))","r7":"lodging a complaint with a supervisory authority (Art. 77)",
+    "s12.p2":"To exercise these rights, a message to smmmtimrammensee@icloud.com is sufficient. The competent supervisory authority is the Bavarian State Office for Data Protection Supervision (BayLDA), Ansbach.",
+    "s13.h":"13. Validity & changes","s13.p":"This privacy policy reflects the status at the time of publication. As the website evolves or legal requirements change, an update may become necessary.",
+    "f.imprint":"Imprint","f.privacy":"Privacy","f.agb":"Terms","f.cookies":"Cookies"
   }
 };
 (function(){
   document.getElementById('y').textContent = new Date().getFullYear();
   function apply(lang){
     if(!I18N[lang]) lang='de';
-    const d=I18N[lang];
-    document.documentElement.lang=lang;
+    const d=I18N[lang]; document.documentElement.lang=lang;
     document.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); if(d[k]!=null) el.innerHTML=d[k]; });
     if(d.title) document.title=d.title;
     document.querySelectorAll('.lang-switch button').forEach(b=>b.classList.toggle('active', b.dataset.lang===lang));
     try{ localStorage.setItem('lang',lang); }catch(e){}
   }
   let saved=null; try{ saved=localStorage.getItem('lang'); }catch(e){}
-  const initial = saved || ((navigator.language||'de').toLowerCase().startsWith('en') ? 'en' : 'de');
+  const initial = saved || ((navigator.language||'de').toLowerCase().startsWith('en')?'en':'de');
   document.querySelectorAll('.lang-switch button').forEach(b=>b.addEventListener('click',()=>apply(b.dataset.lang)));
   apply(initial);
 })();

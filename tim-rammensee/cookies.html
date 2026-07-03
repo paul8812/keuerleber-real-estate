@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Cookie-Richtlinie — Tim Rammensee</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Plus+Jakarta+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230c0c0d'/%3E%3Cline x1='30' y1='26' x2='30' y2='80' stroke='%23cfcfcf' stroke-width='3' stroke-linecap='round'/%3E%3Ctext x='60' y='50' text-anchor='middle' fill='%23f5f5f5' font-family='Arial,Helvetica,sans-serif' font-size='34' font-weight='800'%3ET%3C/text%3E%3Ctext x='60' y='84' text-anchor='middle' fill='%23cfcfcf' font-family='Arial,Helvetica,sans-serif' font-size='34' font-weight='800'%3ER%3C/text%3E%3C/svg%3E">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:#0b0b0c;color:#f5f5f5;line-height:1.7;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:800px;margin:0 auto;padding:70px 24px 100px;}
+  a{color:#cfcfcf;text-decoration:none;} a:hover{text-decoration:underline;}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:50px;flex-wrap:wrap;}
+  .back{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#a4a4a8;display:inline-flex;gap:8px;}
+  .lang-switch{display:inline-flex;align-items:center;gap:4px;border:1px solid rgba(255,255,255,.1);border-radius:40px;padding:5px 10px;}
+  .lang-switch button{background:none;border:none;color:#a4a4a8;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;padding:3px 6px;border-radius:20px;}
+  .lang-switch button.active{color:#cfcfcf;font-weight:600;}
+  .lang-switch .sep{color:rgba(255,255,255,.22);}
+  h1{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:clamp(34px,7vw,52px);margin-bottom:14px;letter-spacing:-0.01em;}
+  .lead{color:#a4a4a8;font-weight:300;margin-bottom:20px;}
+  h2{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:22px;margin:38px 0 10px;}
+  p{color:#cbcbce;font-weight:300;margin-bottom:12px;font-size:15.5px;}
+  table{width:100%;border-collapse:collapse;margin:12px 0 16px;font-size:14px;}
+  th,td{text-align:left;padding:10px;border-bottom:1px solid rgba(255,255,255,.1);color:#cbcbce;font-weight:300;vertical-align:top;}
+  th{color:#f5f5f5;font-weight:600;}
+  .note{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:16px 18px;color:#d7d7da;font-size:14px;margin:16px 0;}
+  footer{border-top:1px solid rgba(255,255,255,0.1);margin-top:56px;padding-top:24px;font-size:12px;color:#a4a4a8;} footer a{margin-right:16px;}
+  :focus-visible{outline:2px solid #cfcfcf;outline-offset:3px;}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <a class="back" href="index.html"><span data-i18n="back">‹ Zur Website</span></a>
+      <div class="lang-switch" role="group" aria-label="Sprache">
+        <button type="button" data-lang="de">DE</button><span class="sep">/</span><button type="button" data-lang="en">EN</button>
+      </div>
+    </div>
+
+    <h1 data-i18n="h1">Cookie-Richtlinie</h1>
+    <p class="lead" data-i18n="lead">Diese Richtlinie erklärt, welche Cookies und vergleichbaren Techniken auf dieser Website verwendet werden.</p>
+
+    <h2 data-i18n="s1.h">Was sind Cookies?</h2>
+    <p data-i18n="s1.p">Cookies sind kleine Textdateien, die dein Browser speichert. Vergleichbar funktionieren der „localStorage" und „sessionStorage". Sie dienen dazu, eine Website funktionsfähig zu machen oder Einstellungen zu merken.</p>
+
+    <h2 data-i18n="s2.h">Was diese Website verwendet</h2>
+    <p data-i18n="s2.p">Diese Website setzt <strong>keine</strong> Tracking-, Statistik- oder Marketing-Cookies und bindet keine Werbe- oder Analysedienste (wie Google Analytics) ein. Verwendet werden ausschließlich technisch notwendige Einträge im lokalen Speicher deines Browsers:</p>
+    <table>
+      <thead><tr><th data-i18n="t.name">Name</th><th data-i18n="t.type">Typ</th><th data-i18n="t.purpose">Zweck</th><th data-i18n="t.dur">Dauer</th></tr></thead>
+      <tbody>
+        <tr><td>lang</td><td data-i18n="t.local">localStorage</td><td data-i18n="c.lang">Merkt deine Sprachwahl (DE/EN)</td><td data-i18n="c.persist">dauerhaft, bis gelöscht</td></tr>
+        <tr><td>cookie-consent</td><td data-i18n="t.local">localStorage</td><td data-i18n="c.consent">Merkt deine Auswahl im Cookie-Hinweis</td><td data-i18n="c.persist">dauerhaft, bis gelöscht</td></tr>
+      </tbody>
+    </table>
+    <p data-i18n="s2.p2">Diese Einträge enthalten keine personenbezogenen Profile und werden nicht an Dritte weitergegeben.</p>
+
+    <h2 data-i18n="s3.h">Externe Inhalte (Schriften &amp; Medien)</h2>
+    <p data-i18n="s3.p">Die Seite lädt Schriftarten (Google Fonts) und ggf. Bilder/Videos von externen Diensten. Diese setzen hier keine Cookies, es wird jedoch beim Laden deine IP-Adresse an den jeweiligen Anbieter übermittelt. Näheres in der <a href="privacy.html" data-i18n="s3.link">Datenschutzerklärung</a>.</p>
+    <div class="note" data-i18n="s3.note">Für maximale Datensparsamkeit empfiehlt sich, Schriften und Medien selbst zu hosten. Dann werden keine externen Verbindungen aufgebaut.</div>
+
+    <h2 data-i18n="s4.h">Deine Kontrolle</h2>
+    <p data-i18n="s4.p">Du kannst gespeicherte Cookies und lokale Daten jederzeit in den Einstellungen deines Browsers ansehen und löschen. Über den Hinweis am unteren Bildschirmrand kannst du deine Auswahl treffen; sie wird für zukünftige Besuche gespeichert.</p>
+
+    <footer>
+      <span>© <span id="y"></span> Tim Rammensee</span><br><br>
+      <a href="imprint.html" data-i18n="f.imprint">Impressum</a>
+      <a href="privacy.html" data-i18n="f.privacy">Datenschutz</a>
+      <a href="agb.html" data-i18n="f.agb">AGB</a>
+      <a href="cookies.html" data-i18n="f.cookies">Cookies</a>
+    </footer>
+  </div>
+
+<script>
+const I18N = {
+  de: {
+    "title":"Cookie-Richtlinie — Tim Rammensee","back":"‹ Zur Website",
+    "h1":"Cookie-Richtlinie",
+    "lead":"Diese Richtlinie erklärt, welche Cookies und vergleichbaren Techniken auf dieser Website verwendet werden.",
+    "s1.h":"Was sind Cookies?","s1.p":"Cookies sind kleine Textdateien, die dein Browser speichert. Vergleichbar funktionieren der „localStorage“ und „sessionStorage“. Sie dienen dazu, eine Website funktionsfähig zu machen oder Einstellungen zu merken.",
+    "s2.h":"Was diese Website verwendet","s2.p":"Diese Website setzt <strong>keine</strong> Tracking-, Statistik- oder Marketing-Cookies und bindet keine Werbe- oder Analysedienste (wie Google Analytics) ein. Verwendet werden ausschließlich technisch notwendige Einträge im lokalen Speicher deines Browsers:",
+    "t.name":"Name","t.type":"Typ","t.purpose":"Zweck","t.dur":"Dauer","t.local":"localStorage",
+    "c.lang":"Merkt deine Sprachwahl (DE/EN)","c.consent":"Merkt deine Auswahl im Cookie-Hinweis","c.persist":"dauerhaft, bis gelöscht",
+    "s2.p2":"Diese Einträge enthalten keine personenbezogenen Profile und werden nicht an Dritte weitergegeben.",
+    "s3.h":"Externe Inhalte (Schriften & Medien)","s3.p":"Die Seite lädt Schriftarten (Google Fonts) und ggf. Bilder/Videos von externen Diensten. Diese setzen hier keine Cookies, es wird jedoch beim Laden deine IP-Adresse an den jeweiligen Anbieter übermittelt. Näheres in der <a href='privacy.html'>Datenschutzerklärung</a>.",
+    "s3.note":"Für maximale Datensparsamkeit empfiehlt sich, Schriften und Medien selbst zu hosten. Dann werden keine externen Verbindungen aufgebaut.",
+    "s4.h":"Deine Kontrolle","s4.p":"Du kannst gespeicherte Cookies und lokale Daten jederzeit in den Einstellungen deines Browsers ansehen und löschen. Über den Hinweis am unteren Bildschirmrand kannst du deine Auswahl treffen; sie wird für zukünftige Besuche gespeichert.",
+    "f.imprint":"Impressum","f.privacy":"Datenschutz","f.agb":"AGB","f.cookies":"Cookies"
+  },
+  en: {
+    "title":"Cookie Policy — Tim Rammensee","back":"‹ Back to site",
+    "h1":"Cookie Policy",
+    "lead":"This policy explains which cookies and comparable technologies are used on this website.",
+    "s1.h":"What are cookies?","s1.p":"Cookies are small text files stored by your browser. \"localStorage\" and \"sessionStorage\" work similarly. They help make a website work or remember settings.",
+    "s2.h":"What this website uses","s2.p":"This website sets <strong>no</strong> tracking, statistics or marketing cookies and embeds no advertising or analytics services (such as Google Analytics). Only technically necessary entries in your browser's local storage are used:",
+    "t.name":"Name","t.type":"Type","t.purpose":"Purpose","t.dur":"Duration","t.local":"localStorage",
+    "c.lang":"Remembers your language choice (DE/EN)","c.consent":"Remembers your choice in the cookie notice","c.persist":"persistent until deleted",
+    "s2.p2":"These entries contain no personal profiles and are not shared with third parties.",
+    "s3.h":"External content (fonts & media)","s3.p":"The site loads fonts (Google Fonts) and possibly images/videos from external services. These set no cookies here, but your IP address is transmitted to the respective provider on loading. See the <a href='privacy.html'>Privacy Policy</a> for details.",
+    "s3.note":"For maximum data minimisation, self-hosting fonts and media is recommended. Then no external connections are made.",
+    "s4.h":"Your control","s4.p":"You can view and delete stored cookies and local data at any time in your browser settings. You can make your choice via the notice at the bottom of the screen; it is saved for future visits.",
+    "f.imprint":"Imprint","f.privacy":"Privacy","f.agb":"Terms","f.cookies":"Cookies"
+  }
+};
+(function(){
+  document.getElementById('y').textContent=new Date().getFullYear();
+  function apply(l){ if(!I18N[l])l='de'; const d=I18N[l]; document.documentElement.lang=l;
+    document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n'); if(d[k]!=null) el.innerHTML=d[k];});
+    if(d.title)document.title=d.title;
+    document.querySelectorAll('.lang-switch button').forEach(b=>b.classList.toggle('active',b.dataset.lang===l));
+    try{localStorage.setItem('lang',l);}catch(e){} }
+  let s=null;try{s=localStorage.getItem('lang');}catch(e){}
+  document.querySelectorAll('.lang-switch button').forEach(b=>b.addEventListener('click',()=>apply(b.dataset.lang)));
+  apply(s||((navigator.language||'de').toLowerCase().startsWith('en')?'en':'de'));
+})();
+</script>
+</body>
+</html>

@@ -27,6 +27,7 @@
   p{color:#cfc8bd;font-weight:300;margin-bottom:14px;}
   .ph{color:#cfcfcf;}
   footer{border-top:1px solid rgba(255,255,255,0.1);margin-top:60px;padding-top:24px;font-size:12px;color:#a4a4a8;}
+  footer a{margin-right:16px;}
   :focus-visible{outline:2px solid #cfcfcf;outline-offset:3px;}
 </style>
 </head>
@@ -68,7 +69,16 @@
     <h2 data-i18n="h.copyright">Urheberrecht</h2>
     <p data-i18n="copyright.body">Alle Fotografien, Filme und Inhalte auf dieser Website sind urheberrechtlich geschützt. Jede Verwendung außerhalb der Grenzen des Urheberrechts bedarf der vorherigen schriftlichen Zustimmung von Tim Rammensee.</p>
 
-    <footer>© <span id="y"></span> Tim Rammensee — <span data-i18n="foot">Impressum</span></footer>
+    <h2 data-i18n="h.dispute">Verbraucherstreitbeilegung</h2>
+    <p data-i18n="dispute.body">Ich bin nicht bereit und nicht verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
+
+    <footer>
+      <span>© <span id="y"></span> Tim Rammensee</span><br><br>
+      <a href="imprint.html" data-i18n="f.imprint">Impressum</a>
+      <a href="privacy.html" data-i18n="f.privacy">Datenschutz</a>
+      <a href="agb.html" data-i18n="f.agb">AGB</a>
+      <a href="cookies.html" data-i18n="f.cookies">Cookies</a>
+    </footer>
   </div>
 
 <script>
@@ -88,7 +98,9 @@ const I18N = {
     "links.body": "Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber verantwortlich.",
     "h.copyright": "Urheberrecht",
     "copyright.body": "Alle Fotografien, Filme und Inhalte auf dieser Website sind urheberrechtlich geschützt. Jede Verwendung außerhalb der Grenzen des Urheberrechts bedarf der vorherigen schriftlichen Zustimmung von Tim Rammensee.",
-    "foot": "Impressum"
+    "foot": "Impressum",
+    "h.dispute": "Verbraucherstreitbeilegung", "dispute.body": "Ich bin nicht bereit und nicht verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.",
+    "f.imprint": "Impressum", "f.privacy": "Datenschutz", "f.agb": "AGB", "f.cookies": "Cookies"
   },
   en: {
     "title": "Imprint — Tim Rammensee",
@@ -105,7 +117,9 @@ const I18N = {
     "links.body": "Our site contains links to external third-party websites over whose content we have no control. We therefore cannot accept any liability for this third-party content. The respective provider or operator of the linked pages is always responsible for their content.",
     "h.copyright": "Copyright",
     "copyright.body": "All photographs, films and content on this website are protected by copyright. Any use beyond the limits of copyright law requires the prior written consent of Tim Rammensee.",
-    "foot": "Imprint"
+    "foot": "Imprint",
+    "h.dispute": "Consumer dispute resolution", "dispute.body": "I am neither willing nor obliged to participate in dispute resolution proceedings before a consumer arbitration board.",
+    "f.imprint": "Imprint", "f.privacy": "Privacy", "f.agb": "Terms", "f.cookies": "Cookies"
   }
 };
 (function(){
