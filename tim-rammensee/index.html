@@ -439,6 +439,7 @@
 
   /* cookie banner */
   .cookie-bar{position:fixed;left:0;right:0;bottom:0;z-index:150;background:rgba(11,11,12,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:16px 22px calc(16px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:center;}
+  .cookie-bar[hidden]{display:none;}
   .cookie-bar p{font-size:13px;color:var(--muted);margin:0;max-width:660px;flex:1 1 320px;line-height:1.55;}
   .cookie-bar p a{color:var(--accent);text-decoration:underline;}
   .cookie-actions{display:flex;gap:10px;flex-shrink:0;}
