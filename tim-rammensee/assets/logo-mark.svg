@@ -1,8 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 90" fill="none" role="img" aria-label="Tim Rammensee Monogramm TR">
-  <!-- TR-Monogramm mit Trennlinie. Monochrom über currentColor – überall einfärbbar. -->
-  <text x="34" y="64" text-anchor="middle" fill="currentColor"
-        font-family="'Cormorant Garamond', Georgia, 'Times New Roman', serif" font-size="58" font-weight="600">T</text>
-  <line x1="60" y1="22" x2="60" y2="68" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-  <text x="87" y="64" text-anchor="middle" fill="currentColor"
-        font-family="'Cormorant Garamond', Georgia, 'Times New Roman', serif" font-size="58" font-weight="600">R</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 104" fill="none" role="img" aria-label="Tim Rammensee Monogramm TR">
+  <!-- TR-Monogramm: T über R mit Linie (grotesk). Monochrom über currentColor. -->
+  <line x1="14" y1="16" x2="14" y2="88" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  <text x="58" y="46" text-anchor="middle" fill="currentColor" font-family="Arial, Helvetica, sans-serif" font-size="46" font-weight="800">T</text>
+  <text x="58" y="92" text-anchor="middle" fill="currentColor" font-family="Arial, Helvetica, sans-serif" font-size="46" font-weight="800">R</text>
 </svg>
