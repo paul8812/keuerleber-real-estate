@@ -116,7 +116,7 @@
   .burger span{width:24px;height:1.5px;background:var(--ink);transition:.3s;}
 
   /* ---------- HERO ---------- */
-  .hero{position:relative;height:100vh;min-height:600px;display:flex;align-items:flex-end;overflow:hidden;background:#000;}
+  .hero{position:relative;height:100vh;height:100svh;min-height:560px;display:flex;align-items:flex-end;overflow:hidden;background:#0b0b0c;}
   .hero video,.hero .poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
   .hero .poster{background-size:cover;background-position:center;}
   .hero::before{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(11,11,12,.45) 0%,rgba(11,11,12,.15) 30%,rgba(11,11,12,.55) 65%,rgba(11,11,12,.97) 100%);}
@@ -327,8 +327,10 @@
     form .row{grid-template-columns:1fr;}
     .hero{min-height:560px;}
     .hero .bar{height:4vh;}
-    .hero-inner{padding-bottom:16vh;}
-    .hero .lead{font-size:16px;}
+    .hero h1{font-size:clamp(38px,10vw,68px);line-height:1.04;}
+    .hero .hero-inner{padding-bottom:calc(98px + env(safe-area-inset-bottom, 0px));}
+    .hero .lead{font-size:15.5px;margin-top:16px;}
+    .hero-trust{display:none;}
     .hero-actions{gap:12px;}
     .hero-actions .btn{flex:1 1 auto;}
     .scroll-cue{display:none;}
@@ -448,6 +450,7 @@
   .cookie-actions button{font-family:var(--sans);font-size:12px;letter-spacing:.06em;text-transform:uppercase;border-radius:40px;padding:11px 20px;cursor:pointer;border:1px solid var(--line);background:none;color:var(--ink);transition:.25s;}
   .cookie-actions button:hover{border-color:var(--muted);}
   .cookie-actions button.primary{background:var(--accent);color:#0b0b0c;border-color:var(--accent);font-weight:600;}
+  @media(max-width:760px){.cookie-bar{bottom:calc(60px + env(safe-area-inset-bottom));}}
   @media(max-width:600px){.cookie-bar{flex-direction:column;text-align:center;gap:12px;}.cookie-actions{width:100%;}.cookie-actions button{flex:1;}}
 </style>
 </head>
@@ -479,7 +482,8 @@
 <!-- ====== HERO (Video) ====== -->
 <section class="hero" aria-label="Intro">
   <div class="bar top"></div>
-  <video autoplay muted loop playsinline preload="metadata" poster="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80">
+  <div class="poster" style="background-image:url('https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80')"></div>
+  <video autoplay muted loop playsinline preload="auto" poster="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80">
     <source src="https://videos.pexels.com/video-files/2022395/2022395-hd_1920_1080_30fps.mp4" type="video/mp4">
   </video>
   <div class="bar bottom"></div>
@@ -946,10 +950,22 @@ const I18N = {
   const smallScreen = window.matchMedia('(max-width: 760px)').matches;
   const saveData = navigator.connection && navigator.connection.saveData;
 
-  // Mobile / reduced-motion / data-saver: don't autoplay the heavy hero video, show the poster instead
+  // Hero video: play everywhere incl. mobile. Only skip for reduced-motion or data-saver.
   const hv = document.querySelector('.hero video');
-  if(hv && (reduceMotion || smallScreen || saveData)){
-    hv.removeAttribute('autoplay'); hv.setAttribute('preload','none'); hv.pause();
+  if(hv){
+    if(reduceMotion || saveData){
+      hv.removeAttribute('autoplay'); hv.setAttribute('preload','none'); hv.pause();
+    } else {
+      hv.muted = true; hv.setAttribute('muted','');
+      const tryPlay = () => { const p = hv.play(); if(p && p.catch) p.catch(()=>{}); };
+      tryPlay();
+      hv.addEventListener('canplay', tryPlay, {once:true});
+      hv.addEventListener('error', () => { hv.style.display = 'none'; }, {once:true});
+      // some mobile browsers only allow playback after the first interaction
+      const kick = () => { tryPlay(); window.removeEventListener('touchstart', kick); window.removeEventListener('scroll', kick); };
+      window.addEventListener('touchstart', kick, {passive:true, once:true});
+      window.addEventListener('scroll', kick, {passive:true, once:true});
+    }
   }
 
   /* ---------- testimonials ---------- */
@@ -1177,8 +1193,7 @@ const I18N = {
     const setC = v => { try{ localStorage.setItem('cookie-consent', v); }catch(e){} cbar.hidden = true; };
     document.getElementById('ckAll').addEventListener('click', () => setC('all'));
     document.getElementById('ckNec').addEventListener('click', () => setC('necessary'));
-  }
-})();
+  }})();
 </script>
 </body>
 </html>
