@@ -368,7 +368,7 @@
   .btn-primary:hover::after{transform:translateX(130%);}
 
   .hero::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 90% at 50% 42%,transparent 55%,rgba(0,0,0,.5) 100%);}
-  .hero video{animation:heroZoom 26s ease-out forwards;}
+  .hero video,.hero .poster{animation:heroZoom 26s ease-out forwards;}
   @keyframes heroZoom{from{transform:scale(1.08);}to{transform:scale(1);}}
   .scroll-cue .line{width:1px;height:42px;background:rgba(255,255,255,.14);overflow:hidden;position:relative;}
   .scroll-cue .line::after{content:'';position:absolute;inset:0;background:linear-gradient(var(--accent),transparent);animation:cue 2.1s ease-in-out infinite;}
@@ -435,7 +435,10 @@
     *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;}
     .reveal{opacity:1;transform:none;}
     .strip-track{animation:none;transform:none;}
-    .hero video{animation:none !important;}
+    .hero video,.hero .poster{animation:none !important;}
+    #intro{display:none !important;}
+    .hero .grain{display:none;}
+    .hero-inner .reveal{transition-delay:0s !important;filter:none !important;transform:none;}
     .scroll-cue .line::after{animation:none;}
     .feature .media img,.about-img img{clip-path:none !important;}
     .btn-primary::after{display:none;}
@@ -452,9 +455,41 @@
   .cookie-actions button.primary{background:var(--accent);color:#0b0b0c;border-color:var(--accent);font-weight:600;}
   @media(max-width:760px){.cookie-bar{bottom:calc(60px + env(safe-area-inset-bottom));}}
   @media(max-width:600px){.cookie-bar{flex-direction:column;text-align:center;gap:12px;}.cookie-actions{width:100%;}.cookie-actions button{flex:1;}}
+
+  /* ---------- cinematic intro + filmic hero ---------- */
+  #intro{position:fixed;inset:0;z-index:9999;pointer-events:none;}
+  #intro .panel{position:absolute;left:0;right:0;height:calc(50% + 1px);background:#0a0a0b;will-change:transform;}
+  #intro .panel.top{top:0;animation:introTop 1.75s cubic-bezier(.76,0,.24,1) forwards;}
+  #intro .panel.bottom{bottom:0;animation:introBottom 1.75s cubic-bezier(.76,0,.24,1) forwards;}
+  #intro .imark{position:fixed;top:50%;left:50%;width:58px;transform:translate(-50%,-50%);opacity:0;color:#f4f4f4;animation:introMark 1.2s ease forwards;will-change:opacity,transform;}
+  #intro .imark svg{width:100%;height:auto;display:block;}
+  #intro .imark .r{fill:var(--accent);}
+  #intro .imark .ln{stroke:var(--accent);}
+  @keyframes introTop{0%,40%{transform:translateY(0);}100%{transform:translateY(-101%);}}
+  @keyframes introBottom{0%,40%{transform:translateY(0);}100%{transform:translateY(101%);}}
+  @keyframes introMark{0%{opacity:0;transform:translate(-50%,-50%) scale(.86);}24%{opacity:1;transform:translate(-50%,-50%) scale(1);}58%{opacity:1;transform:translate(-50%,-50%) scale(1);}100%{opacity:0;transform:translate(-50%,-50%) scale(1.06);}}
+
+  /* staggered, masked hero entrance timed to the curtain opening */
+  .hero-inner .reveal{transform:translateY(44px);filter:blur(5px);transition:opacity 1.05s cubic-bezier(.16,.84,.28,1),transform 1.05s cubic-bezier(.16,.84,.28,1),filter 1.05s ease;}
+  .hero-inner .reveal.in{filter:blur(0);}
+  .hero-inner .reveal:nth-child(1){transition-delay:.95s;}
+  .hero-inner .reveal:nth-child(2){transition-delay:1.08s;}
+  .hero-inner .reveal:nth-child(3){transition-delay:1.26s;}
+  .hero-inner .reveal:nth-child(4){transition-delay:1.42s;}
+  .hero-inner .reveal:nth-child(5){transition-delay:1.54s;}
+
+  /* subtle film grain over the hero */
+  .hero .grain{position:absolute;inset:-25%;z-index:2;pointer-events:none;opacity:.06;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:160px 160px;animation:grainShift 1s steps(3) infinite;}
+  @keyframes grainShift{0%{transform:translate(0,0);}33%{transform:translate(-3%,2%);}66%{transform:translate(2%,-3%);}100%{transform:translate(-2%,-2%);}}
 </style>
+<noscript><style>#intro{display:none!important}</style></noscript>
 </head>
 <body>
+<div id="intro" aria-hidden="true">
+  <div class="panel top"></div>
+  <div class="panel bottom"></div>
+  <div class="imark"><svg class="tr" viewBox="0 0 100 104" fill="none" aria-hidden="true"><line class="ln" x1="14" y1="16" x2="14" y2="88" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><text x="58" y="46" text-anchor="middle" fill="currentColor" font-family="Arial,Helvetica,sans-serif" font-size="46" font-weight="800">T</text><text class="r" x="58" y="92" text-anchor="middle" fill="currentColor" font-family="Arial,Helvetica,sans-serif" font-size="46" font-weight="800">R</text></svg></div>
+</div>
 <a href="#main" class="skip" data-i18n="skip">Skip to content</a>
 
 <!-- ====== NAV ====== -->
@@ -487,6 +522,7 @@
     <source src="https://videos.pexels.com/video-files/2022395/2022395-hd_1920_1080_30fps.mp4" type="video/mp4">
   </video>
   <div class="bar bottom"></div>
+  <div class="grain" aria-hidden="true"></div>
   <div class="hero-inner wrap">
     <p class="eyebrow reveal" data-i18n="hero.eyebrow">Cinematic Photography &amp; Film · Germany &amp; worldwide</p>
     <h1 class="reveal" data-i18n="hero.h1">Stories that<br><em>move.</em></h1>
@@ -947,6 +983,8 @@ const I18N = {
   document.getElementById('year').textContent = new Date().getFullYear();
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const introEl = document.getElementById('intro');
+  if(introEl){ if(reduceMotion){ introEl.remove(); } else { setTimeout(() => introEl.remove(), 2100); } }
   const smallScreen = window.matchMedia('(max-width: 760px)').matches;
   const saveData = navigator.connection && navigator.connection.saveData;
 
