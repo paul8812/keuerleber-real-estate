@@ -5,9 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
 <title>Cookie-Richtlinie — Tim Rammensee</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Plus+Jakarta+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/jakarta.woff2" crossorigin>
+<style>
+@font-face{font-family:'Fraunces';font-style:normal;font-weight:400 600;font-display:swap;src:url('assets/fonts/fraunces.woff2') format('woff2');}
+@font-face{font-family:'Plus Jakarta Sans';font-style:normal;font-weight:300 700;font-display:swap;src:url('assets/fonts/jakarta.woff2') format('woff2');}
+</style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 104'%3E%3Crect width='100' height='104' rx='20' fill='%230c0c0d'/%3E%3Cline x1='14' y1='16' x2='14' y2='88' stroke='%23cfcfcf' stroke-width='3' stroke-linecap='round'/%3E%3Ctext x='58' y='46' text-anchor='middle' fill='%23f5f5f5' font-family='Arial,Helvetica,sans-serif' font-size='46' font-weight='800'%3ET%3C/text%3E%3Ctext x='58' y='92' text-anchor='middle' fill='%23cfcfcf' font-family='Arial,Helvetica,sans-serif' font-size='46' font-weight='800'%3ER%3C/text%3E%3C/svg%3E">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png">
@@ -62,7 +64,7 @@
     <p data-i18n="s2.p2">Diese Einträge enthalten keine personenbezogenen Profile und werden nicht an Dritte weitergegeben.</p>
 
     <h2 data-i18n="s3.h">Externe Inhalte (Schriften &amp; Medien)</h2>
-    <p data-i18n="s3.p">Die Seite lädt Schriftarten (Google Fonts) und ggf. Bilder/Videos von externen Diensten. Diese setzen hier keine Cookies, es wird jedoch beim Laden deine IP-Adresse an den jeweiligen Anbieter übermittelt. Näheres in der <a href="privacy.html" data-i18n="s3.link">Datenschutzerklärung</a>.</p>
+    <p data-i18n="s3.p">Schriftarten werden lokal ausgeliefert (selbst gehostet, keine Google Fonts). Bilder/Videos können von externen Diensten geladen werden; diese setzen hier keine Cookies, beim Laden wird jedoch deine IP-Adresse an den jeweiligen Anbieter übermittelt. Näheres in der <a href="privacy.html" data-i18n="s3.link">Datenschutzerklärung</a>.</p>
     <div class="note" data-i18n="s3.note">Für maximale Datensparsamkeit empfiehlt sich, Schriften und Medien selbst zu hosten. Dann werden keine externen Verbindungen aufgebaut.</div>
 
     <h2 data-i18n="s4.h">Deine Kontrolle</h2>
@@ -88,7 +90,7 @@ const I18N = {
     "t.name":"Name","t.type":"Typ","t.purpose":"Zweck","t.dur":"Dauer","t.local":"localStorage",
     "c.lang":"Merkt deine Sprachwahl (DE/EN)","c.consent":"Merkt deine Auswahl im Cookie-Hinweis","c.persist":"dauerhaft, bis gelöscht",
     "s2.p2":"Diese Einträge enthalten keine personenbezogenen Profile und werden nicht an Dritte weitergegeben.",
-    "s3.h":"Externe Inhalte (Schriften & Medien)","s3.p":"Die Seite lädt Schriftarten (Google Fonts) und ggf. Bilder/Videos von externen Diensten. Diese setzen hier keine Cookies, es wird jedoch beim Laden deine IP-Adresse an den jeweiligen Anbieter übermittelt. Näheres in der <a href='privacy.html'>Datenschutzerklärung</a>.",
+    "s3.h":"Externe Inhalte (Schriften & Medien)","s3.p":"Schriftarten werden lokal ausgeliefert (selbst gehostet, keine Google Fonts). Bilder/Videos können von externen Diensten geladen werden; diese setzen hier keine Cookies, beim Laden wird jedoch deine IP-Adresse an den jeweiligen Anbieter übermittelt. Näheres in der <a href='privacy.html'>Datenschutzerklärung</a>.",
     "s3.note":"Für maximale Datensparsamkeit empfiehlt sich, Schriften und Medien selbst zu hosten. Dann werden keine externen Verbindungen aufgebaut.",
     "s4.h":"Deine Kontrolle","s4.p":"Du kannst gespeicherte Cookies und lokale Daten jederzeit in den Einstellungen deines Browsers ansehen und löschen. Über den Hinweis am unteren Bildschirmrand kannst du deine Auswahl treffen; sie wird für zukünftige Besuche gespeichert.",
     "f.imprint":"Impressum","f.privacy":"Datenschutz","f.agb":"AGB","f.cookies":"Cookies"
@@ -102,7 +104,7 @@ const I18N = {
     "t.name":"Name","t.type":"Type","t.purpose":"Purpose","t.dur":"Duration","t.local":"localStorage",
     "c.lang":"Remembers your language choice (DE/EN)","c.consent":"Remembers your choice in the cookie notice","c.persist":"persistent until deleted",
     "s2.p2":"These entries contain no personal profiles and are not shared with third parties.",
-    "s3.h":"External content (fonts & media)","s3.p":"The site loads fonts (Google Fonts) and possibly images/videos from external services. These set no cookies here, but your IP address is transmitted to the respective provider on loading. See the <a href='privacy.html'>Privacy Policy</a> for details.",
+    "s3.h":"External content (fonts & media)","s3.p":"Fonts are served locally (self-hosted, no Google Fonts). Images/videos may be loaded from external services; these set no cookies here, but your IP address is transmitted to the respective provider on loading. See the <a href='privacy.html'>Privacy Policy</a> for details.",
     "s3.note":"For maximum data minimisation, self-hosting fonts and media is recommended. Then no external connections are made.",
     "s4.h":"Your control","s4.p":"You can view and delete stored cookies and local data at any time in your browser settings. You can make your choice via the notice at the bottom of the screen; it is saved for future visits.",
     "f.imprint":"Imprint","f.privacy":"Privacy","f.agb":"Terms","f.cookies":"Cookies"
@@ -117,7 +119,7 @@ const I18N = {
     try{localStorage.setItem('lang',l);}catch(e){} }
   let s=null;try{s=localStorage.getItem('lang');}catch(e){}
   document.querySelectorAll('.lang-switch button').forEach(b=>b.addEventListener('click',()=>apply(b.dataset.lang)));
-  apply(s||((navigator.language||'de').toLowerCase().startsWith('en')?'en':'de'));
+  apply(s||((navigator.language||'en').toLowerCase().startsWith('de')?'de':'en'));
 })();
 </script>
 </body>

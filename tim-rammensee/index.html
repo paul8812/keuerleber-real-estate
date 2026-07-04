@@ -12,11 +12,11 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:locale:alternate" content="de_DE">
 <meta property="og:url" content="https://tim-rammensee.de/">
-<meta property="og:image" content="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80">
+<meta property="og:image" content="https://tim-rammensee.de/assets/og.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Tim Rammensee — Cinematic Photography & Film">
 <meta name="twitter:description" content="Weddings · Automotive · Reels · Social Media. Stories that move.">
-<meta name="twitter:image" content="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80">
+<meta name="twitter:image" content="https://tim-rammensee.de/assets/og.jpg">
 <link rel="canonical" href="https://tim-rammensee.de/">
 <title>Tim Rammensee — Cinematic Photography &amp; Film</title>
 <script type="application/ld+json">
@@ -26,7 +26,7 @@
     {
       "@type": "ProfessionalService",
       "name": "Tim Rammensee Photography & Film",
-      "image": "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
+      "image": "https://tim-rammensee.de/assets/og.jpg",
       "url": "https://tim-rammensee.de/",
       "email": "smmmtimrammensee@icloud.com",
       "telephone": "+49 157 5311 8177",
@@ -48,9 +48,15 @@
   ]
 }
 </script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://images.unsplash.com" crossorigin>
+<link rel="preload" as="image" fetchpriority="high" href="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80">
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/jakarta.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/fraunces.woff2" crossorigin>
+<style>
+@font-face{font-family:'Fraunces';font-style:normal;font-weight:400 600;font-display:swap;src:url('assets/fonts/fraunces.woff2') format('woff2');}
+@font-face{font-family:'Fraunces';font-style:italic;font-weight:400 500;font-display:swap;src:url('assets/fonts/fraunces-italic.woff2') format('woff2');}
+@font-face{font-family:'Plus Jakarta Sans';font-style:normal;font-weight:300 700;font-display:swap;src:url('assets/fonts/jakarta.woff2') format('woff2');}
+</style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 104'%3E%3Crect width='100' height='104' rx='20' fill='%230c0c0d'/%3E%3Cline x1='14' y1='16' x2='14' y2='88' stroke='%23cfcfcf' stroke-width='3' stroke-linecap='round'/%3E%3Ctext x='58' y='46' text-anchor='middle' fill='%23f5f5f5' font-family='Arial,Helvetica,sans-serif' font-size='46' font-weight='800'%3ET%3C/text%3E%3Ctext x='58' y='92' text-anchor='middle' fill='%23cfcfcf' font-family='Arial,Helvetica,sans-serif' font-size='46' font-weight='800'%3ER%3C/text%3E%3C/svg%3E">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png">
@@ -121,8 +127,8 @@
   .hero .poster{background-size:cover;background-position:center;}
   .hero::before{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(11,11,12,.45) 0%,rgba(11,11,12,.15) 30%,rgba(11,11,12,.55) 65%,rgba(11,11,12,.97) 100%);}
   /* cinematic letterbox bars */
-  .hero .bar{position:absolute;left:0;right:0;height:7vh;max-height:64px;z-index:2;background:#000;}
-  .hero .bar.top{top:0;}.hero .bar.bottom{bottom:0;}
+  .hero .bar{position:absolute;left:0;right:0;height:7vh;max-height:64px;z-index:2;pointer-events:none;}
+  .hero .bar.top{top:0;background:linear-gradient(180deg,#000 45%,transparent);}.hero .bar.bottom{bottom:0;background:linear-gradient(0deg,#000 45%,transparent);}
   .hero-inner{position:relative;z-index:3;width:100%;padding-bottom:13vh;}
   .hero h1{font-size:clamp(46px,8.5vw,124px);color:#fff;font-weight:500;}
   .hero .lead{max-width:560px;margin-top:22px;font-size:17px;color:#dcdcde;font-weight:300;}
@@ -307,7 +313,7 @@
     .feature .media .stack{position:static;width:60%;margin:18px auto 0;border-width:0;box-shadow:none;}
     .about-img{max-width:420px;}
   }
-  @media(max-width:760px){
+  @media(max-width:820px){
     .section{padding:80px 0;}
     .auto{padding:84px 0;}
     .wrap{padding:0 22px;}
@@ -350,7 +356,7 @@
 
   /* ---------- ENHANCEMENTS ---------- */
   :where(section[id], #top){scroll-margin-top:84px;}
-  @media(max-width:760px){:where(section[id], #top){scroll-margin-top:64px;}}
+  @media(max-width:820px){:where(section[id], #top){scroll-margin-top:64px;}}
 
   .nav-links a:not(.nav-cta){position:relative;}
   .nav-links a:not(.nav-cta)::after{content:'';position:absolute;left:0;right:100%;bottom:-5px;height:1px;background:var(--accent);transition:right .35s cubic-bezier(.2,.8,.2,1);}
@@ -418,10 +424,11 @@
   /* mobile sticky contact bar */
   .mobile-cta{display:none;}
   .lang-mini{display:none;}
-  @media(max-width:760px){
+  @media(max-width:820px){
     .mobile-cta{display:flex;gap:8px;position:fixed;left:0;right:0;bottom:0;z-index:135;padding:9px 14px calc(9px + env(safe-area-inset-bottom));background:rgba(11,11,12,.92);backdrop-filter:blur(12px);border-top:1px solid var(--line);}
     .mobile-cta a{flex:1;min-height:46px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:40px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);}
     .mobile-cta a.primary{background:var(--accent);color:#0b0b0c;font-weight:600;border-color:var(--accent);flex:1.35;}
+    body.menu-open .mobile-cta{display:none;}
     footer{padding-bottom:calc(40px + 72px + env(safe-area-inset-bottom));}
     .lang-mini{display:inline-flex;align-items:center;gap:2px;margin-left:auto;margin-right:8px;padding:4px 8px;}
     .lang-mini button{font-size:11px;padding:5px 5px;min-height:34px;}
@@ -453,34 +460,39 @@
   .cookie-actions button{font-family:var(--sans);font-size:12px;letter-spacing:.06em;text-transform:uppercase;border-radius:40px;padding:11px 20px;cursor:pointer;border:1px solid var(--line);background:none;color:var(--ink);transition:.25s;}
   .cookie-actions button:hover{border-color:var(--muted);}
   .cookie-actions button.primary{background:var(--accent);color:#0b0b0c;border-color:var(--accent);font-weight:600;}
-  @media(max-width:760px){.cookie-bar{bottom:calc(60px + env(safe-area-inset-bottom));}}
-  @media(max-width:600px){.cookie-bar{flex-direction:column;text-align:center;gap:12px;}.cookie-actions{width:100%;}.cookie-actions button{flex:1;}}
+  @media(max-width:820px){.cookie-bar{bottom:calc(64px + env(safe-area-inset-bottom));}}
+  @media(max-width:600px){.cookie-bar{gap:10px 14px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));}.cookie-bar p{font-size:12px;flex:1 1 100%;line-height:1.45;}.cookie-actions{width:100%;}.cookie-actions button{flex:1;padding:10px 12px;}}
 
   /* ---------- cinematic intro + filmic hero ---------- */
   #intro{position:fixed;inset:0;z-index:9999;pointer-events:none;}
   #intro .panel{position:absolute;left:0;right:0;height:calc(50% + 1px);background:#0a0a0b;will-change:transform;}
   #intro .panel.top{top:0;animation:introTop 1.75s cubic-bezier(.76,0,.24,1) forwards;}
   #intro .panel.bottom{bottom:0;animation:introBottom 1.75s cubic-bezier(.76,0,.24,1) forwards;}
-  #intro .imark{position:fixed;top:50%;left:50%;width:58px;transform:translate(-50%,-50%);opacity:0;color:#f4f4f4;animation:introMark 1.2s ease forwards;will-change:opacity,transform;}
+  #intro .imark{position:fixed;top:50%;left:50%;width:108px;transform:translate(-50%,-50%);opacity:0;color:#f5f5f5;animation:introMark 1.3s ease forwards;will-change:opacity,transform,filter;}
   #intro .imark svg{width:100%;height:auto;display:block;}
-  #intro .imark .r{fill:var(--accent);}
-  #intro .imark .ln{stroke:var(--accent);}
+  #intro .imark .r{fill:currentColor;}
+  #intro .imark .ln{stroke:var(--accent);stroke-dasharray:74;stroke-dashoffset:74;animation:introLine 1.3s cubic-bezier(.4,0,.2,1) forwards;}
   @keyframes introTop{0%,40%{transform:translateY(0);}100%{transform:translateY(-101%);}}
   @keyframes introBottom{0%,40%{transform:translateY(0);}100%{transform:translateY(101%);}}
-  @keyframes introMark{0%{opacity:0;transform:translate(-50%,-50%) scale(.86);}24%{opacity:1;transform:translate(-50%,-50%) scale(1);}58%{opacity:1;transform:translate(-50%,-50%) scale(1);}100%{opacity:0;transform:translate(-50%,-50%) scale(1.06);}}
+  @keyframes introMark{0%{opacity:0;transform:translate(-50%,-50%) scale(.82);filter:drop-shadow(0 0 0 rgba(255,255,255,0));}20%{opacity:1;}34%{transform:translate(-50%,-50%) scale(1.05);}48%{transform:translate(-50%,-50%) scale(1);}66%{opacity:1;filter:drop-shadow(0 0 22px rgba(255,255,255,.4));}80%{filter:drop-shadow(0 0 0 rgba(255,255,255,0));}100%{opacity:0;transform:translate(-50%,-50%) scale(1.08);}}
+  @keyframes introLine{0%,14%{stroke-dashoffset:74;}56%{stroke-dashoffset:0;}100%{stroke-dashoffset:0;}}
 
   /* staggered, masked hero entrance timed to the curtain opening */
   .hero-inner .reveal{transform:translateY(44px);filter:blur(5px);transition:opacity 1.05s cubic-bezier(.16,.84,.28,1),transform 1.05s cubic-bezier(.16,.84,.28,1),filter 1.05s ease;}
-  .hero-inner .reveal.in{filter:blur(0);}
-  .hero-inner .reveal:nth-child(1){transition-delay:.95s;}
-  .hero-inner .reveal:nth-child(2){transition-delay:1.08s;}
-  .hero-inner .reveal:nth-child(3){transition-delay:1.26s;}
-  .hero-inner .reveal:nth-child(4){transition-delay:1.42s;}
+  .hero-inner .reveal.in{filter:blur(0);transform:none;}
+  .hero-inner .reveal:nth-child(1){transition-delay:.72s;}
+  .hero-inner .reveal:nth-child(2){transition-delay:.85s;}
+  .hero-inner .reveal:nth-child(3){transition-delay:1.02s;}
+  .hero-inner .reveal:nth-child(4){transition-delay:1.16s;}
   .hero-inner .reveal:nth-child(5){transition-delay:1.54s;}
 
   /* subtle film grain over the hero */
-  .hero .grain{position:absolute;inset:-25%;z-index:2;pointer-events:none;opacity:.06;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:160px 160px;animation:grainShift 1s steps(3) infinite;}
+  .hero .grain{position:absolute;inset:-25%;z-index:2;pointer-events:none;opacity:.04;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:170px 170px;animation:grainShift 2.2s steps(4) infinite;}
   @keyframes grainShift{0%{transform:translate(0,0);}33%{transform:translate(-3%,2%);}66%{transform:translate(2%,-3%);}100%{transform:translate(-2%,-2%);}}
+  /* right-side vertical detail rail (desktop) */
+  .hero-rail{position:absolute;right:30px;top:50%;transform:translateY(-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:18px;writing-mode:vertical-rl;font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--muted);}
+  .hero-rail .rail-dot{writing-mode:horizontal-tb;width:4px;height:4px;border-radius:50%;background:var(--accent);}
+  @media(max-width:1024px){.hero-rail{display:none;}}
 </style>
 <noscript><style>#intro{display:none!important}</style></noscript>
 </head>
@@ -518,7 +530,7 @@
 <section class="hero" aria-label="Intro">
   <div class="bar top"></div>
   <div class="poster" style="background-image:url('https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80')"></div>
-  <video autoplay muted loop playsinline preload="auto" poster="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80">
+  <video autoplay muted loop playsinline preload="none" poster="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80">
     <source src="https://videos.pexels.com/video-files/2022395/2022395-hd_1920_1080_30fps.mp4" type="video/mp4">
   </video>
   <div class="bar bottom"></div>
@@ -531,8 +543,8 @@
       <a href="#contact" class="btn btn-primary" data-i18n="hero.cta1">Start a project</a>
       <a href="#reels" class="btn btn-ghost"><span class="play" aria-hidden="true">▶</span> <span data-i18n="hero.cta2">Watch the reels</span></a>
     </div>
-    <p class="hero-trust reveal" data-i18n="hero.trust">Cinematic weddings, cars &amp; reels — Germany &amp; <b>worldwide</b></p>
   </div>
+  <div class="hero-rail" aria-hidden="true"><span>Based in Bavaria</span><span class="rail-dot"></span><span>@tim.rxme</span></div>
   <div class="scroll-cue" aria-hidden="true"><span>Scroll</span><span class="line"></span></div>
 </section>
 
@@ -868,7 +880,7 @@
 </div>
 
 <div class="cookie-bar" id="cookieBar" role="dialog" aria-live="polite" aria-label="Cookie notice" hidden>
-  <p><span data-i18n="cookie.text">This site uses only technically necessary storage. External fonts &amp; media may transmit your IP address.</span> <a href="cookies.html" data-i18n="cookie.more">Cookie policy</a></p>
+  <p><span data-i18n="cookie.text">This site uses only technically necessary storage. Embedded media (video/images) may transmit your IP address.</span> <a href="cookies.html" data-i18n="cookie.more">Cookie policy</a></p>
   <div class="cookie-actions">
     <button type="button" id="ckNec" data-i18n="cookie.nec">Necessary only</button>
     <button type="button" id="ckAll" class="primary" data-i18n="cookie.acc">Accept</button>
@@ -905,7 +917,6 @@ const I18N = {
     "ab.stat1": "Years shooting", "ab.stat2": "Based in Bavaria", "ab.stat3": "Personal service",
     "wk.eyebrow": "Selected work", "wk.h2": "Portfolio", "wk.p": "A selection of my favourite frames. Click any image for the full view.",
     "filter.all": "All", "filter.wedding": "Weddings", "filter.auto": "Automotive", "filter.portrait": "Portrait", "filter.event": "Events",
-    "q.text": "\"Tim captured our whole day without us ever noticing him. When we watched the reel, we had <span>goosebumps</span> from start to finish.\"", "q.cite": "Lena &amp; Jakob · Lakeside wedding",
     "s.eyebrow": "Services", "s.h2": "What I do", "s.p": "Every project's different — tell me what you need and I'll put together a fair offer.",
     "s1.h": "Weddings", "s1.p": "Photo &amp; film of your full day, including a cinematic highlight reel and online gallery.",
     "s2.h": "Automotive", "s2.p": "Photo &amp; video shoot for your vehicle — static shots, detail shots and rolling shots.",
@@ -921,11 +932,11 @@ const I18N = {
     "c.email": "Email", "c.phone": "Phone", "c.ig": "Instagram", "c.loc": "Based in", "c.locval": "Hof, Germany",
     "form.name": "Name", "form.namePh": "Your name", "form.email": "Email", "form.emailPh": "you@example.com", "form.project": "Project", "form.message": "Message", "form.messagePh": "Tell me about your plans, date and location …", "form.send": "Send enquiry",
     "form.note": "I usually reply within 24 hours. You can also write directly to smmmtimrammensee@icloud.com.",
-    "form.sending": "Sending…", "form.sent": "Sent ✓", "form.thanks": "Thanks! Your enquiry is on its way — I’ll be in touch within 24 hours.", "form.error": "Something went wrong — please email smmmtimrammensee@icloud.com directly.", "form.noendpoint": "Form endpoint not set up yet — add your Formspree ID in the code, then enquiries arrive by email.",
+    "form.sending": "Sending…", "form.sent": "Sent ✓", "form.thanks": "Thanks! Your enquiry is on its way — I’ll be in touch within 24 hours.", "form.error": "Something went wrong — please email smmmtimrammensee@icloud.com directly.", "form.noendpoint": "Couldn’t submit the form right now — please email smmmtimrammensee@icloud.com directly.",
     "opt.wedding": "Wedding", "opt.auto": "Automotive", "opt.reels": "Reels / Video", "opt.smm": "Social-Media Marketing", "opt.portrait": "Portrait", "opt.other": "Other",
     "foot.tagline": "Cinematic photography &amp; film — weddings, automotive, reels &amp; social media.", "foot.rights": "Tim Rammensee — All rights reserved.", "foot.imprint": "Imprint", "foot.privacy": "Privacy",
     "aria.menu": "Toggle menu", "lb.close": "Close", "lb.prev": "Previous", "lb.next": "Next", "s.badge": "Most booked", "mcta.call": "Call", "meta.desc": "Tim Rammensee — cinematic photographer & filmmaker in Bavaria. Weddings, automotive, reels & social-media content.",
-    "foot.agb": "Terms", "foot.cookies": "Cookies", "cookie.text": "This site uses only technically necessary storage. External fonts &amp; media may transmit your IP address.", "cookie.more": "Cookie policy", "cookie.nec": "Necessary only", "cookie.acc": "Accept"
+    "foot.agb": "Terms", "foot.cookies": "Cookies", "cookie.text": "This site uses only technically necessary storage. Embedded media (video/images) may transmit your IP address.", "cookie.more": "Cookie policy", "cookie.nec": "Necessary only", "cookie.acc": "Accept"
   },
   de: {
     "title": "Tim Rammensee — Cinematic Fotografie & Film",
@@ -955,7 +966,6 @@ const I18N = {
     "ab.stat1": "Jahre aktiv", "ab.stat2": "aus Bayern", "ab.stat3": "Persönlich, 1:1",
     "wk.eyebrow": "Ausgewählte Arbeiten", "wk.h2": "Portfolio", "wk.p": "Eine Auswahl meiner liebsten Frames. Klick auf ein Bild für die große Ansicht.",
     "filter.all": "Alle", "filter.wedding": "Hochzeit", "filter.auto": "Automotive", "filter.portrait": "Porträt", "filter.event": "Events",
-    "q.text": "„Tim hat unseren ganzen Tag eingefangen, ohne dass wir ihn je bemerkt haben. Beim Reel hatten wir <span>Gänsehaut</span> von Anfang bis Ende.“", "q.cite": "Lena &amp; Jakob · Hochzeit am See",
     "s.eyebrow": "Leistungen", "s.h2": "Was ich mache", "s.p": "Jedes Projekt ist anders — sag mir, was du brauchst, und ich schnür dir ein faires Angebot.",
     "s1.h": "Hochzeit", "s1.p": "Foto &amp; Film vom ganzen Tag, inkl. cinematischem Highlight-Reel und Online-Galerie.",
     "s2.h": "Automotive", "s2.p": "Foto- &amp; Video-Shooting für dein Fahrzeug — Standaufnahmen, Details und Rolling Shots.",
@@ -971,11 +981,11 @@ const I18N = {
     "c.email": "E-Mail", "c.phone": "Telefon", "c.ig": "Instagram", "c.loc": "Standort", "c.locval": "Hof, Oberfranken",
     "form.name": "Name", "form.namePh": "Dein Name", "form.email": "E-Mail", "form.emailPh": "du@beispiel.de", "form.project": "Projekt", "form.message": "Nachricht", "form.messagePh": "Erzähl mir von deinem Vorhaben, Datum und Ort …", "form.send": "Anfrage senden",
     "form.note": "Ich melde mich meist innerhalb von 24 Stunden. Du kannst auch direkt an smmmtimrammensee@icloud.com schreiben.",
-    "form.sending": "Senden…", "form.sent": "Gesendet ✓", "form.thanks": "Danke! Deine Anfrage ist unterwegs — ich melde mich innerhalb von 24 Stunden.", "form.error": "Etwas ist schiefgelaufen — bitte schreib direkt an smmmtimrammensee@icloud.com.", "form.noendpoint": "Formular noch nicht eingerichtet — trag deine Formspree-ID im Code ein, dann kommen Anfragen per E-Mail an.",
+    "form.sending": "Senden…", "form.sent": "Gesendet ✓", "form.thanks": "Danke! Deine Anfrage ist unterwegs — ich melde mich innerhalb von 24 Stunden.", "form.error": "Etwas ist schiefgelaufen — bitte schreib direkt an smmmtimrammensee@icloud.com.", "form.noendpoint": "Absenden gerade nicht möglich — bitte schreib direkt an smmmtimrammensee@icloud.com.",
     "opt.wedding": "Hochzeit", "opt.auto": "Automotive", "opt.reels": "Reels / Video", "opt.smm": "Social-Media-Marketing", "opt.portrait": "Porträt", "opt.other": "Sonstiges",
     "foot.tagline": "Cinematic Fotografie &amp; Film — Hochzeit, Automotive, Reels &amp; Social Media.", "foot.rights": "Tim Rammensee — Alle Rechte vorbehalten.", "foot.imprint": "Impressum", "foot.privacy": "Datenschutz",
     "aria.menu": "Menü öffnen", "lb.close": "Schließen", "lb.prev": "Zurück", "lb.next": "Weiter", "s.badge": "Beliebteste", "mcta.call": "Anrufen", "meta.desc": "Tim Rammensee — cinematischer Fotograf & Filmemacher aus Bayern. Hochzeiten, Automotive, Reels & Social-Media-Content.",
-    "foot.agb": "AGB", "foot.cookies": "Cookies", "cookie.text": "Diese Seite nutzt nur technisch notwendige Speicherung. Externe Schriften &amp; Medien können deine IP-Adresse übertragen.", "cookie.more": "Cookie-Richtlinie", "cookie.nec": "Nur notwendige", "cookie.acc": "Akzeptieren"
+    "foot.agb": "AGB", "foot.cookies": "Cookies", "cookie.text": "Diese Seite nutzt nur technisch notwendige Speicherung. Eingebundene Medien (Video/Bilder) können deine IP-Adresse übertragen.", "cookie.more": "Cookie-Richtlinie", "cookie.nec": "Nur notwendige", "cookie.acc": "Akzeptieren"
   }
 };
 
@@ -1079,10 +1089,28 @@ const I18N = {
   // mobile menu
   const burger = document.getElementById('burger');
   const links = document.getElementById('navLinks');
-  const setMenu = (open) => { links.classList.toggle('open', open); burger.setAttribute('aria-expanded', open ? 'true' : 'false'); document.body.style.overflow = open ? 'hidden' : ''; };
+  const setMenu = (open, restoreFocus = true) => {
+    links.classList.toggle('open', open);
+    document.body.classList.toggle('menu-open', open);
+    burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    document.body.style.overflow = open ? 'hidden' : '';
+    if(open){ setTimeout(() => { const first = links.querySelector('a, button'); if(first) first.focus(); }, 90); }
+    else if(restoreFocus){ burger.focus(); }
+  };
   burger.addEventListener('click', () => setMenu(!links.classList.contains('open')));
-  links.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setMenu(false)));
-  document.addEventListener('keydown', e => { if(e.key==='Escape' && links.classList.contains('open')) setMenu(false); });
+  links.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setMenu(false, false)));
+  document.addEventListener('keydown', e => {
+    if(!links.classList.contains('open')) return;
+    if(e.key === 'Escape'){ setMenu(false); return; }
+    if(e.key === 'Tab'){
+      const f = links.querySelectorAll('a, button');
+      if(!f.length) return;
+      const first = f[0], last = f[f.length - 1];
+      if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+      else if(![...f].includes(document.activeElement)){ e.preventDefault(); first.focus(); }
+    }
+  });
   document.addEventListener('click', e => { if(links.classList.contains('open') && !links.contains(e.target) && e.target!==burger && !burger.contains(e.target) && !e.target.closest('.lang-mini')) setMenu(false); });
 
   // reveal on scroll
@@ -1115,8 +1143,11 @@ const I18N = {
   });
 
   // FAQ accordion
-  document.querySelectorAll('.faq-q').forEach(q => {
+  document.querySelectorAll('.faq-q').forEach((q, i) => {
     const item = q.parentElement, ans = q.nextElementSibling;
+    const aid = 'faq-a-' + (i + 1);
+    ans.id = aid; ans.setAttribute('role', 'region');
+    q.setAttribute('aria-controls', aid);
     q.addEventListener('click', () => {
       const open = item.classList.toggle('open');
       q.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -1144,9 +1175,10 @@ const I18N = {
         btn.textContent = t('form.sent');
         note.textContent = t('form.thanks'); note.style.color = 'var(--accent)';
         note.focus();
+        setTimeout(() => { btn.disabled = false; btn.textContent = t('form.send'); }, 4000);
       }catch(err){
         btn.disabled = false; btn.textContent = t('form.send');
-        note.textContent = t('form.error'); note.style.color = '#e08a6a';
+        note.textContent = t('form.error'); note.style.color = '#cf9b9b';
       }
     });
   }
@@ -1227,7 +1259,7 @@ const I18N = {
   const cbar = document.getElementById('cookieBar');
   if(cbar){
     let cc=null; try{ cc=localStorage.getItem('cookie-consent'); }catch(e){}
-    if(!cc) cbar.hidden = false;
+    if(!cc){ setTimeout(() => { cbar.hidden = false; }, reduceMotion ? 400 : 2600); }
     const setC = v => { try{ localStorage.setItem('cookie-consent', v); }catch(e){} cbar.hidden = true; };
     document.getElementById('ckAll').addEventListener('click', () => setC('all'));
     document.getElementById('ckNec').addEventListener('click', () => setC('necessary'));
