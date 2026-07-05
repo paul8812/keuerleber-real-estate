@@ -441,6 +441,8 @@
     html{scroll-behavior:auto;}
     *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;}
     .reveal{opacity:1;transform:none;}
+    .hero-media,.hero-inner{transform:none !important;opacity:1 !important;}
+    .cursor,.cursor-ring{display:none !important;}
     .strip-track{animation:none;transform:none;}
     .hero video,.hero .poster{animation:none !important;}
     #intro{display:none !important;}
@@ -493,6 +495,17 @@
   .hero-rail{position:absolute;right:30px;top:50%;transform:translateY(-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:18px;writing-mode:vertical-rl;font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--muted);}
   .hero-rail .rail-dot{writing-mode:horizontal-tb;width:4px;height:4px;border-radius:50%;background:var(--accent);}
   @media(max-width:1024px){.hero-rail{display:none;}}
+  /* ===== premium interactions ===== */
+  .hero-media{position:absolute;inset:0;z-index:0;overflow:hidden;will-change:transform;}
+  .cursor,.cursor-ring{position:fixed;top:0;left:0;z-index:9997;pointer-events:none;border-radius:50%;mix-blend-mode:difference;will-change:transform;opacity:0;}
+  .has-cursor .cursor,.has-cursor .cursor-ring{opacity:1;}
+  .cursor{width:7px;height:7px;margin:-3.5px 0 0 -3.5px;background:#fff;transition:opacity .3s;}
+  .cursor-ring{width:40px;height:40px;margin:-20px 0 0 -20px;border:1px solid rgba(255,255,255,.7);transition:width .28s cubic-bezier(.2,.8,.2,1),height .28s cubic-bezier(.2,.8,.2,1),margin .28s cubic-bezier(.2,.8,.2,1),background .28s,border-color .28s,opacity .3s;}
+  .cursor-ring.on{width:66px;height:66px;margin:-33px 0 0 -33px;background:rgba(255,255,255,.14);border-color:transparent;}
+  body.has-cursor,body.has-cursor a,body.has-cursor button,body.has-cursor .shot,body.has-cursor .reel,body.has-cursor .faq-q{cursor:none;}
+  .btn,.nav-cta,.brand{will-change:transform;}
+  .shot,.reel{will-change:transform;}
+  @media(hover:none),(pointer:coarse){.cursor,.cursor-ring{display:none !important;}}
 </style>
 <noscript><style>#intro{display:none!important}</style></noscript>
 </head>
@@ -529,10 +542,12 @@
 <!-- ====== HERO (Video) ====== -->
 <section class="hero" aria-label="Intro">
   <div class="bar top"></div>
-  <div class="poster" style="background-image:url('https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80')"></div>
-  <video autoplay muted loop playsinline preload="none" poster="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80">
-    <source src="https://videos.pexels.com/video-files/2022395/2022395-hd_1920_1080_30fps.mp4" type="video/mp4">
-  </video>
+  <div class="hero-media">
+    <div class="poster" style="background-image:url('https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80')"></div>
+    <video autoplay muted loop playsinline preload="none" poster="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80">
+      <source src="https://videos.pexels.com/video-files/2022395/2022395-hd_1920_1080_30fps.mp4" type="video/mp4">
+    </video>
+  </div>
   <div class="bar bottom"></div>
   <div class="grain" aria-hidden="true"></div>
   <div class="hero-inner wrap">
@@ -1263,7 +1278,82 @@ const I18N = {
     const setC = v => { try{ localStorage.setItem('cookie-consent', v); }catch(e){} cbar.hidden = true; };
     document.getElementById('ckAll').addEventListener('click', () => setC('all'));
     document.getElementById('ckNec').addEventListener('click', () => setC('necessary'));
-  }})();
+  }
+
+  // ===== premium interactions (desktop, motion-safe) =====
+  const finePointer = window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+  const heroSec = document.querySelector('.hero');
+  const heroInner = document.querySelector('.hero-inner');
+  const heroMedia = document.querySelector('.hero-media');
+  let vhP = window.innerHeight;
+  window.addEventListener('resize', () => { vhP = window.innerHeight; }, {passive:true});
+  let scY = 0, cx = 0, cy = 0, tcx = 0, tcy = 0;
+
+  const applyHero = () => {
+    if(heroMedia){
+      const p = Math.min(scY / (vhP || 1), 1.2);
+      heroMedia.style.transform = 'scale(' + (1 + p * 0.14) + ') translate3d(' + (cx * 22) + 'px,' + (cy * 22) + 'px,0)';
+    }
+    if(heroInner){
+      heroInner.style.transform = 'translateY(' + (scY * 0.22) + 'px) translate(' + (cx * -14) + 'px,' + (cy * -10) + 'px)';
+      heroInner.style.opacity = Math.max(0, 1 - scY / (vhP * 0.72));
+    }
+  };
+
+  if(!reduceMotion){
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      scY = window.scrollY || 0;
+      if(!ticking){ requestAnimationFrame(() => { applyHero(); ticking = false; }); ticking = true; }
+    }, {passive:true});
+
+    // scroll-velocity marquee skew
+    const strip = document.querySelector('.strip');
+    if(strip){
+      let last = window.scrollY, sk = 0, decaying = false;
+      const decay = () => { sk *= 0.86; strip.style.transform = 'skewX(' + sk.toFixed(2) + 'deg)'; if(Math.abs(sk) > 0.08){ requestAnimationFrame(decay); } else { strip.style.transform = ''; decaying = false; } };
+      window.addEventListener('scroll', () => {
+        const now = window.scrollY; sk = Math.max(-5, Math.min(5, (now - last) * 0.35)); last = now;
+        if(!decaying){ decaying = true; requestAnimationFrame(decay); }
+      }, {passive:true});
+    }
+  }
+
+  if(finePointer && !reduceMotion){
+    // custom cursor (dot + lagging ring, inverts over content)
+    const dot = document.createElement('div'); dot.className = 'cursor'; dot.setAttribute('aria-hidden','true');
+    const ring = document.createElement('div'); ring.className = 'cursor-ring'; ring.setAttribute('aria-hidden','true');
+    document.body.append(dot, ring); document.body.classList.add('has-cursor');
+    let dx = innerWidth/2, dy = innerHeight/2, rx = dx, ry = dy;
+    window.addEventListener('mousemove', e => { dx = e.clientX; dy = e.clientY; dot.style.transform = 'translate(' + dx + 'px,' + dy + 'px)'; }, {passive:true});
+    document.querySelectorAll('a, button, .shot, .reel, input, textarea, select, .faq-q').forEach(el => {
+      el.addEventListener('mouseenter', () => ring.classList.add('on'));
+      el.addEventListener('mouseleave', () => ring.classList.remove('on'));
+    });
+    // magnetic elements
+    document.querySelectorAll('.btn, .nav-cta, .brand').forEach(el => {
+      el.addEventListener('mousemove', e => { const r = el.getBoundingClientRect(); el.style.transform = 'translate(' + ((e.clientX - (r.left + r.width/2)) * 0.22) + 'px,' + ((e.clientY - (r.top + r.height/2)) * 0.3) + 'px)'; });
+      el.addEventListener('mouseleave', () => { el.style.transform = ''; });
+    });
+    // 3D tilt on gallery + reel cards
+    document.querySelectorAll('.shot, .reel').forEach(card => {
+      card.addEventListener('mousemove', e => { const r = card.getBoundingClientRect(); const px = (e.clientX - r.left)/r.width - .5, py = (e.clientY - r.top)/r.height - .5; card.style.transform = 'perspective(760px) rotateY(' + (px * 5.5) + 'deg) rotateX(' + (-py * 5.5) + 'deg)'; });
+      card.addEventListener('mouseleave', () => { card.style.transform = ''; });
+    });
+    // hero cursor-parallax
+    if(heroSec){
+      heroSec.addEventListener('mousemove', e => { tcx = (e.clientX/innerWidth) - .5; tcy = (e.clientY/vhP) - .5; }, {passive:true});
+      heroSec.addEventListener('mouseleave', () => { tcx = 0; tcy = 0; });
+    }
+    const loop = () => {
+      rx += (dx - rx) * 0.18; ry += (dy - ry) * 0.18; ring.style.transform = 'translate(' + rx + 'px,' + ry + 'px)';
+      cx += (tcx - cx) * 0.06; cy += (tcy - cy) * 0.06;
+      applyHero();
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+  }
+})();
 </script>
 </body>
 </html>
