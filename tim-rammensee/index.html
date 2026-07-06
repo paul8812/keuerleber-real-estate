@@ -398,8 +398,7 @@
   .quote::before{content:'\201C';position:absolute;top:-.18em;left:50%;transform:translateX(-50%);font-family:var(--serif);font-size:clamp(140px,20vw,280px);line-height:1;color:var(--accent);opacity:.1;pointer-events:none;z-index:0;}
   .quote .wrap{position:relative;z-index:1;}
   .quote .stars{color:var(--accent);letter-spacing:.3em;font-size:14px;margin-bottom:24px;}
-  .quote blockquote{transition:opacity .4s;}
-  .quote cite{transition:opacity .4s;}
+  .quote blockquote,.quote cite{transition:opacity .42s ease,transform .42s cubic-bezier(.16,.84,.28,1);}
   .quote .dots{display:flex;gap:9px;justify-content:center;margin-top:34px;}
   .quote .dots button{width:7px;height:7px;border-radius:50%;padding:0;border:none;cursor:pointer;background:rgba(255,255,255,.22);transition:.3s;}
   .quote .dots button.active{background:var(--accent);width:22px;border-radius:4px;}
@@ -446,7 +445,8 @@
     .sec-head h2{clip-path:none !important;transform:none !important;}
     .sec-head p{opacity:1 !important;transform:none !important;}
     .feature .media > img,.about-img img,.feature .media .stack{transform:none !important;}
-    .cursor,.cursor-ring{display:none !important;}
+    #lbStage figure,#lbStage video{animation:none !important;}
+    .shot.pop{animation:none !important;}
     .strip-track{animation:none;transform:none;}
     .hero video,.hero .poster{animation:none !important;}
     #intro{display:none !important;}
@@ -501,15 +501,17 @@
   @media(max-width:1024px){.hero-rail{display:none;}}
   /* ===== premium interactions ===== */
   .hero-media{position:absolute;inset:0;z-index:0;overflow:hidden;will-change:transform;}
-  .cursor,.cursor-ring{position:fixed;top:0;left:0;z-index:9997;pointer-events:none;border-radius:50%;mix-blend-mode:difference;will-change:transform;opacity:0;}
-  .has-cursor .cursor,.has-cursor .cursor-ring{opacity:1;}
-  .cursor{width:7px;height:7px;margin:-3.5px 0 0 -3.5px;background:#fff;transition:opacity .3s;}
-  .cursor-ring{width:40px;height:40px;margin:-20px 0 0 -20px;border:1px solid rgba(255,255,255,.7);transition:width .28s cubic-bezier(.2,.8,.2,1),height .28s cubic-bezier(.2,.8,.2,1),margin .28s cubic-bezier(.2,.8,.2,1),background .28s,border-color .28s,opacity .3s;}
-  .cursor-ring.on{width:66px;height:66px;margin:-33px 0 0 -33px;background:rgba(255,255,255,.14);border-color:transparent;}
-  body.has-cursor,body.has-cursor a,body.has-cursor button,body.has-cursor .shot,body.has-cursor .reel,body.has-cursor .faq-q{cursor:none;}
+  /* slide & swap animations */
+  #qText.q-out,#qCite.q-out{opacity:0;transform:translateX(calc(-44px * var(--qd,1)));}
+  #qText.q-in,#qCite.q-in{transition:none;opacity:0;transform:translateX(calc(44px * var(--qd,1)));}
+  #lbStage figure,#lbStage video{animation:lbZoom .5s cubic-bezier(.16,.84,.28,1);}
+  #lbStage figure.slide{animation:lbSlide .45s cubic-bezier(.16,.84,.28,1);}
+  @keyframes lbZoom{from{opacity:0;transform:scale(.93);}to{opacity:1;transform:none;}}
+  @keyframes lbSlide{from{opacity:0;transform:translateX(calc(70px * var(--lbd,1))) scale(.985);}to{opacity:1;transform:none;}}
+  @keyframes popIn{from{opacity:0;transform:translateY(16px) scale(.96);}to{opacity:1;transform:none;}}
+  .shot.pop{animation:popIn .55s cubic-bezier(.16,.84,.28,1) both;animation-delay:calc(var(--i,0)*45ms);}
   .btn,.nav-cta,.brand{will-change:transform;}
   .shot,.reel{will-change:transform;}
-  @media(hover:none),(pointer:coarse){.cursor,.cursor-ring{display:none !important;}}
 
   /* ===== scroll experience ===== */
   .progress{position:fixed;top:0;left:0;width:100%;height:2px;z-index:220;pointer-events:none;background:linear-gradient(90deg,var(--accent-deep),#fff);transform:scaleX(0);transform-origin:0 50%;}
@@ -1070,13 +1072,22 @@ const I18N = {
     const qt = document.getElementById('qText'), qc = document.getElementById('qCite'), dots = document.getElementById('qDots');
     if(!qt) return;
     if(tIdx >= list.length) tIdx = 0;
-    const show = i => { tIdx = i; qt.innerHTML = list[i].t; qc.innerHTML = list[i].c;
+    const paint = i => { tIdx = i; qt.innerHTML = list[i].t; qc.innerHTML = list[i].c;
       dots.querySelectorAll('button').forEach((b,j)=>b.classList.toggle('active', j===i)); };
+    const show = (i, dir = 1) => {
+      if(reduceMotion || !qt.innerHTML){ paint(i); return; }
+      [qt, qc].forEach(el => { el.style.setProperty('--qd', dir); el.classList.add('q-out'); });
+      setTimeout(() => {
+        paint(i);
+        [qt, qc].forEach(el => { el.classList.remove('q-out'); el.classList.add('q-in'); });
+        requestAnimationFrame(() => requestAnimationFrame(() => [qt, qc].forEach(el => el.classList.remove('q-in'))));
+      }, 430);
+    };
     dots.innerHTML = list.map((_,i)=>`<button type="button" aria-label="Testimonial ${i+1}"></button>`).join('');
-    dots.querySelectorAll('button').forEach((b,i)=>b.onclick = ()=>{ show(i); restart(); });
+    dots.querySelectorAll('button').forEach((b,i)=>b.onclick = ()=>{ show(i, i >= tIdx ? 1 : -1); restart(); });
     show(tIdx);
     function restart(){ if(tTimer) clearInterval(tTimer); if(reduceMotion || list.length<2) return;
-      tTimer = setInterval(()=>show((tIdx+1)%list.length), 6000); }
+      tTimer = setInterval(()=>show((tIdx+1)%list.length, 1), 6000); }
     restart();
   }
 
@@ -1175,7 +1186,8 @@ const I18N = {
     document.querySelectorAll('#filters button').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
     btn.classList.add('active'); btn.setAttribute('aria-pressed','true');
     const f = btn.dataset.filter;
-    shots.forEach(s => { s.style.display = (f==='all' || s.dataset.cat===f) ? '' : 'none'; });
+    shots.forEach(s => { const on = (f==='all' || s.dataset.cat===f); s.style.display = on ? '' : 'none';
+      if(on && !reduceMotion){ s.classList.remove('pop'); void s.offsetWidth; s.classList.add('pop'); } });
   });
 
   // FAQ accordion
@@ -1225,12 +1237,13 @@ const I18N = {
   let visible = [], idx = 0, lastFocus = null;
   const hiRes = (src) => src.replace(/w=\d+/, 'w=1600');
   const preload = (i) => { const im = visible[i] && visible[i].querySelector('img'); if(im){ const pi = new Image(); pi.src = hiRes(im.src); } };
-  const showImg = () => {
+  const showImg = (dir) => {
     const shot = visible[idx];
     const img = shot.querySelector('img');
     const cap = shot.querySelector('.cap');
     stage.replaceChildren();
     const fig = document.createElement('figure');
+    if(dir){ fig.classList.add('slide'); fig.style.setProperty('--lbd', dir); }
     const el = document.createElement('img');
     el.src = hiRes(img.src); el.alt = img.alt;
     fig.appendChild(el);
@@ -1256,8 +1269,8 @@ const I18N = {
   const close = () => { lb.classList.remove('open'); stage.replaceChildren(); document.body.style.overflow = ''; if(lastFocus) lastFocus.focus(); };
   document.getElementById('lbClose').onclick = close;
   lb.addEventListener('click', e => { if(e.target === lb) close(); });
-  nextBtn.onclick = () => { if(!visible.length) return; idx = (idx+1)%visible.length; showImg(); };
-  prevBtn.onclick = () => { if(!visible.length) return; idx = (idx-1+visible.length)%visible.length; showImg(); };
+  nextBtn.onclick = () => { if(!visible.length) return; idx = (idx+1)%visible.length; showImg(1); };
+  prevBtn.onclick = () => { if(!visible.length) return; idx = (idx-1+visible.length)%visible.length; showImg(-1); };
   document.addEventListener('keydown', e => {
     if(!lb.classList.contains('open')) return;
     if(e.key==='Escape'){ close(); return; }
@@ -1356,16 +1369,6 @@ const I18N = {
   }
 
   if(finePointer && !reduceMotion){
-    // custom cursor (dot + lagging ring, inverts over content)
-    const dot = document.createElement('div'); dot.className = 'cursor'; dot.setAttribute('aria-hidden','true');
-    const ring = document.createElement('div'); ring.className = 'cursor-ring'; ring.setAttribute('aria-hidden','true');
-    document.body.append(dot, ring); document.body.classList.add('has-cursor');
-    let dx = innerWidth/2, dy = innerHeight/2, rx = dx, ry = dy;
-    window.addEventListener('mousemove', e => { dx = e.clientX; dy = e.clientY; dot.style.transform = 'translate(' + dx + 'px,' + dy + 'px)'; }, {passive:true});
-    document.querySelectorAll('a, button, .shot, .reel, input, textarea, select, .faq-q').forEach(el => {
-      el.addEventListener('mouseenter', () => ring.classList.add('on'));
-      el.addEventListener('mouseleave', () => ring.classList.remove('on'));
-    });
     // magnetic elements
     document.querySelectorAll('.btn, .nav-cta, .brand').forEach(el => {
       el.addEventListener('mousemove', e => { const r = el.getBoundingClientRect(); el.style.transform = 'translate(' + ((e.clientX - (r.left + r.width/2)) * 0.22) + 'px,' + ((e.clientY - (r.top + r.height/2)) * 0.3) + 'px)'; });
@@ -1386,7 +1389,6 @@ const I18N = {
       heroSec.addEventListener('mouseleave', () => { tcx = 0; tcy = 0; });
     }
     const loop = () => {
-      rx += (dx - rx) * 0.18; ry += (dy - ry) * 0.18; ring.style.transform = 'translate(' + rx + 'px,' + ry + 'px)';
       cx += (tcx - cx) * 0.06; cy += (tcy - cy) * 0.06;
       applyHero();
       requestAnimationFrame(loop);
