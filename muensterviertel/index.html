@@ -777,6 +777,24 @@ h2 em{font-style:normal;color:var(--petrol);}
 .nav-links a.active:not(.nav-cta):after{width:100%;}
 nav:not(.scrolled) .nav-links a.active:not(.nav-cta){color:#fff;}
 
+/* ---------- Sprachumschalter ---------- */
+.lang-sw{
+  display:flex;gap:2px;border:1.5px solid rgba(154,176,198,.5);border-radius:100px;padding:3px;
+  margin-left:18px;flex-shrink:0;background:rgba(255,255,255,.08);
+}
+.lang-btn{
+  border:none;background:transparent;cursor:pointer;
+  font-family:'Poppins',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;
+  color:var(--grey);padding:6px 12px;border-radius:100px;transition:all .3s var(--ease);
+}
+nav:not(.scrolled) .lang-btn{color:rgba(255,255,255,.75);}
+.lang-btn.active{background:var(--petrol);color:#fff!important;}
+.lang-btn:not(.active):hover{color:var(--petrol);}
+nav:not(.scrolled) .lang-btn:not(.active):hover{color:#fff;}
+body.menu-open .lang-btn:not(.active){color:var(--grey)!important;}
+@media(max-width:900px){.lang-sw{margin-left:auto;margin-right:12px;}}
+@media(max-width:520px){.lang-btn{padding:5px 10px;font-size:10px;}}
+
 /* ---------- Hamburger + Mobile-Menü ---------- */
 #burger{
   display:none;width:44px;height:44px;border:none;background:transparent;cursor:pointer;
@@ -1001,24 +1019,28 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
     </span>
   </a>
   <div class="nav-links">
-    <a href="#lage">Lage</a>
-    <a href="#haus">Das Haus</a>
-    <a href="#ausstattung">Ausstattung</a>
-    <a href="#wohnungen">Wohnungen</a>
-    <a href="#rechner">Rechner</a>
-    <a class="nav-cta" href="#kontakt">Beratung anfragen</a>
+    <a href="#lage" data-i18n="nav.lage">Lage</a>
+    <a href="#haus" data-i18n="nav.haus">Das Haus</a>
+    <a href="#ausstattung" data-i18n="nav.aus">Ausstattung</a>
+    <a href="#wohnungen" data-i18n="nav.we">Wohnungen</a>
+    <a href="#rechner" data-i18n="nav.re">Rechner</a>
+    <a class="nav-cta" href="#kontakt" data-i18n="nav.cta">Beratung anfragen</a>
+  </div>
+  <div class="lang-sw" role="group" aria-label="Sprache wählen">
+    <button type="button" class="lang-btn active" data-lang="de">DE</button>
+    <button type="button" class="lang-btn" data-lang="en">EN</button>
   </div>
   <button id="burger" type="button" aria-label="Menü öffnen" aria-expanded="false"><i></i><i></i></button>
 </nav>
 <div id="pbar" aria-hidden="true"></div>
 <div id="mmenu" aria-hidden="true">
-  <a href="#lage"><small>01</small>Lage</a>
-  <a href="#haus"><small>02</small>Das Haus</a>
-  <a href="#ausstattung"><small>03</small>Ausstattung</a>
-  <a href="#explorer"><small>04</small>Wohnungs-Explorer</a>
-  <a href="#wohnungen"><small>05</small>Wohnungen</a>
-  <a href="#rechner"><small>06</small>Finanzierungsrechner</a>
-  <a href="#kontakt"><small>07</small>Kontakt</a>
+  <a href="#lage"><small>01</small><span data-i18n="nav.lage">Lage</span></a>
+  <a href="#haus"><small>02</small><span data-i18n="nav.haus">Das Haus</span></a>
+  <a href="#ausstattung"><small>03</small><span data-i18n="nav.aus">Ausstattung</span></a>
+  <a href="#explorer"><small>04</small><span data-i18n="ex.eyebrow">Wohnungs-Explorer</span></a>
+  <a href="#wohnungen"><small>05</small><span data-i18n="nav.we">Wohnungen</span></a>
+  <a href="#rechner"><small>06</small><span data-i18n="re.eyebrow">Finanzierungsrechner</span></a>
+  <a href="#kontakt"><small>07</small><span data-i18n="k.eyebrow">Kontakt</span></a>
   <div class="m-contact">
     <a href="mailto:vertrieb@norderfranken.de">vertrieb@norderfranken.de</a><br>
     <a href="tel:+4992811605793">+49 (0) 9281 - 160 57 93</a>
@@ -1032,33 +1054,33 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
   </div>
   <div class="hero-inner" id="heroInner">
     <div>
-      <span class="hero-eyebrow"><i></i>Hof · Sechs Eigentumswohnungen · Provisionsfrei</span>
+      <span class="hero-eyebrow" data-i18n="hero.eyebrow"><i></i>Hof · Sechs Eigentumswohnungen · Provisionsfrei</span>
       <h1>
         <span class="line"><span>Das Münsterviertel.</span></span>
-        <span class="line"><span>Wohnen mit Weitblick.</span></span>
+        <span class="line"><span data-i18n="hero.line2">Wohnen mit Weitblick.</span></span>
       </h1>
-      <p class="hero-sub">Sechs gehobene Eigentumswohnungen in einem liebevoll sanierten Altbau – mit Geschichte, Komfort und einem unvergleichlichen Blick über die Dächer von Hof.</p>
+      <p class="hero-sub" data-i18n="hero.sub">Sechs gehobene Eigentumswohnungen in einem liebevoll sanierten Altbau – mit Geschichte, Komfort und einem unvergleichlichen Blick über die Dächer von Hof.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary" href="#wohnungen">Wohnungen entdecken <i>→</i></a>
-        <a class="btn btn-glass" href="#kontakt">Beratung anfragen</a>
+        <a class="btn btn-primary" href="#wohnungen" data-i18n="hero.cta1">Wohnungen entdecken <i>→</i></a>
+        <a class="btn btn-glass" href="#kontakt" data-i18n="nav.cta">Beratung anfragen</a>
       </div>
     </div>
     <div class="hero-chips">
-      <div class="hero-chip"><span class="n">72–108 m²</span><span class="t">Wohnfläche<br>je Einheit</span></div>
-      <div class="hero-chip"><span class="n">0 €</span><span class="t">Makler-<br>kosten</span></div>
+      <div class="hero-chip"><span class="n">72–108 m²</span><span class="t" data-i18n="hero.chip1">Wohnfläche<br>je Einheit</span></div>
+      <div class="hero-chip"><span class="n">0 €</span><span class="t" data-i18n="hero.chip2">Makler-<br>kosten</span></div>
     </div>
   </div>
-  <div class="scroll-cue">Entdecken<i></i></div>
+  <div class="scroll-cue" data-i18n="hero.cue">Entdecken<i></i></div>
 </header>
 
 <!-- Stats -->
 <div class="stats-band">
   <div class="wrap">
     <div class="stats" data-reveal="fade">
-      <div class="stat"><b><em data-count="6">0</em></b><span>Wohneinheiten</span></div>
-      <div class="stat"><b><em data-count="72">0</em>–<em data-count="108">0</em><span class="unit">m²</span></b><span>Wohnfläche</span></div>
-      <div class="stat"><b><em data-count="100">0</em><span class="unit">%</span></b><span>Mit eigenem Balkon</span></div>
-      <div class="stat"><b>0<span class="unit">€</span></b><span>Maklerkosten</span></div>
+      <div class="stat"><b><em data-count="6">0</em></b><span data-i18n="lbl.units">Wohneinheiten</span></div>
+      <div class="stat"><b><em data-count="72">0</em>–<em data-count="108">0</em><span class="unit">m²</span></b><span data-i18n="lbl.area">Wohnfläche</span></div>
+      <div class="stat"><b><em data-count="100">0</em><span class="unit">%</span></b><span data-i18n="lbl.balcony">Mit eigenem Balkon</span></div>
+      <div class="stat"><b>0<span class="unit">€</span></b><span data-i18n="lbl.fees">Maklerkosten</span></div>
     </div>
   </div>
 </div>
@@ -1068,22 +1090,22 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
   <div class="wrap">
     <div class="lage-grid">
       <div class="lage-copy">
-        <div class="eyebrow" data-reveal>Die Lage</div>
-        <h2 data-reveal>Wohnen, wo die Stadt <em>zu Füßen liegt</em>.</h2>
-        <p class="lead" data-reveal>Das Münsterviertel gehört zu den gefragtesten Wohnadressen in Hof – ein Stadtteil, der das Beste aus zwei Welten vereint: die Ruhe einer gewachsenen Nachbarschaft und die unmittelbare Nähe zum städtischen Leben.</p>
-        <p class="lead" data-reveal>Durch die leichte Hanglage eröffnet sich ein unvergleichlicher Blick über die Dächer der Stadt. Morgens die ersten Sonnenstrahlen über Hof, abends die Lichter der Stadt zu Ihren Füßen – ein Gefühl von Weite und Geborgenheit zugleich.</p>
+        <div class="eyebrow" data-reveal data-i18n="lage.eyebrow">Die Lage</div>
+        <h2 data-reveal data-i18n="lage.h2">Wohnen, wo die Stadt <em>zu Füßen liegt</em>.</h2>
+        <p class="lead" data-reveal data-i18n="lage.p1">Das Münsterviertel gehört zu den gefragtesten Wohnadressen in Hof – ein Stadtteil, der das Beste aus zwei Welten vereint: die Ruhe einer gewachsenen Nachbarschaft und die unmittelbare Nähe zum städtischen Leben.</p>
+        <p class="lead" data-reveal data-i18n="lage.p2">Durch die leichte Hanglage eröffnet sich ein unvergleichlicher Blick über die Dächer der Stadt. Morgens die ersten Sonnenstrahlen über Hof, abends die Lichter der Stadt zu Ihren Füßen – ein Gefühl von Weite und Geborgenheit zugleich.</p>
         <div class="lage-points">
           <div class="lpoint" data-reveal>
             <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#eef3f8"/><path d="m7.5 12.5 3 3 6-6.5" stroke="#146c8f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Schulen, Kindergärten &amp; Einkauf in wenigen Schritten
+            <span data-i18n="lage.f1">Schulen, Kindergärten &amp; Einkauf in wenigen Schritten</span>
           </div>
           <div class="lpoint" data-reveal>
             <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#eef3f8"/><path d="m7.5 12.5 3 3 6-6.5" stroke="#146c8f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Öffentlicher Nahverkehr direkt vor der Tür
+            <span data-i18n="lage.f2">Öffentlicher Nahverkehr direkt vor der Tür</span>
           </div>
           <div class="lpoint" data-reveal>
             <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#eef3f8"/><path d="m7.5 12.5 3 3 6-6.5" stroke="#146c8f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Leichte Hanglage mit Panoramablick über Hof
+            <span data-i18n="lage.f3">Leichte Hanglage mit Panoramablick über Hof</span>
           </div>
         </div>
       </div>
@@ -1100,25 +1122,25 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
   <div class="wrap">
     <div class="haus-head">
       <div>
-        <div class="eyebrow" data-reveal>Das Haus</div>
-        <h2 data-reveal>Ein Haus, das Geschichte und <em>Moderne vereint</em>.</h2>
+        <div class="eyebrow" data-reveal data-i18n="nav.haus">Das Haus</div>
+        <h2 data-reveal data-i18n="haus.h2">Ein Haus, das Geschichte und <em>Moderne vereint</em>.</h2>
       </div>
-      <p class="lead" data-reveal>Dieses außergewöhnliche Haus wird mit höchstem Anspruch umfassend saniert und neu interpretiert. Der ursprüngliche Charme bleibt erhalten, während ein Wohnensemble entsteht, das moderne und nachhaltige Bauweise miteinander verbindet.</p>
+      <p class="lead" data-reveal data-i18n="haus.lead">Dieses außergewöhnliche Haus wird mit höchstem Anspruch umfassend saniert und neu interpretiert. Der ursprüngliche Charme bleibt erhalten, während ein Wohnensemble entsteht, das moderne und nachhaltige Bauweise miteinander verbindet.</p>
     </div>
     <div class="reveal-stage" id="assemble" data-reveal="fade" role="img" aria-label="Wohnbereich — Verwandlung vom Rohzustand zum fertigen Interieur">
       <div class="reveal-before"><img src="assets/wohnen-vorher.jpg" alt="" loading="lazy"></div>
-      <span class="reveal-label">Vorher · Rohzustand</span>
+      <span class="reveal-label" data-i18n="rev.before">Vorher · Rohzustand</span>
       <div class="reveal-strips">
         <i class="strip" style="--i:0"></i><i class="strip" style="--i:1"></i><i class="strip" style="--i:2"></i><i class="strip" style="--i:3"></i><i class="strip" style="--i:4"></i><i class="strip" style="--i:5"></i><i class="strip" style="--i:6"></i><i class="strip" style="--i:7"></i><i class="strip" style="--i:8"></i><i class="strip" style="--i:9"></i><i class="strip" style="--i:10"></i><i class="strip" style="--i:11"></i>
       </div>
-      <div class="reveal-cap"><i></i>Nachher · Wohnen im Münsterviertel</div>
+      <div class="reveal-cap" data-i18n="rev.after"><i></i>Nachher · Wohnen im Münsterviertel</div>
       <button class="reveal-replay" id="replayBtn" type="button" aria-label="Animation erneut abspielen">↻ Replay</button>
     </div>
     <div class="haus-cols">
       <div data-reveal>
-        <h3>Zeitgemäße Eleganz, nachhaltige Technik.</h3>
-        <p>Sechs exklusive Wohneinheiten mit großzügigen Wohnflächen zwischen 72 m² und 108 m² bieten Raum für individuelle Ansprüche. Jede Wohnung verfügt über einen eigenen Balkon, der das Wohnerlebnis erweitert und herrliche Ausblicke über die Stadt eröffnet.</p>
-        <p>Eine effiziente Wärmepumpe in Kombination mit Fußbodenheizung sorgt für angenehmes Raumklima und niedrige Energiekosten. Der Designboden in stilvoller Landhausdiele Eiche verleiht den Räumen Wärme und Charakter, während die Bäder mit Betonfliesenoptik eine elegante, urbane Note setzen.</p>
+        <h3 data-i18n="haus.h3">Zeitgemäße Eleganz, nachhaltige Technik.</h3>
+        <p data-i18n="haus.p1">Sechs exklusive Wohneinheiten mit großzügigen Wohnflächen zwischen 72 m² und 108 m² bieten Raum für individuelle Ansprüche. Jede Wohnung verfügt über einen eigenen Balkon, der das Wohnerlebnis erweitert und herrliche Ausblicke über die Stadt eröffnet.</p>
+        <p data-i18n="haus.p2">Eine effiziente Wärmepumpe in Kombination mit Fußbodenheizung sorgt für angenehmes Raumklima und niedrige Energiekosten. Der Designboden in stilvoller Landhausdiele Eiche verleiht den Räumen Wärme und Charakter, während die Bäder mit Betonfliesenoptik eine elegante, urbane Note setzen.</p>
       </div>
       <div class="pframe" data-parallax="0.08" data-reveal>
         <img src="assets/balkon.jpg" alt="Balkon mit Sichtschutz und Blick in den Wohnraum" loading="lazy">
@@ -1131,40 +1153,40 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
 <section id="ausstattung">
   <div class="wrap">
     <div class="aus-head">
-      <div class="eyebrow" data-reveal>Ausstattung &amp; Details</div>
-      <h2 data-reveal>Durchdacht <em>bis ins Detail</em>.</h2>
-      <p class="lead" data-reveal>Ein unverbindlicher Auszug aus der Baubeschreibung – die vollständige Fassung erhalten Sie gerne auf Anfrage.</p>
+      <div class="eyebrow" data-reveal data-i18n="aus.eyebrow">Ausstattung &amp; Details</div>
+      <h2 data-reveal data-i18n="aus.h2">Durchdacht <em>bis ins Detail</em>.</h2>
+      <p class="lead" data-reveal data-i18n="aus.lead">Ein unverbindlicher Auszug aus der Baubeschreibung – die vollständige Fassung erhalten Sie gerne auf Anfrage.</p>
     </div>
     <div class="aus-grid">
       <div class="aus-card" data-reveal>
         <div class="aus-ico"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v3M5.6 5.6l2.1 2.1M3 12h3M5.6 18.4l2.1-2.1M12 21v-3M18.4 18.4l-2.1-2.1M21 12h-3M18.4 5.6l-2.1 2.1" stroke="#146c8f" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="12" r="3.2" stroke="#146c8f" stroke-width="1.8"/></svg></div>
-        <h4>Wärmepumpe &amp; Fußbodenheizung</h4>
-        <p>Effiziente Wärmepumpe mit wassergeführter Fußbodenheizung als Flächenheizung – für niedrige Energiekosten und eine niedrige Energieklasse.</p>
+        <h4 data-i18n="aus.c1h">Wärmepumpe &amp; Fußbodenheizung</h4>
+        <p data-i18n="aus.c1p">Effiziente Wärmepumpe mit wassergeführter Fußbodenheizung als Flächenheizung – für niedrige Energiekosten und eine niedrige Energieklasse.</p>
       </div>
       <div class="aus-card" data-reveal>
         <div class="aus-ico"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="3.5" width="16" height="17" rx="1.5" stroke="#146c8f" stroke-width="1.8"/><path d="M12 3.5v17M4 12h16" stroke="#146c8f" stroke-width="1.8"/></svg></div>
-        <h4>3-fach Verglasung</h4>
-        <p>Fenster 3-fach verglast, innen weiß, außen Anthrazit. Beschattung über Aufsatzrollladenkästen, Fensterbänke aus Aluminium oder Titanzink.</p>
+        <h4 data-i18n="aus.c2h">3-fach Verglasung</h4>
+        <p data-i18n="aus.c2p">Fenster 3-fach verglast, innen weiß, außen Anthrazit. Beschattung über Aufsatzrollladenkästen, Fensterbänke aus Aluminium oder Titanzink.</p>
       </div>
       <div class="aus-card" data-reveal>
         <div class="aus-ico"><svg viewBox="0 0 24 24" fill="none"><path d="M3.5 20.5h17M5 20.5V9.5l7-5.5 7 5.5v11" stroke="#146c8f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.5 20.5v-6h5v6" stroke="#146c8f" stroke-width="1.8" stroke-linejoin="round"/></svg></div>
-        <h4>Designboden Eiche</h4>
-        <p>Design-Vinylboden in Optik Eiche Natur Landhausdiele mit weißen Sockelleisten. Innentüren weiß lackiert, Beschläge in Edelstahl oder schwarz.</p>
+        <h4 data-i18n="aus.c3h">Designboden Eiche</h4>
+        <p data-i18n="aus.c3p">Design-Vinylboden in Optik Eiche Natur Landhausdiele mit weißen Sockelleisten. Innentüren weiß lackiert, Beschläge in Edelstahl oder schwarz.</p>
       </div>
       <div class="aus-card" data-reveal>
         <div class="aus-ico"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12h16v2a5 5 0 0 1-5 5h-6a5 5 0 0 1-5-5v-2Z" stroke="#146c8f" stroke-width="1.8" stroke-linejoin="round"/><path d="M6 12V6.5A2.5 2.5 0 0 1 8.5 4h0A2.5 2.5 0 0 1 11 6.5" stroke="#146c8f" stroke-width="1.8" stroke-linecap="round"/></svg></div>
-        <h4>Elegante Bäder</h4>
-        <p>Feinsteinzeug-Fliesen in Grau, im Duschbereich raumhoch gefliest. Sanitärkeramik in Weiß, verchromte Einhebelmischer, edle Betonfliesenoptik.</p>
+        <h4 data-i18n="aus.c4h">Elegante Bäder</h4>
+        <p data-i18n="aus.c4p">Feinsteinzeug-Fliesen in Grau, im Duschbereich raumhoch gefliest. Sanitärkeramik in Weiß, verchromte Einhebelmischer, edle Betonfliesenoptik.</p>
       </div>
       <div class="aus-card" data-reveal>
         <div class="aus-ico"><svg viewBox="0 0 24 24" fill="none"><path d="M3.5 10.5h17M5 10.5V19M19 10.5V19M8.5 10.5V19M12 10.5V19M15.5 10.5V19M3.5 19h17" stroke="#146c8f" stroke-width="1.8" stroke-linecap="round"/><path d="M7 10.5V7a5 5 0 0 1 10 0v3.5" stroke="#146c8f" stroke-width="1.8"/></svg></div>
-        <h4>Balkone mit Weitblick</h4>
-        <p>Aufgeständerte, verzinkte Stahlkonstruktion mit anthrazitfarbenem Sichtschutz und Edelstahlgeländer – zu jeder Wohnung gehört ein eigener Balkon.</p>
+        <h4 data-i18n="aus.c5h">Balkone mit Weitblick</h4>
+        <p data-i18n="aus.c5p">Aufgeständerte, verzinkte Stahlkonstruktion mit anthrazitfarbenem Sichtschutz und Edelstahlgeländer – zu jeder Wohnung gehört ein eigener Balkon.</p>
       </div>
       <div class="aus-card" data-reveal>
         <div class="aus-ico"><svg viewBox="0 0 24 24" fill="none"><rect x="6" y="3.5" width="12" height="17" rx="1.5" stroke="#146c8f" stroke-width="1.8"/><circle cx="15" cy="12" r="1.2" fill="#146c8f"/></svg></div>
-        <h4>Eingang &amp; Treppenhaus</h4>
-        <p>Modernes Vordach mit Briefkastenanlage, restaurierte Holztreppe bis ins Dachgeschoss, Eingangstüren in Schallschutzklasse II, zentrale Schließanlage.</p>
+        <h4 data-i18n="aus.c6h">Eingang &amp; Treppenhaus</h4>
+        <p data-i18n="aus.c6p">Modernes Vordach mit Briefkastenanlage, restaurierte Holztreppe bis ins Dachgeschoss, Eingangstüren in Schallschutzklasse II, zentrale Schließanlage.</p>
       </div>
     </div>
     <div class="aus-fig-row">
@@ -1179,16 +1201,16 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
   <div class="ex-sticky">
     <div class="ex-head">
       <div>
-        <div class="eyebrow">Wohnungs-Explorer</div>
-        <h2>Das Haus in 3D — <em>Etage für Etage</em>.</h2>
+        <div class="eyebrow" data-i18n="ex.eyebrow">Wohnungs-Explorer</div>
+        <h2 data-i18n="ex.h2">Das Haus in 3D — <em>Etage für Etage</em>.</h2>
       </div>
-      <div class="ex-hint">Etage anklicken oder blättern</div>
+      <div class="ex-hint" data-i18n="ex.hint">Etage anklicken oder blättern</div>
     </div>
     <div class="ex-layout">
       <div class="ex-floors">
-        <span class="ex-floor" data-floor="2">Dachgeschoss</span>
-        <span class="ex-floor" data-floor="1">1. Obergeschoss</span>
-        <span class="ex-floor active" data-floor="0">Erdgeschoss</span>
+        <span class="ex-floor" data-floor="2" data-i18n="fl.dg">Dachgeschoss</span>
+        <span class="ex-floor" data-floor="1" data-i18n="fl.og">1. Obergeschoss</span>
+        <span class="ex-floor active" data-floor="0" data-i18n="fl.eg">Erdgeschoss</span>
       </div>
       <div class="ex-stage" id="exStage">
         <div class="ex-tilt" id="exTilt">
@@ -1196,15 +1218,15 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
             <div class="ex-house-stack" aria-label="Gesamtes Haus — Etage anklicken">
               <div class="ex-level" data-goto="4" role="button" tabindex="0" aria-label="Dachgeschoss öffnen">
                 <img src="assets/we5-t.webp" alt="" loading="lazy"><img src="assets/we6-t.webp" alt="" loading="lazy">
-                <span class="ex-level-tag">Dachgeschoss ansehen</span>
+                <span class="ex-level-tag" data-i18n="ex.tagdg">Dachgeschoss ansehen</span>
               </div>
               <div class="ex-level" data-goto="2" role="button" tabindex="0" aria-label="1. Obergeschoss öffnen">
                 <img src="assets/we3-t.webp" alt="" loading="lazy"><img src="assets/we4-t.webp" alt="" loading="lazy">
-                <span class="ex-level-tag">1. Obergeschoss ansehen</span>
+                <span class="ex-level-tag" data-i18n="ex.tagog">1. Obergeschoss ansehen</span>
               </div>
               <div class="ex-level" data-goto="0" role="button" tabindex="0" aria-label="Erdgeschoss öffnen">
                 <img src="assets/we1-t.webp" alt="" loading="lazy"><img src="assets/we2-t.webp" alt="" loading="lazy">
-                <span class="ex-level-tag">Erdgeschoss ansehen</span>
+                <span class="ex-level-tag" data-i18n="ex.tageg">Erdgeschoss ansehen</span>
               </div>
             </div>
           </div>
@@ -1220,92 +1242,92 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
       <div class="ex-panel-wrap">
         <div class="ex-panel active">
           <span class="p-no">EG–DG</span>
-          <h3>Das gesamte Haus im Überblick.</h3>
-          <div class="ex-chips"><span class="ex-chip">3 Etagen</span><span class="ex-chip">6 Wohnungen</span><span class="ex-chip">3 Verfügbar</span></div>
+          <h3 data-i18n="ex.hh3">Das gesamte Haus im Überblick.</h3>
+          <div class="ex-chips"><span class="ex-chip" data-i18n="ex.hc1">3 Etagen</span><span class="ex-chip" data-i18n="ex.hc2">6 Wohnungen</span><span class="ex-chip" data-i18n="ex.hc3">3 Verfügbar</span></div>
           <div class="ex-stats">
-            <div><b>6</b><span>Einheiten</span></div>
-            <div><b>72–108 m²</b><span>Wohnfläche</span></div>
-            <div><b>Je Balkon</b><span>Alle WE</span></div>
+            <div><b>6</b><span data-i18n="lbl.units2">Einheiten</span></div>
+            <div><b>72–108 m²</b><span data-i18n="lbl.area">Wohnfläche</span></div>
+            <div><b data-i18n="ex.hb">Je Balkon</b><span data-i18n="ex.hs">Alle WE</span></div>
           </div>
-          <p style="font-size:13.5px;color:var(--grey);">Klicken Sie im Modell auf eine Etage oder blättern Sie unten mit den Pfeilen durch alle sechs Wohnungen.</p>
-          <a class="ex-link" href="#wohnungen">Alle Wohnungen im Detail <i>↓</i></a>
+          <p style="font-size:13.5px;color:var(--grey);" data-i18n="ex.hp">Klicken Sie im Modell auf eine Etage oder blättern Sie unten mit den Pfeilen durch alle sechs Wohnungen.</p>
+          <a class="ex-link" href="#wohnungen" data-i18n="ex.hlink">Alle Wohnungen im Detail <i>↓</i></a>
         </div>
         <div class="ex-panel">
           <span class="p-no">01</span>
-          <h3>Wohnen mit eigenem Garten.</h3>
-          <div class="ex-chips"><span class="ex-chip">EG · links</span><span class="ex-chip">Eigener Garten</span><span class="ex-chip sold">Verkauft</span></div>
+          <h3 data-i18n="we1.t">Wohnen mit eigenem Garten.</h3>
+          <div class="ex-chips"><span class="ex-chip" data-i18n="pos.egl">EG · links</span><span class="ex-chip" data-i18n="chip.garden">Eigener Garten</span><span class="ex-chip sold" data-i18n="badge.sold">Verkauft</span></div>
           <div class="ex-stats">
-            <div><b>107,5 m²</b><span>Wohnfläche</span></div>
-            <div><b>4</b><span>Zimmer</span></div>
-            <div><b>Gäste-WC</b><span>Extra</span></div>
+            <div><b>107,5 m²</b><span data-i18n="lbl.area">Wohnfläche</span></div>
+            <div><b>4</b><span data-i18n="lbl.rooms">Zimmer</span></div>
+            <div><b data-i18n="room.gwc">Gäste-WC</b><span data-i18n="lbl.extra">Extra</span></div>
           </div>
-          <div class="ex-price"><span class="sold-txt">Bereits verkauft</span></div>
-          <a class="ex-link" href="#wohnung-1">Details &amp; Raumaufteilung <i>↓</i></a>
+          <div class="ex-price"><span class="sold-txt" data-i18n="lbl.soldout">Bereits verkauft</span></div>
+          <a class="ex-link" data-i18n="ex.detlink" href="#wohnung-1">Details &amp; Raumaufteilung <i>↓</i></a>
           <div class="ex-dots"><i class="ex-dot active"></i><i class="ex-dot"></i><i class="ex-dot"></i><i class="ex-dot"></i><i class="ex-dot"></i><i class="ex-dot"></i></div>
         </div>
         <div class="ex-panel">
           <span class="p-no">02</span>
-          <h3>Charmante Dreiraumwohnung.</h3>
-          <div class="ex-chips"><span class="ex-chip">EG · rechts</span><span class="ex-chip">Balkon</span><span class="ex-chip">Verfügbar</span></div>
+          <h3 data-i18n="we2.t">Charmante Dreiraumwohnung.</h3>
+          <div class="ex-chips"><span class="ex-chip" data-i18n="pos.egr">EG · rechts</span><span class="ex-chip" data-i18n="chip.balcony">Balkon</span><span class="ex-chip" data-i18n="badge.free">Verfügbar</span></div>
           <div class="ex-stats">
-            <div><b>82,38 m²</b><span>Wohnfläche</span></div>
-            <div><b>3</b><span>Zimmer</span></div>
-            <div><b>Balkon</b><span>Inklusive</span></div>
+            <div><b>82,38 m²</b><span data-i18n="lbl.area">Wohnfläche</span></div>
+            <div><b>3</b><span data-i18n="lbl.rooms">Zimmer</span></div>
+            <div><b data-i18n="chip.balconyb">Balkon</b><span data-i18n="lbl.included">Inklusive</span></div>
           </div>
-          <div class="ex-price"><b>230.000&nbsp;€</b><small>Provisionsfrei</small></div>
-          <a class="ex-link" href="#wohnung-2">Details &amp; Raumaufteilung <i>↓</i></a>
+          <div class="ex-price"><b>230.000&nbsp;€</b><small data-i18n="lbl.nofee">Provisionsfrei</small></div>
+          <a class="ex-link" data-i18n="ex.detlink" href="#wohnung-2">Details &amp; Raumaufteilung <i>↓</i></a>
           <div class="ex-dots"><i class="ex-dot"></i><i class="ex-dot active"></i><i class="ex-dot"></i><i class="ex-dot"></i><i class="ex-dot"></i><i class="ex-dot"></i></div>
         </div>
         <div class="ex-panel">
           <span class="p-no">03</span>
-          <h3>Großzügige Vierraumwohnung.</h3>
-          <div class="ex-chips"><span class="ex-chip">1. OG · links</span><span class="ex-chip">Gäste-WC</span><span class="ex-chip sold">Verkauft</span></div>
+          <h3 data-i18n="we3.t">Großzügige Vierraumwohnung.</h3>
+          <div class="ex-chips"><span class="ex-chip" data-i18n="pos.ogl">1. OG · links</span><span class="ex-chip" data-i18n="room.gwc">Gäste-WC</span><span class="ex-chip sold" data-i18n="badge.sold">Verkauft</span></div>
           <div class="ex-stats">
-            <div><b>107,5 m²</b><span>Wohnfläche</span></div>
-            <div><b>4</b><span>Zimmer</span></div>
-            <div><b>Gäste-WC</b><span>Extra</span></div>
+            <div><b>107,5 m²</b><span data-i18n="lbl.area">Wohnfläche</span></div>
+            <div><b>4</b><span data-i18n="lbl.rooms">Zimmer</span></div>
+            <div><b data-i18n="room.gwc">Gäste-WC</b><span data-i18n="lbl.extra">Extra</span></div>
           </div>
-          <div class="ex-price"><span class="sold-txt">Bereits verkauft</span></div>
-          <a class="ex-link" href="#wohnung-3">Details &amp; Raumaufteilung <i>↓</i></a>
+          <div class="ex-price"><span class="sold-txt" data-i18n="lbl.soldout">Bereits verkauft</span></div>
+          <a class="ex-link" data-i18n="ex.detlink" href="#wohnung-3">Details &amp; Raumaufteilung <i>↓</i></a>
           <div class="ex-dots"><i class="ex-dot"></i><i class="ex-dot"></i><i class="ex-dot active"></i><i class="ex-dot"></i><i class="ex-dot"></i><i class="ex-dot"></i></div>
         </div>
         <div class="ex-panel">
           <span class="p-no">04</span>
-          <h3>Helle Dreiraumwohnung.</h3>
-          <div class="ex-chips"><span class="ex-chip">1. OG · rechts</span><span class="ex-chip">Balkon</span><span class="ex-chip sold">Verkauft</span></div>
+          <h3 data-i18n="we4.t">Helle Dreiraumwohnung.</h3>
+          <div class="ex-chips"><span class="ex-chip" data-i18n="pos.ogr">1. OG · rechts</span><span class="ex-chip" data-i18n="chip.balcony">Balkon</span><span class="ex-chip sold" data-i18n="badge.sold">Verkauft</span></div>
           <div class="ex-stats">
-            <div><b>82,38 m²</b><span>Wohnfläche</span></div>
-            <div><b>3</b><span>Zimmer</span></div>
-            <div><b>Balkon</b><span>Inklusive</span></div>
+            <div><b>82,38 m²</b><span data-i18n="lbl.area">Wohnfläche</span></div>
+            <div><b>3</b><span data-i18n="lbl.rooms">Zimmer</span></div>
+            <div><b data-i18n="chip.balconyb">Balkon</b><span data-i18n="lbl.included">Inklusive</span></div>
           </div>
-          <div class="ex-price"><span class="sold-txt">Bereits verkauft</span></div>
-          <a class="ex-link" href="#wohnung-4">Details &amp; Raumaufteilung <i>↓</i></a>
+          <div class="ex-price"><span class="sold-txt" data-i18n="lbl.soldout">Bereits verkauft</span></div>
+          <a class="ex-link" data-i18n="ex.detlink" href="#wohnung-4">Details &amp; Raumaufteilung <i>↓</i></a>
           <div class="ex-dots"><i class="ex-dot"></i><i class="ex-dot"></i><i class="ex-dot"></i><i class="ex-dot active"></i><i class="ex-dot"></i><i class="ex-dot"></i></div>
         </div>
         <div class="ex-panel">
           <span class="p-no">05</span>
-          <h3>Dachgeschoss mit Panoramablick.</h3>
-          <div class="ex-chips"><span class="ex-chip">DG · links</span><span class="ex-chip">Große Gaube</span><span class="ex-chip">Verfügbar</span></div>
+          <h3 data-i18n="we5.t">Dachgeschoss mit Panoramablick.</h3>
+          <div class="ex-chips"><span class="ex-chip" data-i18n="pos.dgl">DG · links</span><span class="ex-chip" data-i18n="chip.dormer">Große Gaube</span><span class="ex-chip" data-i18n="badge.free">Verfügbar</span></div>
           <div class="ex-stats">
-            <div><b>92,18 m²</b><span>Wohnfläche</span></div>
-            <div><b>4</b><span>Zimmer</span></div>
-            <div><b>Panorama</b><span>Stadtblick</span></div>
+            <div><b>92,18 m²</b><span data-i18n="lbl.area">Wohnfläche</span></div>
+            <div><b>4</b><span data-i18n="lbl.rooms">Zimmer</span></div>
+            <div><b data-i18n="lbl.panob">Panorama</b><span data-i18n="lbl.cityview">Stadtblick</span></div>
           </div>
-          <div class="ex-price"><b>240.000&nbsp;€</b><small>Provisionsfrei</small></div>
-          <a class="ex-link" href="#wohnung-5">Details &amp; Raumaufteilung <i>↓</i></a>
+          <div class="ex-price"><b>240.000&nbsp;€</b><small data-i18n="lbl.nofee">Provisionsfrei</small></div>
+          <a class="ex-link" data-i18n="ex.detlink" href="#wohnung-5">Details &amp; Raumaufteilung <i>↓</i></a>
           <div class="ex-dots"><i class="ex-dot"></i><i class="ex-dot"></i><i class="ex-dot"></i><i class="ex-dot"></i><i class="ex-dot active"></i><i class="ex-dot"></i></div>
         </div>
         <div class="ex-panel">
           <span class="p-no">06</span>
-          <h3>Rarität mit Weitblick.</h3>
-          <div class="ex-chips"><span class="ex-chip">DG · rechts</span><span class="ex-chip">Große Gaube</span><span class="ex-chip">Verfügbar</span></div>
+          <h3 data-i18n="we6.t">Rarität mit Weitblick.</h3>
+          <div class="ex-chips"><span class="ex-chip" data-i18n="pos.dgr">DG · rechts</span><span class="ex-chip" data-i18n="chip.dormer">Große Gaube</span><span class="ex-chip" data-i18n="badge.free">Verfügbar</span></div>
           <div class="ex-stats">
-            <div><b>72,29 m²</b><span>Wohnfläche</span></div>
-            <div><b>3</b><span>Zimmer</span></div>
-            <div><b>Panorama</b><span>Stadtblick</span></div>
+            <div><b>72,29 m²</b><span data-i18n="lbl.area">Wohnfläche</span></div>
+            <div><b>3</b><span data-i18n="lbl.rooms">Zimmer</span></div>
+            <div><b data-i18n="lbl.panob">Panorama</b><span data-i18n="lbl.cityview">Stadtblick</span></div>
           </div>
-          <div class="ex-price"><b>199.500&nbsp;€</b><small>Provisionsfrei</small></div>
-          <a class="ex-link" href="#wohnung-6">Details &amp; Raumaufteilung <i>↓</i></a>
+          <div class="ex-price"><b>199.500&nbsp;€</b><small data-i18n="lbl.nofee">Provisionsfrei</small></div>
+          <a class="ex-link" data-i18n="ex.detlink" href="#wohnung-6">Details &amp; Raumaufteilung <i>↓</i></a>
           <div class="ex-dots"><i class="ex-dot"></i><i class="ex-dot"></i><i class="ex-dot"></i><i class="ex-dot"></i><i class="ex-dot"></i><i class="ex-dot active"></i></div>
         </div>
       </div>
@@ -1313,7 +1335,7 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
     <div class="ex-ctrl">
       <button class="ex-arrow" id="exPrev" type="button" aria-label="Vorherige Ansicht">←</button>
       <div class="ex-tabs" role="tablist">
-        <button class="ex-tab active" data-i="-1" type="button">Haus</button>
+        <button class="ex-tab active" data-i="-1" type="button" data-i18n="ex.tabhouse">Haus</button>
         <button class="ex-tab sold-tab" data-i="0" type="button">01</button>
         <button class="ex-tab" data-i="1" type="button">02</button>
         <button class="ex-tab sold-tab" data-i="2" type="button">03</button>
@@ -1331,198 +1353,198 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
   <div class="wrap">
     <div class="wo-head">
       <div>
-        <div class="eyebrow" data-reveal>Die Wohnungen</div>
-        <h2 data-reveal>Sechs Einheiten. <em>Sechs Charaktere.</em></h2>
+        <div class="eyebrow" data-reveal data-i18n="wo.eyebrow">Die Wohnungen</div>
+        <h2 data-reveal data-i18n="wo.h2">Sechs Einheiten. <em>Sechs Charaktere.</em></h2>
       </div>
-      <p class="lead" data-reveal>Vom Erdgeschoss mit eigenem Garten bis zur Dachgeschosswohnung mit Panoramablick – jede Einheit wurde durchdacht geplant. Der Vertrieb hat bereits begonnen.</p>
+      <p class="lead" data-reveal data-i18n="wo.lead">Vom Erdgeschoss mit eigenem Garten bis zur Dachgeschosswohnung mit Panoramablick – jede Einheit wurde durchdacht geplant. Der Vertrieb hat bereits begonnen.</p>
     </div>
 
     <div class="wo-grid">
 
-      <article class="card sold" data-reveal id="wohnung-1" style="scroll-margin-top:90px;"><div class="card-img"><span class="badge">Verkauft</span><img src="assets/we1.jpg" alt="Grundriss Wohnung 1 mit eigenem Garten" loading="lazy"></div>
+      <article class="card sold" data-reveal id="wohnung-1" style="scroll-margin-top:90px;"><div class="card-img"><span class="badge" data-i18n="badge.sold">Verkauft</span><img src="assets/we1.jpg" alt="Grundriss Wohnung 1 mit eigenem Garten" loading="lazy"></div>
         <div class="card-body">
-          <div class="card-top"><span class="no">Wohnung 01</span><span class="floor">EG · links</span></div>
-          <h3>Wohnen mit eigenem Garten.</h3>
+          <div class="card-top"><span class="no" data-i18n="we.no1">Wohnung 01</span><span class="floor" data-i18n="pos.egl">EG · links</span></div>
+          <h3 data-i18n="we1.t">Wohnen mit eigenem Garten.</h3>
           <div class="card-meta">
-            <div><b>107,5 m²</b><span>Wohnfläche</span></div>
-            <div><b>4</b><span>Zimmer</span></div>
-            <div><b>Garten</b><span>Sondernutzung</span></div>
+            <div><b>107,5 m²</b><span data-i18n="lbl.area">Wohnfläche</span></div>
+            <div><b>4</b><span data-i18n="lbl.rooms">Zimmer</span></div>
+            <div><b data-i18n="chip.gardenb">Garten</b><span data-i18n="lbl.exclusive">Sondernutzung</span></div>
           </div>
-          <p class="card-desc">Die exklusivste Wohnung im Haus – als einzige mit Sondernutzungsrecht am Grundstück, eigenem Gartenzugang und Gäste-WC.</p>
-          <div class="card-price"><span class="sold-txt">Bereits verkauft</span></div>
+          <p class="card-desc" data-i18n="we1.d">Die exklusivste Wohnung im Haus – als einzige mit Sondernutzungsrecht am Grundstück, eigenem Gartenzugang und Gäste-WC.</p>
+          <div class="card-price"><span class="sold-txt" data-i18n="lbl.soldout">Bereits verkauft</span></div>
           <details>
-            <summary>Raumaufteilung</summary>
+            <summary data-i18n="lbl.layout">Raumaufteilung</summary>
             <table>
-              <tr><td>Flur</td><td>9,50 m²</td></tr>
-              <tr><td>Küche</td><td>13,59 m²</td></tr>
-              <tr><td>Gäste-WC</td><td>1,96 m²</td></tr>
-              <tr><td>Bad</td><td>7,78 m²</td></tr>
-              <tr><td>Kind</td><td>15,19 m²</td></tr>
-              <tr><td>Wohnen</td><td>18,63 m²</td></tr>
-              <tr><td>Büro / Gast / Kind</td><td>16,10 m²</td></tr>
-              <tr><td>Schlafen</td><td>19,55 m²</td></tr>
-              <tr><td>Balkon (50 % von 10,40 m²)</td><td>5,20 m²</td></tr>
-              <tr><td>Gesamt</td><td>107,50 m²</td></tr>
+              <tr><td data-i18n="room.flur">Flur</td><td>9,50 m²</td></tr>
+              <tr><td data-i18n="room.kueche">Küche</td><td>13,59 m²</td></tr>
+              <tr><td data-i18n="room.gwc">Gäste-WC</td><td>1,96 m²</td></tr>
+              <tr><td data-i18n="room.bad">Bad</td><td>7,78 m²</td></tr>
+              <tr><td data-i18n="room.kind">Kind</td><td>15,19 m²</td></tr>
+              <tr><td data-i18n="room.wohnen">Wohnen</td><td>18,63 m²</td></tr>
+              <tr><td data-i18n="room.buero">Büro / Gast / Kind</td><td>16,10 m²</td></tr>
+              <tr><td data-i18n="room.schlafen">Schlafen</td><td>19,55 m²</td></tr>
+              <tr><td data-i18n="room.balkon">Balkon (50 % von 10,40 m²)</td><td>5,20 m²</td></tr>
+              <tr><td data-i18n="room.gesamt">Gesamt</td><td>107,50 m²</td></tr>
             </table>
           </details>
         </div>
       </article>
 
-      <article class="card" data-reveal id="wohnung-2" style="scroll-margin-top:90px;"><div class="card-img"><span class="badge frei">Verfügbar</span><img src="assets/we2.jpg" alt="Grundriss Wohnung 2" loading="lazy"></div>
+      <article class="card" data-reveal id="wohnung-2" style="scroll-margin-top:90px;"><div class="card-img"><span class="badge frei" data-i18n="badge.free">Verfügbar</span><img src="assets/we2.jpg" alt="Grundriss Wohnung 2" loading="lazy"></div>
         <div class="card-body">
-          <div class="card-top"><span class="no">Wohnung 02</span><span class="floor">EG · rechts</span></div>
-          <h3>Charmant ankommen mit Balkon.</h3>
+          <div class="card-top"><span class="no" data-i18n="we.no2">Wohnung 02</span><span class="floor" data-i18n="pos.egr">EG · rechts</span></div>
+          <h3 data-i18n="wec2.t">Charmant ankommen mit Balkon.</h3>
           <div class="card-meta">
-            <div><b>82,38 m²</b><span>Wohnfläche</span></div>
-            <div><b>3</b><span>Zimmer</span></div>
-            <div><b>Balkon</b><span>Inklusive</span></div>
+            <div><b>82,38 m²</b><span data-i18n="lbl.area">Wohnfläche</span></div>
+            <div><b>3</b><span data-i18n="lbl.rooms">Zimmer</span></div>
+            <div><b data-i18n="chip.balconyb">Balkon</b><span data-i18n="lbl.included">Inklusive</span></div>
           </div>
-          <p class="card-desc">Durchdachte Aufteilung für Paare und kleine Familien: heller Wohnbereich mit Balkonzugang, Schlafzimmer und flexibles drittes Zimmer.</p>
-          <div class="card-price"><b>230.000&nbsp;€</b><small>Provisionsfrei</small></div>
+          <p class="card-desc" data-i18n="we2.d">Durchdachte Aufteilung für Paare und kleine Familien: heller Wohnbereich mit Balkonzugang, Schlafzimmer und flexibles drittes Zimmer.</p>
+          <div class="card-price"><b>230.000&nbsp;€</b><small data-i18n="lbl.nofee">Provisionsfrei</small></div>
           <details>
-            <summary>Raumaufteilung</summary>
+            <summary data-i18n="lbl.layout">Raumaufteilung</summary>
             <table>
-              <tr><td>Flur</td><td>6,32 m²</td></tr>
-              <tr><td>Küche</td><td>10,60 m²</td></tr>
-              <tr><td>Bad</td><td>7,17 m²</td></tr>
-              <tr><td>Kind</td><td>13,68 m²</td></tr>
-              <tr><td>Wohnen</td><td>20,51 m²</td></tr>
-              <tr><td>Schlafen</td><td>18,90 m²</td></tr>
-              <tr><td>Balkon (50 % von 10,40 m²)</td><td>5,20 m²</td></tr>
-              <tr><td>Gesamt</td><td>82,38 m²</td></tr>
+              <tr><td data-i18n="room.flur">Flur</td><td>6,32 m²</td></tr>
+              <tr><td data-i18n="room.kueche">Küche</td><td>10,60 m²</td></tr>
+              <tr><td data-i18n="room.bad">Bad</td><td>7,17 m²</td></tr>
+              <tr><td data-i18n="room.kind">Kind</td><td>13,68 m²</td></tr>
+              <tr><td data-i18n="room.wohnen">Wohnen</td><td>20,51 m²</td></tr>
+              <tr><td data-i18n="room.schlafen">Schlafen</td><td>18,90 m²</td></tr>
+              <tr><td data-i18n="room.balkon">Balkon (50 % von 10,40 m²)</td><td>5,20 m²</td></tr>
+              <tr><td data-i18n="room.gesamt">Gesamt</td><td>82,38 m²</td></tr>
             </table>
           </details>
         </div>
       </article>
 
-      <article class="card sold" data-reveal id="wohnung-3" style="scroll-margin-top:90px;"><div class="card-img"><span class="badge">Verkauft</span><img src="assets/we3.jpg" alt="Grundriss Wohnung 3" loading="lazy"></div>
+      <article class="card sold" data-reveal id="wohnung-3" style="scroll-margin-top:90px;"><div class="card-img"><span class="badge" data-i18n="badge.sold">Verkauft</span><img src="assets/we3.jpg" alt="Grundriss Wohnung 3" loading="lazy"></div>
         <div class="card-body">
-          <div class="card-top"><span class="no">Wohnung 03</span><span class="floor">1. OG · links</span></div>
-          <h3>Großzügig, stilvoll, vielseitig.</h3>
+          <div class="card-top"><span class="no" data-i18n="we.no3">Wohnung 03</span><span class="floor" data-i18n="pos.ogl">1. OG · links</span></div>
+          <h3 data-i18n="wec3.t">Großzügig, stilvoll, vielseitig.</h3>
           <div class="card-meta">
-            <div><b>107,5 m²</b><span>Wohnfläche</span></div>
-            <div><b>4</b><span>Zimmer</span></div>
-            <div><b>Gäste-WC</b><span>Separat</span></div>
+            <div><b>107,5 m²</b><span data-i18n="lbl.area">Wohnfläche</span></div>
+            <div><b>4</b><span data-i18n="lbl.rooms">Zimmer</span></div>
+            <div><b data-i18n="room.gwc">Gäste-WC</b><span data-i18n="lbl.separate">Separat</span></div>
           </div>
-          <p class="card-desc">Vier großzügig geschnittene Zimmer, helle Grundrisse und ein separates Gäste-WC – ein echtes Highlight im ersten Obergeschoss.</p>
-          <div class="card-price"><span class="sold-txt">Bereits verkauft</span></div>
+          <p class="card-desc" data-i18n="we3.d">Vier großzügig geschnittene Zimmer, helle Grundrisse und ein separates Gäste-WC – ein echtes Highlight im ersten Obergeschoss.</p>
+          <div class="card-price"><span class="sold-txt" data-i18n="lbl.soldout">Bereits verkauft</span></div>
           <details>
-            <summary>Raumaufteilung</summary>
+            <summary data-i18n="lbl.layout">Raumaufteilung</summary>
             <table>
-              <tr><td>Flur</td><td>9,50 m²</td></tr>
-              <tr><td>Küche</td><td>13,59 m²</td></tr>
-              <tr><td>Gäste-WC</td><td>1,96 m²</td></tr>
-              <tr><td>Bad</td><td>7,78 m²</td></tr>
-              <tr><td>Kind</td><td>15,19 m²</td></tr>
-              <tr><td>Wohnen</td><td>18,63 m²</td></tr>
-              <tr><td>Büro / Gast / Kind</td><td>16,10 m²</td></tr>
-              <tr><td>Schlafen</td><td>19,55 m²</td></tr>
-              <tr><td>Balkon (50 % von 10,40 m²)</td><td>5,20 m²</td></tr>
-              <tr><td>Gesamt</td><td>107,50 m²</td></tr>
+              <tr><td data-i18n="room.flur">Flur</td><td>9,50 m²</td></tr>
+              <tr><td data-i18n="room.kueche">Küche</td><td>13,59 m²</td></tr>
+              <tr><td data-i18n="room.gwc">Gäste-WC</td><td>1,96 m²</td></tr>
+              <tr><td data-i18n="room.bad">Bad</td><td>7,78 m²</td></tr>
+              <tr><td data-i18n="room.kind">Kind</td><td>15,19 m²</td></tr>
+              <tr><td data-i18n="room.wohnen">Wohnen</td><td>18,63 m²</td></tr>
+              <tr><td data-i18n="room.buero">Büro / Gast / Kind</td><td>16,10 m²</td></tr>
+              <tr><td data-i18n="room.schlafen">Schlafen</td><td>19,55 m²</td></tr>
+              <tr><td data-i18n="room.balkon">Balkon (50 % von 10,40 m²)</td><td>5,20 m²</td></tr>
+              <tr><td data-i18n="room.gesamt">Gesamt</td><td>107,50 m²</td></tr>
             </table>
           </details>
         </div>
       </article>
 
-      <article class="card sold" data-reveal id="wohnung-4" style="scroll-margin-top:90px;"><div class="card-img"><span class="badge">Verkauft</span><img src="assets/we4.jpg" alt="Grundriss Wohnung 4" loading="lazy"></div>
+      <article class="card sold" data-reveal id="wohnung-4" style="scroll-margin-top:90px;"><div class="card-img"><span class="badge" data-i18n="badge.sold">Verkauft</span><img src="assets/we4.jpg" alt="Grundriss Wohnung 4" loading="lazy"></div>
         <div class="card-body">
-          <div class="card-top"><span class="no">Wohnung 04</span><span class="floor">1. OG · rechts</span></div>
-          <h3>Hell und einladend.</h3>
+          <div class="card-top"><span class="no" data-i18n="we.no4">Wohnung 04</span><span class="floor" data-i18n="pos.ogr">1. OG · rechts</span></div>
+          <h3 data-i18n="wec4.t">Hell und einladend.</h3>
           <div class="card-meta">
-            <div><b>82,38 m²</b><span>Wohnfläche</span></div>
-            <div><b>3</b><span>Zimmer</span></div>
-            <div><b>Balkon</b><span>Inklusive</span></div>
+            <div><b>82,38 m²</b><span data-i18n="lbl.area">Wohnfläche</span></div>
+            <div><b>3</b><span data-i18n="lbl.rooms">Zimmer</span></div>
+            <div><b data-i18n="chip.balconyb">Balkon</b><span data-i18n="lbl.included">Inklusive</span></div>
           </div>
-          <p class="card-desc">Klarer Grundriss mit wohnlichem Ambiente: heller Wohnbereich mit Balkon, komfortables Schlafzimmer und flexibles drittes Zimmer.</p>
-          <div class="card-price"><span class="sold-txt">Bereits verkauft</span></div>
+          <p class="card-desc" data-i18n="we4.d">Klarer Grundriss mit wohnlichem Ambiente: heller Wohnbereich mit Balkon, komfortables Schlafzimmer und flexibles drittes Zimmer.</p>
+          <div class="card-price"><span class="sold-txt" data-i18n="lbl.soldout">Bereits verkauft</span></div>
           <details>
-            <summary>Raumaufteilung</summary>
+            <summary data-i18n="lbl.layout">Raumaufteilung</summary>
             <table>
-              <tr><td>Flur</td><td>6,32 m²</td></tr>
-              <tr><td>Küche</td><td>10,60 m²</td></tr>
-              <tr><td>Bad</td><td>7,17 m²</td></tr>
-              <tr><td>Kind</td><td>13,68 m²</td></tr>
-              <tr><td>Wohnen</td><td>20,51 m²</td></tr>
-              <tr><td>Schlafen</td><td>18,90 m²</td></tr>
-              <tr><td>Balkon (50 % von 10,40 m²)</td><td>5,20 m²</td></tr>
-              <tr><td>Gesamt</td><td>82,38 m²</td></tr>
+              <tr><td data-i18n="room.flur">Flur</td><td>6,32 m²</td></tr>
+              <tr><td data-i18n="room.kueche">Küche</td><td>10,60 m²</td></tr>
+              <tr><td data-i18n="room.bad">Bad</td><td>7,17 m²</td></tr>
+              <tr><td data-i18n="room.kind">Kind</td><td>13,68 m²</td></tr>
+              <tr><td data-i18n="room.wohnen">Wohnen</td><td>20,51 m²</td></tr>
+              <tr><td data-i18n="room.schlafen">Schlafen</td><td>18,90 m²</td></tr>
+              <tr><td data-i18n="room.balkon">Balkon (50 % von 10,40 m²)</td><td>5,20 m²</td></tr>
+              <tr><td data-i18n="room.gesamt">Gesamt</td><td>82,38 m²</td></tr>
             </table>
           </details>
         </div>
       </article>
 
-      <article class="card" data-reveal id="wohnung-5" style="scroll-margin-top:90px;"><div class="card-img"><span class="badge frei">Verfügbar</span><img src="assets/we5.jpg" alt="Grundriss Wohnung 5 im Dachgeschoss" loading="lazy"></div>
+      <article class="card" data-reveal id="wohnung-5" style="scroll-margin-top:90px;"><div class="card-img"><span class="badge frei" data-i18n="badge.free">Verfügbar</span><img src="assets/we5.jpg" alt="Grundriss Wohnung 5 im Dachgeschoss" loading="lazy"></div>
         <div class="card-body">
-          <div class="card-top"><span class="no">Wohnung 05</span><span class="floor">DG · links</span></div>
-          <h3>Dachgeschoss mit Panoramablick.</h3>
+          <div class="card-top"><span class="no" data-i18n="we.no5">Wohnung 05</span><span class="floor" data-i18n="pos.dgl">DG · links</span></div>
+          <h3 data-i18n="we5.t">Dachgeschoss mit Panoramablick.</h3>
           <div class="card-meta">
-            <div><b>92,18 m²</b><span>Wohnfläche</span></div>
-            <div><b>4</b><span>Zimmer</span></div>
-            <div><b>Gaube</b><span>Großzügig</span></div>
+            <div><b>92,18 m²</b><span data-i18n="lbl.area">Wohnfläche</span></div>
+            <div><b>4</b><span data-i18n="lbl.rooms">Zimmer</span></div>
+            <div><b data-i18n="chip.dormerb">Gaube</b><span data-i18n="lbl.generous">Großzügig</span></div>
           </div>
-          <p class="card-desc">Großzügige Dachgaube, vier gut geschnittene Zimmer und ein herrlicher Ausblick über die gesamte Stadt – eine besonders exklusive Gelegenheit.</p>
-          <div class="card-price"><b>240.000&nbsp;€</b><small>Provisionsfrei</small></div>
+          <p class="card-desc" data-i18n="we5.d">Großzügige Dachgaube, vier gut geschnittene Zimmer und ein herrlicher Ausblick über die gesamte Stadt – eine besonders exklusive Gelegenheit.</p>
+          <div class="card-price"><b>240.000&nbsp;€</b><small data-i18n="lbl.nofee">Provisionsfrei</small></div>
           <details>
-            <summary>Raumaufteilung</summary>
+            <summary data-i18n="lbl.layout">Raumaufteilung</summary>
             <table>
-              <tr><td>Flur</td><td>9,69 m²</td></tr>
-              <tr><td>Küche</td><td>11,01 m²</td></tr>
-              <tr><td>Bad</td><td>5,69 m²</td></tr>
-              <tr><td>Kind</td><td>11,61 m²</td></tr>
-              <tr><td>Wohnen</td><td>17,24 m²</td></tr>
-              <tr><td>Kind</td><td>16,17 m²</td></tr>
-              <tr><td>Schlafen</td><td>15,57 m²</td></tr>
-              <tr><td>Balkon (50 % von 10,40 m²)</td><td>5,20 m²</td></tr>
-              <tr><td>Gesamt</td><td>92,18 m²</td></tr>
+              <tr><td data-i18n="room.flur">Flur</td><td>9,69 m²</td></tr>
+              <tr><td data-i18n="room.kueche">Küche</td><td>11,01 m²</td></tr>
+              <tr><td data-i18n="room.bad">Bad</td><td>5,69 m²</td></tr>
+              <tr><td data-i18n="room.kind">Kind</td><td>11,61 m²</td></tr>
+              <tr><td data-i18n="room.wohnen">Wohnen</td><td>17,24 m²</td></tr>
+              <tr><td data-i18n="room.kind">Kind</td><td>16,17 m²</td></tr>
+              <tr><td data-i18n="room.schlafen">Schlafen</td><td>15,57 m²</td></tr>
+              <tr><td data-i18n="room.balkon">Balkon (50 % von 10,40 m²)</td><td>5,20 m²</td></tr>
+              <tr><td data-i18n="room.gesamt">Gesamt</td><td>92,18 m²</td></tr>
             </table>
           </details>
         </div>
       </article>
 
-      <article class="card" data-reveal id="wohnung-6" style="scroll-margin-top:90px;"><div class="card-img"><span class="badge frei">Verfügbar</span><img src="assets/we6.jpg" alt="Grundriss Wohnung 6 im Dachgeschoss" loading="lazy"></div>
+      <article class="card" data-reveal id="wohnung-6" style="scroll-margin-top:90px;"><div class="card-img"><span class="badge frei" data-i18n="badge.free">Verfügbar</span><img src="assets/we6.jpg" alt="Grundriss Wohnung 6 im Dachgeschoss" loading="lazy"></div>
         <div class="card-body">
-          <div class="card-top"><span class="no">Wohnung 06</span><span class="floor">DG · rechts</span></div>
-          <h3>Erstklassig mit Weitblick.</h3>
+          <div class="card-top"><span class="no" data-i18n="we.no6">Wohnung 06</span><span class="floor" data-i18n="pos.dgr">DG · rechts</span></div>
+          <h3 data-i18n="wec6.t">Erstklassig mit Weitblick.</h3>
           <div class="card-meta">
-            <div><b>72,29 m²</b><span>Wohnfläche</span></div>
-            <div><b>3</b><span>Zimmer</span></div>
-            <div><b>Gaube</b><span>Panoramablick</span></div>
+            <div><b>72,29 m²</b><span data-i18n="lbl.area">Wohnfläche</span></div>
+            <div><b>3</b><span data-i18n="lbl.rooms">Zimmer</span></div>
+            <div><b data-i18n="chip.dormerb">Gaube</b><span data-i18n="lbl.pano">Panoramablick</span></div>
           </div>
-          <p class="card-desc">Drei harmonisch geschnittene Räume, große Dachgaube und ein beeindruckender Panoramablick über die Stadt – eine ganz besondere Rarität.</p>
-          <div class="card-price"><b>199.500&nbsp;€</b><small>Provisionsfrei</small></div>
+          <p class="card-desc" data-i18n="we6.d">Drei harmonisch geschnittene Räume, große Dachgaube und ein beeindruckender Panoramablick über die Stadt – eine ganz besondere Rarität.</p>
+          <div class="card-price"><b>199.500&nbsp;€</b><small data-i18n="lbl.nofee">Provisionsfrei</small></div>
           <details>
-            <summary>Raumaufteilung</summary>
+            <summary data-i18n="lbl.layout">Raumaufteilung</summary>
             <table>
-              <tr><td>Flur</td><td>7,11 m²</td></tr>
-              <tr><td>Küche</td><td>7,59 m²</td></tr>
-              <tr><td>Bad</td><td>5,66 m²</td></tr>
-              <tr><td>Kind</td><td>9,73 m²</td></tr>
-              <tr><td>Wohnen</td><td>18,68 m²</td></tr>
-              <tr><td>Schlafen</td><td>18,32 m²</td></tr>
-              <tr><td>Balkon (50 % von 10,40 m²)</td><td>5,20 m²</td></tr>
-              <tr><td>Gesamt</td><td>72,29 m²</td></tr>
+              <tr><td data-i18n="room.flur">Flur</td><td>7,11 m²</td></tr>
+              <tr><td data-i18n="room.kueche">Küche</td><td>7,59 m²</td></tr>
+              <tr><td data-i18n="room.bad">Bad</td><td>5,66 m²</td></tr>
+              <tr><td data-i18n="room.kind">Kind</td><td>9,73 m²</td></tr>
+              <tr><td data-i18n="room.wohnen">Wohnen</td><td>18,68 m²</td></tr>
+              <tr><td data-i18n="room.schlafen">Schlafen</td><td>18,32 m²</td></tr>
+              <tr><td data-i18n="room.balkon">Balkon (50 % von 10,40 m²)</td><td>5,20 m²</td></tr>
+              <tr><td data-i18n="room.gesamt">Gesamt</td><td>72,29 m²</td></tr>
             </table>
           </details>
         </div>
       </article>
 
     </div>
-    <p class="wo-note" data-reveal="fade">Alle Angaben ohne Gewähr. Es fallen keine Maklerkosten an.</p>
+    <p class="wo-note" data-reveal="fade" data-i18n="wo.note">Alle Angaben ohne Gewähr. Es fallen keine Maklerkosten an.</p>
 
     <div class="cmp-wrap" data-reveal="fade">
-      <div class="eyebrow">Alle Wohnungen im Vergleich</div>
+      <div class="eyebrow" data-i18n="cmp.eyebrow">Alle Wohnungen im Vergleich</div>
       <div class="cmp-scroll">
         <table class="cmp">
           <thead>
-            <tr><th>Wohnung</th><th>Etage</th><th>Zimmer</th><th>Wohnfläche</th><th>Besonderheit</th><th>Kellerabteil</th><th>Kaufpreis</th><th>Status</th></tr>
+            <tr><th data-i18n="cmp.h1">Wohnung</th><th data-i18n="cmp.h2">Etage</th><th data-i18n="lbl.rooms">Zimmer</th><th data-i18n="lbl.area">Wohnfläche</th><th data-i18n="cmp.h5">Besonderheit</th><th data-i18n="cmp.h6">Kellerabteil</th><th data-i18n="cmp.h7">Kaufpreis</th><th data-i18n="cmp.h8">Status</th></tr>
           </thead>
           <tbody>
-            <tr><td class="we">WE 01</td><td>EG links</td><td>4</td><td>107,50 m²</td><td>Eigener Garten, Gäste-WC</td><td>17,51 m²</td><td class="price">—</td><td><span class="st sold">Verkauft</span></td></tr>
-            <tr><td class="we">WE 02</td><td>EG rechts</td><td>3</td><td>82,38 m²</td><td>Balkon</td><td>14,42 m²</td><td class="price">230.000 €</td><td><span class="st frei">Verfügbar</span></td></tr>
-            <tr><td class="we">WE 03</td><td>1. OG links</td><td>4</td><td>107,50 m²</td><td>Gäste-WC</td><td>19,40 m²</td><td class="price">—</td><td><span class="st sold">Verkauft</span></td></tr>
-            <tr><td class="we">WE 04</td><td>1. OG rechts</td><td>3</td><td>82,38 m²</td><td>Balkon</td><td>15,18 m²</td><td class="price">—</td><td><span class="st sold">Verkauft</span></td></tr>
-            <tr><td class="we">WE 05</td><td>DG links</td><td>4</td><td>92,18 m²</td><td>Große Gaube, Panoramablick</td><td>15,23 m²</td><td class="price">240.000 €</td><td><span class="st frei">Verfügbar</span></td></tr>
-            <tr><td class="we">WE 06</td><td>DG rechts</td><td>3</td><td>72,29 m²</td><td>Große Gaube, Panoramablick</td><td>14,20 m²</td><td class="price">199.500 €</td><td><span class="st frei">Verfügbar</span></td></tr>
+            <tr><td class="we">WE 01</td><td data-i18n="cmpv.egl">EG links</td><td>4</td><td>107,50 m²</td><td data-i18n="cmpv.b1">Eigener Garten, Gäste-WC</td><td>17,51 m²</td><td class="price">—</td><td><span class="st sold" data-i18n="badge.sold">Verkauft</span></td></tr>
+            <tr><td class="we">WE 02</td><td data-i18n="cmpv.egr">EG rechts</td><td>3</td><td>82,38 m²</td><td data-i18n="chip.balcony">Balkon</td><td>14,42 m²</td><td class="price">230.000 €</td><td><span class="st frei" data-i18n="badge.free">Verfügbar</span></td></tr>
+            <tr><td class="we">WE 03</td><td data-i18n="cmpv.ogl">1. OG links</td><td>4</td><td>107,50 m²</td><td data-i18n="room.gwc">Gäste-WC</td><td>19,40 m²</td><td class="price">—</td><td><span class="st sold" data-i18n="badge.sold">Verkauft</span></td></tr>
+            <tr><td class="we">WE 04</td><td data-i18n="cmpv.ogr">1. OG rechts</td><td>3</td><td>82,38 m²</td><td data-i18n="chip.balcony">Balkon</td><td>15,18 m²</td><td class="price">—</td><td><span class="st sold" data-i18n="badge.sold">Verkauft</span></td></tr>
+            <tr><td class="we">WE 05</td><td data-i18n="cmpv.dgl">DG links</td><td>4</td><td>92,18 m²</td><td data-i18n="cmpv.b5">Große Gaube, Panoramablick</td><td>15,23 m²</td><td class="price">240.000 €</td><td><span class="st frei" data-i18n="badge.free">Verfügbar</span></td></tr>
+            <tr><td class="we">WE 06</td><td data-i18n="cmpv.dgr">DG rechts</td><td>3</td><td>72,29 m²</td><td data-i18n="cmpv.b5">Große Gaube, Panoramablick</td><td>14,20 m²</td><td class="price">199.500 €</td><td><span class="st frei" data-i18n="badge.free">Verfügbar</span></td></tr>
           </tbody>
         </table>
       </div>
@@ -1535,14 +1557,14 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
   <div class="wrap">
     <div class="keller-grid">
       <div data-reveal>
-        <div class="eyebrow">Keller &amp; Nebenflächen</div>
-        <h2>Zu jeder Wohnung ihr <em>eigenes Kellerabteil</em>.</h2>
-        <p class="lead" style="margin-top:22px;">Jede Wohnung erhält ein Sondernutzungsrecht an einem eigenen Kellerabteil. Dazu kommen gemeinschaftliche Flächen für Technik, Müll und Fahrräder.</p>
+        <div class="eyebrow" data-i18n="ke.eyebrow">Keller &amp; Nebenflächen</div>
+        <h2 data-i18n="ke.h2">Zu jeder Wohnung ihr <em>eigenes Kellerabteil</em>.</h2>
+        <p class="lead" style="margin-top:22px;" data-i18n="ke.lead">Jede Wohnung erhält ein Sondernutzungsrecht an einem eigenen Kellerabteil. Dazu kommen gemeinschaftliche Flächen für Technik, Müll und Fahrräder.</p>
         <ul class="keller-list">
-          <li><span>Kellerabteile WE 1–6</span><b>14,20 – 19,40 m²</b></li>
-          <li><span>Müll- und Fahrradraum</span><b>18,70 m²</b></li>
-          <li><span>Technik</span><b>16,92 m²</b></li>
-          <li><span>Gesamtfläche Untergeschoss</span><b>180,82 m²</b></li>
+          <li><span data-i18n="ke.l1">Kellerabteile WE 1–6</span><b>14,20 – 19,40 m²</b></li>
+          <li><span data-i18n="ke.l2">Müll- und Fahrradraum</span><b>18,70 m²</b></li>
+          <li><span data-i18n="ke.l3">Technik</span><b>16,92 m²</b></li>
+          <li><span data-i18n="ke.l4">Gesamtfläche Untergeschoss</span><b>180,82 m²</b></li>
         </ul>
       </div>
       <div class="pframe" data-reveal><img src="assets/keller.jpg" alt="3D-Grundriss des Kellergeschosses" loading="lazy"></div>
@@ -1554,30 +1576,30 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
 <section id="prozess">
   <div class="wrap">
     <div class="proz-head">
-      <div class="eyebrow" data-reveal>Der Kaufprozess</div>
-      <h2 data-reveal>Der strukturierte Weg <em>zu Ihrer Immobilie</em>.</h2>
-      <p class="lead" data-reveal>Sicher, transparent und unkompliziert – von der ersten Beratung bis zur Schlüsselübergabe.</p>
+      <div class="eyebrow" data-reveal data-i18n="pr.eyebrow">Der Kaufprozess</div>
+      <h2 data-reveal data-i18n="pr.h2">Der strukturierte Weg <em>zu Ihrer Immobilie</em>.</h2>
+      <p class="lead" data-reveal data-i18n="pr.lead">Sicher, transparent und unkompliziert – von der ersten Beratung bis zur Schlüsselübergabe.</p>
     </div>
     <div class="steps">
       <div class="step" data-reveal>
         <span class="big-no">1</span>
-        <h3>Beratung &amp; Finanzierung</h3>
-        <p>Wir begleiten Sie persönlich und unterstützen auf Wunsch bei der Suche nach einer passenden Finanzierung – gemeinsam mit lokalen Banken und seriösen Finanzierern.</p>
+        <h3 data-i18n="pr.s1h">Beratung &amp; Finanzierung</h3>
+        <p data-i18n="pr.s1p">Wir begleiten Sie persönlich und unterstützen auf Wunsch bei der Suche nach einer passenden Finanzierung – gemeinsam mit lokalen Banken und seriösen Finanzierern.</p>
       </div>
       <div class="step" data-reveal>
         <span class="big-no">2</span>
-        <h3>Notarielle Beurkundung</h3>
-        <p>Der Kaufvertrag wird selbstverständlich notariell beurkundet und bietet Ihnen damit höchste Rechtssicherheit.</p>
+        <h3 data-i18n="pr.s2h">Notarielle Beurkundung</h3>
+        <p data-i18n="pr.s2p">Der Kaufvertrag wird selbstverständlich notariell beurkundet und bietet Ihnen damit höchste Rechtssicherheit.</p>
       </div>
       <div class="step" data-reveal>
         <span class="big-no">3</span>
-        <h3>Übergabe &amp; Zahlung</h3>
-        <p>Der Kaufpreis wird erst mit der Schlüsselübergabe fällig – keine risikobehaftete Anzahlung auf ein unfertiges Produkt.</p>
+        <h3 data-i18n="pr.s3h">Übergabe &amp; Zahlung</h3>
+        <p data-i18n="pr.s3p">Der Kaufpreis wird erst mit der Schlüsselübergabe fällig – keine risikobehaftete Anzahlung auf ein unfertiges Produkt.</p>
       </div>
     </div>
     <div class="proz-highlight" data-reveal>
       <div class="pd">€</div>
-      <p>Sie zahlen erst, wenn Sie Ihr neues Zuhause tatsächlich übernehmen können – <b>der Kaufpreis wird erst bei Schlüsselübergabe fällig.</b> So wird Ihr Wohnungskauf zu einem transparenten, sicheren und komfortablen Schritt in die eigenen vier Wände.</p>
+      <p data-i18n="pr.hl">Sie zahlen erst, wenn Sie Ihr neues Zuhause tatsächlich übernehmen können – <b>der Kaufpreis wird erst bei Schlüsselübergabe fällig.</b> So wird Ihr Wohnungskauf zu einem transparenten, sicheren und komfortablen Schritt in die eigenen vier Wände.</p>
     </div>
   </div>
 </section>
@@ -1585,9 +1607,9 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
 <!-- Finanzierungsrechner -->
 <section id="rechner">
   <div class="wrap">
-    <div class="eyebrow" data-reveal>Finanzierungsrechner</div>
-    <h2 data-reveal>Was kostet Ihre Wohnung <em>im Monat</em>?</h2>
-    <p class="lead" data-reveal style="margin-top:16px;">Verschaffen Sie sich in Sekunden ein Gefühl für Ihre monatliche Rate – unverbindlich und ohne Angabe persönlicher Daten.</p>
+    <div class="eyebrow" data-reveal data-i18n="re.eyebrow">Finanzierungsrechner</div>
+    <h2 data-reveal data-i18n="re.h2">Was kostet Ihre Wohnung <em>im Monat</em>?</h2>
+    <p class="lead" data-reveal style="margin-top:16px;" data-i18n="re.lead">Verschaffen Sie sich in Sekunden ein Gefühl für Ihre monatliche Rate – unverbindlich und ohne Angabe persönlicher Daten.</p>
     <div class="re-grid">
       <div data-reveal>
         <div class="re-quick" id="reQuick">
@@ -1596,33 +1618,33 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
           <button type="button" data-price="199500">WE 06 · 199.500 €</button>
         </div>
         <div class="re-field">
-          <label>Kaufpreis <output id="oPrice">230.000 €</output></label>
+          <label><span data-i18n="cmp.h7">Kaufpreis</span> <output id="oPrice">230.000 €</output></label>
           <input type="range" id="rPrice" min="150000" max="320000" step="500" value="230000">
         </div>
         <div class="re-field">
-          <label>Eigenkapital <output id="oEquity">40.000 €</output></label>
+          <label><span data-i18n="re.equity">Eigenkapital</span> <output id="oEquity">40.000 €</output></label>
           <input type="range" id="rEquity" min="0" max="200000" step="1000" value="40000">
         </div>
         <div class="re-field">
-          <label>Sollzins p.&thinsp;a. <output id="oInterest">3,60 %</output></label>
+          <label><span data-i18n="re.interest">Sollzins p.&thinsp;a.</span> <output id="oInterest">3,60 %</output></label>
           <input type="range" id="rInterest" min="1" max="6" step="0.05" value="3.6">
         </div>
         <div class="re-field">
-          <label>Anfängliche Tilgung p.&thinsp;a. <output id="oRepay">2,00 %</output></label>
+          <label><span data-i18n="re.repay">Anfängliche Tilgung p.&thinsp;a.</span> <output id="oRepay">2,00 %</output></label>
           <input type="range" id="rRepay" min="1" max="5" step="0.25" value="2">
         </div>
       </div>
       <div class="re-result" data-reveal>
-        <span class="rr-label">Ihre monatliche Rate ca.</span>
-        <div class="rr-rate"><span id="rrRate">886</span>&thinsp;€<small> / Monat</small></div>
+        <span class="rr-label" data-i18n="re.rrlabel">Ihre monatliche Rate ca.</span>
+        <div class="rr-rate"><span id="rrRate">886</span>&thinsp;€<small data-i18n="re.permonth"> / Monat</small></div>
         <div class="re-rows">
-          <div class="re-row"><span>Darlehenssumme</span><b id="rrLoan">190.000 €</b></div>
-          <div class="re-row"><span>davon Zins im 1. Jahr</span><b id="rrInt">570 € / Monat</b></div>
-          <div class="re-row"><span>davon Tilgung im 1. Jahr</span><b id="rrRep">316 € / Monat</b></div>
-          <div class="re-row"><span>Kaufnebenkosten ca. 5,5 %*</span><b id="rrNk">12.650 €</b></div>
+          <div class="re-row"><span data-i18n="re.loan">Darlehenssumme</span><b id="rrLoan">190.000 €</b></div>
+          <div class="re-row"><span data-i18n="re.int1">davon Zins im 1. Jahr</span><b id="rrInt">570 € / Monat</b></div>
+          <div class="re-row"><span data-i18n="re.rep1">davon Tilgung im 1. Jahr</span><b id="rrRep">316 € / Monat</b></div>
+          <div class="re-row"><span data-i18n="re.nk">Kaufnebenkosten ca. 5,5 %*</span><b id="rrNk">12.650 €</b></div>
         </div>
-        <p class="re-note">*Grunderwerbsteuer Bayern 3,5 % zzgl. Notar &amp; Grundbuch ca. 2 %. Unverbindliche Beispielrechnung, keine Finanzierungsberatung und kein Angebot. Gerne vermitteln wir Ihnen ein persönliches Gespräch mit lokalen Banken.</p>
-        <a class="btn btn-primary" href="#kontakt">Finanzierung besprechen <i>→</i></a>
+        <p class="re-note" data-i18n="re.note">*Grunderwerbsteuer Bayern 3,5 % zzgl. Notar &amp; Grundbuch ca. 2 %. Unverbindliche Beispielrechnung, keine Finanzierungsberatung und kein Angebot. Gerne vermitteln wir Ihnen ein persönliches Gespräch mit lokalen Banken.</p>
+        <a class="btn btn-primary" href="#kontakt" data-i18n="re.cta">Finanzierung besprechen <i>→</i></a>
       </div>
     </div>
   </div>
@@ -1631,32 +1653,32 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
 <!-- FAQ -->
 <section id="faq">
   <div class="wrap">
-    <div class="eyebrow" data-reveal>Häufige Fragen</div>
-    <h2 data-reveal>Gut zu <em>wissen</em>.</h2>
+    <div class="eyebrow" data-reveal data-i18n="fq.eyebrow">Häufige Fragen</div>
+    <h2 data-reveal data-i18n="fq.h2">Gut zu <em>wissen</em>.</h2>
     <div class="faq-list">
       <details class="faq-item" data-reveal>
-        <summary>Fallen beim Kauf Maklerkosten an?</summary>
-        <p>Nein. Der Vertrieb erfolgt direkt über die Plankult Projektgesellschaft – es fallen keine Maklerkosten an. Übliche Kaufnebenkosten (Grunderwerbsteuer, Notar, Grundbuch) trägt der Käufer.</p>
+        <summary data-i18n="fq.q1">Fallen beim Kauf Maklerkosten an?</summary>
+        <p data-i18n="fq.a1">Nein. Der Vertrieb erfolgt direkt über die Plankult Projektgesellschaft – es fallen keine Maklerkosten an. Übliche Kaufnebenkosten (Grunderwerbsteuer, Notar, Grundbuch) trägt der Käufer.</p>
       </details>
       <details class="faq-item" data-reveal>
-        <summary>Wann wird der Kaufpreis fällig?</summary>
-        <p>Der Kaufpreis wird erst mit der Schlüsselübergabe fällig. Sie leisten keine risikobehaftete Anzahlung auf ein unfertiges Produkt, sondern zahlen erst, wenn Sie Ihr neues Zuhause tatsächlich übernehmen können. Maßgeblich sind die Regelungen des notariellen Kaufvertrags.</p>
+        <summary data-i18n="fq.q2">Wann wird der Kaufpreis fällig?</summary>
+        <p data-i18n="fq.a2">Der Kaufpreis wird erst mit der Schlüsselübergabe fällig. Sie leisten keine risikobehaftete Anzahlung auf ein unfertiges Produkt, sondern zahlen erst, wenn Sie Ihr neues Zuhause tatsächlich übernehmen können. Maßgeblich sind die Regelungen des notariellen Kaufvertrags.</p>
       </details>
       <details class="faq-item" data-reveal>
-        <summary>Unterstützen Sie bei der Finanzierung?</summary>
-        <p>Ja. Auf Wunsch begleiten wir Sie bei der Suche nach einer passenden Finanzierung und arbeiten dafür mit lokalen Banken und seriösen Finanzierern zusammen.</p>
+        <summary data-i18n="fq.q3">Unterstützen Sie bei der Finanzierung?</summary>
+        <p data-i18n="fq.a3">Ja. Auf Wunsch begleiten wir Sie bei der Suche nach einer passenden Finanzierung und arbeiten dafür mit lokalen Banken und seriösen Finanzierern zusammen.</p>
       </details>
       <details class="faq-item" data-reveal>
-        <summary>Wie verbindlich sind die Angaben zur Ausstattung?</summary>
-        <p>Die auf dieser Website genannten Ausstattungen sind ein unverbindlicher Auszug. Maßgeblich ist allein die vollständige Baubeschreibung, die Sie auf Anfrage gerne erhalten. Alle Visualisierungen sind unverbindliche Darstellungen.</p>
+        <summary data-i18n="fq.q4">Wie verbindlich sind die Angaben zur Ausstattung?</summary>
+        <p data-i18n="fq.a4">Die auf dieser Website genannten Ausstattungen sind ein unverbindlicher Auszug. Maßgeblich ist allein die vollständige Baubeschreibung, die Sie auf Anfrage gerne erhalten. Alle Visualisierungen sind unverbindliche Darstellungen.</p>
       </details>
       <details class="faq-item" data-reveal>
-        <summary>Gehört zu jeder Wohnung ein Kellerabteil?</summary>
-        <p>Ja. Zu jeder Wohnung gehört ein Sondernutzungsrecht an einem eigenen Kellerabteil (14,20–19,40 m²). Zusätzlich gibt es gemeinschaftliche Flächen für Technik sowie einen Müll- und Fahrradraum.</p>
+        <summary data-i18n="fq.q5">Gehört zu jeder Wohnung ein Kellerabteil?</summary>
+        <p data-i18n="fq.a5">Ja. Zu jeder Wohnung gehört ein Sondernutzungsrecht an einem eigenen Kellerabteil (14,20–19,40 m²). Zusätzlich gibt es gemeinschaftliche Flächen für Technik sowie einen Müll- und Fahrradraum.</p>
       </details>
       <details class="faq-item" data-reveal>
-        <summary>Wie läuft der Kauf konkret ab?</summary>
-        <p>In drei Schritten: persönliche Beratung (auf Wunsch mit Finanzierungsvermittlung), notarielle Beurkundung des Kaufvertrags mit höchster Rechtssicherheit, anschließend Übergabe der Wohnung mit Kaufpreiszahlung erst bei Schlüsselübergabe.</p>
+        <summary data-i18n="fq.q6">Wie läuft der Kauf konkret ab?</summary>
+        <p data-i18n="fq.a6">In drei Schritten: persönliche Beratung (auf Wunsch mit Finanzierungsvermittlung), notarielle Beurkundung des Kaufvertrags mit höchster Rechtssicherheit, anschließend Übergabe der Wohnung mit Kaufpreiszahlung erst bei Schlüsselübergabe.</p>
       </details>
     </div>
   </div>
@@ -1670,40 +1692,40 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
         <img src="assets/hero.jpg" alt="Das Münsterviertel in Hof" loading="lazy">
       </div>
       <div class="kontakt-copy">
-        <div class="eyebrow" data-reveal>Kontakt</div>
-        <h2 data-reveal>Sichern Sie sich jetzt <em>Ihre Wunschwohnung</em>.</h2>
-        <p class="lead" data-reveal>Der Vertrieb der Wohnungen hat bereits begonnen. Vereinbaren Sie ein unverbindliches Beratungsgespräch – wir freuen uns auf Sie.</p>
+        <div class="eyebrow" data-reveal data-i18n="k.eyebrow">Kontakt</div>
+        <h2 data-reveal data-i18n="k.h2">Sichern Sie sich jetzt <em>Ihre Wunschwohnung</em>.</h2>
+        <p class="lead" data-reveal data-i18n="k.lead">Der Vertrieb der Wohnungen hat bereits begonnen. Vereinbaren Sie ein unverbindliches Beratungsgespräch – wir freuen uns auf Sie.</p>
         <div class="k-rows" data-reveal>
           <div class="k-row"><span>E-Mail</span><a href="mailto:vertrieb@norderfranken.de">vertrieb@norderfranken.de</a></div>
-          <div class="k-row"><span>Telefon</span><a href="tel:+4992811605793">+49 (0) 9281 - 160 57 93</a></div>
-          <div class="k-row"><span>Projekt</span><b>Plankult Projektgesellschaft</b></div>
+          <div class="k-row"><span data-i18n="k.tel">Telefon</span><a href="tel:+4992811605793">+49 (0) 9281 - 160 57 93</a></div>
+          <div class="k-row"><span data-i18n="k.proj">Projekt</span><b>Plankult Projektgesellschaft</b></div>
         </div>
         <form class="k-form" id="kForm" data-reveal>
           <div>
-            <label for="kfName">Name</label>
+            <label for="kfName" data-i18n="k.fname">Name</label>
             <input id="kfName" name="name" type="text" autocomplete="name" required>
           </div>
           <div>
-            <label for="kfTel">Telefon (optional)</label>
+            <label for="kfTel" data-i18n="k.ftel">Telefon (optional)</label>
             <input id="kfTel" name="tel" type="tel" autocomplete="tel">
           </div>
           <div class="full">
-            <label for="kfWe">Interesse an</label>
+            <label for="kfWe" data-i18n="k.fwe">Interesse an</label>
             <select id="kfWe" name="wohnung">
-              <option value="Allgemeine Anfrage">Allgemeine Anfrage</option>
+              <option value="Allgemeine Anfrage" data-i18n="k.o1">Allgemeine Anfrage</option>
               <option value="Wohnung 02 (EG rechts, 82,38 m², 230.000 €)">Wohnung 02 · EG rechts · 230.000 €</option>
               <option value="Wohnung 05 (DG links, 92,18 m², 240.000 €)">Wohnung 05 · DG links · 240.000 €</option>
               <option value="Wohnung 06 (DG rechts, 72,29 m², 199.500 €)">Wohnung 06 · DG rechts · 199.500 €</option>
-              <option value="Besichtigungstermin">Besichtigungstermin</option>
-              <option value="Finanzierungsberatung">Finanzierungsberatung</option>
+              <option value="Besichtigungstermin" data-i18n="k.o2">Besichtigungstermin</option>
+              <option value="Finanzierungsberatung" data-i18n="k.o3">Finanzierungsberatung</option>
             </select>
           </div>
           <div class="full">
-            <label for="kfMsg">Ihre Nachricht</label>
+            <label for="kfMsg" data-i18n="k.fmsg">Ihre Nachricht</label>
             <textarea id="kfMsg" name="nachricht" placeholder="Guten Tag, ich interessiere mich für eine Wohnung im Münsterviertel …"></textarea>
           </div>
-          <button class="btn btn-primary" type="submit">Anfrage per E-Mail senden <i>→</i></button>
-          <p class="k-form-note">Öffnet Ihr E-Mail-Programm mit vorausgefüllter Nachricht an vertrieb@norderfranken.de — es werden keine Daten über diese Website übertragen.</p>
+          <button class="btn btn-primary" type="submit" data-i18n="k.send">Anfrage per E-Mail senden <i>→</i></button>
+          <p class="k-form-note" data-i18n="k.note">Öffnet Ihr E-Mail-Programm mit vorausgefüllter Nachricht an vertrieb@norderfranken.de — es werden keine Daten über diese Website übertragen.</p>
         </form>
       </div>
     </div>
@@ -1721,16 +1743,16 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
           <span>Projektgesellschaft</span>
         </span>
       </a>
-      <div class="f-partner">Partner der Plankult Projektgesellschaft UG</div>
+      <div class="f-partner" data-i18n="f.partner">Partner der Plankult Projektgesellschaft UG</div>
     </div>
-    <p class="f-note">Hinweis: Die genannten Ausstattungen sind ein unverbindlicher Auszug; maßgeblich ist allein die vollständige Baubeschreibung, die auf Anfrage erhältlich ist. Alle Visualisierungen sind unverbindliche Darstellungen. Änderungen und Irrtümer vorbehalten. Es fallen keine Maklerkosten an.</p>
+    <p class="f-note" data-i18n="f.note">Hinweis: Die genannten Ausstattungen sind ein unverbindlicher Auszug; maßgeblich ist allein die vollständige Baubeschreibung, die auf Anfrage erhältlich ist. Alle Visualisierungen sind unverbindliche Darstellungen. Änderungen und Irrtümer vorbehalten. Es fallen keine Maklerkosten an.</p>
     <div class="f-meta">
       <span>© 2026 Das Münsterviertel</span>
       <a href="mailto:vertrieb@norderfranken.de">vertrieb@norderfranken.de</a>
       <a href="tel:+4992811605793">+49 (0) 9281 - 160 57 93</a>
-      <a href="impressum.html">Impressum</a>
-      <a href="datenschutz.html">Datenschutz</a>
-      <a href="agb.html">AGB</a>
+      <a href="impressum.html" data-i18n="f.imp">Impressum</a>
+      <a href="datenschutz.html" data-i18n="f.ds">Datenschutz</a>
+      <a href="agb.html" data-i18n="f.agb">AGB</a>
     </div>
   </div>
 </footer>
@@ -1750,6 +1772,7 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
 <script>
 (function(){
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var curLang = (function(){ try{ return localStorage.getItem('mv-lang') || 'de'; }catch(e){ return 'de'; } })();
 
   /* Preloader mit Zähler + Vorhang-Wipe */
   var loader = document.getElementById('loader');
@@ -2099,7 +2122,7 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
     var no = card.querySelector('.card-top .no');
     var title = card.querySelector('h3');
     if(!img) return;
-    var item = {src: img.getAttribute('src'), cap: (no ? no.textContent + ' — ' : '') + (title ? title.textContent : '')};
+    var item = {src: img.getAttribute('src'), noEl: no, titleEl: title};
     var idx = lbItems.push(item) - 1;
     var hint = document.createElement('span');
     hint.className = 'zoom-hint';
@@ -2109,14 +2132,20 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
   });
   var kellerImg = document.querySelector('#keller .pframe img');
   if(kellerImg){
-    var kIdx = lbItems.push({src: kellerImg.getAttribute('src'), cap: 'Kellergeschoss — Aufteilung & Kellerabteile'}) - 1;
+    var kIdx = lbItems.push({src: kellerImg.getAttribute('src'), kellerCap: true}) - 1;
     kellerImg.closest('.pframe').style.cursor = 'zoom-in';
     kellerImg.closest('.pframe').addEventListener('click', function(){ lbOpen(kIdx); });
+  }
+  function lbCaption(item){
+    if(item.kellerCap){
+      return curLang === 'en' ? 'Basement — layout & cellar rooms' : 'Kellergeschoss — Aufteilung & Kellerabteile';
+    }
+    return (item.noEl ? item.noEl.textContent + ' — ' : '') + (item.titleEl ? item.titleEl.textContent : '');
   }
   function lbOpen(i){
     lbIdx = i;
     lbImg.src = lbItems[i].src;
-    lbCap.textContent = lbItems[i].cap;
+    lbCap.textContent = lbCaption(lbItems[i]);
     lb.classList.add('open');
     document.body.style.overflow = 'hidden';
   }
@@ -2166,8 +2195,9 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
       document.getElementById('oRepay').textContent = fmtPct(tilg);
       document.getElementById('rrRate').textContent = Math.round(rate).toLocaleString('de-DE');
       document.getElementById('rrLoan').textContent = fmtEur(loan);
-      document.getElementById('rrInt').textContent = fmtEur(Math.round(intPart)) + ' / Monat';
-      document.getElementById('rrRep').textContent = fmtEur(Math.round(repPart)) + ' / Monat';
+      var perMonth = curLang === 'en' ? ' / month' : ' / Monat';
+      document.getElementById('rrInt').textContent = fmtEur(Math.round(intPart)) + perMonth;
+      document.getElementById('rrRep').textContent = fmtEur(Math.round(repPart)) + perMonth;
       document.getElementById('rrNk').textContent = fmtEur(Math.round(nk));
       [rPrice, rEquity, rInterest, rRepay].forEach(sliderFill);
       var q = document.querySelectorAll('#reQuick button');
@@ -2192,15 +2222,156 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
       var tel = document.getElementById('kfTel').value.trim();
       var we = document.getElementById('kfWe').value;
       var msg = document.getElementById('kfMsg').value.trim();
-      var subject = 'Anfrage Das Münsterviertel — ' + we;
-      var body = 'Guten Tag,\n\n' +
-        (msg ? msg + '\n\n' : 'ich interessiere mich für: ' + we + '\n\n') +
-        'Mit freundlichen Grüßen\n' + (name || '') +
-        (tel ? '\nTelefon: ' + tel : '');
+      var subject, body;
+      if(curLang === 'en'){
+        subject = 'Enquiry Das Münsterviertel — ' + we;
+        body = 'Dear Sir or Madam,\n\n' +
+          (msg ? msg + '\n\n' : 'I am interested in: ' + we + '\n\n') +
+          'Kind regards\n' + (name || '') +
+          (tel ? '\nPhone: ' + tel : '');
+      } else {
+        subject = 'Anfrage Das Münsterviertel — ' + we;
+        body = 'Guten Tag,\n\n' +
+          (msg ? msg + '\n\n' : 'ich interessiere mich für: ' + we + '\n\n') +
+          'Mit freundlichen Grüßen\n' + (name || '') +
+          (tel ? '\nTelefon: ' + tel : '');
+      }
       window.location.href = 'mailto:vertrieb@norderfranken.de?subject=' +
         encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
     });
   }
+
+  /* ---------- Mehrsprachigkeit DE/EN ---------- */
+  var I18N_EN = {
+    'nav.lage':'Location','nav.haus':'The Building','nav.aus':'Features','nav.we':'Apartments','nav.re':'Calculator','nav.cta':'Request consultation',
+    'hero.eyebrow':'<i></i>Hof · Six condominiums · No commission',
+    'hero.line2':'Living with a view.',
+    'hero.sub':'Six premium condominiums in a lovingly refurbished period building – with history, comfort and an incomparable view over the rooftops of Hof.',
+    'hero.cta1':'Discover the apartments <i>→</i>',
+    'hero.chip1':'Living space<br>per unit','hero.chip2':'Broker<br>fees',
+    'hero.cue':'Discover<i></i>',
+    'lbl.units':'Residential units','lbl.area':'Living space','lbl.balcony':'With private balcony','lbl.fees':'Broker fees',
+    'lage.eyebrow':'The Location',
+    'lage.h2':'Living where the city <em>lies at your feet</em>.',
+    'lage.p1':'The Münsterviertel is one of the most sought-after residential addresses in Hof – a district that combines the best of two worlds: the calm of an established neighbourhood and the immediate proximity of urban life.',
+    'lage.p2':'Thanks to the gentle hillside location, an incomparable view opens up over the rooftops of the city. The first rays of sun over Hof in the morning, the city lights at your feet in the evening – a feeling of openness and security at once.',
+    'lage.f1':'Schools, kindergartens &amp; shopping just steps away',
+    'lage.f2':'Public transport right outside the door',
+    'lage.f3':'Gentle hillside location with panoramic views over Hof',
+    'haus.h2':'A building that unites history and <em>modern living</em>.',
+    'haus.lead':'This exceptional building is being comprehensively refurbished and reinterpreted to the highest standards. Its original charm is preserved while a residential ensemble emerges that combines modern and sustainable construction.',
+    'rev.before':'Before · Shell condition','rev.after':'<i></i>After · Living at the Münsterviertel',
+    'haus.h3':'Contemporary elegance, sustainable technology.',
+    'haus.p1':'Six exclusive residential units with generous living spaces between 72 and 108 m² offer room for individual needs. Every apartment has its own balcony, extending the living experience and opening up wonderful views over the city.',
+    'haus.p2':'An efficient heat pump combined with underfloor heating ensures a pleasant indoor climate and low energy costs. The design flooring in stylish oak country-house planks lends the rooms warmth and character, while the bathrooms with concrete-look tiles set an elegant, urban tone.',
+    'aus.eyebrow':'Features &amp; Details','aus.h2':'Well thought out <em>down to the last detail</em>.',
+    'aus.lead':'A non-binding excerpt from the building specification – the complete version is available on request.',
+    'aus.c1h':'Heat pump &amp; underfloor heating','aus.c1p':'Efficient heat pump with water-based underfloor heating as surface heating – for low energy costs and a low energy class.',
+    'aus.c2h':'Triple glazing','aus.c2p':'Triple-glazed windows, white inside, anthracite outside. Shading via top-mounted roller shutters, window sills in aluminium or titanium zinc.',
+    'aus.c3h':'Oak design flooring','aus.c3p':'Design vinyl flooring in natural oak country-house plank look with white skirting boards. Interior doors lacquered white, fittings in stainless steel or black.',
+    'aus.c4h':'Elegant bathrooms','aus.c4p':'Porcelain stoneware tiles in grey, tiled floor-to-ceiling in the shower area. Sanitary ceramics in white, chrome single-lever mixers, refined concrete-look tiles.',
+    'aus.c5h':'Balconies with a view','aus.c5p':'Elevated, galvanised steel construction with anthracite privacy screens and stainless-steel railings – every apartment has its own balcony.',
+    'aus.c6h':'Entrance &amp; staircase','aus.c6p':'Modern canopy with letterbox system, restored wooden staircase up to the top floor, entrance doors in sound insulation class II, central locking system.',
+    'ex.eyebrow':'Apartment Explorer','ex.h2':'The building in 3D — <em>floor by floor</em>.','ex.hint':'Click a floor or browse',
+    'fl.dg':'Top floor','fl.og':'1st floor','fl.eg':'Ground floor',
+    'ex.tagdg':'View top floor','ex.tagog':'View 1st floor','ex.tageg':'View ground floor',
+    'ex.hh3':'The entire building at a glance.',
+    'ex.hc1':'3 floors','ex.hc2':'6 apartments','ex.hc3':'3 available',
+    'lbl.units2':'Units','ex.hb':'Balcony each','ex.hs':'All units',
+    'ex.hp':'Click a floor in the model or browse through all six apartments with the arrows below.',
+    'ex.hlink':'All apartments in detail <i>↓</i>','ex.tabhouse':'House',
+    'ex.detlink':'Details &amp; room layout <i>↓</i>',
+    'badge.sold':'Sold','badge.free':'Available',
+    'pos.egl':'GF · left','pos.egr':'GF · right','pos.ogl':'1st fl. · left','pos.ogr':'1st fl. · right','pos.dgl':'Top fl. · left','pos.dgr':'Top fl. · right',
+    'chip.garden':'Private garden','chip.balcony':'Balcony','chip.dormer':'Large dormer','room.gwc':'Guest WC',
+    'we1.t':'Living with a private garden.','we2.t':'Charming three-room apartment.','we3.t':'Spacious four-room apartment.','we4.t':'Bright three-room apartment.','we5.t':'Top floor with panoramic view.','we6.t':'A rarity with a wide view.',
+    'we.no1':'Apartment 01','we.no2':'Apartment 02','we.no3':'Apartment 03','we.no4':'Apartment 04','we.no5':'Apartment 05','we.no6':'Apartment 06',
+    'wec2.t':'A charming welcome with balcony.','wec3.t':'Spacious, stylish, versatile.','wec4.t':'Bright and inviting.','wec6.t':'First-class with a wide view.',
+    'we1.d':'The most exclusive apartment in the building – the only one with exclusive use of the plot, its own garden access and a guest WC.',
+    'we2.d':'A well-planned layout for couples and small families: bright living area with balcony access, bedroom and a flexible third room.',
+    'we3.d':'Four generously cut rooms, bright layouts and a separate guest WC – a true highlight on the first floor.',
+    'we4.d':'A clear layout with a homely ambience: bright living area with balcony, comfortable bedroom and a flexible third room.',
+    'we5.d':'Generous dormer, four well-cut rooms and a wonderful view over the entire city – a particularly exclusive opportunity.',
+    'we6.d':'Three harmoniously cut rooms, a large dormer and an impressive panoramic view over the city – a very special rarity.',
+    'lbl.soldout':'Already sold','lbl.nofee':'No commission','lbl.layout':'Room layout','lbl.rooms':'Rooms',
+    'lbl.exclusive':'Exclusive use','lbl.included':'Included','lbl.separate':'Separate','lbl.generous':'Generous',
+    'lbl.pano':'Panoramic view','lbl.extra':'Extra','lbl.cityview':'City view','lbl.panob':'Panorama',
+    'chip.gardenb':'Garden','chip.balconyb':'Balcony','chip.dormerb':'Dormer',
+    'room.flur':'Hallway','room.kueche':'Kitchen','room.bad':'Bathroom','room.kind':'Child’s room','room.wohnen':'Living room','room.schlafen':'Bedroom','room.buero':'Office / Guest / Child','room.balkon':'Balcony (50 % of 10.40 m²)','room.gesamt':'Total',
+    'wo.eyebrow':'The Apartments','wo.h2':'Six units. <em>Six characters.</em>',
+    'wo.lead':'From the ground floor with its own garden to the top-floor apartment with panoramic views – every unit has been carefully planned. Sales have already begun.',
+    'wo.note':'All information without guarantee. No broker fees apply.',
+    'cmp.eyebrow':'All apartments compared',
+    'cmp.h1':'Apartment','cmp.h2':'Floor','cmp.h5':'Special feature','cmp.h6':'Cellar room','cmp.h7':'Purchase price','cmp.h8':'Status',
+    'cmpv.egl':'GF left','cmpv.egr':'GF right','cmpv.ogl':'1st floor left','cmpv.ogr':'1st floor right','cmpv.dgl':'Top floor left','cmpv.dgr':'Top floor right',
+    'cmpv.b1':'Private garden, guest WC','cmpv.b5':'Large dormer, panoramic view',
+    'ke.eyebrow':'Basement &amp; Ancillary Areas','ke.h2':'A <em>private cellar room</em> for every apartment.',
+    'ke.lead':'Every apartment receives exclusive use of its own cellar room. In addition, there are shared areas for utilities, waste and bicycles.',
+    'ke.l1':'Cellar rooms, units 1–6','ke.l2':'Waste &amp; bicycle room','ke.l3':'Utilities','ke.l4':'Total basement area',
+    'pr.eyebrow':'The Buying Process','pr.h2':'The structured path <em>to your property</em>.',
+    'pr.lead':'Safe, transparent and straightforward – from the first consultation to the handover of keys.',
+    'pr.s1h':'Consultation &amp; financing','pr.s1p':'We accompany you personally and, on request, support you in finding suitable financing – together with local banks and reputable lenders.',
+    'pr.s2h':'Notarisation','pr.s2p':'The purchase contract is of course notarised, giving you the highest level of legal certainty.',
+    'pr.s3h':'Handover &amp; payment','pr.s3p':'The purchase price only becomes due upon handover of the keys – no risky down payment on an unfinished product.',
+    'pr.hl':'You only pay when you can actually take over your new home – <b>the purchase price only becomes due upon handover of the keys.</b> This makes buying your apartment a transparent, safe and comfortable step into your own four walls.',
+    're.eyebrow':'Financing Calculator','re.h2':'What does your apartment cost <em>per month</em>?',
+    're.lead':'Get a feel for your monthly rate in seconds – non-binding and without providing any personal data.',
+    're.equity':'Equity','re.interest':'Interest rate p.&thinsp;a.','re.repay':'Initial repayment p.&thinsp;a.',
+    're.rrlabel':'Your estimated monthly rate','re.permonth':' / month',
+    're.loan':'Loan amount','re.int1':'of which interest in year 1','re.rep1':'of which repayment in year 1','re.nk':'Purchase costs approx. 5.5 %*',
+    're.note':'*Real estate transfer tax Bavaria 3.5 % plus notary &amp; land registry approx. 2 %. Non-binding sample calculation, no financing advice and no offer. We are happy to arrange a personal meeting with local banks.',
+    're.cta':'Discuss financing <i>→</i>',
+    'fq.eyebrow':'Frequently Asked Questions','fq.h2':'Good to <em>know</em>.',
+    'fq.q1':'Are there any broker fees?','fq.a1':'No. Sales are handled directly by Plankult Projektgesellschaft – no broker fees apply. The usual purchase costs (real estate transfer tax, notary, land registry) are borne by the buyer.',
+    'fq.q2':'When is the purchase price due?','fq.a2':'The purchase price only becomes due upon handover of the keys. You do not make any risky down payment on an unfinished product, but only pay when you can actually take over your new home. The provisions of the notarised purchase contract are decisive.',
+    'fq.q3':'Do you help with financing?','fq.a3':'Yes. On request, we accompany you in finding suitable financing and work with local banks and reputable lenders.',
+    'fq.q4':'How binding are the details on features?','fq.a4':'The features listed on this website are a non-binding excerpt. The complete building specification, available on request, is solely decisive. All visualisations are non-binding representations.',
+    'fq.q5':'Does every apartment have a cellar room?','fq.a5':'Yes. Every apartment comes with exclusive use of its own cellar room (14.20–19.40 m²). There are also shared areas for utilities as well as a waste and bicycle room.',
+    'fq.q6':'How does the purchase actually work?','fq.a6':'In three steps: personal consultation (with financing arrangement on request), notarisation of the purchase contract with the highest legal certainty, then handover of the apartment with payment of the purchase price only upon handover of the keys.',
+    'k.eyebrow':'Contact','k.h2':'Secure <em>your dream apartment</em> now.',
+    'k.lead':'Sales of the apartments have already begun. Arrange a non-binding consultation – we look forward to hearing from you.',
+    'k.tel':'Phone','k.proj':'Project',
+    'k.fname':'Name','k.ftel':'Phone (optional)','k.fwe':'Interested in','k.fmsg':'Your message',
+    'k.o1':'General enquiry','k.o2':'Viewing appointment','k.o3':'Financing consultation',
+    'k.send':'Send enquiry by e-mail <i>→</i>',
+    'k.note':'Opens your e-mail client with a pre-filled message to vertrieb@norderfranken.de — no data is transmitted via this website.',
+    'f.partner':'A partner of Plankult Projektgesellschaft UG',
+    'f.note':'Note: The features mentioned are a non-binding excerpt; the complete building specification, available on request, is solely decisive. All visualisations are non-binding representations. Subject to change and errors. No broker fees apply.',
+    'f.imp':'Legal notice','f.ds':'Privacy policy','f.agb':'Terms'
+  };
+  var kfMsgPh = {
+    de:'Guten Tag, ich interessiere mich für eine Wohnung im Münsterviertel …',
+    en:'Hello, I am interested in an apartment at the Münsterviertel …'
+  };
+  var docTitles = {
+    de:'Das Münsterviertel — Wohnen mit Geschichte, Komfort und Weitblick',
+    en:'Das Münsterviertel — Living with history, comfort and a view'
+  };
+  function setLang(l){
+    curLang = l;
+    document.documentElement.lang = l;
+    document.title = docTitles[l];
+    document.querySelectorAll('[data-i18n]').forEach(function(el){
+      var k = el.getAttribute('data-i18n');
+      if(l === 'en'){
+        if(el.dataset.deHtml === undefined) el.dataset.deHtml = el.innerHTML;
+        if(I18N_EN[k] !== undefined) el.innerHTML = I18N_EN[k];
+      } else if(el.dataset.deHtml !== undefined){
+        el.innerHTML = el.dataset.deHtml;
+      }
+    });
+    var msgEl = document.getElementById('kfMsg');
+    if(msgEl) msgEl.placeholder = kfMsgPh[l];
+    document.querySelectorAll('.lang-btn').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-lang') === l);
+    });
+    if(typeof calc === 'function' && document.getElementById('rPrice')) calc();
+    try{ localStorage.setItem('mv-lang', l); }catch(e){}
+  }
+  document.querySelectorAll('.lang-btn').forEach(function(b){
+    b.addEventListener('click', function(){ setLang(b.getAttribute('data-lang')); });
+  });
+  if(curLang === 'en') setLang('en');
 })();
 </script>
 </body>
