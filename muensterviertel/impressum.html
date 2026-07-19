@@ -18,6 +18,7 @@ a{color:var(--petrol);text-decoration:none;}
 a:hover{text-decoration:underline;}
 header{border-bottom:1px solid var(--line);}
 .hwrap{max-width:900px;margin:0 auto;padding:14px 5vw;display:flex;align-items:center;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;}
+.h-right{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
 .brand{display:flex;align-items:center;gap:12px;color:var(--navy);}
 .brand:hover{text-decoration:none;}
 .brand svg{width:40px;height:auto;}
@@ -25,6 +26,10 @@ header{border-bottom:1px solid var(--line);}
 .brand-txt b{font-family:'Poppins',sans-serif;font-weight:600;font-size:14px;letter-spacing:.12em;}
 .brand-txt span{font-size:8px;letter-spacing:.3em;color:var(--grey);text-transform:uppercase;font-weight:600;}
 .back{font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;letter-spacing:.02em;white-space:nowrap;flex-shrink:0;}
+.lang-sw{display:flex;gap:2px;border:1.5px solid rgba(154,176,198,.5);border-radius:100px;padding:3px;flex-shrink:0;}
+.lang-btn{border:none;background:transparent;cursor:pointer;font-family:'Poppins',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--grey);padding:5px 11px;border-radius:100px;transition:all .3s;}
+.lang-btn.active{background:var(--petrol);color:#fff;}
+.lang-btn:not(.active):hover{color:var(--petrol);}
 @media(max-width:560px){.back{font-size:11px;}.brand-txt b{font-size:12px;}.brand svg{width:32px;}}
 main{max-width:900px;margin:0 auto;padding:clamp(40px,6vw,70px) 5vw 80px;}
 h1{font-family:'Poppins',sans-serif;font-weight:600;font-size:clamp(28px,4vw,42px);letter-spacing:-.01em;margin-bottom:10px;}
@@ -34,16 +39,15 @@ h3{font-family:'Poppins',sans-serif;font-weight:600;font-size:15.5px;margin:22px
 p,li{font-size:15px;color:#3d4652;}
 ul{padding-left:22px;margin:8px 0;}
 p+p{margin-top:10px;}
-.todo{
-  background:#fff7e6;border:1px solid #f0d9a8;border-radius:12px;
-  padding:16px 20px;margin-bottom:34px;font-size:14px;color:#7a5b1e;
-}
+.todo{background:#fff7e6;border:1px solid #f0d9a8;border-radius:12px;padding:16px 20px;margin-bottom:22px;font-size:14px;color:#7a5b1e;}
 .todo b{font-family:'Poppins',sans-serif;}
+.binding{background:var(--sky-soft);border:1px solid rgba(154,176,198,.4);border-radius:12px;padding:14px 20px;margin-bottom:34px;font-size:13.5px;color:var(--grey);}
 mark{background:#fff1c9;border-radius:4px;padding:1px 6px;font-weight:600;color:#7a5b1e;}
 .card{background:var(--mist);border:1px solid var(--line);border-radius:14px;padding:20px 24px;margin:14px 0;}
 footer{border-top:1px solid var(--line);padding:26px 5vw;text-align:center;font-size:12.5px;color:var(--grey);}
 footer a{margin:0 10px;color:var(--grey);}
 footer a:hover{color:var(--petrol);}
+[hidden]{display:none!important;}
 </style>
 </head>
 <body>
@@ -53,14 +57,20 @@ footer a:hover{color:var(--petrol);}
       <svg viewBox="0 0 60 44" fill="none"><path d="M4 42V20.5L23.5 3l10.5 9.2M14 42V26h0M23.5 12.5 56 41" stroke="#252b33" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="brand-txt"><b>PLANKULT</b><span>Projektgesellschaft</span></span>
     </a>
-    <a class="back" href="index.html">← Zurück zur Projektseite</a>
+    <div class="h-right">
+      <div class="lang-sw" role="group" aria-label="Sprache wählen">
+        <button type="button" class="lang-btn active" data-lang="de">DE</button>
+        <button type="button" class="lang-btn" data-lang="en">EN</button>
+      </div>
+      <a class="back" href="index.html" id="backlink">← Zurück zur Projektseite</a>
+    </div>
   </div>
 </header>
 <main>
+<div id="c-de">
 <div class="todo"><b>Hinweis (vor Veröffentlichung entfernen):</b> Die <mark>gelb markierten Platzhalter</mark> müssen durch die tatsächlichen Unternehmensangaben ersetzt und der gesamte Text rechtlich geprüft werden. Diese Vorlage ersetzt keine Rechtsberatung.</div>
 <h1>Impressum</h1>
 <p class="sub">Angaben gemäß § 5 DDG (Digitale-Dienste-Gesetz)</p>
-
 <h2>Diensteanbieter</h2>
 <div class="card">
 <p><strong>Plankult Projektgesellschaft UG (haftungsbeschränkt)</strong><br>
@@ -68,46 +78,102 @@ footer a:hover{color:var(--petrol);}
 <mark>[PLZ]</mark> <mark>[Ort]</mark><br>
 Deutschland</p>
 </div>
-
 <h2>Vertreten durch</h2>
 <p>Geschäftsführer/in: <mark>[Vor- und Nachname]</mark></p>
-
 <h2>Kontakt</h2>
 <p>Telefon: <a href="tel:+4992811605793">+49 (0) 9281 - 160 57 93</a><br>
 E-Mail: <a href="mailto:vertrieb@norderfranken.de">vertrieb@norderfranken.de</a></p>
-
 <h2>Registereintrag</h2>
 <p>Eintragung im Handelsregister.<br>
 Registergericht: <mark>[Amtsgericht]</mark><br>
 Registernummer: <mark>[HRB-Nummer]</mark></p>
-
 <h2>Umsatzsteuer-ID</h2>
 <p>Umsatzsteuer-Identifikationsnummer gemäß § 27a UStG:<br><mark>[DE XXX XXX XXX — falls vorhanden, sonst Abschnitt entfernen]</mark></p>
-
 <h2>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
 <p><mark>[Vor- und Nachname]</mark><br><mark>[Anschrift wie oben]</mark></p>
-
 <h2>Verbraucherstreitbeilegung / Universalschlichtungsstelle</h2>
 <p>Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
-
 <h2>Haftung für Inhalte</h2>
 <p>Als Diensteanbieter sind wir für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Wir sind jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen. Verpflichtungen zur Entfernung oder Sperrung der Nutzung von Informationen nach den allgemeinen Gesetzen bleiben hiervon unberührt. Eine diesbezügliche Haftung ist jedoch erst ab dem Zeitpunkt der Kenntnis einer konkreten Rechtsverletzung möglich. Bei Bekanntwerden von entsprechenden Rechtsverletzungen werden wir diese Inhalte umgehend entfernen.</p>
-
 <h2>Haftung für Links</h2>
 <p>Unser Angebot enthält ggf. Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber der Seiten verantwortlich. Die verlinkten Seiten wurden zum Zeitpunkt der Verlinkung auf mögliche Rechtsverstöße überprüft; rechtswidrige Inhalte waren zum Zeitpunkt der Verlinkung nicht erkennbar.</p>
-
 <h2>Urheberrecht</h2>
 <p>Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten – insbesondere Visualisierungen, Grundrisse, Fotografien und Texte – unterliegen dem deutschen Urheberrecht. Die Vervielfältigung, Bearbeitung, Verbreitung und jede Art der Verwertung außerhalb der Grenzen des Urheberrechtes bedürfen der schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers.</p>
-
 <h2>Bildnachweis / Visualisierungen</h2>
 <p>Alle Visualisierungen und 3D-Grundrisse sind unverbindliche Darstellungen und können vom tatsächlichen Bauzustand abweichen.</p>
-
+</div>
+<div id="c-en" hidden>
+<div class="todo"><b>Note (remove before publishing):</b> The <mark>highlighted placeholders</mark> must be replaced with the actual company details and the entire text must be reviewed by a lawyer. This template does not constitute legal advice.</div><div class="binding">This English translation is provided for convenience only. The <strong>German version is the legally binding version</strong>.</div>
+<h1>Legal Notice</h1>
+<p class="sub">Information pursuant to Section 5 DDG (German Digital Services Act)</p>
+<h2>Service provider</h2>
+<div class="card">
+<p><strong>Plankult Projektgesellschaft UG (haftungsbeschränkt)</strong><br>
+<mark>[Street and number]</mark><br>
+<mark>[Postcode]</mark> <mark>[City]</mark><br>
+Germany</p>
+</div>
+<h2>Represented by</h2>
+<p>Managing director: <mark>[First and last name]</mark></p>
+<h2>Contact</h2>
+<p>Phone: <a href="tel:+4992811605793">+49 (0) 9281 - 160 57 93</a><br>
+E-mail: <a href="mailto:vertrieb@norderfranken.de">vertrieb@norderfranken.de</a></p>
+<h2>Register entry</h2>
+<p>Entered in the commercial register.<br>
+Register court: <mark>[Local court]</mark><br>
+Register number: <mark>[HRB number]</mark></p>
+<h2>VAT ID</h2>
+<p>VAT identification number pursuant to Section 27a of the German VAT Act:<br><mark>[DE XXX XXX XXX — if available, otherwise remove this section]</mark></p>
+<h2>Responsible for content pursuant to Section 18 (2) MStV</h2>
+<p><mark>[First and last name]</mark><br><mark>[Address as above]</mark></p>
+<h2>Consumer dispute resolution</h2>
+<p>We are neither willing nor obliged to participate in dispute resolution proceedings before a consumer arbitration board.</p>
+<h2>Liability for content</h2>
+<p>As a service provider, we are responsible for our own content on these pages in accordance with general legislation. However, we are not obliged to monitor transmitted or stored third-party information or to investigate circumstances that indicate illegal activity. Obligations to remove or block the use of information under general legislation remain unaffected. Liability in this respect is only possible from the moment we become aware of a specific legal infringement. Upon becoming aware of such infringements, we will remove the content in question immediately.</p>
+<h2>Liability for links</h2>
+<p>Our website may contain links to external third-party websites over whose content we have no influence. We therefore cannot accept any liability for this third-party content. The respective provider or operator of the linked pages is always responsible for their content. The linked pages were checked for possible legal violations at the time of linking; illegal content was not identifiable at that time.</p>
+<h2>Copyright</h2>
+<p>The content and works created by the site operators on these pages – in particular visualisations, floor plans, photographs and texts – are subject to German copyright law. Reproduction, editing, distribution and any kind of exploitation beyond the limits of copyright law require the written consent of the respective author or creator.</p>
+<h2>Image credits / visualisations</h2>
+<p>All visualisations and 3D floor plans are non-binding representations and may differ from the actual state of construction.</p>
+</div>
 </main>
 <footer>
-  <div>© 2026 Das Münsterviertel · Partner der Plankult Projektgesellschaft UG</div>
+  <div id="f-partner">© 2026 Das Münsterviertel · Partner der Plankult Projektgesellschaft UG</div>
   <div style="margin-top:8px;">
-    <a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a><a href="agb.html">AGB</a>
+    <a href="impressum.html" id="f-imp">Impressum</a><a href="datenschutz.html" id="f-ds">Datenschutz</a><a href="agb.html" id="f-agb">AGB</a>
   </div>
 </footer>
+<script>
+(function(){
+  var T = {
+    de: {back:'← Zurück zur Projektseite', partner:'© 2026 Das Münsterviertel · Partner der Plankult Projektgesellschaft UG',
+         imp:'Impressum', ds:'Datenschutz', agb:'AGB', title:'Impressum — Das Münsterviertel'},
+    en: {back:'← Back to the project page', partner:'© 2026 Das Münsterviertel · A partner of Plankult Projektgesellschaft UG',
+         imp:'Legal notice', ds:'Privacy policy', agb:'Terms', title:'Legal Notice — Das Münsterviertel'}
+  };
+  function setLang(l){
+    document.documentElement.lang = l;
+    document.title = T[l].title;
+    document.getElementById('c-de').hidden = (l !== 'de');
+    document.getElementById('c-en').hidden = (l !== 'en');
+    document.getElementById('backlink').textContent = T[l].back;
+    document.getElementById('f-partner').textContent = T[l].partner;
+    document.getElementById('f-imp').textContent = T[l].imp;
+    document.getElementById('f-ds').textContent = T[l].ds;
+    document.getElementById('f-agb').textContent = T[l].agb;
+    document.querySelectorAll('.lang-btn').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-lang') === l);
+    });
+    try{ localStorage.setItem('mv-lang', l); }catch(e){}
+  }
+  document.querySelectorAll('.lang-btn').forEach(function(b){
+    b.addEventListener('click', function(){ setLang(b.getAttribute('data-lang')); });
+  });
+  var saved = 'de';
+  try{ saved = localStorage.getItem('mv-lang') || 'de'; }catch(e){}
+  if(saved === 'en') setLang('en');
+})();
+</script>
 </body>
 </html>

@@ -18,6 +18,7 @@ a{color:var(--petrol);text-decoration:none;}
 a:hover{text-decoration:underline;}
 header{border-bottom:1px solid var(--line);}
 .hwrap{max-width:900px;margin:0 auto;padding:14px 5vw;display:flex;align-items:center;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;}
+.h-right{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
 .brand{display:flex;align-items:center;gap:12px;color:var(--navy);}
 .brand:hover{text-decoration:none;}
 .brand svg{width:40px;height:auto;}
@@ -25,6 +26,10 @@ header{border-bottom:1px solid var(--line);}
 .brand-txt b{font-family:'Poppins',sans-serif;font-weight:600;font-size:14px;letter-spacing:.12em;}
 .brand-txt span{font-size:8px;letter-spacing:.3em;color:var(--grey);text-transform:uppercase;font-weight:600;}
 .back{font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;letter-spacing:.02em;white-space:nowrap;flex-shrink:0;}
+.lang-sw{display:flex;gap:2px;border:1.5px solid rgba(154,176,198,.5);border-radius:100px;padding:3px;flex-shrink:0;}
+.lang-btn{border:none;background:transparent;cursor:pointer;font-family:'Poppins',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--grey);padding:5px 11px;border-radius:100px;transition:all .3s;}
+.lang-btn.active{background:var(--petrol);color:#fff;}
+.lang-btn:not(.active):hover{color:var(--petrol);}
 @media(max-width:560px){.back{font-size:11px;}.brand-txt b{font-size:12px;}.brand svg{width:32px;}}
 main{max-width:900px;margin:0 auto;padding:clamp(40px,6vw,70px) 5vw 80px;}
 h1{font-family:'Poppins',sans-serif;font-weight:600;font-size:clamp(28px,4vw,42px);letter-spacing:-.01em;margin-bottom:10px;}
@@ -34,16 +39,15 @@ h3{font-family:'Poppins',sans-serif;font-weight:600;font-size:15.5px;margin:22px
 p,li{font-size:15px;color:#3d4652;}
 ul{padding-left:22px;margin:8px 0;}
 p+p{margin-top:10px;}
-.todo{
-  background:#fff7e6;border:1px solid #f0d9a8;border-radius:12px;
-  padding:16px 20px;margin-bottom:34px;font-size:14px;color:#7a5b1e;
-}
+.todo{background:#fff7e6;border:1px solid #f0d9a8;border-radius:12px;padding:16px 20px;margin-bottom:22px;font-size:14px;color:#7a5b1e;}
 .todo b{font-family:'Poppins',sans-serif;}
+.binding{background:var(--sky-soft);border:1px solid rgba(154,176,198,.4);border-radius:12px;padding:14px 20px;margin-bottom:34px;font-size:13.5px;color:var(--grey);}
 mark{background:#fff1c9;border-radius:4px;padding:1px 6px;font-weight:600;color:#7a5b1e;}
 .card{background:var(--mist);border:1px solid var(--line);border-radius:14px;padding:20px 24px;margin:14px 0;}
 footer{border-top:1px solid var(--line);padding:26px 5vw;text-align:center;font-size:12.5px;color:var(--grey);}
 footer a{margin:0 10px;color:var(--grey);}
 footer a:hover{color:var(--petrol);}
+[hidden]{display:none!important;}
 </style>
 </head>
 <body>
@@ -53,46 +57,99 @@ footer a:hover{color:var(--petrol);}
       <svg viewBox="0 0 60 44" fill="none"><path d="M4 42V20.5L23.5 3l10.5 9.2M14 42V26h0M23.5 12.5 56 41" stroke="#252b33" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="brand-txt"><b>PLANKULT</b><span>Projektgesellschaft</span></span>
     </a>
-    <a class="back" href="index.html">← Zurück zur Projektseite</a>
+    <div class="h-right">
+      <div class="lang-sw" role="group" aria-label="Sprache wählen">
+        <button type="button" class="lang-btn active" data-lang="de">DE</button>
+        <button type="button" class="lang-btn" data-lang="en">EN</button>
+      </div>
+      <a class="back" href="index.html" id="backlink">← Zurück zur Projektseite</a>
+    </div>
   </div>
 </header>
 <main>
+<div id="c-de">
 <div class="todo"><b>Hinweis (vor Veröffentlichung entfernen):</b> Die <mark>gelb markierten Platzhalter</mark> müssen durch die tatsächlichen Unternehmensangaben ersetzt und der gesamte Text rechtlich geprüft werden. Diese Vorlage ersetzt keine Rechtsberatung.</div>
 <h1>Allgemeine Geschäftsbedingungen</h1>
 <p class="sub">Nutzungsbedingungen der Projektwebsite „Das Münsterviertel" — Stand: Juli 2026</p>
-
 <h2>§ 1 Geltungsbereich</h2>
 <p>Diese Bedingungen gelten für die Nutzung der Projektwebsite „Das Münsterviertel" der Plankult Projektgesellschaft UG (haftungsbeschränkt) (nachfolgend „Anbieter") sowie für vorvertragliche Kontakte, die über diese Website angebahnt werden.</p>
-
 <h2>§ 2 Unverbindlichkeit der Angaben</h2>
 <p>Sämtliche Inhalte dieser Website – insbesondere Preise, Wohnflächen, Grundrisse, Ausstattungsbeschreibungen und Visualisierungen – sind <strong>freibleibend und unverbindlich</strong>. Sie stellen kein rechtsverbindliches Angebot im Sinne des § 145 BGB dar, sondern eine unverbindliche Aufforderung zur Kontaktaufnahme.</p>
 <p>Die genannten Ausstattungen sind ein unverbindlicher Auszug; maßgeblich ist allein die vollständige Baubeschreibung, die auf Anfrage erhältlich ist. Alle Visualisierungen sind unverbindliche Darstellungen und können vom tatsächlichen Bauzustand abweichen. Zwischenverkauf, Änderungen und Irrtümer bleiben vorbehalten.</p>
-
 <h2>§ 3 Vertragsschluss</h2>
 <p>Kaufverträge über die auf dieser Website vorgestellten Eigentumswohnungen kommen ausschließlich durch <strong>notarielle Beurkundung</strong> zustande (§ 311b Abs. 1 BGB). Über diese Website selbst können keine Verträge geschlossen werden. Reservierungen oder Absprachen im Vorfeld begründen keinen Anspruch auf Abschluss eines Kaufvertrages.</p>
-
 <h2>§ 4 Maklerkosten</h2>
 <p>Für den Erwerb der auf dieser Website angebotenen Wohnungen fallen <strong>keine Maklerkosten</strong> an. Etwaige Nebenkosten des Erwerbs (insbesondere Notar- und Gerichtskosten sowie Grunderwerbsteuer) trägt der Käufer, soweit im notariellen Kaufvertrag nichts anderes vereinbart wird.</p>
-
 <h2>§ 5 Fälligkeit des Kaufpreises</h2>
 <p>Die Einzelheiten zur Fälligkeit des Kaufpreises ergeben sich ausschließlich aus dem notariellen Kaufvertrag. Die auf der Website beschriebene Regelung (Fälligkeit erst bei Schlüsselübergabe) ist eine unverbindliche Projektbeschreibung und begründet für sich genommen keine vertraglichen Ansprüche.</p>
-
 <h2>§ 6 Urheber- und Nutzungsrechte</h2>
 <p>Alle Inhalte dieser Website (Texte, Visualisierungen, 3D-Grundrisse, Fotografien, Gestaltung) sind urheberrechtlich geschützt. Jede Verwendung außerhalb des privaten Gebrauchs – insbesondere Vervielfältigung, Veröffentlichung oder Weitergabe an Dritte – bedarf der vorherigen schriftlichen Zustimmung des Anbieters.</p>
-
 <h2>§ 7 Haftung</h2>
 <p>Der Anbieter haftet unbeschränkt für Vorsatz und grobe Fahrlässigkeit sowie bei Verletzung von Leben, Körper oder Gesundheit. Bei einfacher Fahrlässigkeit haftet der Anbieter nur für die Verletzung wesentlicher Vertragspflichten (Kardinalpflichten), begrenzt auf den vertragstypischen, vorhersehbaren Schaden. Die Haftung nach zwingenden gesetzlichen Vorschriften bleibt unberührt.</p>
 <p>Für die ständige, ununterbrochene Verfügbarkeit der Website wird keine Gewähr übernommen.</p>
-
 <h2>§ 8 Schlussbestimmungen</h2>
 <p>Es gilt das Recht der Bundesrepublik Deutschland. Sollten einzelne Bestimmungen dieser Bedingungen ganz oder teilweise unwirksam sein oder werden, bleibt die Wirksamkeit der übrigen Bestimmungen unberührt.</p>
-
+</div>
+<div id="c-en" hidden>
+<div class="todo"><b>Note (remove before publishing):</b> The <mark>highlighted placeholders</mark> must be replaced with the actual company details and the entire text must be reviewed by a lawyer. This template does not constitute legal advice.</div><div class="binding">This English translation is provided for convenience only. The <strong>German version is the legally binding version</strong>.</div>
+<h1>General Terms and Conditions</h1>
+<p class="sub">Terms of use of the project website “Das Münsterviertel” — Last updated: July 2026</p>
+<h2>Section 1 — Scope</h2>
+<p>These terms apply to the use of the project website “Das Münsterviertel” of Plankult Projektgesellschaft UG (haftungsbeschränkt) (hereinafter the “Provider”) as well as to pre-contractual contacts initiated via this website.</p>
+<h2>Section 2 — Non-binding nature of the information</h2>
+<p>All content on this website – in particular prices, living spaces, floor plans, feature descriptions and visualisations – is <strong>subject to change and non-binding</strong>. It does not constitute a legally binding offer within the meaning of Section 145 of the German Civil Code (BGB), but a non-binding invitation to make contact.</p>
+<p>The features mentioned are a non-binding excerpt; the complete building specification, available on request, is solely decisive. All visualisations are non-binding representations and may differ from the actual state of construction. Subject to prior sale, changes and errors.</p>
+<h2>Section 3 — Conclusion of contract</h2>
+<p>Purchase contracts for the condominiums presented on this website are concluded exclusively by <strong>notarisation</strong> (Section 311b (1) BGB). No contracts can be concluded via this website itself. Reservations or preliminary arrangements do not establish any entitlement to the conclusion of a purchase contract.</p>
+<h2>Section 4 — Broker fees</h2>
+<p><strong>No broker fees</strong> apply to the purchase of the apartments offered on this website. Any ancillary purchase costs (in particular notary and court fees as well as real estate transfer tax) are borne by the buyer, unless otherwise agreed in the notarised purchase contract.</p>
+<h2>Section 5 — Due date of the purchase price</h2>
+<p>The details of the due date of the purchase price arise exclusively from the notarised purchase contract. The arrangement described on the website (payment due only upon handover of the keys) is a non-binding project description and does not in itself establish any contractual claims.</p>
+<h2>Section 6 — Copyright and rights of use</h2>
+<p>All content on this website (texts, visualisations, 3D floor plans, photographs, design) is protected by copyright. Any use beyond private use – in particular reproduction, publication or disclosure to third parties – requires the prior written consent of the Provider.</p>
+<h2>Section 7 — Liability</h2>
+<p>The Provider is liable without limitation for intent and gross negligence as well as for injury to life, body or health. In cases of simple negligence, the Provider is only liable for the breach of essential contractual obligations (cardinal obligations), limited to the foreseeable damage typical of the contract. Liability under mandatory statutory provisions remains unaffected.</p>
+<p>No guarantee is given for the constant, uninterrupted availability of the website.</p>
+<h2>Section 8 — Final provisions</h2>
+<p>The law of the Federal Republic of Germany applies. Should individual provisions of these terms be or become wholly or partially invalid, the validity of the remaining provisions shall remain unaffected.</p>
+</div>
 </main>
 <footer>
-  <div>© 2026 Das Münsterviertel · Partner der Plankult Projektgesellschaft UG</div>
+  <div id="f-partner">© 2026 Das Münsterviertel · Partner der Plankult Projektgesellschaft UG</div>
   <div style="margin-top:8px;">
-    <a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a><a href="agb.html">AGB</a>
+    <a href="impressum.html" id="f-imp">Impressum</a><a href="datenschutz.html" id="f-ds">Datenschutz</a><a href="agb.html" id="f-agb">AGB</a>
   </div>
 </footer>
+<script>
+(function(){
+  var T = {
+    de: {back:'← Zurück zur Projektseite', partner:'© 2026 Das Münsterviertel · Partner der Plankult Projektgesellschaft UG',
+         imp:'Impressum', ds:'Datenschutz', agb:'AGB', title:'AGB — Das Münsterviertel'},
+    en: {back:'← Back to the project page', partner:'© 2026 Das Münsterviertel · A partner of Plankult Projektgesellschaft UG',
+         imp:'Legal notice', ds:'Privacy policy', agb:'Terms', title:'Terms and Conditions — Das Münsterviertel'}
+  };
+  function setLang(l){
+    document.documentElement.lang = l;
+    document.title = T[l].title;
+    document.getElementById('c-de').hidden = (l !== 'de');
+    document.getElementById('c-en').hidden = (l !== 'en');
+    document.getElementById('backlink').textContent = T[l].back;
+    document.getElementById('f-partner').textContent = T[l].partner;
+    document.getElementById('f-imp').textContent = T[l].imp;
+    document.getElementById('f-ds').textContent = T[l].ds;
+    document.getElementById('f-agb').textContent = T[l].agb;
+    document.querySelectorAll('.lang-btn').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-lang') === l);
+    });
+    try{ localStorage.setItem('mv-lang', l); }catch(e){}
+  }
+  document.querySelectorAll('.lang-btn').forEach(function(b){
+    b.addEventListener('click', function(){ setLang(b.getAttribute('data-lang')); });
+  });
+  var saved = 'de';
+  try{ saved = localStorage.getItem('mv-lang') || 'de'; }catch(e){}
+  if(saved === 'en') setLang('en');
+})();
+</script>
 </body>
 </html>
