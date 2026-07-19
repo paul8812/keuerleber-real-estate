@@ -340,19 +340,13 @@ h2 em{font-style:normal;color:var(--petrol);}
 
 /* ---------- Interior Reveal: Vorher → Nachher ---------- */
 .reveal-stage{
-  position:relative;aspect-ratio:16/8.2;border-radius:var(--radius);overflow:hidden;
+  position:relative;aspect-ratio:16/9.5;border-radius:var(--radius);overflow:hidden;
   box-shadow:var(--shadow);background:var(--mist);
 }
-/* Vorher-Ebene: Rohzustand mit Planungsraster */
+@media(max-width:640px){.reveal-stage{aspect-ratio:4/3;}}
+/* Vorher-Ebene: unsanierter Altbau, leer */
 .reveal-before{position:absolute;inset:0;}
-.reveal-before img{width:100%;height:100%;object-fit:cover;}
-.reveal-before:after{
-  content:"";position:absolute;inset:0;
-  background:
-    repeating-linear-gradient(0deg, rgba(20,108,143,.10) 0 1px, transparent 1px 56px),
-    repeating-linear-gradient(90deg, rgba(20,108,143,.10) 0 1px, transparent 1px 56px),
-    rgba(154,176,198,.1);
-}
+.reveal-before img{width:100%;height:100%;object-fit:cover;filter:saturate(.82) contrast(.97);}
 .reveal-label{
   position:absolute;left:18px;top:18px;z-index:4;
   background:rgba(37,43,51,.78);color:#fff;backdrop-filter:blur(8px);
@@ -369,7 +363,7 @@ h2 em{font-style:normal;color:var(--petrol);}
   position:absolute;top:0;bottom:0;
   width:calc(100%/12 + 1.5px);
   left:calc(var(--i) * (100%/12));
-  background-image:url("assets/wohnen.jpg");
+  background-image:url("assets/sanierung-nachher.jpg");
   background-size:1200% 100%;
   background-position-x:calc(var(--i)/11 * 100%);
   opacity:0;transform:translateY(7%) scale(1.07);filter:blur(14px);
@@ -1128,12 +1122,12 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
       <p class="lead" data-reveal data-i18n="haus.lead">Dieses außergewöhnliche Haus wird mit höchstem Anspruch umfassend saniert und neu interpretiert. Der ursprüngliche Charme bleibt erhalten, während ein Wohnensemble entsteht, das moderne und nachhaltige Bauweise miteinander verbindet.</p>
     </div>
     <div class="reveal-stage" id="assemble" data-reveal="fade" role="img" aria-label="Wohnbereich — Verwandlung vom Rohzustand zum fertigen Interieur">
-      <div class="reveal-before"><img src="assets/wohnen-vorher.jpg" alt="" loading="lazy"></div>
-      <span class="reveal-label" data-i18n="rev.before">Vorher · Rohzustand</span>
+      <div class="reveal-before"><img src="assets/sanierung-vorher.jpg" alt="" loading="lazy"></div>
+      <span class="reveal-label" data-i18n="rev.before">Vorher · Unsaniert</span>
       <div class="reveal-strips">
         <i class="strip" style="--i:0"></i><i class="strip" style="--i:1"></i><i class="strip" style="--i:2"></i><i class="strip" style="--i:3"></i><i class="strip" style="--i:4"></i><i class="strip" style="--i:5"></i><i class="strip" style="--i:6"></i><i class="strip" style="--i:7"></i><i class="strip" style="--i:8"></i><i class="strip" style="--i:9"></i><i class="strip" style="--i:10"></i><i class="strip" style="--i:11"></i>
       </div>
-      <div class="reveal-cap" data-i18n="rev.after"><i></i>Nachher · Wohnen im Münsterviertel</div>
+      <div class="reveal-cap" data-i18n="rev.after"><i></i>Nachher · Saniert &amp; möbliert</div>
       <button class="reveal-replay" id="replayBtn" type="button" aria-label="Animation erneut abspielen">↻ Replay</button>
     </div>
     <div class="haus-cols">
@@ -1143,7 +1137,7 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
         <p data-i18n="haus.p2">Eine effiziente Wärmepumpe in Kombination mit Fußbodenheizung sorgt für angenehmes Raumklima und niedrige Energiekosten. Der Designboden in stilvoller Landhausdiele Eiche verleiht den Räumen Wärme und Charakter, während die Bäder mit Betonfliesenoptik eine elegante, urbane Note setzen.</p>
       </div>
       <div class="pframe" data-parallax="0.08" data-reveal>
-        <img src="assets/balkon.jpg" alt="Balkon mit Sichtschutz und Blick in den Wohnraum" loading="lazy">
+        <img src="assets/wohnen.jpg" alt="Heller Wohnbereich mit Designboden in Landhausdiele Eiche" loading="lazy">
       </div>
     </div>
   </div>
@@ -2260,7 +2254,7 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
     'lage.f3':'Gentle hillside location with panoramic views over Hof',
     'haus.h2':'A building that unites history and <em>modern living</em>.',
     'haus.lead':'This exceptional building is being comprehensively refurbished and reinterpreted to the highest standards. Its original charm is preserved while a residential ensemble emerges that combines modern and sustainable construction.',
-    'rev.before':'Before · Shell condition','rev.after':'<i></i>After · Living at the Münsterviertel',
+    'rev.before':'Before · Unrenovated','rev.after':'<i></i>After · Renovated &amp; furnished',
     'haus.h3':'Contemporary elegance, sustainable technology.',
     'haus.p1':'Six exclusive residential units with generous living spaces between 72 and 108 m² offer room for individual needs. Every apartment has its own balcony, extending the living experience and opening up wonderful views over the city.',
     'haus.p2':'An efficient heat pump combined with underfloor heating ensures a pleasant indoor climate and low energy costs. The design flooring in stylish oak country-house planks lends the rooms warmth and character, while the bathrooms with concrete-look tiles set an elegant, urban tone.',
