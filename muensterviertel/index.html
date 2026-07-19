@@ -127,7 +127,8 @@ nav:not(.scrolled) .nav-links a:not(.nav-cta):hover{color:#fff;}
   .brand svg{width:36px;}
   .brand-txt b{font-size:12.5px;}
   .brand-txt span{font-size:7.5px;}
-  .nav-cta{padding:9px 16px;font-size:11.5px;white-space:nowrap;}
+  .nav-cta{display:none;}
+  .nav-links{gap:0;}
 }
 
 /* ---------- Hero (Vollbild, cinematisch) ---------- */
@@ -240,7 +241,24 @@ h1 .line:nth-child(2) span{animation-delay:1.8s;color:#9fd6ef;}
   .hero-inner{flex-direction:column;align-items:flex-start;}
   .hero-chips{flex-direction:row;align-items:stretch;}
   .hero-chips .hero-chip:nth-child(2){display:none;}
-  .hero-inner{padding-bottom:clamp(56px,8vh,80px);}
+  .hero-inner{padding-bottom:clamp(40px,6vh,64px);}
+  .scroll-cue{display:none;}
+  .hero-bg:after{
+    background:linear-gradient(to top,
+      rgba(13,42,60,.94) 0%,
+      rgba(13,42,60,.72) 30%,
+      rgba(13,42,60,.38) 58%,
+      rgba(13,42,60,.18) 100%);
+  }
+}
+@media(max-width:520px){
+  h1{font-size:clamp(32px,10.5vw,44px);}
+  .hero-sub{font-size:14.5px;}
+  .hero-eyebrow{font-size:9px;letter-spacing:.12em;padding:8px 14px;}
+  .hero-chip{padding:11px 16px;}
+  .hero-chip .n{font-size:17px;}
+  .hero-chip .t{font-size:9.5px;}
+  .btn{padding:13px 22px;font-size:13px;}
 }
 
 /* ---------- Shared ---------- */
@@ -272,6 +290,7 @@ h2 em{font-style:normal;color:var(--petrol);}
 
 .pframe{overflow:hidden;position:relative;border-radius:var(--radius);}
 .pframe img{width:100%;height:112%;object-fit:cover;will-change:transform;}
+@media(pointer:coarse){.pframe img{height:100%;transform:none!important;}}
 
 /* ---------- Stats ---------- */
 .stats-band{background:var(--white);padding:clamp(56px,7vw,96px) 0 0;}
@@ -611,7 +630,9 @@ h2 em{font-style:normal;color:var(--petrol);}
   .ex-floors{display:none;}
   .ex-stage{min-height:36vh;height:36vh;}
   .ex-plan img{max-height:34vh;}
-  .ex-level img{max-width:150px;}
+  .ex-level img{max-width:150px;max-height:9.5vh;width:auto;}
+  .ex-level + .ex-level{margin-top:-1vh;}
+  .ex-stage{overflow:hidden;border-radius:var(--radius);}
   .ex-panel-wrap{min-height:400px;}
   .ex-panel{justify-content:flex-start;gap:10px;padding:20px 22px;}
   .ex-panel .p-no{font-size:34px;-webkit-text-stroke-width:1.5px;}
@@ -1939,6 +1960,25 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
       });
     },{threshold:0.12, rootMargin:'0px 0px -6% 0px'});
     revealEls.forEach(function(el){ io.observe(el); });
+    /* Fallback bei Sprung-Navigation (Anker/Menü): alles oberhalb bzw. im
+       Viewport sofort einblenden, damit keine leeren Sektionen stehen */
+    var revTicking = false;
+    function revealSweep(){
+      revTicking = false;
+      var vh = window.innerHeight;
+      revealEls.forEach(function(el){
+        if(el.classList.contains('in')) return;
+        var top = el.getBoundingClientRect().top;
+        if(top < vh * 0.5){
+          el.style.transitionDelay = '0ms';
+          el.classList.add('in');
+        }
+      });
+    }
+    window.addEventListener('scroll', function(){
+      if(!revTicking){ revTicking = true; requestAnimationFrame(revealSweep); }
+    }, {passive:true});
+    window.addEventListener('hashchange', function(){ setTimeout(revealSweep, 80); });
   } else {
     revealEls.forEach(function(el){ el.classList.add('in'); });
   }
@@ -1968,9 +2008,10 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
     counters.forEach(function(el){ el.childNodes[0].nodeValue = el.getAttribute('data-count'); });
   }
 
-  /* Parallax */
+  /* Parallax (nur auf Geräten mit Maus — auf Touch verschiebt es Bilder unnötig) */
+  var coarse = window.matchMedia('(pointer:coarse)').matches;
   var pEls = [];
-  document.querySelectorAll('[data-parallax]').forEach(function(frame){
+  if(!coarse) document.querySelectorAll('[data-parallax]').forEach(function(frame){
     var img = frame.querySelector('img');
     if(img) pEls.push({frame:frame, img:img, f:parseFloat(frame.getAttribute('data-parallax'))||0.1});
   });

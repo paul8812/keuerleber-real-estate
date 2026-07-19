@@ -17,14 +17,15 @@ body{font-family:'Nunito Sans',-apple-system,sans-serif;background:#fff;color:va
 a{color:var(--petrol);text-decoration:none;}
 a:hover{text-decoration:underline;}
 header{border-bottom:1px solid var(--line);}
-.hwrap{max-width:900px;margin:0 auto;padding:18px 5vw;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.hwrap{max-width:900px;margin:0 auto;padding:14px 5vw;display:flex;align-items:center;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;}
 .brand{display:flex;align-items:center;gap:12px;color:var(--navy);}
 .brand:hover{text-decoration:none;}
 .brand svg{width:40px;height:auto;}
 .brand-txt{display:flex;flex-direction:column;line-height:1.15;}
 .brand-txt b{font-family:'Poppins',sans-serif;font-weight:600;font-size:14px;letter-spacing:.12em;}
 .brand-txt span{font-size:8px;letter-spacing:.3em;color:var(--grey);text-transform:uppercase;font-weight:600;}
-.back{font-family:'Poppins',sans-serif;font-size:12.5px;font-weight:600;letter-spacing:.04em;white-space:nowrap;}
+.back{font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;letter-spacing:.02em;white-space:nowrap;flex-shrink:0;}
+@media(max-width:560px){.back{font-size:11px;}.brand-txt b{font-size:12px;}.brand svg{width:32px;}}
 main{max-width:900px;margin:0 auto;padding:clamp(40px,6vw,70px) 5vw 80px;}
 h1{font-family:'Poppins',sans-serif;font-weight:600;font-size:clamp(28px,4vw,42px);letter-spacing:-.01em;margin-bottom:10px;}
 .sub{color:var(--grey);margin-bottom:36px;font-size:15px;}
