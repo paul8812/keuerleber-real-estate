@@ -6,6 +6,11 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Das Münsterviertel — Wohnen mit Geschichte, Komfort und Weitblick</title>
 <meta name="description" content="Sechs exklusive Eigentumswohnungen in Hof. Kernsaniert, nachhaltig, provisionsfrei — Das Münsterviertel. Ein Projekt der Plankult Projektgesellschaft.">
+<meta property="og:title" content="Das Münsterviertel — Wohnen mit Geschichte, Komfort und Weitblick">
+<meta property="og:description" content="Sechs exklusive Eigentumswohnungen in Hof. Kernsaniert, nachhaltig, provisionsfrei.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="assets/hero.jpg">
+<meta property="og:locale" content="de_DE">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M6 26V14L16 5l10 9v12' fill='none' stroke='%23146C8F' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preload" href="assets/fonts/Poppins-700.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/fonts/fonts.css">
@@ -745,6 +750,203 @@ h2 em{font-style:normal;color:var(--petrol);}
 .kontakt-copy .btn{margin-top:28px;}
 @media(max-width:900px){.kontakt-card{grid-template-columns:1fr;}.kontakt-fig{min-height:280px;}}
 
+/* ---------- Scroll-Progress + Nav aktiv ---------- */
+#pbar{position:fixed;top:0;left:0;height:3px;width:0;background:var(--petrol);z-index:102;transition:width .15s linear;}
+.nav-links a.active:not(.nav-cta){color:var(--petrol);}
+.nav-links a.active:not(.nav-cta):after{width:100%;}
+nav:not(.scrolled) .nav-links a.active:not(.nav-cta){color:#fff;}
+
+/* ---------- Hamburger + Mobile-Menü ---------- */
+#burger{
+  display:none;width:44px;height:44px;border:none;background:transparent;cursor:pointer;
+  flex-direction:column;align-items:center;justify-content:center;gap:6px;z-index:120;
+}
+#burger i{display:block;width:24px;height:2px;background:var(--navy);border-radius:2px;transition:transform .35s var(--ease),opacity .3s,background .45s;}
+nav:not(.scrolled) #burger i{background:#fff;}
+body.menu-open #burger i{background:var(--navy)!important;}
+body.menu-open #burger i:nth-child(1){transform:translateY(4px) rotate(45deg);}
+body.menu-open #burger i:nth-child(2){transform:translateY(-4px) rotate(-45deg);}
+@media(max-width:900px){#burger{display:flex;}}
+#mmenu{
+  position:fixed;inset:0;z-index:110;background:rgba(255,255,255,.98);
+  backdrop-filter:blur(10px);
+  display:flex;flex-direction:column;justify-content:center;padding:0 8vw;gap:6px;
+  opacity:0;visibility:hidden;transform:translateY(-14px);
+  transition:opacity .4s var(--ease),transform .4s var(--ease),visibility .4s;
+}
+body.menu-open #mmenu{opacity:1;visibility:visible;transform:none;}
+#mmenu a{
+  font-family:'Poppins',sans-serif;font-weight:600;font-size:clamp(24px,6vw,34px);
+  color:var(--navy);padding:12px 0;border-bottom:1px solid var(--line);
+  display:flex;align-items:baseline;gap:14px;
+  opacity:0;transform:translateY(16px);transition:opacity .45s var(--ease),transform .45s var(--ease);
+}
+body.menu-open #mmenu a{opacity:1;transform:none;}
+#mmenu a small{font-size:12px;color:var(--sky);font-weight:700;letter-spacing:.1em;}
+#mmenu a:hover{color:var(--petrol);}
+#mmenu .m-contact{margin-top:26px;font-size:14px;color:var(--grey);border:none;display:block;opacity:0;transform:translateY(16px);transition:opacity .45s var(--ease),transform .45s var(--ease);}
+#mmenu .m-contact a{display:inline;font-size:14px;border:none;padding:0;color:var(--petrol);}
+body.menu-open #mmenu .m-contact{opacity:1;transform:none;}
+body.menu-open{overflow:hidden;}
+body.menu-open nav{z-index:130;background:transparent;box-shadow:none;}
+body.menu-open .brand svg path{stroke:var(--navy)!important;}
+body.menu-open .brand-txt b{color:var(--navy)!important;}
+body.menu-open .brand-txt span{color:var(--grey)!important;}
+body.menu-open .nav-cta{visibility:hidden;}
+
+/* ---------- Lightbox ---------- */
+#lightbox{
+  position:fixed;inset:0;z-index:150;background:rgba(20,32,42,.88);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;
+  opacity:0;visibility:hidden;transition:opacity .4s var(--ease),visibility .4s;
+}
+#lightbox.open{opacity:1;visibility:visible;}
+#lightbox img{
+  max-width:min(1100px,92vw);max-height:78vh;object-fit:contain;border-radius:14px;
+  background:#fff;box-shadow:0 40px 90px -30px rgba(0,0,0,.5);
+  transform:scale(.94);transition:transform .4s var(--ease);
+}
+#lightbox.open img{transform:none;}
+#lb-cap{
+  font-family:'Poppins',sans-serif;font-size:14px;font-weight:600;color:#fff;
+  background:rgba(255,255,255,.12);border-radius:100px;padding:9px 22px;
+}
+#lb-close{
+  position:absolute;top:22px;right:22px;width:48px;height:48px;border-radius:50%;
+  border:1.5px solid rgba(255,255,255,.4);background:rgba(255,255,255,.1);color:#fff;
+  font-size:20px;cursor:pointer;transition:background .3s;
+}
+#lb-close:hover{background:rgba(255,255,255,.25);}
+.lb-nav{
+  position:absolute;top:50%;transform:translateY(-50%);width:52px;height:52px;border-radius:50%;
+  border:1.5px solid rgba(255,255,255,.4);background:rgba(255,255,255,.1);color:#fff;
+  font-size:20px;cursor:pointer;transition:background .3s;
+}
+.lb-nav:hover{background:rgba(255,255,255,.25);}
+#lb-prev{left:22px;}#lb-next{right:22px;}
+@media(max-width:640px){.lb-nav{display:none;}}
+.card-img{cursor:zoom-in;}
+.zoom-hint{
+  position:absolute;right:12px;bottom:12px;z-index:2;
+  width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.9);
+  display:flex;align-items:center;justify-content:center;color:var(--petrol);
+  font-size:15px;pointer-events:none;opacity:0;transition:opacity .3s;
+}
+.card:hover .zoom-hint{opacity:1;}
+
+/* ---------- Finanzierungsrechner ---------- */
+#rechner{padding:clamp(90px,11vw,160px) 0;}
+.re-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(30px,4vw,60px);align-items:start;margin-top:clamp(36px,4vw,56px);}
+@media(max-width:900px){.re-grid{grid-template-columns:1fr;}}
+.re-quick{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:26px;}
+.re-quick button{
+  font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;letter-spacing:.04em;
+  border:1.5px solid rgba(154,176,198,.5);background:#fff;color:var(--navy);
+  border-radius:100px;padding:10px 18px;cursor:pointer;transition:all .3s var(--ease);
+}
+.re-quick button:hover{border-color:var(--petrol);color:var(--petrol);}
+.re-quick button.active{background:var(--petrol);border-color:var(--petrol);color:#fff;}
+.re-field{margin-bottom:22px;}
+.re-field label{
+  display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+  font-family:'Poppins',sans-serif;font-size:13px;font-weight:600;color:var(--navy);margin-bottom:10px;
+}
+.re-field label output{color:var(--petrol);font-size:15px;white-space:nowrap;}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:6px;
+  background:linear-gradient(to right,var(--petrol) 0%,var(--petrol) var(--p,50%),rgba(154,176,198,.35) var(--p,50%));
+  outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;
+  border:3px solid var(--petrol);box-shadow:0 4px 12px rgba(13,42,60,.25);cursor:grab;
+}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid var(--petrol);cursor:grab;}
+.re-result{
+  background:var(--navy);color:#fff;border-radius:calc(var(--radius) + 4px);
+  padding:clamp(26px,3vw,40px);position:sticky;top:96px;
+  box-shadow:0 34px 70px -30px rgba(37,43,51,.5);
+}
+.re-result .rr-label{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.55);font-weight:700;}
+.re-result .rr-rate{font-family:'Poppins',sans-serif;font-weight:700;font-size:clamp(38px,4vw,54px);line-height:1.1;color:#fff;margin:6px 0 2px;}
+.re-result .rr-rate small{font-size:.4em;font-weight:600;color:rgba(255,255,255,.6);}
+.re-rows{margin-top:22px;border-top:1px solid rgba(255,255,255,.14);}
+.re-row{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.14);font-size:14px;color:rgba(255,255,255,.75);}
+.re-row b{font-family:'Poppins',sans-serif;font-weight:600;color:#fff;white-space:nowrap;}
+.re-note{margin-top:16px;font-size:11.5px;color:rgba(255,255,255,.45);line-height:1.6;}
+.re-result .btn{margin-top:20px;width:100%;justify-content:center;}
+
+/* ---------- Vergleichstabelle ---------- */
+.cmp-wrap{margin-top:clamp(40px,5vw,64px);}
+.cmp-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:#fff;}
+table.cmp{width:100%;border-collapse:collapse;min-width:760px;font-size:14px;}
+.cmp th{
+  font-family:'Poppins',sans-serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--grey);font-weight:600;text-align:left;padding:14px 18px;background:var(--mist);
+  border-bottom:1px solid var(--line);white-space:nowrap;
+}
+.cmp td{padding:13px 18px;border-bottom:1px solid var(--line);color:var(--navy-soft);white-space:nowrap;}
+.cmp tr:last-child td{border-bottom:none;}
+.cmp tr:hover td{background:var(--sky-soft);}
+.cmp .we{font-family:'Poppins',sans-serif;font-weight:600;color:var(--petrol);}
+.cmp .price{font-family:'Poppins',sans-serif;font-weight:600;color:var(--navy);}
+.cmp .st{font-family:'Poppins',sans-serif;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border-radius:100px;padding:5px 12px;}
+.cmp .st.frei{background:rgba(20,108,143,.12);color:var(--petrol);}
+.cmp .st.sold{background:rgba(154,176,198,.22);color:var(--grey);}
+
+/* ---------- FAQ ---------- */
+#faq{padding:0 0 clamp(90px,11vw,160px);}
+.faq-list{margin-top:clamp(30px,4vw,48px);display:flex;flex-direction:column;gap:12px;max-width:860px;}
+.faq-item{
+  background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;
+  transition:box-shadow .35s var(--ease);
+}
+.faq-item[open]{box-shadow:var(--shadow);}
+.faq-item summary{
+  cursor:pointer;list-style:none;padding:20px 24px;
+  font-family:'Poppins',sans-serif;font-weight:600;font-size:15.5px;color:var(--navy);
+  display:flex;justify-content:space-between;align-items:center;gap:16px;
+}
+.faq-item summary::-webkit-details-marker{display:none;}
+.faq-item summary:after{
+  content:"+";flex-shrink:0;width:30px;height:30px;border-radius:50%;
+  background:var(--sky-soft);color:var(--petrol);font-size:17px;
+  display:flex;align-items:center;justify-content:center;transition:transform .35s var(--ease),background .3s;
+}
+.faq-item[open] summary:after{transform:rotate(45deg);background:var(--petrol);color:#fff;}
+.faq-item p{padding:0 24px 20px;font-size:14.5px;color:var(--grey);max-width:70ch;}
+
+/* ---------- Kontaktformular ---------- */
+.k-form{margin-top:28px;display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.k-form .full{grid-column:1/-1;}
+.k-form input,.k-form select,.k-form textarea{
+  width:100%;background:#fff;border:1.5px solid var(--line);border-radius:12px;
+  padding:14px 16px;font-family:'Nunito Sans',sans-serif;font-size:14.5px;color:var(--navy);
+  transition:border-color .3s;outline:none;
+}
+.k-form input:focus,.k-form select:focus,.k-form textarea:focus{border-color:var(--petrol);}
+.k-form textarea{min-height:110px;resize:vertical;}
+.k-form label{
+  display:block;font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--grey);margin-bottom:6px;
+}
+.k-form .btn{grid-column:1/-1;justify-content:center;border:none;cursor:pointer;font-size:14px;}
+.k-form-note{grid-column:1/-1;font-size:11.5px;color:var(--grey);}
+@media(max-width:560px){.k-form{grid-template-columns:1fr;}}
+
+/* ---------- Nach oben ---------- */
+#totop{
+  position:fixed;right:22px;bottom:22px;z-index:90;
+  width:50px;height:50px;border-radius:50%;border:none;cursor:pointer;
+  background:var(--petrol);color:#fff;font-size:18px;
+  box-shadow:0 16px 34px -12px rgba(20,108,143,.6);
+  opacity:0;visibility:hidden;transform:translateY(14px);
+  transition:opacity .4s var(--ease),transform .4s var(--ease),visibility .4s,background .3s;
+}
+#totop.show{opacity:1;visibility:visible;transform:none;}
+#totop:hover{background:var(--petrol-deep);}
+
 /* ---------- Footer ---------- */
 footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--white);}
 .f-inner{max-width:1280px;margin:0 auto;}
@@ -782,9 +984,25 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
     <a href="#haus">Das Haus</a>
     <a href="#ausstattung">Ausstattung</a>
     <a href="#wohnungen">Wohnungen</a>
+    <a href="#rechner">Rechner</a>
     <a class="nav-cta" href="#kontakt">Beratung anfragen</a>
   </div>
+  <button id="burger" type="button" aria-label="Menü öffnen" aria-expanded="false"><i></i><i></i></button>
 </nav>
+<div id="pbar" aria-hidden="true"></div>
+<div id="mmenu" aria-hidden="true">
+  <a href="#lage"><small>01</small>Lage</a>
+  <a href="#haus"><small>02</small>Das Haus</a>
+  <a href="#ausstattung"><small>03</small>Ausstattung</a>
+  <a href="#explorer"><small>04</small>Wohnungs-Explorer</a>
+  <a href="#wohnungen"><small>05</small>Wohnungen</a>
+  <a href="#rechner"><small>06</small>Finanzierungsrechner</a>
+  <a href="#kontakt"><small>07</small>Kontakt</a>
+  <div class="m-contact">
+    <a href="mailto:vertrieb@norderfranken.de">vertrieb@norderfranken.de</a><br>
+    <a href="tel:+4992811605793">+49 (0) 9281 - 160 57 93</a>
+  </div>
+</div>
 
 <!-- Hero -->
 <header id="top">
@@ -1269,6 +1487,25 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
 
     </div>
     <p class="wo-note" data-reveal="fade">Alle Angaben ohne Gewähr. Es fallen keine Maklerkosten an.</p>
+
+    <div class="cmp-wrap" data-reveal="fade">
+      <div class="eyebrow">Alle Wohnungen im Vergleich</div>
+      <div class="cmp-scroll">
+        <table class="cmp">
+          <thead>
+            <tr><th>Wohnung</th><th>Etage</th><th>Zimmer</th><th>Wohnfläche</th><th>Besonderheit</th><th>Kellerabteil</th><th>Kaufpreis</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="we">WE 01</td><td>EG links</td><td>4</td><td>107,50 m²</td><td>Eigener Garten, Gäste-WC</td><td>17,51 m²</td><td class="price">—</td><td><span class="st sold">Verkauft</span></td></tr>
+            <tr><td class="we">WE 02</td><td>EG rechts</td><td>3</td><td>82,38 m²</td><td>Balkon</td><td>14,42 m²</td><td class="price">230.000 €</td><td><span class="st frei">Verfügbar</span></td></tr>
+            <tr><td class="we">WE 03</td><td>1. OG links</td><td>4</td><td>107,50 m²</td><td>Gäste-WC</td><td>19,40 m²</td><td class="price">—</td><td><span class="st sold">Verkauft</span></td></tr>
+            <tr><td class="we">WE 04</td><td>1. OG rechts</td><td>3</td><td>82,38 m²</td><td>Balkon</td><td>15,18 m²</td><td class="price">—</td><td><span class="st sold">Verkauft</span></td></tr>
+            <tr><td class="we">WE 05</td><td>DG links</td><td>4</td><td>92,18 m²</td><td>Große Gaube, Panoramablick</td><td>15,23 m²</td><td class="price">240.000 €</td><td><span class="st frei">Verfügbar</span></td></tr>
+            <tr><td class="we">WE 06</td><td>DG rechts</td><td>3</td><td>72,29 m²</td><td>Große Gaube, Panoramablick</td><td>14,20 m²</td><td class="price">199.500 €</td><td><span class="st frei">Verfügbar</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -1324,6 +1561,86 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
   </div>
 </section>
 
+<!-- Finanzierungsrechner -->
+<section id="rechner">
+  <div class="wrap">
+    <div class="eyebrow" data-reveal>Finanzierungsrechner</div>
+    <h2 data-reveal>Was kostet Ihre Wohnung <em>im Monat</em>?</h2>
+    <p class="lead" data-reveal style="margin-top:16px;">Verschaffen Sie sich in Sekunden ein Gefühl für Ihre monatliche Rate – unverbindlich und ohne Angabe persönlicher Daten.</p>
+    <div class="re-grid">
+      <div data-reveal>
+        <div class="re-quick" id="reQuick">
+          <button type="button" data-price="230000" class="active">WE 02 · 230.000 €</button>
+          <button type="button" data-price="240000">WE 05 · 240.000 €</button>
+          <button type="button" data-price="199500">WE 06 · 199.500 €</button>
+        </div>
+        <div class="re-field">
+          <label>Kaufpreis <output id="oPrice">230.000 €</output></label>
+          <input type="range" id="rPrice" min="150000" max="320000" step="500" value="230000">
+        </div>
+        <div class="re-field">
+          <label>Eigenkapital <output id="oEquity">40.000 €</output></label>
+          <input type="range" id="rEquity" min="0" max="200000" step="1000" value="40000">
+        </div>
+        <div class="re-field">
+          <label>Sollzins p.&thinsp;a. <output id="oInterest">3,60 %</output></label>
+          <input type="range" id="rInterest" min="1" max="6" step="0.05" value="3.6">
+        </div>
+        <div class="re-field">
+          <label>Anfängliche Tilgung p.&thinsp;a. <output id="oRepay">2,00 %</output></label>
+          <input type="range" id="rRepay" min="1" max="5" step="0.25" value="2">
+        </div>
+      </div>
+      <div class="re-result" data-reveal>
+        <span class="rr-label">Ihre monatliche Rate ca.</span>
+        <div class="rr-rate"><span id="rrRate">886</span>&thinsp;€<small> / Monat</small></div>
+        <div class="re-rows">
+          <div class="re-row"><span>Darlehenssumme</span><b id="rrLoan">190.000 €</b></div>
+          <div class="re-row"><span>davon Zins im 1. Jahr</span><b id="rrInt">570 € / Monat</b></div>
+          <div class="re-row"><span>davon Tilgung im 1. Jahr</span><b id="rrRep">316 € / Monat</b></div>
+          <div class="re-row"><span>Kaufnebenkosten ca. 5,5 %*</span><b id="rrNk">12.650 €</b></div>
+        </div>
+        <p class="re-note">*Grunderwerbsteuer Bayern 3,5 % zzgl. Notar &amp; Grundbuch ca. 2 %. Unverbindliche Beispielrechnung, keine Finanzierungsberatung und kein Angebot. Gerne vermitteln wir Ihnen ein persönliches Gespräch mit lokalen Banken.</p>
+        <a class="btn btn-primary" href="#kontakt">Finanzierung besprechen <i>→</i></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="wrap">
+    <div class="eyebrow" data-reveal>Häufige Fragen</div>
+    <h2 data-reveal>Gut zu <em>wissen</em>.</h2>
+    <div class="faq-list">
+      <details class="faq-item" data-reveal>
+        <summary>Fallen beim Kauf Maklerkosten an?</summary>
+        <p>Nein. Der Vertrieb erfolgt direkt über die Plankult Projektgesellschaft – es fallen keine Maklerkosten an. Übliche Kaufnebenkosten (Grunderwerbsteuer, Notar, Grundbuch) trägt der Käufer.</p>
+      </details>
+      <details class="faq-item" data-reveal>
+        <summary>Wann wird der Kaufpreis fällig?</summary>
+        <p>Der Kaufpreis wird erst mit der Schlüsselübergabe fällig. Sie leisten keine risikobehaftete Anzahlung auf ein unfertiges Produkt, sondern zahlen erst, wenn Sie Ihr neues Zuhause tatsächlich übernehmen können. Maßgeblich sind die Regelungen des notariellen Kaufvertrags.</p>
+      </details>
+      <details class="faq-item" data-reveal>
+        <summary>Unterstützen Sie bei der Finanzierung?</summary>
+        <p>Ja. Auf Wunsch begleiten wir Sie bei der Suche nach einer passenden Finanzierung und arbeiten dafür mit lokalen Banken und seriösen Finanzierern zusammen.</p>
+      </details>
+      <details class="faq-item" data-reveal>
+        <summary>Wie verbindlich sind die Angaben zur Ausstattung?</summary>
+        <p>Die auf dieser Website genannten Ausstattungen sind ein unverbindlicher Auszug. Maßgeblich ist allein die vollständige Baubeschreibung, die Sie auf Anfrage gerne erhalten. Alle Visualisierungen sind unverbindliche Darstellungen.</p>
+      </details>
+      <details class="faq-item" data-reveal>
+        <summary>Gehört zu jeder Wohnung ein Kellerabteil?</summary>
+        <p>Ja. Zu jeder Wohnung gehört ein Sondernutzungsrecht an einem eigenen Kellerabteil (14,20–19,40 m²). Zusätzlich gibt es gemeinschaftliche Flächen für Technik sowie einen Müll- und Fahrradraum.</p>
+      </details>
+      <details class="faq-item" data-reveal>
+        <summary>Wie läuft der Kauf konkret ab?</summary>
+        <p>In drei Schritten: persönliche Beratung (auf Wunsch mit Finanzierungsvermittlung), notarielle Beurkundung des Kaufvertrags mit höchster Rechtssicherheit, anschließend Übergabe der Wohnung mit Kaufpreiszahlung erst bei Schlüsselübergabe.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
 <!-- Kontakt -->
 <section id="kontakt">
   <div class="wrap">
@@ -1340,7 +1657,33 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
           <div class="k-row"><span>Telefon</span><a href="tel:+4992811605793">+49 (0) 9281 - 160 57 93</a></div>
           <div class="k-row"><span>Projekt</span><b>Plankult Projektgesellschaft</b></div>
         </div>
-        <a class="btn btn-primary" href="mailto:vertrieb@norderfranken.de?subject=Anfrage%20Das%20M%C3%BCnsterviertel" data-reveal>Beratung anfragen <i>→</i></a>
+        <form class="k-form" id="kForm" data-reveal>
+          <div>
+            <label for="kfName">Name</label>
+            <input id="kfName" name="name" type="text" autocomplete="name" required>
+          </div>
+          <div>
+            <label for="kfTel">Telefon (optional)</label>
+            <input id="kfTel" name="tel" type="tel" autocomplete="tel">
+          </div>
+          <div class="full">
+            <label for="kfWe">Interesse an</label>
+            <select id="kfWe" name="wohnung">
+              <option value="Allgemeine Anfrage">Allgemeine Anfrage</option>
+              <option value="Wohnung 02 (EG rechts, 82,38 m², 230.000 €)">Wohnung 02 · EG rechts · 230.000 €</option>
+              <option value="Wohnung 05 (DG links, 92,18 m², 240.000 €)">Wohnung 05 · DG links · 240.000 €</option>
+              <option value="Wohnung 06 (DG rechts, 72,29 m², 199.500 €)">Wohnung 06 · DG rechts · 199.500 €</option>
+              <option value="Besichtigungstermin">Besichtigungstermin</option>
+              <option value="Finanzierungsberatung">Finanzierungsberatung</option>
+            </select>
+          </div>
+          <div class="full">
+            <label for="kfMsg">Ihre Nachricht</label>
+            <textarea id="kfMsg" name="nachricht" placeholder="Guten Tag, ich interessiere mich für eine Wohnung im Münsterviertel …"></textarea>
+          </div>
+          <button class="btn btn-primary" type="submit">Anfrage per E-Mail senden <i>→</i></button>
+          <p class="k-form-note">Öffnet Ihr E-Mail-Programm mit vorausgefüllter Nachricht an vertrieb@norderfranken.de — es werden keine Daten über diese Website übertragen.</p>
+        </form>
       </div>
     </div>
   </div>
@@ -1370,6 +1713,18 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
     </div>
   </div>
 </footer>
+
+<!-- Lightbox -->
+<div id="lightbox" role="dialog" aria-modal="true" aria-label="Bildansicht">
+  <button id="lb-close" type="button" aria-label="Schließen">✕</button>
+  <button id="lb-prev" class="lb-nav" type="button" aria-label="Vorheriges Bild">←</button>
+  <img id="lb-img" src="" alt="">
+  <span id="lb-cap"></span>
+  <button id="lb-next" class="lb-nav" type="button" aria-label="Nächstes Bild">→</button>
+</div>
+
+<!-- Nach oben -->
+<button id="totop" type="button" aria-label="Nach oben scrollen">↑</button>
 
 <script>
 (function(){
@@ -1637,6 +1992,173 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
     }, {passive:true});
     window.addEventListener('resize', parallax);
     parallax();
+  }
+
+  /* Scroll-Progress + Nach-oben-Button */
+  var pbar = document.getElementById('pbar');
+  var totop = document.getElementById('totop');
+  window.addEventListener('scroll', function(){
+    var max = document.documentElement.scrollHeight - window.innerHeight;
+    if(pbar && max > 0) pbar.style.width = (window.scrollY / max * 100) + '%';
+    if(totop) totop.classList.toggle('show', window.scrollY > 700);
+  }, {passive:true});
+  if(totop) totop.addEventListener('click', function(){ window.scrollTo({top:0, behavior: reduced ? 'auto' : 'smooth'}); });
+
+  /* Scrollspy: aktiven Nav-Link markieren */
+  var spyLinks = document.querySelectorAll('.nav-links a[href^="#"]:not(.nav-cta)');
+  var spyMap = {};
+  spyLinks.forEach(function(a){ spyMap[a.getAttribute('href').slice(1)] = a; });
+  if('IntersectionObserver' in window){
+    var spyIO = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting && spyMap[e.target.id]){
+          spyLinks.forEach(function(a){ a.classList.remove('active'); });
+          spyMap[e.target.id].classList.add('active');
+        }
+      });
+    },{rootMargin:'-35% 0px -55% 0px'});
+    Object.keys(spyMap).forEach(function(id){
+      var s = document.getElementById(id);
+      if(s) spyIO.observe(s);
+    });
+  }
+
+  /* Mobile-Menü */
+  var burger = document.getElementById('burger');
+  var mmenu = document.getElementById('mmenu');
+  function closeMenu(){
+    document.body.classList.remove('menu-open');
+    burger.setAttribute('aria-expanded','false');
+    mmenu.setAttribute('aria-hidden','true');
+  }
+  if(burger && mmenu){
+    burger.addEventListener('click', function(){
+      var open = document.body.classList.toggle('menu-open');
+      burger.setAttribute('aria-expanded', open);
+      mmenu.setAttribute('aria-hidden', !open);
+      if(open){
+        mmenu.querySelectorAll('a, .m-contact').forEach(function(el, i){
+          el.style.transitionDelay = (60 + i * 45) + 'ms';
+        });
+      }
+    });
+    mmenu.querySelectorAll('a[href^="#"]').forEach(function(a){
+      a.addEventListener('click', closeMenu);
+    });
+    window.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeMenu(); });
+  }
+
+  /* Lightbox für Grundrisse */
+  var lb = document.getElementById('lightbox');
+  var lbImg = document.getElementById('lb-img');
+  var lbCap = document.getElementById('lb-cap');
+  var lbItems = [], lbIdx = 0;
+  document.querySelectorAll('.card').forEach(function(card){
+    var img = card.querySelector('.card-img img');
+    var no = card.querySelector('.card-top .no');
+    var title = card.querySelector('h3');
+    if(!img) return;
+    var item = {src: img.getAttribute('src'), cap: (no ? no.textContent + ' — ' : '') + (title ? title.textContent : '')};
+    var idx = lbItems.push(item) - 1;
+    var hint = document.createElement('span');
+    hint.className = 'zoom-hint';
+    hint.textContent = '⛶';
+    card.querySelector('.card-img').appendChild(hint);
+    card.querySelector('.card-img').addEventListener('click', function(){ lbOpen(idx); });
+  });
+  var kellerImg = document.querySelector('#keller .pframe img');
+  if(kellerImg){
+    var kIdx = lbItems.push({src: kellerImg.getAttribute('src'), cap: 'Kellergeschoss — Aufteilung & Kellerabteile'}) - 1;
+    kellerImg.closest('.pframe').style.cursor = 'zoom-in';
+    kellerImg.closest('.pframe').addEventListener('click', function(){ lbOpen(kIdx); });
+  }
+  function lbOpen(i){
+    lbIdx = i;
+    lbImg.src = lbItems[i].src;
+    lbCap.textContent = lbItems[i].cap;
+    lb.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function lbClose(){
+    lb.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  function lbStep(d){
+    lbOpen((lbIdx + d + lbItems.length) % lbItems.length);
+  }
+  if(lb){
+    document.getElementById('lb-close').addEventListener('click', lbClose);
+    document.getElementById('lb-prev').addEventListener('click', function(e){ e.stopPropagation(); lbStep(-1); });
+    document.getElementById('lb-next').addEventListener('click', function(e){ e.stopPropagation(); lbStep(1); });
+    lb.addEventListener('click', function(e){ if(e.target === lb) lbClose(); });
+    window.addEventListener('keydown', function(e){
+      if(!lb.classList.contains('open')) return;
+      if(e.key === 'Escape') lbClose();
+      if(e.key === 'ArrowLeft') lbStep(-1);
+      if(e.key === 'ArrowRight') lbStep(1);
+    });
+  }
+
+  /* Finanzierungsrechner */
+  var rPrice = document.getElementById('rPrice');
+  if(rPrice){
+    var rEquity = document.getElementById('rEquity');
+    var rInterest = document.getElementById('rInterest');
+    var rRepay = document.getElementById('rRepay');
+    var fmtEur = function(n){ return n.toLocaleString('de-DE', {maximumFractionDigits:0}) + ' €'; };
+    var fmtPct = function(n){ return n.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' %'; };
+    function sliderFill(el){
+      var p = (el.value - el.min) / (el.max - el.min) * 100;
+      el.style.setProperty('--p', p + '%');
+    }
+    function calc(){
+      var price = +rPrice.value, equity = Math.min(+rEquity.value, price);
+      var zins = +rInterest.value, tilg = +rRepay.value;
+      var loan = Math.max(0, price - equity);
+      var rate = loan * (zins + tilg) / 100 / 12;
+      var intPart = loan * zins / 100 / 12;
+      var repPart = loan * tilg / 100 / 12;
+      var nk = price * 0.055;
+      document.getElementById('oPrice').textContent = fmtEur(price);
+      document.getElementById('oEquity').textContent = fmtEur(equity);
+      document.getElementById('oInterest').textContent = fmtPct(zins);
+      document.getElementById('oRepay').textContent = fmtPct(tilg);
+      document.getElementById('rrRate').textContent = Math.round(rate).toLocaleString('de-DE');
+      document.getElementById('rrLoan').textContent = fmtEur(loan);
+      document.getElementById('rrInt').textContent = fmtEur(Math.round(intPart)) + ' / Monat';
+      document.getElementById('rrRep').textContent = fmtEur(Math.round(repPart)) + ' / Monat';
+      document.getElementById('rrNk').textContent = fmtEur(Math.round(nk));
+      [rPrice, rEquity, rInterest, rRepay].forEach(sliderFill);
+      var q = document.querySelectorAll('#reQuick button');
+      q.forEach(function(b){ b.classList.toggle('active', +b.getAttribute('data-price') === price); });
+    }
+    [rPrice, rEquity, rInterest, rRepay].forEach(function(el){ el.addEventListener('input', calc); });
+    document.querySelectorAll('#reQuick button').forEach(function(b){
+      b.addEventListener('click', function(){
+        rPrice.value = b.getAttribute('data-price');
+        calc();
+      });
+    });
+    calc();
+  }
+
+  /* Kontaktformular → mailto */
+  var kForm = document.getElementById('kForm');
+  if(kForm){
+    kForm.addEventListener('submit', function(e){
+      e.preventDefault();
+      var name = document.getElementById('kfName').value.trim();
+      var tel = document.getElementById('kfTel').value.trim();
+      var we = document.getElementById('kfWe').value;
+      var msg = document.getElementById('kfMsg').value.trim();
+      var subject = 'Anfrage Das Münsterviertel — ' + we;
+      var body = 'Guten Tag,\n\n' +
+        (msg ? msg + '\n\n' : 'ich interessiere mich für: ' + we + '\n\n') +
+        'Mit freundlichen Grüßen\n' + (name || '') +
+        (tel ? '\nTelefon: ' + tel : '');
+      window.location.href = 'mailto:vertrieb@norderfranken.de?subject=' +
+        encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+    });
   }
 })();
 </script>
