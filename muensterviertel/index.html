@@ -314,13 +314,32 @@ h2 em{font-style:normal;color:var(--petrol);}
 @media(max-width:900px){.haus-head{grid-template-columns:1fr;}.haus-head .lead{justify-self:start;}}
 .haus-big{aspect-ratio:16/8.2;box-shadow:var(--shadow);}
 
-/* ---------- Interior Assembly Reveal ---------- */
+/* ---------- Interior Reveal: Vorher → Nachher ---------- */
 .reveal-stage{
   position:relative;aspect-ratio:16/8.2;border-radius:var(--radius);overflow:hidden;
   box-shadow:var(--shadow);background:var(--mist);
 }
+/* Vorher-Ebene: Rohzustand mit Planungsraster */
+.reveal-before{position:absolute;inset:0;}
+.reveal-before img{width:100%;height:100%;object-fit:cover;}
+.reveal-before:after{
+  content:"";position:absolute;inset:0;
+  background:
+    repeating-linear-gradient(0deg, rgba(20,108,143,.10) 0 1px, transparent 1px 56px),
+    repeating-linear-gradient(90deg, rgba(20,108,143,.10) 0 1px, transparent 1px 56px),
+    rgba(154,176,198,.1);
+}
+.reveal-label{
+  position:absolute;left:18px;top:18px;z-index:4;
+  background:rgba(37,43,51,.78);color:#fff;backdrop-filter:blur(8px);
+  border-radius:100px;padding:8px 18px;
+  font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+  transition:opacity .8s var(--ease) 4.4s,transform .8s var(--ease) 4.4s;
+}
+.reveal-stage.in .reveal-label{opacity:0;transform:translateY(-12px);}
+/* Nachher-Wellen */
 .reveal-strips{position:absolute;inset:0;}
-.reveal-stage.live .reveal-strips{animation:camPan 9s 2.4s ease-in-out infinite alternate;}
+.reveal-stage.live .reveal-strips{animation:camPan 9s .3s ease-in-out infinite alternate;}
 @keyframes camPan{from{transform:scale(1.02) translateX(0);}to{transform:scale(1.09) translateX(-1.6%);}}
 .strip{
   position:absolute;top:0;bottom:0;
@@ -329,9 +348,9 @@ h2 em{font-style:normal;color:var(--petrol);}
   background-image:url("assets/wohnen.jpg");
   background-size:1200% 100%;
   background-position-x:calc(var(--i)/11 * 100%);
-  opacity:0;transform:translateY(9%) scale(1.08);filter:blur(14px);
-  transition:opacity .85s var(--ease),transform .85s var(--ease),filter .85s var(--ease);
-  transition-delay:calc(var(--i) * 115ms);
+  opacity:0;transform:translateY(7%) scale(1.07);filter:blur(14px);
+  transition:opacity 1.1s var(--ease),transform 1.1s var(--ease),filter 1.1s var(--ease);
+  transition-delay:calc(var(--i) * 290ms + 600ms);
   will-change:transform,opacity,filter;
 }
 .reveal-stage.in .strip{opacity:1;transform:none;filter:blur(0);}
@@ -341,7 +360,7 @@ h2 em{font-style:normal;color:var(--petrol);}
   border-radius:12px;padding:10px 18px;box-shadow:0 16px 40px -18px rgba(13,42,60,.4);
   font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;color:var(--navy);
   display:flex;align-items:center;gap:10px;
-  opacity:0;transform:translateY(14px);transition:opacity .7s var(--ease) 1.9s,transform .7s var(--ease) 1.9s;
+  opacity:0;transform:translateY(14px);transition:opacity .8s var(--ease) 4.5s,transform .8s var(--ease) 4.5s;
 }
 .reveal-cap i{width:7px;height:7px;border-radius:50%;background:var(--petrol);font-style:normal;}
 .reveal-stage.in .reveal-cap{opacity:1;transform:none;}
@@ -352,10 +371,15 @@ h2 em{font-style:normal;color:var(--petrol);}
   font-family:'Poppins',sans-serif;font-size:11.5px;font-weight:600;color:var(--petrol);
   box-shadow:0 16px 40px -18px rgba(13,42,60,.4);
   display:flex;align-items:center;gap:8px;
-  opacity:0;transform:translateY(-12px);transition:opacity .7s var(--ease) 2.2s,transform .7s var(--ease) 2.2s,background .3s;
+  opacity:0;transform:translateY(-12px);transition:opacity .7s var(--ease) 4.8s,transform .7s var(--ease) 4.8s,background .3s;
 }
 .reveal-replay:hover{background:#fff;}
 .reveal-stage.in .reveal-replay{opacity:1;transform:none;}
+/* Sofort-Reset beim Replay */
+.reveal-stage.reset .strip{transition:none!important;opacity:0;transform:translateY(7%) scale(1.07);filter:blur(14px);}
+.reveal-stage:not(.in) .reveal-label{transition:none;opacity:1;transform:none;}
+.reveal-stage:not(.in) .reveal-cap{transition:none;opacity:0;transform:translateY(14px);}
+.reveal-stage:not(.in) .reveal-replay{transition:none;opacity:0;transform:translateY(-12px);}
 @media(prefers-reduced-motion:reduce){
   .strip{opacity:1;transform:none;filter:none;transition:none;}
   .reveal-stage.live .reveal-strips{animation:none;}
@@ -842,11 +866,13 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
       </div>
       <p class="lead" data-reveal>Dieses außergewöhnliche Haus wird mit höchstem Anspruch umfassend saniert und neu interpretiert. Der ursprüngliche Charme bleibt erhalten, während ein Wohnensemble entsteht, das moderne und nachhaltige Bauweise miteinander verbindet.</p>
     </div>
-    <div class="reveal-stage" id="assemble" data-reveal="fade" role="img" aria-label="Heller Wohnbereich mit Designboden in Landhausdiele Eiche — Aufbau-Animation">
+    <div class="reveal-stage" id="assemble" data-reveal="fade" role="img" aria-label="Wohnbereich — Verwandlung vom Rohzustand zum fertigen Interieur">
+      <div class="reveal-before"><img src="assets/wohnen-vorher.jpg" alt="" loading="lazy"></div>
+      <span class="reveal-label">Vorher · Rohzustand</span>
       <div class="reveal-strips">
         <i class="strip" style="--i:0"></i><i class="strip" style="--i:1"></i><i class="strip" style="--i:2"></i><i class="strip" style="--i:3"></i><i class="strip" style="--i:4"></i><i class="strip" style="--i:5"></i><i class="strip" style="--i:6"></i><i class="strip" style="--i:7"></i><i class="strip" style="--i:8"></i><i class="strip" style="--i:9"></i><i class="strip" style="--i:10"></i><i class="strip" style="--i:11"></i>
       </div>
-      <div class="reveal-cap"><i></i>Interior Reveal · Wohnen im Münsterviertel</div>
+      <div class="reveal-cap"><i></i>Nachher · Wohnen im Münsterviertel</div>
       <button class="reveal-replay" id="replayBtn" type="button" aria-label="Animation erneut abspielen">↻ Replay</button>
     </div>
     <div class="haus-cols">
@@ -1519,9 +1545,11 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
   var replayBtn = document.getElementById('replayBtn');
   function playAssemble(){
     stage.classList.remove('in','live');
+    stage.classList.add('reset');
     void stage.offsetWidth;
+    stage.classList.remove('reset');
     stage.classList.add('in');
-    setTimeout(function(){ stage.classList.add('live'); }, 12 * 115 + 900);
+    setTimeout(function(){ stage.classList.add('live'); }, 600 + 12 * 290 + 1100);
   }
   if(stage){
     if('IntersectionObserver' in window && !reduced){
