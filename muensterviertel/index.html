@@ -7,9 +7,8 @@
 <title>Das Münsterviertel — Wohnen mit Geschichte, Komfort und Weitblick</title>
 <meta name="description" content="Sechs exklusive Eigentumswohnungen in Hof. Kernsaniert, nachhaltig, provisionsfrei — Das Münsterviertel. Ein Projekt der Plankult Projektgesellschaft.">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M6 26V14L16 5l10 9v12' fill='none' stroke='%23146C8F' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Nunito+Sans:opsz,wght@6..12,300;6..12,400;6..12,600;6..12,700&display=swap" rel="stylesheet">
+<link rel="preload" href="assets/fonts/Poppins-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/fonts/fonts.css">
 <style>
 :root{
   --navy:#252b33;
@@ -397,15 +396,16 @@ h2 em{font-style:normal;color:var(--petrol);}
 .aus-fig-row .pframe{aspect-ratio:16/9;box-shadow:var(--shadow);}
 @media(max-width:700px){.aus-fig-row{grid-template-columns:1fr;}}
 
-/* ---------- 3D Wohnungs-Explorer (Scrollytelling) ---------- */
-#explorer{height:560vh;position:relative;}
+/* ---------- 3D Wohnungs-Explorer (Tabs/Pfeile/Swipe) ---------- */
+#explorer{position:relative;}
 .ex-sticky{
-  position:sticky;top:0;height:100vh;overflow:hidden;
+  position:relative;overflow:hidden;
   background:
     radial-gradient(1100px 520px at 78% 18%, rgba(154,176,198,.22), transparent 62%),
     radial-gradient(900px 500px at 8% 88%, rgba(20,108,143,.08), transparent 60%),
     var(--mist);
   display:flex;flex-direction:column;
+  padding-bottom:clamp(30px,4vh,56px);
 }
 .ex-head{
   max-width:1280px;margin:0 auto;width:100%;
@@ -417,14 +417,73 @@ h2 em{font-style:normal;color:var(--petrol);}
   font-family:'Poppins',sans-serif;font-size:11.5px;font-weight:600;letter-spacing:.14em;
   text-transform:uppercase;color:var(--grey);display:flex;align-items:center;gap:10px;
 }
-.ex-hint svg{width:16px;height:16px;animation:hintBob 1.8s ease-in-out infinite;}
-@keyframes hintBob{0%,100%{transform:translateY(0);}50%{transform:translateY(5px);}}
 .ex-layout{
   flex:1;max-width:1280px;margin:0 auto;width:100%;
   display:grid;grid-template-columns:auto 1fr minmax(320px,420px);
   align-items:center;gap:clamp(16px,3vw,44px);
-  padding:0 5vw 4vh;min-height:0;
+  padding:2vh 5vw 0;min-height:0;
 }
+/* Steuerung: Tabs + Pfeile */
+.ex-ctrl{
+  max-width:1280px;margin:clamp(18px,3vh,30px) auto 0;width:100%;
+  padding:0 5vw;
+  display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;
+}
+.ex-arrow{
+  width:46px;height:46px;border-radius:50%;border:1.5px solid rgba(154,176,198,.5);
+  background:#fff;color:var(--petrol);cursor:pointer;flex-shrink:0;
+  font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;
+  transition:all .3s var(--ease);
+  box-shadow:0 10px 24px -14px rgba(13,42,60,.3);
+}
+.ex-arrow:hover:not(:disabled){background:var(--petrol);border-color:var(--petrol);color:#fff;transform:translateY(-2px);}
+.ex-arrow:disabled{opacity:.35;cursor:default;}
+.ex-tabs{
+  display:flex;gap:6px;background:#fff;border:1px solid rgba(154,176,198,.35);
+  border-radius:100px;padding:6px;box-shadow:0 14px 34px -20px rgba(13,42,60,.35);
+  flex-wrap:wrap;justify-content:center;
+}
+.ex-tab{
+  border:none;background:transparent;cursor:pointer;
+  font-family:'Poppins',sans-serif;font-size:12.5px;font-weight:600;letter-spacing:.06em;
+  color:var(--grey);padding:10px 18px;border-radius:100px;
+  transition:all .3s var(--ease);white-space:nowrap;
+}
+.ex-tab:hover{color:var(--petrol);}
+.ex-tab.active{background:var(--petrol);color:#fff;box-shadow:0 8px 18px -8px rgba(20,108,143,.6);}
+.ex-tab.sold-tab:not(.active){color:var(--sky);}
+/* Haus-Gesamtansicht (Exploded Stack) */
+.ex-house-stack{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;width:100%;
+}
+.ex-level{
+  display:flex;align-items:center;justify-content:center;
+  width:100%;cursor:pointer;position:relative;
+  opacity:0;transform:translateY(46px) scale(.96);
+  transition:opacity .8s var(--ease),transform .8s var(--ease),filter .3s;
+}
+.ex-level + .ex-level{margin-top:min(-3.2vh,-18px);}
+.ex-level img{
+  width:31%;max-width:230px;object-fit:contain;
+  filter:drop-shadow(0 18px 22px rgba(13,42,60,.24));
+  pointer-events:none;
+}
+.ex-level img + img{margin-left:2%;transform:translateY(7%);}
+.ex-level:hover{filter:brightness(1.04);}
+.ex-level:hover .ex-level-tag{opacity:1;transform:translateY(-50%) translateX(0);}
+.ex-level-tag{
+  position:absolute;right:2%;top:50%;transform:translateY(-50%) translateX(8px);
+  background:var(--petrol);color:#fff;border-radius:100px;padding:7px 16px;
+  font-family:'Poppins',sans-serif;font-size:10.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  opacity:0;transition:opacity .35s,transform .35s var(--ease);
+  box-shadow:0 12px 26px -12px rgba(20,108,143,.6);
+  pointer-events:none;white-space:nowrap;
+}
+.ex-plan.active .ex-level{opacity:1;transform:none;}
+.ex-plan.active .ex-level:nth-child(3){transition-delay:.1s;}
+.ex-plan.active .ex-level:nth-child(2){transition-delay:.42s;}
+.ex-plan.active .ex-level:nth-child(1){transition-delay:.74s;}
 /* Etagen-Rail */
 .ex-floors{
   display:flex;flex-direction:column;gap:6px;align-self:center;
@@ -443,7 +502,7 @@ h2 em{font-style:normal;color:var(--petrol);}
 .ex-floor.active:before{background:var(--petrol);width:48px;}
 /* 3D-Bühne */
 .ex-stage{
-  position:relative;height:100%;min-height:0;perspective:1500px;
+  position:relative;height:min(58vh,560px);min-height:380px;perspective:1500px;
 }
 .ex-tilt{
   position:absolute;inset:0;transform-style:preserve-3d;
@@ -518,24 +577,20 @@ h2 em{font-style:normal;color:var(--petrol);}
 .ex-dots{display:flex;gap:8px;margin-top:4px;}
 .ex-dot{width:8px;height:8px;border-radius:50%;background:rgba(154,176,198,.45);transition:background .4s,transform .4s;}
 .ex-dot.active{background:var(--petrol);transform:scale(1.35);}
-.ex-progress{
-  position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(154,176,198,.25);
-}
-.ex-progress i{
-  display:block;height:100%;width:0;background:var(--petrol);
-  transition:width .5s var(--ease);
-}
 @media(max-width:1020px){
-  .ex-layout{grid-template-columns:1fr;grid-template-rows:1fr auto;gap:10px;}
+  .ex-layout{grid-template-columns:1fr;grid-template-rows:auto auto;gap:14px;}
   .ex-floors{display:none;}
-  .ex-stage{min-height:30vh;}
+  .ex-stage{min-height:36vh;height:36vh;}
   .ex-plan img{max-height:34vh;}
-  .ex-panel-wrap{min-height:400px;margin-bottom:3vh;}
+  .ex-level img{max-width:150px;}
+  .ex-panel-wrap{min-height:400px;}
   .ex-panel{justify-content:flex-start;gap:10px;padding:20px 22px;}
   .ex-panel .p-no{font-size:34px;-webkit-text-stroke-width:1.5px;}
   .ex-head{padding-top:calc(64px + 1vh);}
   .ex-head h2{font-size:20px;}
   .ex-hint{display:none;}
+  .ex-arrow{width:42px;height:42px;}
+  .ex-tab{padding:9px 13px;font-size:11.5px;}
 }
 
 /* ---------- Wohnungen ---------- */
@@ -860,9 +915,9 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
     <div class="ex-head">
       <div>
         <div class="eyebrow">Wohnungs-Explorer</div>
-        <h2>Scrollen Sie durch <em>alle sechs Wohnungen</em>.</h2>
+        <h2>Das Haus in 3D — <em>Etage für Etage</em>.</h2>
       </div>
-      <div class="ex-hint">Weiterscrollen <svg viewBox="0 0 24 24" fill="none"><path d="M12 4v14m0 0 6-6m-6 6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="ex-hint">Etage anklicken oder blättern</div>
     </div>
     <div class="ex-layout">
       <div class="ex-floors">
@@ -872,7 +927,23 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
       </div>
       <div class="ex-stage" id="exStage">
         <div class="ex-tilt" id="exTilt">
-          <div class="ex-plan active"><img src="assets/we1-t.webp" alt="3D-Grundriss Wohnung 1" loading="lazy"></div>
+          <div class="ex-plan active">
+            <div class="ex-house-stack" aria-label="Gesamtes Haus — Etage anklicken">
+              <div class="ex-level" data-goto="4" role="button" tabindex="0" aria-label="Dachgeschoss öffnen">
+                <img src="assets/we5-t.webp" alt="" loading="lazy"><img src="assets/we6-t.webp" alt="" loading="lazy">
+                <span class="ex-level-tag">Dachgeschoss ansehen</span>
+              </div>
+              <div class="ex-level" data-goto="2" role="button" tabindex="0" aria-label="1. Obergeschoss öffnen">
+                <img src="assets/we3-t.webp" alt="" loading="lazy"><img src="assets/we4-t.webp" alt="" loading="lazy">
+                <span class="ex-level-tag">1. Obergeschoss ansehen</span>
+              </div>
+              <div class="ex-level" data-goto="0" role="button" tabindex="0" aria-label="Erdgeschoss öffnen">
+                <img src="assets/we1-t.webp" alt="" loading="lazy"><img src="assets/we2-t.webp" alt="" loading="lazy">
+                <span class="ex-level-tag">Erdgeschoss ansehen</span>
+              </div>
+            </div>
+          </div>
+          <div class="ex-plan"><img src="assets/we1-t.webp" alt="3D-Grundriss Wohnung 1" loading="lazy"></div>
           <div class="ex-plan"><img src="assets/we2-t.webp" alt="3D-Grundriss Wohnung 2" loading="lazy"></div>
           <div class="ex-plan"><img src="assets/we3-t.webp" alt="3D-Grundriss Wohnung 3" loading="lazy"></div>
           <div class="ex-plan"><img src="assets/we4-t.webp" alt="3D-Grundriss Wohnung 4" loading="lazy"></div>
@@ -883,6 +954,18 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
       </div>
       <div class="ex-panel-wrap">
         <div class="ex-panel active">
+          <span class="p-no">EG–DG</span>
+          <h3>Das gesamte Haus im Überblick.</h3>
+          <div class="ex-chips"><span class="ex-chip">3 Etagen</span><span class="ex-chip">6 Wohnungen</span><span class="ex-chip">3 Verfügbar</span></div>
+          <div class="ex-stats">
+            <div><b>6</b><span>Einheiten</span></div>
+            <div><b>72–108 m²</b><span>Wohnfläche</span></div>
+            <div><b>Je Balkon</b><span>Alle WE</span></div>
+          </div>
+          <p style="font-size:13.5px;color:var(--grey);">Klicken Sie im Modell auf eine Etage oder blättern Sie unten mit den Pfeilen durch alle sechs Wohnungen.</p>
+          <a class="ex-link" href="#wohnungen">Alle Wohnungen im Detail <i>↓</i></a>
+        </div>
+        <div class="ex-panel">
           <span class="p-no">01</span>
           <h3>Wohnen mit eigenem Garten.</h3>
           <div class="ex-chips"><span class="ex-chip">EG · links</span><span class="ex-chip">Eigener Garten</span><span class="ex-chip sold">Verkauft</span></div>
@@ -962,7 +1045,19 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
         </div>
       </div>
     </div>
-    <div class="ex-progress"><i id="exProgress"></i></div>
+    <div class="ex-ctrl">
+      <button class="ex-arrow" id="exPrev" type="button" aria-label="Vorherige Ansicht">←</button>
+      <div class="ex-tabs" role="tablist">
+        <button class="ex-tab active" data-i="-1" type="button">Haus</button>
+        <button class="ex-tab sold-tab" data-i="0" type="button">01</button>
+        <button class="ex-tab" data-i="1" type="button">02</button>
+        <button class="ex-tab sold-tab" data-i="2" type="button">03</button>
+        <button class="ex-tab sold-tab" data-i="3" type="button">04</button>
+        <button class="ex-tab" data-i="4" type="button">05</button>
+        <button class="ex-tab" data-i="5" type="button">06</button>
+      </div>
+      <button class="ex-arrow" id="exNext" type="button" aria-label="Nächste Ansicht">→</button>
+    </div>
   </div>
 </section>
 
@@ -1243,6 +1338,9 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
       <span>© 2026 Das Münsterviertel</span>
       <a href="mailto:vertrieb@norderfranken.de">vertrieb@norderfranken.de</a>
       <a href="tel:+4992811605793">+49 (0) 9281 - 160 57 93</a>
+      <a href="impressum.html">Impressum</a>
+      <a href="datenschutz.html">Datenschutz</a>
+      <a href="agb.html">AGB</a>
     </div>
   </div>
 </footer>
@@ -1319,42 +1417,92 @@ footer{border-top:1px solid var(--line);padding:48px 5vw 40px;background:var(--w
     }
   }
 
-  /* 3D Wohnungs-Explorer */
+  /* 3D Wohnungs-Explorer: Haus-Gesamtansicht + Tabs/Pfeile/Swipe/Tastatur */
   var explorer = document.getElementById('explorer');
   if(explorer){
-    var exPlans = explorer.querySelectorAll('.ex-plan');
-    var exPanels = explorer.querySelectorAll('.ex-panel');
+    var exPlans = explorer.querySelectorAll('.ex-plan');     /* [0]=Haus, [1..6]=WE */
+    var exPanels = explorer.querySelectorAll('.ex-panel');   /* [0]=Haus, [1..6]=WE */
     var exFloors = explorer.querySelectorAll('.ex-floor');
-    var exProgress = document.getElementById('exProgress');
+    var exTabs = explorer.querySelectorAll('.ex-tab');
+    var exPrev = document.getElementById('exPrev');
+    var exNext = document.getElementById('exNext');
     var exTilt = document.getElementById('exTilt');
     var exStage = document.getElementById('exStage');
     var floorOf = [0,0,1,1,2,2];
-    var exCur = 0;
-    function exUpdate(idx){
+    var exCur = -1; /* -1 = Haus, 0..5 = Wohnung */
+    function exShow(idx){
       exCur = idx;
+      var v = idx + 1; /* Index in den NodeLists */
       exPlans.forEach(function(p,i){
-        p.classList.toggle('active', i === idx);
-        p.classList.toggle('passed', i < idx);
+        p.classList.toggle('active', i === v);
+        p.classList.toggle('passed', i !== 0 && i < v);
       });
-      exPanels.forEach(function(p,i){ p.classList.toggle('active', i === idx); });
+      exPanels.forEach(function(p,i){ p.classList.toggle('active', i === v); });
+      exTabs.forEach(function(t){
+        t.classList.toggle('active', parseInt(t.getAttribute('data-i'),10) === idx);
+      });
       exFloors.forEach(function(f){
-        f.classList.toggle('active', parseInt(f.getAttribute('data-floor'),10) === floorOf[idx]);
+        f.classList.toggle('active', idx >= 0 && parseInt(f.getAttribute('data-floor'),10) === floorOf[idx]);
       });
-      if(exProgress) exProgress.style.width = ((idx + 1) / 6 * 100) + '%';
+      if(exPrev) exPrev.disabled = (idx <= -1);
+      if(exNext) exNext.disabled = (idx >= 5);
     }
-    var exTicking = false;
-    function exScroll(){
-      exTicking = false;
-      var rect = explorer.getBoundingClientRect();
-      var total = explorer.offsetHeight - window.innerHeight;
-      var p = Math.min(Math.max(-rect.top / total, 0), 0.9999);
-      var idx = Math.min(5, Math.floor(p * 6));
-      if(idx !== exCur) exUpdate(idx);
-    }
-    window.addEventListener('scroll', function(){
-      if(!exTicking){ exTicking = true; requestAnimationFrame(exScroll); }
+    exShow(-1);
+    exTabs.forEach(function(t){
+      t.addEventListener('click', function(){ exShow(parseInt(t.getAttribute('data-i'),10)); });
+    });
+    if(exPrev) exPrev.addEventListener('click', function(){ if(exCur > -1) exShow(exCur - 1); });
+    if(exNext) exNext.addEventListener('click', function(){ if(exCur < 5) exShow(exCur + 1); });
+    /* Etagen im Haus-Modell und in der Rail anklickbar */
+    explorer.querySelectorAll('.ex-level').forEach(function(l){
+      function go(){ exShow(parseInt(l.getAttribute('data-goto'),10)); }
+      l.addEventListener('click', go);
+      l.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); } });
+    });
+    exFloors.forEach(function(f){
+      f.style.cursor = 'pointer';
+      f.addEventListener('click', function(){
+        var fl = parseInt(f.getAttribute('data-floor'),10);
+        exShow(fl * 2); /* erste Wohnung der Etage */
+      });
+    });
+    /* Tastatur, wenn Explorer im Blick ist */
+    window.addEventListener('keydown', function(e){
+      if(e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      var r = explorer.getBoundingClientRect();
+      if(r.top > window.innerHeight * .6 || r.bottom < window.innerHeight * .4) return;
+      if(e.key === 'ArrowLeft' && exCur > -1) exShow(exCur - 1);
+      if(e.key === 'ArrowRight' && exCur < 5) exShow(exCur + 1);
+    });
+    /* Swipe auf Touch */
+    var swX = null, swY = null;
+    exStage.addEventListener('touchstart', function(e){
+      swX = e.touches[0].clientX; swY = e.touches[0].clientY;
     }, {passive:true});
-    exScroll();
+    exStage.addEventListener('touchend', function(e){
+      if(swX === null) return;
+      var dx = e.changedTouches[0].clientX - swX;
+      var dy = e.changedTouches[0].clientY - swY;
+      if(Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.4){
+        if(dx < 0 && exCur < 5) exShow(exCur + 1);
+        if(dx > 0 && exCur > -1) exShow(exCur - 1);
+      }
+      swX = swY = null;
+    }, {passive:true});
+    /* Haus-Aufbau erst starten, wenn die Sektion sichtbar wird */
+    if('IntersectionObserver' in window && !reduced){
+      exPlans[0].classList.remove('active');
+      var eio = new IntersectionObserver(function(entries){
+        entries.forEach(function(en){
+          if(en.isIntersecting){
+            if(exCur === -1) exPlans[0].classList.add('active');
+            eio.unobserve(exStage);
+          }
+        });
+      },{threshold:0.3});
+      eio.observe(exStage);
+    }
+    /* Maus-Tilt in 3D */
     if(!reduced && window.matchMedia('(pointer:fine)').matches && exStage && exTilt){
       exStage.addEventListener('mousemove', function(e){
         var r = exStage.getBoundingClientRect();
