@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <path d="M50 4 96 50 50 96 4 50z" fill="none" stroke="black" stroke-width="7"/>
+  <path d="M50 15 85 50 50 85 15 50z" fill="none" stroke="black" stroke-width="3"/>
+  <text x="50" y="62" font-family="Georgia,serif" font-size="34" font-weight="bold" fill="black" text-anchor="middle">KP</text>
+</svg>
