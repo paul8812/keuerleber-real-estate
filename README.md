@@ -1,6 +1,6 @@
-# Keuerleber Real Estate
+# Keuerleber Immobilien
 
-Moderne, mehrsprachige One-Page-Website für Keuerleber Real Estate (Oberkotzau).
+Moderne, mehrsprachige One-Page-Website für Keuerleber Immobilien (Oberkotzau).
 
 Die Website ist aktuell im **Coming-Soon-Modus** und passwortgeschützt:
 Der gesamte Seiteninhalt ist AES-256-verschlüsselt und wird erst nach Eingabe
