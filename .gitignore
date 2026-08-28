@@ -5,3 +5,5 @@ hero-auswahl/
 src/
 tools/
 export/
+src/*.png
+src/*.jpg
