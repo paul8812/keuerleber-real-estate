@@ -7,3 +7,4 @@ tools/
 export/
 src/*.png
 src/*.jpg
+src/*.pdf
