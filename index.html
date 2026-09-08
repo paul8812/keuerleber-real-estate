@@ -260,9 +260,9 @@
 .ck-btns{display:flex;gap:10px;flex-shrink:0;}
 .ck-box button{font-family:inherit;font-size:13.5px;font-weight:600;padding:12px 24px;border-radius:24px;cursor:pointer;
   border:0.5px solid rgba(201,169,110,0.45);background:transparent;color:var(--offwhite);transition:background .2s ease,border-color .2s ease;}
-.ck-box .ck-ja{background:linear-gradient(135deg,#d9c08a,#c9a96e);border-color:transparent;color:#141210;}
+/* Beide Knoepfe gleich gewichtet - Ablehnen muss so leicht fallen wie Zustimmen */
+.ck-box .ck-ja{border-color:rgba(201,169,110,0.75);color:var(--cu-light);}
 .ck-box button:hover,.ck-box button:focus-visible{background:rgba(201,169,110,0.16);}
-.ck-box .ck-ja:hover,.ck-box .ck-ja:focus-visible{filter:brightness(1.07);background:linear-gradient(135deg,#d9c08a,#c9a96e);}
 @media(max-width:760px){
   .ck-box{left:10px;right:10px;bottom:10px;padding:18px;}
   .ck-inner{gap:16px;}
