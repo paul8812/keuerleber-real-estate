@@ -2050,7 +2050,7 @@ button.cal-day:disabled{cursor:default;}
 <!-- HERO -->
 <section class="hero">
   <div class="hero-bg"></div>
-  <video class="hero-video" id="heroVideo" poster="hero-poster.jpg" muted loop playsinline preload="none" aria-hidden="true" tabindex="-1"></video>
+  <video class="hero-video" id="heroVideo" poster="hero-poster.jpg" autoplay muted defaultmuted loop playsinline webkit-playsinline disablepictureinpicture preload="none" aria-hidden="true" tabindex="-1"></video>
   <div class="hero-overlay"></div>
   <div class="hero-content">
     <p class="eyebrow" data-i18n="hero_eyebrow">Immobilien-Vertrieb · Oberfranken</p>
@@ -4490,6 +4490,12 @@ var KRE_GA_ID = '';
                /2g/.test(navigator.connection.effectiveType || '')));
   } catch(e){}
   if (sparsam) return;
+  /* Safari auf dem iPhone startet nur stumm - und nur, wenn das vor dem Laden feststeht */
+  v.muted = true;
+  v.defaultMuted = true;
+  v.setAttribute('muted', '');
+  v.playsInline = true;
+
   var schmal = window.matchMedia('(max-width: 820px)').matches;
   var quelle = document.createElement('source');
   quelle.src = schmal ? 'hero-854.mp4' : 'hero-1280.mp4';
@@ -4497,16 +4503,47 @@ var KRE_GA_ID = '';
   v.appendChild(quelle);
   v.preload = 'auto';
   v.load();
-  v.addEventListener('canplay', function(){
+
+  var laeuft = false;
+  function starte(){
+    if (laeuft || v.paused === false) return;
     var p = v.play();
-    if (p && p.catch) p.catch(function(){});
-  }, {once:true});
-  v.addEventListener('playing', function(){ v.classList.add('laeuft'); }, {once:true});
+    if (p && p.catch) p.catch(function(){ /* noch nicht erlaubt - spaeter erneut */ });
+  }
+  /* Mehrere Zeitpunkte statt nur einem: iOS meldet die Bereitschaft unterschiedlich */
+  ['loadedmetadata','loadeddata','canplay','canplaythrough'].forEach(function(ev){
+    v.addEventListener(ev, starte);
+  });
+  starte();
+  setTimeout(starte, 400);
+  setTimeout(starte, 1500);
+
+  v.addEventListener('playing', function(){ laeuft = true; v.classList.add('laeuft'); });
+
+  /* Verweigert das Geraet den Start (z. B. Stromsparmodus), holen wir ihn bei der
+     ersten Bedienung nach - dann liegt eine Nutzeraktion vor. */
+  function nachholen(){
+    if (!laeuft) starte();
+    if (laeuft) abmelden();
+  }
+  function abmelden(){
+    ['touchstart','pointerdown','scroll','keydown'].forEach(function(ev){
+      window.removeEventListener(ev, nachholen);
+    });
+  }
+  ['touchstart','pointerdown','scroll','keydown'].forEach(function(ev){
+    window.addEventListener(ev, nachholen, {passive:true});
+  });
+
+  /* Kehrt der Besucher zum Tab zurueck, weiterlaufen */
+  document.addEventListener('visibilitychange', function(){
+    if (!document.hidden) starte();
+  });
+
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(function(e){
       e.forEach(function(x){
-        if (x.isIntersecting) { var p=v.play(); if(p&&p.catch) p.catch(function(){}); }
-        else v.pause();
+        if (x.isIntersecting) starte(); else v.pause();
       });
     }, {threshold:0.1}).observe(v);
   }
