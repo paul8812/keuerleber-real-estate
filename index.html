@@ -4498,8 +4498,11 @@ var KRE_GA_ID = '';
 
   /* Auflösung nach Bildschirmbreite: ein zu kleines Video wirkt auf großen
      Schirmen hochskaliert und unscharf, ein zu großes kostet Handy-Daten. */
-  var bb = window.innerWidth;
-  var datei = bb <= 820 ? 'hero-854.mp4' : (bb <= 1200 ? 'hero-1280.mp4' : 'hero-1920.mp4');
+  function passendeDatei(){
+    var bb = window.innerWidth;
+    return bb <= 820 ? 'hero-854.mp4' : (bb <= 1200 ? 'hero-1280.mp4' : 'hero-1920.mp4');
+  }
+  var datei = passendeDatei();
   var quelle = document.createElement('source');
   quelle.src = datei;
   quelle.type = 'video/mp4';
@@ -4537,6 +4540,27 @@ var KRE_GA_ID = '';
   ['touchstart','pointerdown','scroll','keydown'].forEach(function(ev){
     window.addEventListener(ev, nachholen, {passive:true});
   });
+
+  /* Wird das Fenster spaeter deutlich groesser, die schaerfere Fassung nachladen */
+  var umschaltZeit;
+  window.addEventListener('resize', function(){
+    clearTimeout(umschaltZeit);
+    umschaltZeit = setTimeout(function(){
+      var neuDatei = passendeDatei();
+      if (neuDatei === datei) return;
+      var alteRang = ['hero-854.mp4','hero-1280.mp4','hero-1920.mp4'].indexOf(datei);
+      var neuRang  = ['hero-854.mp4','hero-1280.mp4','hero-1920.mp4'].indexOf(neuDatei);
+      if (neuRang <= alteRang) return;        /* nie auf eine kleinere zurueck */
+      var stand = v.currentTime;
+      datei = neuDatei;
+      quelle.src = neuDatei;
+      v.load();
+      v.addEventListener('loadeddata', function(){
+        try { v.currentTime = stand % (v.duration || 1); } catch(e){}
+        starte();
+      }, {once:true});
+    }, 600);
+  }, {passive:true});
 
   /* Kehrt der Besucher zum Tab zurueck, weiterlaufen */
   document.addEventListener('visibilitychange', function(){
