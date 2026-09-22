@@ -4496,9 +4496,12 @@ var KRE_GA_ID = '';
   v.setAttribute('muted', '');
   v.playsInline = true;
 
-  var schmal = window.matchMedia('(max-width: 820px)').matches;
+  /* Auflösung nach Bildschirmbreite: ein zu kleines Video wirkt auf großen
+     Schirmen hochskaliert und unscharf, ein zu großes kostet Handy-Daten. */
+  var bb = window.innerWidth;
+  var datei = bb <= 820 ? 'hero-854.mp4' : (bb <= 1200 ? 'hero-1280.mp4' : 'hero-1920.mp4');
   var quelle = document.createElement('source');
-  quelle.src = schmal ? 'hero-854.mp4' : 'hero-1280.mp4';
+  quelle.src = datei;
   quelle.type = 'video/mp4';
   v.appendChild(quelle);
   v.preload = 'auto';
