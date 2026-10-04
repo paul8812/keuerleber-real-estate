@@ -1987,31 +1987,33 @@ button.cal-day:disabled{cursor:default;}
 }
   </script>
 <style>
-/* ══════════ HERO (Text oben auf Schwarz, Panorama darunter – KI-generierte Illustration) ══════════ */
-.hero.hz{position:relative;display:block;height:auto;min-height:0;max-height:none;padding:0;text-align:left;background:#080808;overflow:hidden}
-.hz-txt{display:grid;grid-template-columns:minmax(0,1fr) 360px;column-gap:56px;align-items:end;padding:88px 56px 56px}
-.hero.hz p.hz-eyebrow{max-width:none;margin:0 0 18px;font-size:11px;letter-spacing:.18em;font-weight:500;text-transform:uppercase;color:var(--cu)}
-.hero.hz h1{margin:0;max-width:none;font-size:clamp(40px,4.2vw,66px);font-weight:700;letter-spacing:-2.5px;line-height:1.02;color:#fff}
-.hz-side{padding-bottom:6px}
-.hero.hz p.hz-sub{margin:0;max-width:none;text-wrap:pretty;font-size:17px;line-height:1.6;color:rgba(237,232,224,.7)}
-.hz-btns{margin-top:28px;display:flex}
+/* ══════════ HERO (Vollbild, Text unten bündig – KI-generierte Illustration) ══════════ */
+.hero.hz{position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;height:calc(100vh - 74px);min-height:600px;max-height:960px;padding:0;text-align:left;background:#080808;overflow:hidden}
+.hero.hz:after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(0deg,rgba(8,8,8,.88) 0%,rgba(8,8,8,.62) 24%,rgba(8,8,8,.2) 46%,rgba(8,8,8,0) 62%)}
+.hz-pic{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 45%;display:block;animation:hzImg 1.8s cubic-bezier(.16,1,.3,1) both}
+.hz-txt{position:relative;z-index:2;width:100%;box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) 360px;column-gap:56px;align-items:end;padding:0 56px 56px}
+.hero.hz p.hz-eyebrow{max-width:none;margin:0 0 16px;font-size:11px;letter-spacing:.18em;font-weight:500;text-transform:uppercase;color:var(--cu)}
+.hero.hz h1{margin:0;max-width:none;font-size:clamp(40px,4.2vw,64px);font-weight:700;letter-spacing:-2.5px;line-height:1.02;color:#fff}
+.hz-side{justify-self:end;width:100%}
+.hero.hz p.hz-sub{margin:0;max-width:none;text-wrap:pretty;font-size:16px;line-height:1.6;color:rgba(237,232,224,.82)}
+.hz-btns{margin-top:22px;display:flex}
 .hz-mbr,.hz-dbr{display:none}
-.hz-frame{position:relative;height:calc(100vh - 74px - 330px);min-height:340px;max-height:560px;overflow:hidden}
-.hz-pic{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 62%;display:block;animation:hzImg 1.8s cubic-bezier(.16,1,.3,1) both}
 @keyframes hzIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @keyframes hzImg{from{opacity:0;transform:scale(1.03)}to{opacity:1;transform:none}}
 .hz-head,.hz-side{animation:hzIn 1s cubic-bezier(.16,1,.3,1) both}.hz-side{animation-delay:.12s}
 @media(prefers-reduced-motion:reduce){.hero.hz *{animation:none!important}}
-@media(max-width:1100px){.hz-txt{grid-template-columns:1fr;row-gap:24px}.hz-side{max-width:520px}}
+@media(max-width:1100px){.hz-txt{grid-template-columns:1fr;row-gap:20px}.hz-side{justify-self:start;max-width:480px}}
 @media(max-width:860px){
-  .hz-txt{padding:44px 24px 36px;row-gap:18px}
-  .hero.hz p.hz-eyebrow{font-size:10px;margin-bottom:14px}
+  .hero.hz{height:calc(100svh - 64px);min-height:560px;max-height:none}
+  .hero.hz:after{background:linear-gradient(0deg,rgba(8,8,8,.92) 0%,rgba(8,8,8,.75) 32%,rgba(8,8,8,.2) 55%,rgba(8,8,8,0) 70%)}
+  .hz-pic{object-position:58% 40%}
+  .hz-txt{padding:0 24px 40px;row-gap:16px}
+  .hero.hz p.hz-eyebrow{font-size:10px;margin-bottom:12px}
   .hero.hz h1{font-size:clamp(34px,9.6vw,44px);letter-spacing:-1.5px;line-height:1.04}
   .hz-mbr{display:inline}
-  .hero.hz p.hz-sub{font-size:16px;text-wrap:pretty}
-  .hz-btns{margin-top:24px}
-  .hz-frame{height:auto;aspect-ratio:4/3;min-height:0;max-height:none}
-  .hz-pic{object-position:58% 60%}
+  .hero.hz p.hz-sub{font-size:15.5px;padding-right:56px}
+  .hz-btns{margin-top:20px}
+  .hz-btns .btn-cu{width:auto;max-width:none;padding:15px 30px}
 }
 </style>
 </head>
@@ -2077,6 +2079,7 @@ button.cal-day:disabled{cursor:default;}
 
 <!-- HERO -->
 <section class="hero hz">
+  <img class="hz-pic" src="hero-hof-daecher.jpg" srcset="hero-hof-daecher-1400.jpg 1400w, hero-hof-daecher.jpg 3136w" sizes="100vw" alt="Dächer einer oberfränkischen Altstadt bei Sonnenuntergang (KI-generierte Illustration)" fetchpriority="high" decoding="async">
   <div class="hz-txt">
     <div class="hz-head">
       <p class="hz-eyebrow" data-i18n="hero_eyebrow">Hof · Oberfranken</p>
@@ -2087,7 +2090,6 @@ button.cal-day:disabled{cursor:default;}
       <div class="hz-btns"><button class="btn-cu" onclick="document.getElementById('immobilien').scrollIntoView({behavior:'smooth'})" data-i18n="hero_btn1">Wohnungen ansehen</button></div>
     </div>
   </div>
-  <div class="hz-frame"><img class="hz-pic" src="hero-hof-daecher.jpg" srcset="hero-hof-daecher-1400.jpg 1400w, hero-hof-daecher.jpg 3136w" sizes="100vw" alt="Dächer einer oberfränkischen Altstadt bei Sonnenuntergang (KI-generierte Illustration)" fetchpriority="high" decoding="async"></div>
 </section>
 
 <!-- STATS -->
