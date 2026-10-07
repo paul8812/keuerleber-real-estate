@@ -67,7 +67,7 @@ button.ghost{background:transparent;color:var(--tx);border:1px solid var(--line)
 .box .chk input{margin-top:3px}
 .box .err{color:var(--neg);font-size:13px;min-height:18px;margin-bottom:8px}
 .box .btns{display:flex;gap:10px}.box .btns button:first-child{flex:1}
-@media print{.modal{display:none!important}}
+@media print{.modal{display:none!important}.wrap{filter:none!important}}
 </style>
 </head>
 <body>
@@ -207,15 +207,15 @@ calc();
 </script>
 
 <div class="modal" id="modal"><form class="box" id="lead" novalidate>
- <h3>Ihre Berechnung als PDF</h3>
- <p>Bitte hinterlassen Sie kurz Ihre Kontaktdaten. Danach können Sie die Berechnung als PDF speichern oder drucken.</p>
+ <h3>Kostenloser Renditerechner</h3>
+ <p>Bitte hinterlassen Sie kurz Ihre Kontaktdaten. Danach können Sie den Rechner sofort kostenlos nutzen und Ihre Berechnung als PDF speichern.</p>
  <input type="text" id="l_name" placeholder="Vor- und Nachname" autocomplete="name" required>
  <input type="email" id="l_mail" placeholder="E-Mail" autocomplete="email" required>
  <input type="tel" id="l_tel" placeholder="Telefon" autocomplete="tel" required>
  <label class="chk"><input type="checkbox" id="l_ok"><span>Ich bin einverstanden, dass Keuerleber Immobilien mich zu meiner Berechnung und passenden Angeboten per E-Mail oder Telefon kontaktiert. Meine Angaben und Berechnung werden dafür gespeichert. Widerruf jederzeit möglich.</span></label>
  <details style="font-size:11.5px;color:var(--mu);margin:-6px 0 14px"><summary style="cursor:pointer;color:var(--gold)">Datenschutzhinweis</summary><p style="margin:8px 0 0;font-size:11.5px">Verantwortlich: Keuerleber Immobilien, paul.keuerleber@keuerleber-immobilien.de, 0151 67692176. Wir verwenden Ihre Angaben und die eingegebenen Rechenwerte, um Ihre Anfrage zu beantworten und Sie zu passenden Angeboten zu kontaktieren (Art. 6 Abs. 1 lit. a, b DSGVO). Für die Zustellung nutzen wir den Dienst Web3Forms (Softkid Technologies Private Limited, Indien); die Daten werden dort ausschließlich zur Weiterleitung per E-Mail an uns verarbeitet, Standardvertragsklauseln und Auftragsverarbeitungsvertrag liegen vor. Sie haben Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit und Widerspruch sowie ein Beschwerderecht bei der Aufsichtsbehörde (BayLDA). Impressum und vollständige Datenschutzerklärung: keuerleber-immobilien.de</p></details>
  <div class="err" id="l_err"></div>
- <div class="btns"><button type="submit" id="l_go">PDF erstellen</button><button type="button" class="ghost" id="l_x">Abbrechen</button></div>
+ <div class="btns"><button type="submit" id="l_go">Rechner öffnen</button></div>
 </form></div>
 <script>
 // Web3Forms-Key der Website (Anfragen kommen bei paul.keuerleber@keuerleber-immobilien.de an)
@@ -223,25 +223,28 @@ const LEAD_KEY='3fe8574f-a84d-49f3-96dc-0d8abf0975c8';
 const LEAD_URL='https://api.web3forms.com/submit';
 function doPrint(){const o=$('objekt').value.trim(),old=document.title;document.title='Rendite '+(o||'Objekt')+' - Keuerleber Immobilien';print();setTimeout(()=>document.title=old,500)}
 let leadDone=false;try{leadDone=sessionStorage.getItem('rr_lead')==='1'}catch(e){}
-$('print').onclick=()=>{ if(leadDone)doPrint(); else {$('modal').classList.add('on');$('l_name').focus()} };
-$('l_x').onclick=()=>$('modal').classList.remove('on');
+$('print').onclick=doPrint;
+const wrap=document.querySelector('.wrap');
+function lock(on){wrap.style.filter=on?'blur(8px)':'';wrap.style.pointerEvents=on?'none':'';wrap.setAttribute('aria-hidden',on?'true':'false');$('modal').classList.toggle('on',on);if(on)setTimeout(()=>$('l_name').focus(),50)}
+try{if(localStorage.getItem('rr_unlocked')==='1')leadDone=true}catch(e){}
+lock(!leadDone);
 $('lead').addEventListener('submit',async ev=>{
  ev.preventDefault();const err=$('l_err');err.textContent='';
  const n=$('l_name').value.trim(),m=$('l_mail').value.trim(),t=$('l_tel').value.trim();
  if(n.length<2||!/^\S+@\S+\.\S+$/.test(m)||t.replace(/\D/g,'').length<6){err.textContent='Bitte Name, gültige E-Mail und Telefonnummer angeben.';return}
  if(!$('l_ok').checked){err.textContent='Bitte der Kontaktaufnahme zustimmen.';return}
  const g=i=>$(i).textContent;
- const data={access_key:LEAD_KEY,subject:'Neue Renditerechner-Anfrage: '+n,from_name:'Renditerechner',
+ const data={access_key:LEAD_KEY,subject:'Neuer Kontakt Renditerechner: '+n,from_name:'Renditerechner',
   Name:n,Email:m,Telefon:t,Objekt:$('objekt').value,Kaufpreis:$('kp').value,Flaeche:$('flaeche').value,Miete_qm:$('mieteqm').value,
   Brutto_Rendite:g('y1'),Netto_Rendite:g('y3'),Cashflow_vor_Steuer:g('c4'),Cashflow_nach_Steuer:g('c6'),
   Eigenkapitalquote:$('ek').value,Zins:$('zins').value,Tilgung:$('tilgung').value,Steuersatz:$('steuer').value,Einwilligung:'ja, '+new Date().toLocaleString('de-DE')};
  $('l_go').disabled=true;$('l_go').textContent='Einen Moment …';
  try{
   if(LEAD_KEY){const r=await fetch(LEAD_URL,{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(data)});const j=await r.json();if(!j.success)throw 0}
-  leadDone=true;try{sessionStorage.setItem('rr_lead','1')}catch(e){}
-  $('modal').classList.remove('on');doPrint();
+  leadDone=true;try{localStorage.setItem('rr_unlocked','1')}catch(e){}
+  lock(false);
  }catch(e){err.textContent='Das hat leider nicht geklappt. Bitte versuchen Sie es erneut.'}
- $('l_go').disabled=false;$('l_go').textContent='PDF erstellen';
+ $('l_go').disabled=false;$('l_go').textContent='Rechner öffnen';
 });
 </script>
 </body>
