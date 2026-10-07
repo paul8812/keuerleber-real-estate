@@ -14,7 +14,8 @@
 <meta name="apple-mobile-web-app-title" content="Keuerleber">
   <title>Immobilien als Kapitalanlage in Hof &amp; Oberfranken | Keuerleber Immobilien</title>
 <meta name="description" content="Kernsanierte Eigentumswohnungen in Hof &amp; Oberfranken — als Kapitalanlage mit erhöhter Abschreibung oder zum Selbstbezug. Beratung kostenfrei.">
-<link rel="preload" as="image" href="/hero-hof-daecher.jpg" imagesrcset="/hero-hof-daecher-1400.jpg 1400w, /hero-hof-daecher.jpg 3136w" imagesizes="100vw" fetchpriority="high">
+<link rel="preload" as="image" href="/hero-hof-daecher-mobil.jpg" media="(max-width: 860px)" fetchpriority="high">
+<link rel="preload" as="image" href="/hero-hof-daecher.jpg" media="(min-width: 861px)" fetchpriority="high">
   <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
   <link rel="canonical" href="https://keuerleber-immobilien.de/">
 <meta name="author" content="Keuerleber Immobilien — Paul Keuerleber">
@@ -2006,7 +2007,7 @@ button.cal-day:disabled{cursor:default;}
 @media(max-width:860px){
   .hero.hz{height:calc(100svh - 64px);min-height:560px;max-height:none}
   .hero.hz:after{background:linear-gradient(0deg,rgba(8,8,8,.92) 0%,rgba(8,8,8,.75) 32%,rgba(8,8,8,.2) 55%,rgba(8,8,8,0) 70%)}
-  .hz-pic{object-position:58% 40%}
+  .hz-pic{top:auto;bottom:0;height:128%;object-position:60% 100%}
   .hz-txt{padding:0 24px 40px;row-gap:16px}
   .hero.hz p.hz-eyebrow{font-size:10px;margin-bottom:12px}
   .hero.hz h1{font-size:clamp(34px,9.6vw,44px);letter-spacing:-1.5px;line-height:1.04}
@@ -2079,7 +2080,10 @@ button.cal-day:disabled{cursor:default;}
 
 <!-- HERO -->
 <section class="hero hz">
-  <img class="hz-pic" src="hero-hof-daecher.jpg" srcset="hero-hof-daecher-1400.jpg 1400w, hero-hof-daecher.jpg 3136w" sizes="100vw" alt="Dächer einer oberfränkischen Altstadt bei Sonnenuntergang (KI-generierte Illustration)" fetchpriority="high" decoding="async">
+  <picture>
+    <source media="(max-width: 860px)" srcset="hero-hof-daecher-mobil.jpg">
+    <img class="hz-pic" src="hero-hof-daecher.jpg" alt="Dächer einer oberfränkischen Altstadt bei Sonnenuntergang (KI-generierte Illustration)" fetchpriority="high" decoding="async">
+  </picture>
   <div class="hz-txt">
     <div class="hz-head">
       <p class="hz-eyebrow" data-i18n="hero_eyebrow">Hof · Oberfranken</p>
