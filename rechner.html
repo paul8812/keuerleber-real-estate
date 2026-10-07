@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rendite-Rechner | Keuerleber Immobilien</title>
+<meta name="description" content="Berechnen Sie Cashflow, Rendite und Steuereffekt Ihrer Immobilie als Kapitalanlage — kostenfrei und unverbindlich.">
+<meta name="theme-color" content="#080808">
+<link rel="canonical" href="https://keuerleber-immobilien.de/rechner.html">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<style>
+:root{
+  --cu-light:#d9c08a;--cu:#c9a96e;--cu-deep:#8a6f3d;
+  --black:#080808;--black-2:#0f0f0f;--black-3:#161616;
+  --gray-mid:#8a8a8a;--gray-light:#a0a0a0;--offwhite:#ede8e0;--neg:#c98f7a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',Arial,sans-serif;
+  background:var(--black);color:var(--offwhite);-webkit-font-smoothing:antialiased;line-height:1.5}
+a{color:var(--cu-light)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 24px;
+  border-bottom:.5px solid rgba(201,169,110,.14);background:var(--black-2)}
+.marke{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit}
+.marke img{width:38px;height:38px;border-radius:8px}
+.marke b{display:block;font-size:14px;letter-spacing:.22em;font-weight:600}
+.marke span{display:block;font-size:11px;letter-spacing:.14em;color:var(--cu);text-transform:uppercase}
+.top a.tel{font-size:13px;color:var(--cu-light);text-decoration:none;white-space:nowrap}
+main{max-width:1080px;margin:0 auto;padding:44px 24px 64px}
+.kopf{text-align:center;margin-bottom:36px}
+.label{font-size:11px;letter-spacing:.18em;color:var(--cu);text-transform:uppercase;font-weight:500}
+h1{font-size:clamp(27px,4.2vw,42px);letter-spacing:-1.4px;line-height:1.1;margin:10px 0 12px}
+.kopf p.lead{font-size:15.5px;color:var(--gray-light);max-width:580px;margin:0 auto}
+.objekt{display:none;margin:0 auto 14px;padding:6px 16px;border-radius:20px;font-size:13px;
+  background:rgba(201,169,110,.12);border:.5px solid rgba(201,169,110,.38);color:var(--cu-light);width:fit-content}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+.panel{background:rgba(255,255,255,.025);border:.5px solid rgba(201,169,110,.18);border-radius:18px;padding:26px}
+.erg{position:sticky;top:20px}
+.gruppe{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--cu);font-weight:600;margin:0 0 16px}
+.erg .gruppe:not(:first-child){margin-top:26px}
+.feld{margin-bottom:20px}
+.feld-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px}
+.feld label{font-size:13px;color:var(--gray-light);line-height:1.35}
+.eing{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);
+  border:.5px solid rgba(201,169,110,.22);border-radius:9px;padding:0 10px}
+.eing:focus-within{border-color:var(--cu)}
+.eing input{width:92px;background:none;border:0;outline:0;color:var(--offwhite);font:inherit;
+  font-size:15px;font-weight:600;text-align:right;padding:8px 0;font-variant-numeric:tabular-nums}
+.eing span{font-size:13px;color:var(--gray-mid)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:3px;border-radius:2px;
+  background:rgba(255,255,255,.13);outline:none;display:block}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;
+  cursor:pointer;border:2px solid var(--black-2);background:linear-gradient(135deg,#e6cf9c,#c9a96e)}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;cursor:pointer;
+  border:2px solid var(--black-2);background:#d9c08a}
+.btn{display:block;width:100%;padding:14px;border-radius:12px;font:inherit;font-size:14.5px;font-weight:600;
+  cursor:pointer;text-align:center;text-decoration:none;transition:transform .2s}
+.btn:hover{transform:translateY(-2px)}
+.btn.gold{border:0;color:#141210;background:linear-gradient(135deg,#e6cf9c,#c9a96e)}
+.btn.rand{background:none;color:var(--cu-light);border:.5px solid rgba(201,169,110,.4)}
+.reset{background:none;border:0;color:var(--gray-mid);font:inherit;font-size:12.5px;cursor:pointer;
+  text-decoration:underline;margin-top:4px}
+.haupt{text-align:center;padding:24px 18px;border-radius:14px;margin-bottom:6px;
+  background:linear-gradient(140deg,rgba(201,169,110,.2),rgba(201,169,110,.06));border:.5px solid rgba(201,169,110,.32)}
+.haupt small{display:block;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--cu);font-weight:600;margin-bottom:8px}
+.haupt b{display:block;font-size:clamp(32px,5vw,44px);letter-spacing:-1.6px;line-height:1;font-variant-numeric:tabular-nums;
+  background:linear-gradient(135deg,#e6cf9c,#c9a96e);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.haupt b.neg{-webkit-text-fill-color:var(--neg);background:none;color:var(--neg)}
+.haupt em{display:block;font-style:normal;font-size:12.5px;color:var(--gray-mid);margin-top:7px}
+.z{display:flex;justify-content:space-between;gap:12px;padding:10px 2px;border-bottom:.5px solid rgba(255,255,255,.06);font-size:13.5px}
+.z span{color:var(--gray-light)}
+.z b{font-weight:500;white-space:nowrap;font-variant-numeric:tabular-nums}
+.z.zw{border-top:.5px solid rgba(201,169,110,.3)}
+.z.zw b,.z.erg-z b{color:var(--cu-light);font-weight:700}
+.z.erg-z{border-bottom:0;border-top:.5px solid rgba(201,169,110,.3)}
+.z b.neg{color:var(--neg)}
+.kennz{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.kennz div{text-align:center;background:rgba(201,169,110,.06);border:.5px solid rgba(201,169,110,.14);border-radius:11px;padding:12px 4px}
+.kennz b{display:block;font-size:16px;font-weight:700;color:var(--cu-light);font-variant-numeric:tabular-nums;margin-bottom:3px}
+.kennz span{font-size:9.5px;color:var(--gray-mid);letter-spacing:.04em;text-transform:uppercase;line-height:1.3;display:block}
+details{margin-top:18px;border-top:.5px solid rgba(255,255,255,.08);padding-top:4px}
+summary{cursor:pointer;padding:12px 0;font-size:13.5px;color:var(--offwhite);list-style:none;display:flex;justify-content:space-between}
+summary::-webkit-details-marker{display:none}
+summary::after{content:'+';color:var(--cu);font-size:18px;line-height:1}
+details[open] summary::after{content:'−'}
+.mini{font-size:11.5px;color:var(--gray-mid);margin-top:10px}
+.gv{margin-top:22px;padding:18px;border-radius:14px;background:rgba(201,169,110,.05);border:.5px solid rgba(201,169,110,.22)}
+.gv h3{font-size:14px;margin-bottom:12px}
+.gv-paar{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.gv-paar div{background:rgba(255,255,255,.03);border-radius:10px;padding:12px;text-align:center}
+.gv-paar div.stark{background:rgba(201,169,110,.12)}
+.gv-paar small{display:block;font-size:11px;color:var(--gray-mid);margin-bottom:4px}
+.gv-paar b{font-size:18px;font-variant-numeric:tabular-nums}
+.gv-paar b.neg{color:var(--neg)}
+.gv-diff{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--gray-light);align-items:center}
+.gv-diff b{color:var(--cu-light);font-size:17px;white-space:nowrap}
+.gv-satz{font-size:12.5px;color:var(--gray-light);margin-top:10px}
+.gv-satz b{color:var(--cu-light)}
+.gv .feld{margin:14px 0 0}
+.vl{margin-top:22px}
+.vl-kopf{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.vl-kopf h3{font-size:14px}
+.jahre{display:flex;gap:4px}
+.jahre button{background:none;border:.5px solid rgba(201,169,110,.25);color:var(--gray-light);font:inherit;font-size:12px;
+  padding:5px 11px;border-radius:14px;cursor:pointer}
+.jahre button.aktiv{background:rgba(201,169,110,.2);color:var(--cu-light);border-color:var(--cu)}
+.leg{display:flex;gap:16px;font-size:12px;color:var(--gray-light);margin-bottom:6px}
+.leg i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+svg{width:100%;height:auto;display:block}
+svg .gi{stroke:rgba(255,255,255,.07);stroke-width:1}
+svg .ac{fill:#8a8a8a;font-size:10px;font-family:inherit}
+.kreuz{font-size:12.5px;color:var(--gray-light);margin-top:8px}
+.kreuz b{color:var(--cu-light)}
+.vtab{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.vtab div{text-align:center;background:rgba(255,255,255,.03);border-radius:10px;padding:10px 4px}
+.vtab b{display:block;font-size:14px;font-variant-numeric:tabular-nums}
+.vtab span{font-size:10px;color:var(--gray-mid);text-transform:uppercase;letter-spacing:.04em}
+.aktionen{display:grid;gap:10px;margin-top:22px}
+.cta{margin-top:22px;padding:20px;border-radius:14px;text-align:center;background:rgba(201,169,110,.08);border:.5px solid rgba(201,169,110,.3)}
+.cta h3{font-size:16px;margin-bottom:6px}
+.cta p{font-size:13px;color:var(--gray-light);margin-bottom:14px}
+.cta .reihe{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.cta .btn{padding:12px 6px;font-size:13px}
+.hinweis{font-size:11.5px;color:#909090;line-height:1.6;margin-top:16px}
+footer{text-align:center;padding:26px 24px 40px;font-size:12px;color:var(--gray-mid);border-top:.5px solid rgba(201,169,110,.1)}
+footer a{color:var(--gray-light);margin:0 8px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);opacity:0;pointer-events:none;
+  background:var(--cu);color:#141210;padding:11px 20px;border-radius:24px;font-size:13.5px;font-weight:600;transition:.3s;z-index:10}
+.toast.an{opacity:1;transform:translate(-50%,0)}
+.druckkopf{display:none}
+@media(max-width:900px){
+  main{padding:30px 16px 48px}
+  .grid{grid-template-columns:1fr}
+  .erg{position:static}
+  .panel{padding:20px 16px}
+  input[type=range]{height:36px;background:linear-gradient(rgba(255,255,255,.13),rgba(255,255,255,.13)) center/100% 3px no-repeat}
+  .kennz{grid-template-columns:repeat(2,1fr)}
+  .top{padding:12px 16px}
+}
+@media(max-width:420px){.cta .reihe{grid-template-columns:1fr}.eing input{width:80px}}
+@media print{
+  @page{margin:14mm}
+  body{background:#fff;color:#1a1a1a}
+  .top,.panel.eingabe,.aktionen,.cta,.reset,.jahre,footer,.toast,input[type=range],.kopf{display:none!important}
+  .druckkopf{display:block;margin-bottom:14px}
+  .druckkopf h1{font-size:22px;margin:0 0 4px;color:#1a1a1a}
+  .druckkopf p{font-size:12px;color:#555}
+  main{padding:0;max-width:none}.grid{display:block}
+  .panel{background:none;border:0;padding:0}.erg{position:static}
+  .z{border-color:#ddd}.z span{color:#444}.z b,.vtab b,.kennz b,.gv-paar b,.gv-diff b{color:#1a1a1a!important}
+  .haupt{background:#f6f0e4;border-color:#c9a96e}.haupt b{-webkit-text-fill-color:#8a6f3d;color:#8a6f3d;background:none}
+  .kennz div,.vtab div,.gv-paar div,.gv{background:#faf7f0;border-color:#e4d9bd}
+  .gruppe,.haupt small{color:#8a6f3d}.leg,.kreuz,.gv-satz,.hinweis,.mini,.gv-diff{color:#444}
+  details>*{display:block}details{border-color:#ddd}summary::after{content:''}
+  svg .ac{fill:#555}svg .gi{stroke:#ddd}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="marke" href="/"><img src="logo-kp.png" alt=""><div><b>KEUERLEBER</b><span>Immobilien</span></div></a>
+  <a class="tel" href="tel:+4915167692176">0151 67692176</a>
+</header>
+
+<main>
+  <div class="kopf">
+    <p class="label">Rendite-Rechner</p>
+    <h1>Rechnen Sie Ihre Rendite</h1>
+    <p class="lead">Cashflow, Rendite und Steuereffekt Ihrer Kapitalanlage — mit Ihren eigenen Zahlen. Alle Ergebnisse rechnen sich sofort neu.</p>
+  </div>
+  <div class="objekt" id="objekt"></div>
+
+  <div class="druckkopf">
+    <h1>Renditeberechnung — Keuerleber Immobilien</h1>
+    <p id="druckInfo"></p>
+  </div>
+
+  <div class="grid">
+    <section class="panel eingabe">
+      <p class="gruppe">Ihre Eingaben</p>
+      <div id="felder"></div>
+      <button type="button" class="reset" id="reset">Auf Beispielwerte zurücksetzen</button>
+    </section>
+
+    <section class="panel erg" aria-live="polite">
+      <div class="haupt"><small>Cashflow nach Steuern</small><b id="hNach">–</b><em>pro Monat · Jahr 1</em></div>
+
+      <p class="gruppe">Monatlicher Cashflow</p>
+      <div>
+        <div class="z"><span>+ Kaltmiete</span><b id="cMiete"></b></div>
+        <div class="z"><span>− Kreditrate (Zins + Tilgung)</span><b id="cRate"></b></div>
+        <div class="z"><span>− nicht umlagefähiges Hausgeld</span><b id="cHg"></b></div>
+        <div class="z zw"><span>Cashflow vor Steuern</span><b id="cVor"></b></div>
+        <div class="z"><span id="cStL">+ Steuereffekt</span><b id="cSt"></b></div>
+        <div class="z erg-z"><span>Cashflow nach Steuern</span><b id="cNach"></b></div>
+      </div>
+
+      <p class="gruppe">Renditen</p>
+      <div class="kennz">
+        <div><b id="kBrutto">–</b><span>Brutto-Mietrendite</span></div>
+        <div><b id="kBruttoNk">–</b><span>Brutto inkl. Nebenkosten</span></div>
+        <div><b id="kNetto">–</b><span>Netto-Mietrendite*</span></div>
+        <div><b id="kFaktor">–</b><span>Kaufpreisfaktor</span></div>
+      </div>
+
+      <details>
+        <summary>Eckdaten der Finanzierung</summary>
+        <div>
+          <div class="z"><span>Jahreskaltmiete</span><b id="eMieteJ"></b></div>
+          <div class="z"><span>Kaufnebenkosten</span><b id="eNk"></b></div>
+          <div class="z"><span>Gesamtinvestition</span><b id="eGes"></b></div>
+          <div class="z"><span>Eigenkapital (Quote + Nebenkosten)</span><b id="eEk"></b></div>
+          <div class="z"><span>Darlehen</span><b id="eDar"></b></div>
+          <div class="z"><span>Monatsrate</span><b id="eRate"></b></div>
+          <div class="z"><span>Zinsen Jahr 1</span><b id="eZins"></b></div>
+          <div class="z"><span>Tilgung Jahr 1</span><b id="eTilg"></b></div>
+          <div class="z"><span>Gebäudewert (für AfA)</span><b id="eGeb"></b></div>
+          <div class="z"><span>AfA Gebäude p. a.</span><b id="eAfa"></b></div>
+          <div class="z"><span>Kaufpreis pro m²</span><b id="eQm"></b></div>
+        </div>
+      </details>
+
+      <details>
+        <summary>Break-even — ab wann es aufgeht</summary>
+        <div>
+          <div class="z"><span>Erforderliche Kaltmiete pro Monat</span><b id="bMiete"></b></div>
+          <div class="z"><span>… entspricht pro m²</span><b id="bQm"></b></div>
+          <div class="z"><span>Erforderlicher Kaufpreis</span><b id="bKp"></b></div>
+        </div>
+        <p class="mini">Werte, bei denen der Cashflow vor Steuern genau null wird — alle übrigen Eingaben bleiben unverändert.</p>
+      </details>
+
+      <div class="gv">
+        <h3>Was das Restnutzungsdauer-Gutachten bringt</h3>
+        <div class="gv-paar">
+          <div><small>Ohne Gutachten · 2 % AfA</small><b id="gOhne"></b><small>pro Jahr</small></div>
+          <div class="stark"><small>Mit Gutachten</small><b id="gMit"></b><small>pro Jahr</small></div>
+        </div>
+        <div class="gv-diff"><span>Steuervorteil allein durch das Gutachten</span><b id="gDiff"></b></div>
+        <div class="feld">
+          <div class="feld-top"><label for="gKosten">Kosten des Gutachtens</label><span id="gKostenV" style="color:var(--cu-light);font-weight:600"></span></div>
+          <input type="range" id="gKosten" min="300" max="2500" step="50" value="800">
+        </div>
+        <p class="gv-satz" id="gAmo"></p>
+      </div>
+
+      <div class="vl">
+        <div class="vl-kopf"><h3>Vermögensverlauf</h3>
+          <div class="jahre" id="jahre"><button data-j="10">10 J.</button><button data-j="20">20 J.</button><button data-j="30" class="aktiv">30 J.</button></div>
+        </div>
+        <div class="leg"><span><i style="background:#d9c08a"></i>Ihr Vermögen</span><span><i style="background:#7a7a7a"></i>Restschuld</span></div>
+        <svg id="svg" viewBox="0 0 620 240" role="img" aria-label="Entwicklung von Vermögen und Restschuld"></svg>
+        <p class="kreuz" id="kreuz"></p>
+        <div class="vtab" id="vtab"></div>
+      </div>
+
+      <div class="aktionen">
+        <button type="button" class="btn gold" id="pdf">Berechnung als PDF speichern</button>
+        <button type="button" class="btn rand" id="teilen">Link mit meinen Zahlen kopieren</button>
+      </div>
+
+      <div class="cta">
+        <h3>Zahlen gemeinsam durchgehen?</h3>
+        <p>Paul Keuerleber rechnet Ihr Objekt kostenfrei und unverbindlich mit Ihnen durch.</p>
+        <div class="reihe">
+          <a class="btn gold" href="tel:+4915167692176">Anrufen</a>
+          <a class="btn rand" id="wa" href="https://wa.me/4915167692176" target="_blank" rel="noopener">WhatsApp</a>
+          <a class="btn rand" id="mail" href="mailto:paul.keuerleber@keuerleber-immobilien.de">E-Mail</a>
+        </div>
+      </div>
+
+      <p class="hinweis">* Netto-Mietrendite: Jahreskaltmiete abzüglich nicht umlagefähigem Hausgeld und 5 % Mietausfallwagnis, bezogen auf die Gesamtinvestition. Unverbindliches Rechenbeispiel, keine Steuer- oder Anlageberatung. Die Steuerwirkung hängt von Ihrer persönlichen Situation ab und sollte mit Ihrem Steuerberater abgestimmt werden.</p>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <a href="/">keuerleber-immobilien.de</a> · Keuerleber Immobilien · Hauptstraße 12 · 95145 Oberkotzau
+</footer>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+  /* Felder: id, Label, Einheit, min, max, step, Standard, URL-Kürzel, Dezimalstellen */
+  var F=[
+    ['kp','Kaufpreis','€',50000,900000,500,210000,'kp',0],
+    ['qm','Wohnfläche','m²',20,250,0.01,78,'qm',2],
+    ['mi','Miete pro m² (kalt)','€',3,30,0.05,11,'mi',2],
+    ['nk','Kaufnebenkosten','%',0,15,0.1,5.5,'nk',1],
+    ['ga','Gebäudeanteil (für AfA)','%',50,100,1,80,'ga',0],
+    ['ek','Eigenkapitalquote','%',0,100,1,10,'ek',0],
+    ['zi','Zinssatz p. a.','%',0.5,8,0.05,3.6,'zi',2],
+    ['ti','Anfängliche Tilgung p. a.','%',0.5,10,0.05,2,'ti',2],
+    ['hg','Hausgeld gesamt pro Monat','€',0,800,5,195,'hg',0],
+    ['hn','davon nicht umlagefähig','€',0,400,0.05,40,'hn',2],
+    ['af','AfA-Satz Gebäude','%',1,8,0.01,5,'af',2],
+    ['st','Persönlicher Steuersatz','%',0,45,1,42,'st',0]
+  ];
+  var $=function(i){return document.getElementById(i)};
+  var NF={};
+  function fmt(n,d){var k=d||0;return (NF[k]=NF[k]||new Intl.NumberFormat('de-DE',{minimumFractionDigits:k,maximumFractionDigits:k})).format(n)}
+  function eur(n,d){return fmt(n,d)+' €'}
+  function pct(n,d){return fmt(n,d===undefined?2:d)+' %'}
+  function sig(n){return (n>=0?'+ ':'− ')+eur(Math.abs(n))}
+  function clamp(v,lo,hi){return Math.min(Math.max(v,lo),hi)}
+  function num(s){var v=parseFloat(String(s).replace(',','.'));return isFinite(v)?v:NaN}
+
+  /* Eingabefelder bauen */
+  var wrap=$('felder'),el={};
+  F.forEach(function(f){
+    var d=document.createElement('div');d.className='feld';
+    d.innerHTML='<div class="feld-top"><label for="i_'+f[0]+'">'+f[1]+'</label>'+
+      '<div class="eing"><input type="text" inputmode="decimal" id="i_'+f[0]+'" autocomplete="off"><span>'+f[2]+'</span></div></div>'+
+      '<input type="range" id="s_'+f[0]+'" min="'+f[3]+'" max="'+f[4]+'" step="'+f[5]+'" aria-label="'+f[1]+'">';
+    wrap.appendChild(d);
+    el[f[0]]={n:d.querySelector('input[type=text]'),s:d.querySelector('input[type=range]'),f:f};
+  });
+  function setze(id,v){var e=el[id],f=e.f;v=clamp(v,f[3],f[4]);e.s.value=v;e.n.value=fmt(v,f[8]).replace(/\./g,'')}
+  function wert(id){var e=el[id],f=e.f,v=num(e.n.value);if(isNaN(v))v=f[6];return clamp(v,f[3],f[4])}
+
+  /* Kernrechnung (identisch zur Rechnung auf keuerleber-immobilien.de) */
+  function modell(){
+    var kp=wert('kp'),qm=wert('qm'),mqm=wert('mi'),nkP=wert('nk')/100,gaP=wert('ga')/100,ekP=wert('ek')/100,
+        zins=wert('zi')/100,tilg=wert('ti')/100,hgG=wert('hg'),hgN=Math.min(wert('hn'),hgG),afaS=wert('af')/100,stS=wert('st')/100;
+    var mieteM=qm*mqm,mieteJ=mieteM*12,nk=kp*nkP,ges=kp+nk,ek=kp*ekP+nk,dar=kp*(1-ekP),geb=kp*gaP,
+        zinsJ=dar*zins,tilgJ=dar*tilg,afa=geb*afaS,rate=(zinsJ+tilgJ)/12,
+        cfVor=mieteM-rate-hgN,stM=-((mieteJ-zinsJ-afa-hgN*12)*stS)/12;
+    return{kp:kp,qm:qm,mqm:mqm,mieteM:mieteM,mieteJ:mieteJ,nk:nk,ges:ges,ek:ek,dar:dar,geb:geb,zinsJ:zinsJ,tilgJ:tilgJ,
+      afa:afa,rate:rate,hgG:hgG,hgN:hgN,cfVor:cfVor,stM:stM,cfNach:cfVor+stM,zins:zins,tilg:tilg,afaS:afaS,stS:stS,ekP:ekP};
+  }
+
+  var sichtJ=30;
+  function sim(m){
+    var rest=m.dar,restAfA=m.geb,kumSt=0,kumCf=0,frei=0,r=[{j:0,rest:m.dar,verm:0,get:0,st:0}];
+    for(var j=1;j<=30;j++){
+      var zJ=0,zahl=0;
+      for(var k=0;k<12;k++){
+        if(rest<=0)continue;
+        var z=rest*m.zins/12,tl=m.rate-z;if(tl>rest)tl=rest;if(tl<0)tl=0;
+        rest-=tl;zJ+=z;zahl+=z+tl;
+      }
+      if(rest<=0&&!frei)frei=j;
+      var a=Math.min(m.afa,restAfA);restAfA-=a;
+      kumSt+=-(m.mieteJ-a-zJ-m.hgN*12)*m.stS;
+      kumCf+=m.mieteJ-zahl-m.hgN*12;
+      r.push({j:j,rest:rest,get:m.dar-rest,st:kumSt,verm:(m.dar-rest)+kumSt+kumCf});
+    }
+    return{r:r,frei:frei};
+  }
+  function kurz(n){return Math.abs(n)>=1000?fmt(Math.round(n/1000))+'k':String(Math.round(n))}
+
+  function chart(m){
+    var d=sim(m),r=d.r.slice(0,sichtJ+1),sm=window.innerWidth<700,
+        W=sm?380:620,H=sm?300:240,ml=sm?44:46,mr=8,mt=10,mb=sm?28:22,iw=W-ml-mr,ih=H-mt-mb,max=0;
+    r.forEach(function(p){max=Math.max(max,p.rest,p.verm)});max=max*1.08||1;
+    var x=function(j){return ml+j/sichtJ*iw},y=function(v){return mt+ih-Math.max(v,-max)/max*ih},o=[];
+    for(var i=0;i<=4;i++){var v=max*i/4,yy=y(v);
+      o.push('<line class="gi" x1="'+ml+'" y1="'+yy.toFixed(1)+'" x2="'+(W-mr)+'" y2="'+yy.toFixed(1)+'"/>');
+      o.push('<text class="ac" x="'+(ml-7)+'" y="'+(yy+3.5).toFixed(1)+'" text-anchor="end">'+kurz(v)+'</text>');}
+    var sch=sichtJ<=10?2:5;
+    for(var j=0;j<=sichtJ;j+=sch)o.push('<text class="ac" x="'+x(j).toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle">'+j+'</text>');
+    var pV=r.map(function(p,i){return(i?'L':'M')+x(p.j).toFixed(1)+' '+y(p.verm).toFixed(1)}).join(' '),
+        pR=r.map(function(p,i){return(i?'L':'M')+x(p.j).toFixed(1)+' '+y(p.rest).toFixed(1)}).join(' ');
+    o.push('<path d="'+pR+'" fill="none" stroke="#7a7a7a" stroke-width="2"/>');
+    o.push('<path d="'+pV+'" fill="none" stroke="#d9c08a" stroke-width="2.6" stroke-linecap="round"/>');
+    var kr=0;for(var q=1;q<r.length;q++){if(r[q].verm>=r[q].rest){kr=r[q].j;break}}
+    if(kr)o.push('<circle cx="'+x(kr).toFixed(1)+'" cy="'+y(r[kr].verm).toFixed(1)+'" r="4.5" fill="#e6cf9c"/>');
+    $('svg').setAttribute('viewBox','0 0 '+W+' '+H);$('svg').innerHTML=o.join('');
+    var t=kr?'Ab Jahr <b>'+kr+'</b> übersteigt Ihr Vermögen die Restschuld.':'Innerhalb der gewählten Laufzeit übersteigt Ihr Vermögen die Restschuld noch nicht.';
+    if(d.frei&&d.frei<=sichtJ)t+=' Das Darlehen ist nach '+d.frei+' Jahren vollständig zurückgezahlt.';
+    $('kreuz').innerHTML=t;
+    var e=r[r.length-1];
+    $('vtab').innerHTML='<div><b>'+eur(e.get)+'</b><span>Getilgt</span></div>'+
+      '<div><b>'+eur(Math.abs(e.st))+'</b><span>'+(e.st>=0?'Steuerersparnis':'Steuerlast')+'</span></div>'+
+      '<div><b>'+eur(e.rest)+'</b><span>Restschuld</span></div>'+
+      '<div><b>'+eur(e.verm)+'</b><span>Ihr Vermögen</span></div>';
+  }
+
+  function s(id,t,c){var e=$(id);e.textContent=t;if(c!==undefined)e.classList.toggle('neg',c<0)}
+
+  function rechne(){
+    var m=modell();
+    s('hNach',sig(m.cfNach));$('hNach').classList.toggle('neg',m.cfNach<0);
+    s('cMiete',sig(m.mieteM));s('cRate',sig(-m.rate));s('cHg',sig(-m.hgN));
+    s('cVor',sig(m.cfVor),m.cfVor);s('cSt',sig(m.stM),m.stM);s('cNach',sig(m.cfNach),m.cfNach);
+    $('cStL').textContent=m.stM>=0?'+ Steuereffekt pro Monat':'− Steuerzahlung pro Monat';
+    s('kBrutto',m.kp>0?pct(m.mieteJ/m.kp*100):'–');
+    s('kBruttoNk',m.ges>0?pct(m.mieteJ/m.ges*100):'–');
+    s('kNetto',m.ges>0?pct((m.mieteJ-m.hgN*12-m.mieteJ*0.05)/m.ges*100):'–');
+    s('kFaktor',m.mieteJ>0?fmt(m.kp/m.mieteJ,1):'–');
+    s('eMieteJ',eur(m.mieteJ));s('eNk',eur(m.nk));s('eGes',eur(m.ges));s('eEk',eur(m.ek));s('eDar',eur(m.dar));
+    s('eRate',eur(m.rate,2));s('eZins',eur(m.zinsJ));s('eTilg',eur(m.tilgJ));s('eGeb',eur(m.geb));s('eAfa',eur(m.afa));
+    s('eQm',m.qm>0?eur(m.kp/m.qm):'–');
+    var be=m.rate+m.hgN;s('bMiete',eur(be,2));s('bQm',m.qm>0?eur(be/m.qm,2):'–');
+    var nenner=(1-m.ekP)*(m.zins+m.tilg)/12;
+    s('bKp',(nenner>0&&m.mieteM-m.hgN>0)?eur((m.mieteM-m.hgN)/nenner):'–');
+
+    /* Gutachten */
+    var f=function(satz){return -((m.mieteJ-m.zinsJ-m.geb*satz-m.hgN*12)*m.stS)};
+    var ohne=f(0.02),mit=f(m.afaS),diff=mit-ohne,kosten=+$('gKosten').value;
+    var vz=function(n){return(n>=0?'':'− ')+eur(Math.abs(n))};
+    s('gOhne',vz(ohne),ohne);s('gMit',vz(mit),mit);
+    s('gDiff',(diff>=0?'+ ':'− ')+eur(Math.abs(diff)));s('gKostenV',eur(kosten));
+    if(diff<=0)$('gAmo').textContent='Bei diesen Werten bringt das Gutachten keinen zusätzlichen Steuervorteil.';
+    else{var mon=kosten/diff*12;
+      $('gAmo').innerHTML='Das Gutachten hat sich nach rund <b>'+(mon<18?Math.max(1,Math.round(mon))+' Monaten':fmt(mon/12,1)+' Jahren')+'</b> wieder eingespielt. Danach wirkt der Vorteil jedes weitere Jahr.';}
+
+    chart(m);
+    $('druckInfo').textContent=eur(m.kp)+' · '+fmt(m.qm,2)+' m² · '+eur(m.mqm,2)+'/m² Kaltmiete · Stand '+
+      new Date().toLocaleDateString('de-DE',{day:'2-digit',month:'long',year:'numeric'})+' · Unverbindliches Rechenbeispiel';
+  }
+
+  /* Werte aus dem Link lesen: ?kp=210000&qm=78&mi=11&o=Jahnstraße 38 */
+  var P=new URLSearchParams(location.search);
+  F.forEach(function(f){var v=num(P.get(f[7]));setze(f[0],isNaN(v)?f[6]:v)});
+  var obj=(P.get('o')||'').trim().slice(0,80);
+  if(obj){$('objekt').textContent='Objekt: '+obj;$('objekt').style.display='block';document.title=obj+' — Rendite-Rechner | Keuerleber Immobilien'}
+  var kk=num(P.get('gk'));if(!isNaN(kk))$('gKosten').value=clamp(kk,300,2500);
+
+  /* Eingaben verdrahten */
+  F.forEach(function(f){var e=el[f[0]];
+    e.n.addEventListener('input',function(){var v=num(e.n.value);if(!isNaN(v))e.s.value=clamp(v,f[3],f[4]);rechne()});
+    e.n.addEventListener('blur',function(){setze(f[0],wert(f[0]));rechne()});
+    e.s.addEventListener('input',function(){e.n.value=fmt(+e.s.value,f[8]).replace(/\./g,'');rechne()});
+  });
+  $('gKosten').addEventListener('input',rechne);
+  $('reset').addEventListener('click',function(){F.forEach(function(f){setze(f[0],f[6])});$('gKosten').value=800;rechne()});
+  document.querySelectorAll('#jahre button').forEach(function(b){b.addEventListener('click',function(){
+    document.querySelectorAll('#jahre button').forEach(function(o){o.classList.remove('aktiv')});
+    b.classList.add('aktiv');sichtJ=+b.dataset.j;rechne()})});
+  window.addEventListener('resize',rechne,{passive:true});
+
+  /* Link teilen, PDF, Kontakt */
+  function toast(t){var e=$('toast');e.textContent=t;e.classList.add('an');setTimeout(function(){e.classList.remove('an')},2200)}
+  $('teilen').addEventListener('click',function(){
+    var q=new URLSearchParams();
+    F.forEach(function(f){q.set(f[7],String(+wert(f[0]).toFixed(f[8])))});
+    if(obj)q.set('o',obj);
+    var url=location.origin+location.pathname+'?'+q.toString();
+    if(navigator.clipboard&&navigator.clipboard.writeText)
+      navigator.clipboard.writeText(url).then(function(){toast('Link kopiert')},function(){prompt('Link kopieren:',url)});
+    else prompt('Link kopieren:',url);
+  });
+  $('pdf').addEventListener('click',function(){window.print()});
+  var m0=function(){var m=modell();return 'Hallo Herr Keuerleber, ich habe mit dem Rendite-Rechner gerechnet'+(obj?' ('+obj+')':'')+
+    ': Kaufpreis '+eur(m.kp)+', Cashflow nach Steuern '+sig(m.cfNach)+' pro Monat. Können wir das kurz besprechen?'};
+  $('wa').addEventListener('click',function(){this.href='https://wa.me/4915167692176?text='+encodeURIComponent(m0())});
+  $('mail').addEventListener('click',function(){this.href='mailto:paul.keuerleber@keuerleber-immobilien.de?subject='+
+    encodeURIComponent('Rendite-Rechner'+(obj?' — '+obj:''))+'&body='+encodeURIComponent(m0())});
+
+  rechne();
+})();
+</script>
+</body>
+</html>
