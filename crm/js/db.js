@@ -7,7 +7,9 @@ let data = Object.fromEntries(COLS.map(c => [c, []]));
 let sb = null, cloud = false;
 const listeners = new Set();
 
-export const cfg = () => { try { return JSON.parse(localStorage.getItem(CFG)) || {}; } catch { return {}; } };
+// Standard-Verbindung (anon-Key ist öffentlich vorgesehen; Schutz via Login + RLS)
+const DEFAULT_CFG = { url: 'https://silkguwwkfwoqdfisfky.supabase.co', key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpbGtndXd3a2Z3b3FkZmlzZmt5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0ODQyNDQsImV4cCI6MjEwNzA2MDI0NH0.zetUJKtz6w4za2-M1yaEYPenE84ML0sPUXFS3DLaABA' };
+export const cfg = () => { try { const c = JSON.parse(localStorage.getItem(CFG)) || {}; if (c.off) return {}; return c.url ? c : DEFAULT_CFG; } catch { return DEFAULT_CFG; } };
 export const setCfg = c => localStorage.setItem(CFG, JSON.stringify(c));
 export const isCloud = () => cloud;
 export const onChange = f => { listeners.add(f); return () => listeners.delete(f); };
