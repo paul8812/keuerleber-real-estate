@@ -68,7 +68,7 @@ function loginScreen() {
     try { await db.login(f.email.value.trim(), f.password.value); box.hidden = true; document.getElementById('app').hidden = false; shell(); }
     catch (x) { err.textContent = 'Anmeldung fehlgeschlagen: ' + (x.message || x); b.disabled = false; }
   };
-  box.querySelector('[data-local]').onclick = () => { if (confirm('Cloud-Verbindung trennen und lokal arbeiten?')) { db.setCfg({}); location.reload(); } };
+  box.querySelector('[data-local]').onclick = () => { if (confirm('Cloud-Verbindung trennen und lokal arbeiten?')) { db.setCfg({ off: true }); location.reload(); } };
 }
 boot();
 if ('serviceWorker' in navigator && location.protocol === 'https:') { /* bewusst kein SW: Daten sind live */ }

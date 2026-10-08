@@ -21,7 +21,7 @@ export function render(el) {
       <p class="muted">Empfehlung: wöchentlich ein Backup herunterladen.</p></section></div>`.s;
   el.querySelector('#fs').onsubmit = async e => { e.preventDefault(); await db.saveSettings({ ...s, ...collect(e.target) }); toast('Gespeichert'); };
   el.querySelector('#fc').onsubmit = e => { e.preventDefault(); const v = collect(e.target); db.setCfg({ url: v.url.replace(/\/+$/, ''), key: v.key }); location.reload(); };
-  el.querySelector('[data-off]')?.addEventListener('click', () => { db.setCfg({}); location.reload(); });
+  el.querySelector('[data-off]')?.addEventListener('click', () => { db.setCfg({ off: true }); location.reload(); });
   el.querySelector('[data-logout]')?.addEventListener('click', () => db.logout());
   el.querySelector('[data-bk]').onclick = () => download(`crm-backup-${today()}.json`, db.exportAll(), 'application/json');
   el.querySelector('[data-rs]').onchange = async e => { const f = e.target.files[0]; if (!f) return; if (!await confirmDlg('Backup einspielen? Vorhandene Einträge mit gleicher ID werden überschrieben.')) return; try { await db.importAll(await f.text()); toast('Backup eingespielt'); } catch (x) { toast('Fehler: ' + x.message, 'err'); } };
