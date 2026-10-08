@@ -1,6 +1,6 @@
 # Keuerleber CRM – Einrichtung
 
-Aufruf: `https://www.keuerleber-real-estate.de/crm/` (nach Merge in `main`).
+Aufruf: `https://keuerleber-immobilien.de/crm/` (nach Merge in `main`).
 
 Ohne Einrichtung läuft das CRM **lokal im Browser** (Daten nur auf diesem Gerät, Backup unter *Einstellungen*).
 Für Handy + PC + Cloud-Speicherung: Supabase einrichten (kostenlos, ca. 5 Minuten).
@@ -36,3 +36,8 @@ Bereits lokal erfasste Daten: *Einstellungen → Lokale Daten in die Cloud hochl
 - Das GitHub-Repo ist öffentlich: **keine echten Kundendaten ins Repo committen** (nur Code). Daten liegen in Supabase.
 - Für DSGVO: Auftragsverarbeitungsvertrag mit Supabase abschließen, Einwilligungs-Häkchen bei Kontakten pflegen.
 - Wöchentliches Backup (*Einstellungen → Backup*).
+
+## Automationen & Google
+- *Automationen* im Menü: Regeln einzeln ein-/ausschaltbar, Fristen einstellbar. Sie laufen, solange das CRM im Browser geöffnet ist (Start, alle 5 Min., beim Zurückkehren in den Tab).
+- Google Kalender/Kontakte: Client-ID gemäß Anleitung in *Automationen → Google* erstellen, dort eintragen, „Kalender synchronisieren“ klicken. Die Anmeldung läuft direkt zwischen deinem Browser und Google.
+- Echte Hintergrund-Automation bei geschlossenem Browser (z. B. E-Mail-Versand) braucht serverseitige Funktionen (Supabase Edge Functions) und ist noch nicht eingerichtet.
