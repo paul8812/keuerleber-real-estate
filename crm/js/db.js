@@ -46,6 +46,25 @@ export async function login(email, password) {
   if (error) throw error;
   await loadCloud();
 }
+export async function signup(email, password) {
+  const { data: d, error } = await sb.auth.signUp({ email, password });
+  if (error) throw error;
+  if (!d.session) return 'confirm';
+  await loadCloud(); return 'ok';
+}
+export const SETUP_SQL = `create table if not exists public.records (
+  id text primary key,
+  collection text not null,
+  data jsonb not null,
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  updated_at timestamptz not null default now()
+);
+create index if not exists records_user_col on public.records (user_id, collection);
+alter table public.records enable row level security;
+drop policy if exists "eigene Daten" on public.records;
+create policy "eigene Daten" on public.records for all
+  using (user_id = auth.uid()) with check (user_id = auth.uid());`;
+export const SQL_URL = () => { const m = (cfg().url || '').match(/https:\/\/([^.]+)\.supabase\.co/); return m ? `https://supabase.com/dashboard/project/${m[1]}/sql/new` : 'https://supabase.com/dashboard'; };
 export async function logout() { if (sb) await sb.auth.signOut(); location.reload(); }
 export const userEmail = async () => sb ? (await sb.auth.getUser()).data.user?.email : null;
 

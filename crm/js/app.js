@@ -63,10 +63,31 @@ async function boot() {
 }
 function loginScreen() {
   const box = document.getElementById('login'); box.hidden = false;
-  box.querySelector('form').onsubmit = async e => {
-    e.preventDefault(); const f = e.target, err = box.querySelector('.err'); err.textContent = ''; const b = f.querySelector('button'); b.disabled = true;
-    try { await db.login(f.email.value.trim(), f.password.value); box.hidden = true; document.getElementById('app').hidden = false; shell(); }
-    catch (x) { err.textContent = 'Anmeldung fehlgeschlagen: ' + (x.message || x); b.disabled = false; }
+  const form = box.querySelector('form'), err = box.querySelector('.err'), btn = form.querySelector('button.primary'), tog = box.querySelector('[data-toggle]');
+  let signup = false;
+  const setMode = m => { signup = m; btn.textContent = m ? 'Konto erstellen' : 'Anmelden'; tog.textContent = m ? 'Schon ein Konto? Anmelden' : 'Erstes Mal? Konto erstellen'; err.textContent = ''; form.password.autocomplete = m ? 'new-password' : 'current-password'; };
+  tog.onclick = e => { e.preventDefault(); setMode(!signup); };
+  const showSetup = () => {
+    const sb = box.querySelector('.setup'); sb.hidden = false;
+    sb.innerHTML = `<b>Einmalige Einrichtung der Datenbank</b><ol><li><a target="_blank" rel="noopener" href="${esc(db.SQL_URL())}">SQL-Editor in Supabase öffnen</a> (dort einloggen)</li><li><button type="button" class="btn" data-copy>SQL kopieren</button> und im Editor einfügen</li><li>Auf <b>Run</b> klicken, dann hier erneut anmelden</li></ol>`;
+    sb.querySelector('[data-copy]').onclick = async () => { await navigator.clipboard.writeText(db.SETUP_SQL); toast('SQL kopiert'); };
+  };
+  form.onsubmit = async e => {
+    e.preventDefault(); err.textContent = ''; btn.disabled = true;
+    try {
+      const email = form.email.value.trim(), pw = form.password.value;
+      if (signup) {
+        if (pw.length < 8) throw new Error('Passwort mindestens 8 Zeichen');
+        const r = await db.signup(email, pw);
+        if (r === 'confirm') { err.style.color = 'var(--ok)'; err.textContent = 'Bestätigungs-E-Mail gesendet – Link klicken, dann hier anmelden.'; setMode(false); btn.disabled = false; return; }
+      } else await db.login(email, pw);
+      box.hidden = true; document.getElementById('app').hidden = false; shell();
+    } catch (x) {
+      err.style.color = ''; const m = x.message || String(x);
+      if (/records|relation|schema cache|does not exist/i.test(m)) { err.textContent = 'Datenbank-Tabelle fehlt noch.'; showSetup(); }
+      else err.textContent = (signup ? 'Registrierung fehlgeschlagen: ' : 'Anmeldung fehlgeschlagen: ') + m;
+      btn.disabled = false;
+    }
   };
   box.querySelector('[data-local]').onclick = () => { if (confirm('Cloud-Verbindung trennen und lokal arbeiten?')) { db.setCfg({ off: true }); location.reload(); } };
 }
