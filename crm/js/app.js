@@ -12,8 +12,10 @@ import * as templates from './views/templates.js';
 import * as calc from './views/calc.js';
 import * as stats from './views/stats.js';
 import * as settings from './views/settings.js';
+import * as automation from './views/automation.js';
+import * as auto from './automation.js';
 
-const VIEWS = { dashboard, kontakte: contacts, objekte: properties, pipeline, aufgaben: tasks, kalender: calendar, vorlagen: templates, rechner: calc, statistik: stats, einstellungen: settings };
+const VIEWS = { dashboard, kontakte: contacts, objekte: properties, pipeline, aufgaben: tasks, kalender: calendar, vorlagen: templates, automation, rechner: calc, statistik: stats, einstellungen: settings };
 const main = document.getElementById('main');
 
 function route() {
@@ -53,7 +55,7 @@ function shell() {
   db.onChange(rerender);
   window.addEventListener('hashchange', route);
   window.addEventListener('focus', () => db.isCloud() && db.reload());
-  route();
+  route(); auto.start();
 }
 
 async function boot() {
