@@ -12,7 +12,9 @@
 <link rel="manifest" href="/site.webmanifest">
 <meta name="theme-color" content="#080808">
 <meta name="apple-mobile-web-app-title" content="Keuerleber">
-  <title>Immobilien als Kapitalanlage in Hof &amp; Oberfranken | Keuerleber Immobilien</title>
+  <link rel="preload" href="fonts/jost-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/cormorant-600.woff2" as="font" type="font/woff2" crossorigin>
+<title>Immobilien als Kapitalanlage in Hof &amp; Oberfranken | Keuerleber Immobilien</title>
 <meta name="description" content="Kernsanierte Eigentumswohnungen in Hof &amp; Oberfranken — als Kapitalanlage mit erhöhter Abschreibung oder zum Selbstbezug. Beratung kostenfrei.">
 <link rel="preload" as="image" href="/hero-hof-daecher-mobil.jpg" media="(max-width: 860px)" fetchpriority="high">
 <link rel="preload" as="image" href="/hero-hof-daecher.jpg" media="(min-width: 861px)" fetchpriority="high">
@@ -2023,6 +2025,28 @@ nav.kp-shrunk .logo-diamond{width:42px!important;height:49px!important;}
 #kp-intro .kp-logo{width:190px!important;height:220px!important;}
 @media(max-width:900px){.logo-diamond{width:42px!important;height:49px!important;}}
 .logo-diamond img,#kp-intro .kp-logo,#kp-intro .kp-logo img{mix-blend-mode:lighten;}
+
+/* ===== TYPOGRAFIE (Vorschau): Cormorant Garamond für Überschriften, Jost für Text – selbst gehostet (DSGVO) ===== */
+@font-face{font-family:'Jost';src:url(fonts/jost-var.woff2) format('woff2');font-weight:100 900;font-style:normal;font-display:swap}
+@font-face{font-family:'Cormorant Garamond';src:url(fonts/cormorant-500.woff2) format('woff2');font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:'Cormorant Garamond';src:url(fonts/cormorant-600.woff2) format('woff2');font-weight:600 700;font-style:normal;font-display:swap}
+@font-face{font-family:'Cormorant Garamond';src:url(fonts/cormorant-500-italic.woff2) format('woff2');font-weight:500;font-style:italic;font-display:swap}
+:root{--f-sans:'Jost',-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;--f-serif:'Cormorant Garamond','Iowan Old Style',Georgia,serif}
+body{font-family:var(--f-sans);font-weight:400;letter-spacing:.012em;font-feature-settings:'kern','liga'}
+button,input,select,textarea{font-family:inherit}
+.hero h1,.hero.hz h1,.section h2,.drone-content h2,.contact-info h2,.rc-head h2,.vl-band-text h2,.expose-text h2,.about-text h2{
+  font-family:var(--f-serif);font-weight:600;letter-spacing:-.01em;line-height:1.04;font-size-adjust:.5;font-variant-numeric:lining-nums;text-wrap:balance}
+.hero h1,.hero.hz h1{font-weight:600;letter-spacing:-.015em}
+.section h2{max-width:640px}
+.hero h1 em,.section h2 em,.hero.hz h1 em{font-style:italic;font-weight:500}
+.logo-name{font-family:var(--f-serif);font-size:21px;font-weight:600;letter-spacing:.16em;color:#d9c08a;line-height:1}
+.logo-sub{font-family:var(--f-sans);font-weight:500;letter-spacing:.42em;color:var(--offwhite);opacity:.85}
+.logo-right{gap:5px}
+nav .nav-links a{font-weight:500;letter-spacing:.04em}
+.section-label,.eyebrow,[class*="-label"],[class*="eyebrow"]{font-weight:500}
+p,li{font-weight:400}
+h1,h2,.section h2,.hero h1{font-family:var(--f-serif)!important;font-weight:600!important;letter-spacing:-.01em!important;line-height:1.06!important;font-size-adjust:.48;font-variant-numeric:lining-nums}
+@media(max-width:900px){.logo-name{font-size:18px}}
 </style>
 </head>
 <body>
