@@ -113,7 +113,7 @@ export async function log(art, text, refs = {}) {
 }
 
 // ---------- Einstellungen & Standardvorlagen ----------
-export const DEFAULT_SETTINGS = { id: 'main', firma: 'Keuerleber Immobilien', inhaber: 'Paul Keuerleber', strasse: '', plz: '95145', ort: 'Oberkotzau', tel: '', email: '', web: 'www.keuerleber-real-estate.de', provKaeufer: 3.57, provVerkaeufer: 3.57, bundesland: 'Bayern', nachfassTage: 60 };
+export const DEFAULT_SETTINGS = { id: 'main', firma: 'Keuerleber Immobilien', inhaber: 'Paul Keuerleber', strasse: '', plz: '95145', ort: 'Oberkotzau', tel: '', email: '', web: 'keuerleber-immobilien.de', provKaeufer: 3.57, provVerkaeufer: 3.57, bundesland: 'Bayern', nachfassTage: 60 };
 export const settings = () => data.settings[0] || DEFAULT_SETTINGS;
 export const saveSettings = s => save('settings', { ...s, id: 'main' });
 

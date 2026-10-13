@@ -4,15 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
-  <link rel="icon" href="/favicon.ico?kp5" sizes="any">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?kp5">
-<link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png?kp5">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?kp5">
-<link rel="mask-icon" href="/safari-pinned-tab.svg?kp5" color="#c9a96e">
+  <link rel="icon" href="/favicon.ico?g1" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?g1">
+<link rel="icon" href="/favicon.svg?g1" type="image/svg+xml">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?g1">
+<link rel="mask-icon" href="/safari-pinned-tab.svg?g1" color="#c9a96e">
 <link rel="manifest" href="/site.webmanifest">
 <meta name="theme-color" content="#080808">
 <meta name="apple-mobile-web-app-title" content="Keuerleber">
-  <title>Immobilien als Kapitalanlage in Hof &amp; Oberfranken | Keuerleber Immobilien</title>
+  <link rel="preload" href="fonts/jost-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/cormorant-600.woff2" as="font" type="font/woff2" crossorigin>
+<title>Immobilien als Kapitalanlage in Hof &amp; Oberfranken | Keuerleber Immobilien</title>
 <meta name="description" content="Kernsanierte Eigentumswohnungen in Hof &amp; Oberfranken — als Kapitalanlage mit erhöhter Abschreibung oder zum Selbstbezug. Beratung kostenfrei.">
 <link rel="preload" as="image" href="/hero-hof-daecher-mobil.jpg" media="(max-width: 860px)" fetchpriority="high">
 <link rel="preload" as="image" href="/hero-hof-daecher.jpg" media="(min-width: 861px)" fetchpriority="high">
@@ -41,7 +43,7 @@
 <meta name="twitter:image:alt" content="Kernsanierte Eigentumswohnung in Hof — Wohnbereich nach der Sanierung">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@graph":[
-  {"@type":"Organization","@id":"https://keuerleber-immobilien.de/#organization","logo":"https://keuerleber-immobilien.de/logo-kp-512.png",
+  {"@type":"Organization","@id":"https://keuerleber-immobilien.de/#organization","logo":"https://keuerleber-immobilien.de/logo/Wappen_gold_512px.png",
    "name":"Keuerleber Immobilien","url":"https://keuerleber-immobilien.de/",
    "email":"paul.keuerleber@keuerleber-immobilien.de","telephone":"+49-151-67692176",
    "founder":{"@id":"https://keuerleber-immobilien.de/#paul"},
@@ -1268,7 +1270,7 @@ html.intro-lock,html.intro-lock body{overflow:hidden!important;}
   #kp-grain,#kp-glow,#leseBalken,.fab-box,nav,footer,#kp-intro{display:none!important;}
 
   #pdfBlatt{display:block!important;
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+    font-family:'Jost',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
     color:#14110d;font-size:8.6pt;line-height:1.4;
     -webkit-font-smoothing:antialiased;}
   #pdfBlatt *{-webkit-print-color-adjust:exact;print-color-adjust:exact;box-sizing:border-box;}
@@ -2016,24 +2018,52 @@ button.cal-day:disabled{cursor:default;}
   .hz-btns{margin-top:20px}
   .hz-btns .btn-cu{width:auto;max-width:none;padding:15px 30px}
 }
+
+/* LOGO (Vorschau): komplettes Gold-Logo mit Schriftzug */
+.logo-full{display:block;height:76px;width:auto;transition:height .35s var(--ez)}
+nav{height:92px!important}
+nav.kp-shrunk{height:70px!important}
+nav.kp-shrunk .logo-full{height:58px}
+@media(max-width:900px){nav{height:68px!important}nav.kp-shrunk{height:60px!important}.logo-full{height:54px}nav.kp-shrunk .logo-full{height:48px}}
+.logo-diamond{width:auto!important;height:56px!important;}
+.logo-diamond img{width:auto!important;height:100%!important;}
+nav.kp-shrunk .logo-diamond{height:46px!important;}
+#kp-intro .kp-logo{width:auto!important;height:min(62vh,420px)!important}
+#kp-intro .kp-logo img{width:auto;height:100%}
+@media(max-width:900px){.logo-diamond{height:44px!important}nav.kp-shrunk .logo-diamond{height:40px!important}#kp-intro .kp-logo{height:min(56vh,340px)!important}}
+/* ===== TYPOGRAFIE (Vorschau): Cormorant Garamond für Überschriften, Jost für Text – selbst gehostet (DSGVO) ===== */
+@font-face{font-family:'Jost';src:url(fonts/jost-var.woff2) format('woff2');font-weight:100 900;font-style:normal;font-display:swap}
+@font-face{font-family:'Cormorant Garamond';src:url(fonts/cormorant-500.woff2) format('woff2');font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:'Cormorant Garamond';src:url(fonts/cormorant-600.woff2) format('woff2');font-weight:600 700;font-style:normal;font-display:swap}
+@font-face{font-family:'Cormorant Garamond';src:url(fonts/cormorant-500-italic.woff2) format('woff2');font-weight:500;font-style:italic;font-display:swap}
+:root{--f-sans:'Jost',-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;--f-serif:'Cormorant Garamond','Iowan Old Style',Georgia,serif}
+body{font-family:var(--f-sans);font-weight:400;letter-spacing:.012em;font-feature-settings:'kern','liga'}
+button,input,select,textarea{font-family:inherit}
+.hero h1,.hero.hz h1,.section h2,.drone-content h2,.contact-info h2,.rc-head h2,.vl-band-text h2,.expose-text h2,.about-text h2{
+  font-family:var(--f-serif);font-weight:600;letter-spacing:-.01em;line-height:1.04;font-size-adjust:.5;font-variant-numeric:lining-nums;text-wrap:balance}
+.hero h1,.hero.hz h1{font-weight:600;letter-spacing:-.015em}
+.section h2{max-width:640px}
+.hero h1 em,.section h2 em,.hero.hz h1 em{font-style:italic;font-weight:500}
+.logo-name{font-family:var(--f-serif);font-size:21px;font-weight:600;letter-spacing:.16em;color:#d9c08a;line-height:1}
+.logo-sub{font-family:var(--f-sans);font-weight:500;letter-spacing:.42em;color:var(--offwhite);opacity:.85}
+.logo-right{gap:5px}
+nav .nav-links a{font-weight:500;letter-spacing:.04em}
+.section-label,.eyebrow,[class*="-label"],[class*="eyebrow"]{font-weight:500}
+p,li{font-weight:400}
+h1,h2,.section h2,.hero h1{font-family:var(--f-serif)!important;font-weight:600!important;letter-spacing:-.01em!important;line-height:1.06!important;font-size-adjust:.48;font-variant-numeric:lining-nums}
+@media(max-width:900px){.logo-name{font-size:18px}}
 </style>
 </head>
 <body>
 <div id="kp-intro" aria-hidden="true">
-  <div class="kp-logo"><img src="logo-kp.png" alt="" width="200" height="200"></div>
+  <div class="kp-logo"><img src="logo/Logo_gestapelt_gold.svg" alt="" width="240" height="332"></div>
   <div class="kp-line"></div>
 </div>
 
 
 <!-- NAV -->
 <nav>
-  <a class="logo-mark" href="#">
-    <div class="logo-diamond"><img src="logo-kp.png" alt="Keuerleber Immobilien Logo" width="46" height="46"></div>
-    <div class="logo-right">
-      <div class="logo-name">Keuerleber</div>
-      <div class="logo-sub">Immobilien</div>
-    </div>
-  </a>
+  <a class="logo-mark" href="#" aria-label="Keuerleber Immobilien – Startseite"><img class="logo-full" src="logo/Logo_horizontal_gold.svg" alt="Keuerleber Immobilien" width="166" height="64"></a>
 <div class="nav-links">
   <a href="#konzept" data-i18n="nav_leistungen">Konzept</a>
   <a href="#immobilien" data-i18n="nav_immobilien">Objekte</a>
@@ -3444,13 +3474,7 @@ button.cal-day:disabled{cursor:default;}
 </div>
 
 <footer>
-  <a class="logo-mark" href="#" style="text-decoration:none;">
-    <div class="logo-diamond" style="width:34px;height:34px;"><img src="logo-kp.png" alt="Keuerleber Immobilien Logo" width="34" height="34"></div>
-    <div class="logo-right">
-      <div class="logo-name" style="font-size:11px;">Keuerleber</div>
-      <div class="logo-sub">Immobilien</div>
-    </div>
-  </a>
+  <a class="logo-mark" href="#" style="text-decoration:none;" aria-label="Keuerleber Immobilien"><img class="logo-full" src="logo/Logo_horizontal_gold.svg" alt="Keuerleber Immobilien" width="130" height="50" style="height:56px"></a>
   <div class="footer-right">
     © 2026 Keuerleber Immobilien · Paul Keuerleber<br>
     Hauptstraße 12 · 95145 Oberkotzau &nbsp;·&nbsp;
@@ -5297,7 +5321,7 @@ function lies(id){
 
     blatt.innerHTML =
       '<div class="pdf-kopf">'+
-        '<div class="pdf-marke"><img src="logo-kp.png" alt="">'+
+        '<div class="pdf-marke"><img src="logo/Signet_Schild_gold_128px.png" alt="">'+
           '<div><div class="pdf-name">KEUERLEBER</div><div class="pdf-sub">Immobilien</div></div></div>'+
         '<div class="pdf-kontakt"><b>Paul Keuerleber</b>'+
           'Hauptstraße 12 · 95145 Oberkotzau<br>'+
