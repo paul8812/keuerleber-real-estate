@@ -2016,11 +2016,18 @@ button.cal-day:disabled{cursor:default;}
   .hz-btns{margin-top:20px}
   .hz-btns .btn-cu{width:auto;max-width:none;padding:15px 30px}
 }
+
+/* VORSCHAU: Familienwappen als Logo */
+.logo-diamond{width:50px!important;height:58px!important;}
+nav.kp-shrunk .logo-diamond{width:42px!important;height:49px!important;}
+#kp-intro .kp-logo{width:190px!important;height:220px!important;}
+@media(max-width:900px){.logo-diamond{width:42px!important;height:49px!important;}}
+.logo-diamond img,#kp-intro .kp-logo,#kp-intro .kp-logo img{mix-blend-mode:lighten;}
 </style>
 </head>
 <body>
 <div id="kp-intro" aria-hidden="true">
-  <div class="kp-logo"><img src="logo-kp.png" alt="" width="200" height="200"></div>
+  <div class="kp-logo"><img src="logo-wappen.png" alt="" width="200" height="200"></div>
   <div class="kp-line"></div>
 </div>
 
@@ -2028,7 +2035,7 @@ button.cal-day:disabled{cursor:default;}
 <!-- NAV -->
 <nav>
   <a class="logo-mark" href="#">
-    <div class="logo-diamond"><img src="logo-kp.png" alt="Keuerleber Immobilien Logo" width="46" height="46"></div>
+    <div class="logo-diamond"><img src="logo-wappen.png" alt="Keuerleber Immobilien Logo" width="46" height="46"></div>
     <div class="logo-right">
       <div class="logo-name">Keuerleber</div>
       <div class="logo-sub">Immobilien</div>
@@ -3445,7 +3452,7 @@ button.cal-day:disabled{cursor:default;}
 
 <footer>
   <a class="logo-mark" href="#" style="text-decoration:none;">
-    <div class="logo-diamond" style="width:34px;height:34px;"><img src="logo-kp.png" alt="Keuerleber Immobilien Logo" width="34" height="34"></div>
+    <div class="logo-diamond" style="width:34px;height:34px;"><img src="logo-wappen.png" alt="Keuerleber Immobilien Logo" width="34" height="34"></div>
     <div class="logo-right">
       <div class="logo-name" style="font-size:11px;">Keuerleber</div>
       <div class="logo-sub">Immobilien</div>
@@ -5297,7 +5304,7 @@ function lies(id){
 
     blatt.innerHTML =
       '<div class="pdf-kopf">'+
-        '<div class="pdf-marke"><img src="logo-kp.png" alt="">'+
+        '<div class="pdf-marke"><img src="logo-wappen.png" alt="">'+
           '<div><div class="pdf-name">KEUERLEBER</div><div class="pdf-sub">Immobilien</div></div></div>'+
         '<div class="pdf-kontakt"><b>Paul Keuerleber</b>'+
           'Hauptstraße 12 · 95145 Oberkotzau<br>'+
