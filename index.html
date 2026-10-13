@@ -2019,18 +2019,17 @@ button.cal-day:disabled{cursor:default;}
   .hz-btns .btn-cu{width:auto;max-width:none;padding:15px 30px}
 }
 
-/* LOGO (Vorschau): komplettes Gold-Logo mit Schriftzug */
-.logo-full{display:block;height:76px;width:auto;transition:height .35s var(--ez)}
-nav{height:92px!important}
-nav.kp-shrunk{height:70px!important}
-nav.kp-shrunk .logo-full{height:58px}
-@media(max-width:900px){nav{height:68px!important}nav.kp-shrunk{height:60px!important}.logo-full{height:54px}nav.kp-shrunk .logo-full{height:48px}}
-.logo-diamond{width:auto!important;height:56px!important;}
-.logo-diamond img{width:auto!important;height:100%!important;}
-nav.kp-shrunk .logo-diamond{height:46px!important;}
-#kp-intro .kp-logo{width:auto!important;height:min(62vh,420px)!important}
-#kp-intro .kp-logo img{width:auto;height:100%}
-@media(max-width:900px){.logo-diamond{height:44px!important}nav.kp-shrunk .logo-diamond{height:40px!important}#kp-intro .kp-logo{height:min(56vh,340px)!important}}
+/* LOGO: Gold-Wappen + zentrierte Wortmarke */
+.logo-mark{gap:14px}
+.logo-emblem{display:block;height:var(--lk-h,60px);width:auto;transition:height .35s var(--ez)}
+.logo-lock{display:flex;flex-direction:column;align-items:stretch;gap:calc(var(--lk-n,23px)*.28)}
+.lk-name{font-family:var(--f-serif);font-weight:600;font-size:var(--lk-n,23px);letter-spacing:.2em;padding-left:.2em;text-transform:uppercase;color:#d9c08a;line-height:1;text-align:center;white-space:nowrap}
+.lk-sub{display:flex;align-items:center;gap:calc(var(--lk-n,23px)*.4);font-family:var(--f-sans);font-weight:500;font-size:calc(var(--lk-n,23px)*.5);letter-spacing:.5em;text-transform:uppercase;color:var(--offwhite);line-height:1;white-space:nowrap}
+.lk-sub i{flex:1;height:1px;background:rgba(201,169,110,.65);min-width:6px}
+.lk-sub span{margin-right:-.5em}
+nav{height:84px!important}
+nav.kp-shrunk{height:68px!important;--lk-h:50px;--lk-n:20px}
+@media(max-width:900px){nav{height:66px!important;--lk-h:46px;--lk-n:17px}nav.kp-shrunk{height:60px!important;--lk-h:42px;--lk-n:16px}}
 /* ===== TYPOGRAFIE (Vorschau): Cormorant Garamond für Überschriften, Jost für Text – selbst gehostet (DSGVO) ===== */
 @font-face{font-family:'Jost';src:url(fonts/jost-var.woff2) format('woff2');font-weight:100 900;font-style:normal;font-display:swap}
 @font-face{font-family:'Cormorant Garamond';src:url(fonts/cormorant-500.woff2) format('woff2');font-weight:500;font-style:normal;font-display:swap}
@@ -2063,7 +2062,7 @@ h1,h2,.section h2,.hero h1{font-family:var(--f-serif)!important;font-weight:600!
 
 <!-- NAV -->
 <nav>
-  <a class="logo-mark" href="#" aria-label="Keuerleber Immobilien – Startseite"><img class="logo-full" src="logo/Logo_horizontal_gold.svg" alt="Keuerleber Immobilien" width="166" height="64"></a>
+  <a class="logo-mark" href="#" aria-label="Keuerleber Immobilien – Startseite"><img class="logo-emblem" src="logo/Wappen_gold.svg" alt="" width="52" height="60"><span class="logo-lock"><span class="lk-name">Keuerleber</span><span class="lk-sub"><i></i><span>Immobilien</span><i></i></span></span></a>
 <div class="nav-links">
   <a href="#konzept" data-i18n="nav_leistungen">Konzept</a>
   <a href="#immobilien" data-i18n="nav_immobilien">Objekte</a>
@@ -3474,7 +3473,7 @@ h1,h2,.section h2,.hero h1{font-family:var(--f-serif)!important;font-weight:600!
 </div>
 
 <footer>
-  <a class="logo-mark" href="#" style="text-decoration:none;" aria-label="Keuerleber Immobilien"><img class="logo-full" src="logo/Logo_horizontal_gold.svg" alt="Keuerleber Immobilien" width="130" height="50" style="height:56px"></a>
+  <a class="logo-mark" href="#" style="text-decoration:none;--lk-h:52px;--lk-n:19px" aria-label="Keuerleber Immobilien"><img class="logo-emblem" src="logo/Wappen_gold.svg" alt="" width="45" height="52"><span class="logo-lock"><span class="lk-name">Keuerleber</span><span class="lk-sub"><i></i><span>Immobilien</span><i></i></span></span></a>
   <div class="footer-right">
     © 2026 Keuerleber Immobilien · Paul Keuerleber<br>
     Hauptstraße 12 · 95145 Oberkotzau &nbsp;·&nbsp;
