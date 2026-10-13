@@ -2019,7 +2019,12 @@ button.cal-day:disabled{cursor:default;}
   .hz-btns .btn-cu{width:auto;max-width:none;padding:15px 30px}
 }
 
-/* LOGO (Vorschau): Gold-Wappen + Wortmarke */
+/* LOGO (Vorschau): komplettes Gold-Logo mit Schriftzug */
+.logo-full{display:block;height:76px;width:auto;transition:height .35s var(--ez)}
+nav{height:92px!important}
+nav.kp-shrunk{height:70px!important}
+nav.kp-shrunk .logo-full{height:58px}
+@media(max-width:900px){nav{height:68px!important}nav.kp-shrunk{height:60px!important}.logo-full{height:54px}nav.kp-shrunk .logo-full{height:48px}}
 .logo-diamond{width:auto!important;height:56px!important;}
 .logo-diamond img{width:auto!important;height:100%!important;}
 nav.kp-shrunk .logo-diamond{height:46px!important;}
@@ -2058,13 +2063,7 @@ h1,h2,.section h2,.hero h1{font-family:var(--f-serif)!important;font-weight:600!
 
 <!-- NAV -->
 <nav>
-  <a class="logo-mark" href="#" aria-label="Keuerleber Immobilien – Startseite">
-    <div class="logo-diamond"><img src="logo/Signet_Schild_gold.svg" alt="" width="52" height="56"></div>
-    <div class="logo-right">
-      <div class="logo-name">Keuerleber</div>
-      <div class="logo-sub">Immobilien</div>
-    </div>
-  </a>
+  <a class="logo-mark" href="#" aria-label="Keuerleber Immobilien – Startseite"><img class="logo-full" src="logo/Logo_horizontal_gold.svg" alt="Keuerleber Immobilien" width="166" height="64"></a>
 <div class="nav-links">
   <a href="#konzept" data-i18n="nav_leistungen">Konzept</a>
   <a href="#immobilien" data-i18n="nav_immobilien">Objekte</a>
@@ -3475,13 +3474,7 @@ h1,h2,.section h2,.hero h1{font-family:var(--f-serif)!important;font-weight:600!
 </div>
 
 <footer>
-  <a class="logo-mark" href="#" style="text-decoration:none;" aria-label="Keuerleber Immobilien">
-    <div class="logo-diamond" style="height:44px!important"><img src="logo/Signet_Schild_gold.svg" alt="" width="41" height="44"></div>
-    <div class="logo-right">
-      <div class="logo-name" style="font-size:15px;">Keuerleber</div>
-      <div class="logo-sub">Immobilien</div>
-    </div>
-  </a>
+  <a class="logo-mark" href="#" style="text-decoration:none;" aria-label="Keuerleber Immobilien"><img class="logo-full" src="logo/Logo_horizontal_gold.svg" alt="Keuerleber Immobilien" width="130" height="50" style="height:56px"></a>
   <div class="footer-right">
     © 2026 Keuerleber Immobilien · Paul Keuerleber<br>
     Hauptstraße 12 · 95145 Oberkotzau &nbsp;·&nbsp;
