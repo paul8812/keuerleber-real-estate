@@ -2046,7 +2046,7 @@ button,input,select,textarea{font-family:inherit}
 .hero h1,.hero.hz h1,.section h2,.drone-content h2,.contact-info h2,.rc-head h2,.vl-band-text h2,.expose-text h2,.about-text h2{
   font-family:var(--f-serif);font-weight:600;letter-spacing:-.01em;line-height:1.04;font-size-adjust:.5;font-variant-numeric:lining-nums;text-wrap:balance}
 .hero h1,.hero.hz h1{font-weight:600;letter-spacing:-.015em}
-.section h2{max-width:640px}
+.section h2{max-width:min(820px,100%)}
 .hero h1 em,.section h2 em,.hero.hz h1 em{font-style:italic;font-weight:500}
 .logo-name{font-family:var(--f-serif);font-size:21px;font-weight:600;letter-spacing:.16em;color:#d9c08a;line-height:1}
 .logo-sub{font-family:var(--f-sans);font-weight:500;letter-spacing:.42em;color:var(--offwhite);opacity:.85}
@@ -2054,8 +2054,48 @@ button,input,select,textarea{font-family:inherit}
 nav .nav-links a{font-weight:500;letter-spacing:.04em}
 .section-label,.eyebrow,[class*="-label"],[class*="eyebrow"]{font-weight:500}
 p,li{font-weight:400}
-h1,h2,.section h2,.hero h1{font-family:var(--f-serif)!important;font-weight:600!important;letter-spacing:-.01em!important;line-height:1.06!important;font-size-adjust:.48;font-variant-numeric:lining-nums}
+h1,h2,.section h2,.hero h1{font-family:var(--f-serif)!important;font-weight:600!important;letter-spacing:-.01em!important;line-height:1.1!important;font-size-adjust:.48;font-variant-numeric:lining-nums}
 @media(max-width:900px){.logo-name{font-size:18px}}
+
+/* ===== BEREICHE MIT TABS (Seite entzerren) ===== */
+.hub{position:relative;scroll-margin-top:76px}
+.hub-bar{position:sticky;top:70px;z-index:60;display:flex;justify-content:center;gap:8px;flex-wrap:wrap;padding:14px 20px;margin:0;background:rgba(8,8,8,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:.5px solid rgba(201,169,110,.14)}
+.hub-tab{font:500 14px/1 var(--f-sans);letter-spacing:.04em;color:var(--gray-light,#b9b3a8);background:rgba(255,255,255,.03);border:1px solid rgba(201,169,110,.25);border-radius:99px;padding:11px 22px;cursor:pointer;white-space:nowrap;transition:background-color .2s,color .2s,border-color .2s}
+.hub-tab:hover{border-color:var(--cu,#c9a96e);color:#fff}
+.hub-tab[aria-selected="true"]{background:linear-gradient(135deg,#d9c08a,#8a6d2e);color:#141210;border-color:transparent;font-weight:600}
+.hub .hub-off{display:none!important}
+.hub-panels>*{padding-top:clamp(36px,5vw,60px)!important}
+.hub-panels>section:last-child,.hub-panels>div:last-child{padding-bottom:clamp(48px,6vw,80px)}
+.nd{position:relative;display:flex;align-items:center}
+.nd::before{content:'';position:absolute;left:-10px;right:-10px;top:100%;height:16px}
+.nd>a::after{content:'';display:inline-block;margin-left:7px;width:5px;height:5px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px);opacity:.55}
+.nd-sub{position:absolute;top:calc(100% + 12px);left:50%;transform:translateX(-50%) translateY(6px);min-width:200px;background:rgba(14,13,11,.98);border:.5px solid rgba(201,169,110,.28);border-radius:16px;padding:8px;opacity:0;visibility:hidden;transition:opacity .18s,transform .18s,visibility .18s;box-shadow:0 20px 44px rgba(0,0,0,.65);z-index:1000}
+.nd:hover .nd-sub,.nd:focus-within .nd-sub{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0)}
+.nav-links .nd-sub a{display:block;padding:10px 16px;border-radius:10px;font-size:14px;letter-spacing:.02em;color:var(--gray-light,#b9b3a8)}
+.nav-links .nd-sub a:hover{background:rgba(201,169,110,.13);color:#fff}
+.mobile-nav .mn-g{flex-shrink:0;border-bottom:.5px solid rgba(201,169,110,.1);padding:6px 0 12px}
+.mobile-nav .mn-g>a{border:0;padding:10px 0 8px;font-size:21px;display:block}
+.mobile-nav .mn-sub{display:flex;flex-wrap:wrap;gap:8px}
+.mobile-nav .mn-sub a{font-size:14px;padding:8px 15px;border:.5px solid rgba(201,169,110,.28);border-radius:99px;color:var(--gray-light,#b9b3a8);letter-spacing:.02em}
+@media(max-width:900px){.hub{scroll-margin-top:62px}.hub-bar{top:60px;flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;gap:8px;padding:10px 14px;scrollbar-width:none;-webkit-overflow-scrolling:touch}.hub-bar::-webkit-scrollbar{display:none}.hub-tab{padding:10px 18px;font-size:13.5px;flex-shrink:0}}
+
+/* ===== ORDNUNG: einheitliche Bereiche, Weiter-Leisten, Footer-Übersicht ===== */
+.hub-panels>.kp-linie{display:none!important}
+.hub-panels>*:not(.kp-linie){padding-top:clamp(36px,5vw,60px)!important}
+.hub-panels>#immobilien>.section-label,.hub-panels>#vermietung>.section-label,.hub-panels>#konzept>.section-label,.hub-panels>#wege>.section-label,.hub-panels>#kapitalanlage>.section-label,.hub-panels>#sanierung>.section-label,.hub-panels>#investment .section-label:first-child,
+.hub-panels>#immobilien>h2,.hub-panels>#vermietung>h2,.hub-panels>#konzept>h2,.hub-panels>#wege>h2,.hub-panels>#kapitalanlage>h2,.hub-panels>#sanierung>h2,
+.hub-panels>#immobilien>p.lead,.hub-panels>#vermietung>p.lead,.hub-panels>#konzept>p.lead,.hub-panels>#wege>p.lead,.hub-panels>#kapitalanlage>p.lead,.hub-panels>#sanierung>p.lead{text-align:center;margin-left:auto;margin-right:auto}
+.hub-panels>#immobilien>p.lead,.hub-panels>#vermietung>p.lead,.hub-panels>#konzept>p.lead,.hub-panels>#wege>p.lead,.hub-panels>#kapitalanlage>p.lead,.hub-panels>#sanierung>p.lead{max-width:62ch}
+.hub-next{display:flex;align-items:center;justify-content:center;gap:22px;flex-wrap:wrap;padding:30px 24px 52px;border-top:.5px solid rgba(201,169,110,.14);margin:0 56px}
+.hub-next p{font-family:var(--f-serif);font-size:clamp(22px,2.4vw,30px);font-weight:600;color:var(--offwhite);margin:0;line-height:1.2}
+.hub-next .btn-cu{white-space:nowrap}
+footer{flex-wrap:wrap}
+.foot-nav{flex:1 1 100%;order:5;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:28px 24px;margin-top:30px;padding-top:30px;border-top:.5px solid rgba(201,169,110,.12);text-align:left}
+.foot-nav div{display:flex;flex-direction:column;gap:9px}
+.foot-nav b{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--cu,#c9a96e);font-weight:500;margin-bottom:4px}
+.foot-nav a{font-size:14px;color:var(--gray-light,#b9b3a8);text-decoration:none}
+.foot-nav a:hover{color:#fff}
+@media(max-width:900px){.hub-next{margin:0 20px;padding:26px 0 40px;flex-direction:column;text-align:center;gap:16px}.foot-nav{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -2069,12 +2109,11 @@ h1,h2,.section h2,.hero h1{font-family:var(--f-serif)!important;font-weight:600!
 <nav>
   <a class="logo-mark" href="#" aria-label="Keuerleber Immobilien – Startseite"><img class="logo-emblem" src="logo/Wappen_gold.svg" alt="" width="52" height="60"><span class="logo-lock"><span class="lk-name">Keuerleber</span><span class="lk-sub"><i></i><span>Immobilien</span><i></i></span></span></a>
 <div class="nav-links">
-  <a href="#konzept" data-i18n="nav_leistungen">Konzept</a>
-  <a href="#immobilien" data-i18n="nav_immobilien">Objekte</a>
-  <a href="#steuervorteil" data-i18n="nav_marktwert">Steuervorteil</a>
-  <a href="#referenz" data-i18n="nav_ref">Referenz</a>
-  <a href="#rechner" data-i18n="nav_rechner">Rechner</a>
-  <a href="#vergleich" data-i18n="nav_vergleich">Vergleich</a>
+  <div class="nd"><a href="#hub-objekte" data-i18n="nav_immobilien">Objekte</a><div class="nd-sub"><a href="#immobilien" data-i18n="tab_kaufen">Kaufen</a><a href="#vermietung" data-i18n="tab_mieten">Mieten</a></div></div>
+  <div class="nd"><a href="#hub-konzept" data-i18n="nav_leistungen">Konzept</a><div class="nd-sub"><a href="#konzept" data-i18n="tab_konzept">Konzept</a><a href="#wege" data-i18n="tab_fuerwen">Für wen</a><a href="#kapitalanlage" data-i18n="tab_pruefung">Prüfung</a><a href="#ablauf" data-i18n="tab_ablauf">Ablauf</a></div></div>
+  <div class="nd"><a href="#hub-steuer" data-i18n="nav_hub_steuer">Steuer &amp; Rendite</a><div class="nd-sub"><a href="#steuervorteil" data-i18n="tab_steuer">Steuervorteil</a><a href="#rechner" data-i18n="tab_rechner">Renditerechner</a><a href="#vergleich" data-i18n="tab_vergleich">Immobilie vs. ETF</a></div></div>
+  <div class="nd"><a href="#hub-projekte" data-i18n="nav_hub_projekte">Projekte</a><div class="nd-sub"><a href="#sanierung" data-i18n="tab_sanierung">Sanierung</a><a href="#referenz" data-i18n="tab_referenz">Referenzprojekt</a><a href="#investment" data-i18n="tab_partner">Partner</a><a href="#lage" data-i18n="tab_region">Region &amp; Preise</a></div></div>
+  <a href="#faq" data-i18n="nav_faq">Fragen</a>
   <a href="#ueber-mich" data-i18n="nav_ueber">Über uns</a>
   <a href="#kontakt" data-i18n="nav_kontakt">Kontakt</a>
 </div>
@@ -2091,24 +2130,14 @@ h1,h2,.section h2,.hero h1{font-family:var(--f-serif)!important;font-weight:600!
   </button>
 </nav>
 <div class="mobile-nav" id="mobileNav">
-<a href="#konzept" onclick="closeMobileNav()" data-i18n="nav_leistungen">Konzept</a>
-<a href="#wege" onclick="closeMobileNav()" data-i18n="nav_wege">Für wen</a>
-<a href="#immobilien" onclick="closeMobileNav()" data-i18n="nav_immobilien">Objekte kaufen</a>
-<a href="#vermietung" onclick="closeMobileNav()" data-i18n="nav_miete">Wohnung mieten</a>
-<a href="#steuervorteil" onclick="closeMobileNav()" data-i18n="nav_marktwert">Steuervorteil</a>
-<a href="#referenz" onclick="closeMobileNav()" data-i18n="nav_ref">Referenzprojekt</a>
-<a href="#sanierung" onclick="closeMobileNav()" data-i18n="nav_staging">Sanierung</a>
-<a href="#rechner" onclick="closeMobileNav()" data-i18n="nav_rechner">Rendite-Rechner</a>
-<a href="#vergleich" onclick="closeMobileNav()" data-i18n="nav_vergleich">Vergleich</a>
-<a href="#lage" onclick="closeMobileNav()" data-i18n="nav_lage">Lage & Preise</a>
-<a href="#investment" onclick="closeMobileNav()" data-i18n="nav_partner">Partner</a>
-<a href="#kapitalanlage" onclick="closeMobileNav()" data-i18n="nav_kapital">Prüfung</a>
-<a href="#ablauf" onclick="closeMobileNav()" data-i18n="nav_ablauf">Ablauf</a>
-<a href="#finder" onclick="closeMobileNav()" data-i18n="nav_finder">Passt das zu mir?</a>
-<a href="#faq" onclick="closeMobileNav()" data-i18n="nav_faq">Fragen</a>
-<a href="#vorabliste" onclick="closeMobileNav()" data-i18n="nav_vorab">Vorab-Liste</a>
-<a href="#ueber-mich" onclick="closeMobileNav()" data-i18n="nav_ueber">Über uns</a>
-<a href="#kontakt" onclick="closeMobileNav()" data-i18n="nav_kontakt">Kontakt</a>
+<div class="mn-g"><a href="#hub-objekte" onclick="closeMobileNav()" data-i18n="nav_immobilien">Objekte</a><div class="mn-sub"><a href="#immobilien" onclick="closeMobileNav()" data-i18n="tab_kaufen">Kaufen</a><a href="#vermietung" onclick="closeMobileNav()" data-i18n="tab_mieten">Mieten</a></div></div>
+<div class="mn-g"><a href="#hub-konzept" onclick="closeMobileNav()" data-i18n="nav_leistungen">Konzept</a><div class="mn-sub"><a href="#konzept" onclick="closeMobileNav()" data-i18n="tab_konzept">Konzept</a><a href="#wege" onclick="closeMobileNav()" data-i18n="tab_fuerwen">Für wen</a><a href="#kapitalanlage" onclick="closeMobileNav()" data-i18n="tab_pruefung">Prüfung</a><a href="#ablauf" onclick="closeMobileNav()" data-i18n="tab_ablauf">Ablauf</a></div></div>
+<div class="mn-g"><a href="#hub-steuer" onclick="closeMobileNav()" data-i18n="nav_hub_steuer">Steuer &amp; Rendite</a><div class="mn-sub"><a href="#steuervorteil" onclick="closeMobileNav()" data-i18n="tab_steuer">Steuervorteil</a><a href="#rechner" onclick="closeMobileNav()" data-i18n="tab_rechner">Renditerechner</a><a href="#vergleich" onclick="closeMobileNav()" data-i18n="tab_vergleich">Immobilie vs. ETF</a></div></div>
+<div class="mn-g"><a href="#hub-projekte" onclick="closeMobileNav()" data-i18n="nav_hub_projekte">Projekte</a><div class="mn-sub"><a href="#sanierung" onclick="closeMobileNav()" data-i18n="tab_sanierung">Sanierung</a><a href="#referenz" onclick="closeMobileNav()" data-i18n="tab_referenz">Referenzprojekt</a><a href="#investment" onclick="closeMobileNav()" data-i18n="tab_partner">Partner</a><a href="#lage" onclick="closeMobileNav()" data-i18n="tab_region">Region &amp; Preise</a></div></div>
+<div class="mn-g"><a href="#finder" onclick="closeMobileNav()" data-i18n="nav_finder">Passt das zu mir?</a></div>
+<div class="mn-g"><a href="#faq" onclick="closeMobileNav()" data-i18n="nav_faq">Fragen</a></div>
+<div class="mn-g"><a href="#ueber-mich" onclick="closeMobileNav()" data-i18n="nav_ueber">Über uns</a></div>
+<div class="mn-g"><a href="#kontakt" onclick="closeMobileNav()" data-i18n="nav_kontakt">Kontakt</a></div>
   <button class="nav-cta" onclick="closeMobileNav();openBooking()" data-i18n="nav_cta">Beratung buchen</button>
 </div>
 
@@ -2152,6 +2181,101 @@ h1,h2,.section h2,.hero h1{font-family:var(--f-serif)!important;font-weight:600!
   </div>
 </div>
 
+
+<!-- ═══ BEREICH: Objekte ═══ -->
+<div class="hub" id="hub-objekte">
+<div class="hub-bar" role="tablist" aria-label="Objekte"><button type="button" class="hub-tab" role="tab" data-target="immobilien" data-i18n="tab_kaufen" aria-selected="false">Kaufen</button><button type="button" class="hub-tab" role="tab" data-target="vermietung" data-i18n="tab_mieten" aria-selected="false">Mieten</button></div>
+<div class="hub-panels">
+<!-- IMMOBILIEN -->
+<section class="section listings" id="immobilien">
+  <p class="section-label" data-i18n="imm_label">Aktuelle Objekte</p>
+  <h2 data-i18n="imm_h2">Verfügbare Kapitalanlagen in Hof & Oberfranken</h2>
+  <p class="lead" data-i18n="imm_lead">Kernsanierte Eigentumswohnungen — bezugsfertig, vermietbar und steuerlich optimiert. Für Kapitalanleger und Selbstnutzer. Neue Objekte kommen laufend dazu.</p>
+
+  <div class="listings-grid" id="listingsGrid">
+    <div class="no-results" id="noResults">Aktuell sind keine Objekte online.<br><span style="font-size:13px;color:#8a8a8a;">Neue Einheiten kommen laufend dazu — melden Sie sich für eine Vorab-Information.</span></div>
+  </div>
+</section>
+
+<!-- MIETOBJEKTE -->
+<section class="section mv" id="vermietung">
+  <p class="section-label" data-i18n="mv_label">Zur Vermietung</p>
+  <h2 data-i18n="mv_h2">Wohnungen zur Miete</h2>
+  <p class="lead" data-i18n="mv_lead" style="max-width:620px;">Nicht jede Einheit steht zum Verkauf. Frei werdende Wohnungen aus unseren sanierten Häusern vermieten wir direkt — kernsaniert, bezugsfertig und ohne Maklerprovision für Sie.</p>
+
+  <div class="mv-vorteile">
+    <div><b data-i18n="mv_v1_t">Kernsaniert</b><span data-i18n="mv_v1_d">Neue Leitungen, Elektrik, Bäder und Böden. Keine Altbau-Überraschungen.</span></div>
+    <div><b data-i18n="mv_v2_t">Niedrige Nebenkosten</b><span data-i18n="mv_v2_d">Moderne Heiztechnik und neue Fenster halten die Heizkosten unten. Die Ausstattung des einzelnen Hauses nennen wir Ihnen im Exposé.</span></div>
+    <div><b data-i18n="mv_v3_t">Provisionsfrei</b><span data-i18n="mv_v3_d">Sie mieten direkt bei uns. Für Sie fällt keine Maklerprovision an.</span></div>
+    <div><b data-i18n="mv_v4_t">Direkter Draht</b><span data-i18n="mv_v4_d">Ein Ansprechpartner für Besichtigung, Vertrag und alles danach.</span></div>
+  </div>
+
+  <div class="mv-grid" id="mietGrid">
+    <div class="mv-leer" id="mietLeer">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+      <b data-i18n="mv_leer">Aktuell ist keine Wohnung frei.</b>
+      <span data-i18n="mv_leer_sub">Sagen Sie uns, was Sie suchen — wir melden uns, sobald etwas frei wird.</span>
+    </div>
+  </div>
+
+  <div class="mv-cta">
+    <button class="btn-cu" data-i18n="mv_btn" onclick="kreMietanfrage()">Mietgesuch hinterlegen →</button>
+    <span class="mv-cta-sub" data-i18n="mv_cta_sub">Kostenfrei und unverbindlich</span>
+  </div>
+</section>
+
+</div>
+<div class="hub-next"><p data-i18n="next_q1">Wie funktioniert das Ganze?</p><a class="btn-cu" href="#hub-konzept" data-i18n="next_b1">Zum Konzept →</a></div>
+</div>
+
+<!-- VORAB-LISTE -->
+<div class="vl-band" id="vorabliste">
+  <div class="vl-band-inner">
+    <div class="vl-band-text">
+      <p class="section-label" data-i18n="vb_label">Vorab-Information</p>
+      <h2 data-i18n="vb_h2">Neue Wohnungen zuerst erfahren</h2>
+      <p data-i18n="vb_lead">Unsere Einheiten sind meist verkauft, bevor sie öffentlich inseriert werden. Tragen Sie sich ein, dann melden wir uns, sobald etwas Passendes kommt. Wir schreiben Ihnen nur zu neuen Objekten und geben Ihre Daten nicht weiter.</p>
+    </div>
+    <form class="vl-band-form" id="vbForm" novalidate>
+      <div class="vl-band-felder">
+        <input type="email" id="vbMail" required autocomplete="email" inputmode="email" placeholder="Ihre E-Mail-Adresse" data-i18n-ph="vb_ph" aria-label="E-Mail-Adresse für die Vorab-Liste">
+        <button type="submit" id="vbBtn" data-i18n="vb_btn">Eintragen</button>
+      </div>
+      <label class="vl-band-check">
+        <input type="checkbox" id="vbOk" required>
+        <span data-i18n-html="vb_ok">Ich möchte von Keuerleber Immobilien per E-Mail über neue Objekte informiert werden. Diese Einwilligung kann ich jederzeit ohne Angabe von Gründen widerrufen, zum Beispiel per E-Mail an paul.keuerleber@keuerleber-immobilien.de. <a onclick="openLegal(event)">Datenschutzerklärung</a></span>
+      </label>
+      <p class="vl-band-hint" id="vbHint" role="status" aria-live="polite"></p>
+    </form>
+  </div>
+</div>
+
+<!-- VORTEILE BANNER -->
+<div class="drone-banner">
+  <div class="drone-wrap">
+    <img loading="lazy" src="https://images.unsplash.com/photo-1614175863115-69462da3b9c8?w=1400&q=82" alt="Immobilien als Kapitalanlage" width="1400" height="933">
+    <div class="drone-overlay"></div>
+    <div class="drone-content">
+      <p class="section-label" data-i18n="drone_label" style="margin-bottom:12px;">Ihre Vorteile</p>
+      <h2 data-i18n-html="drone_h2">Sachwert mit<br>Steuerhebel.</h2>
+      <p data-i18n="drone_p">Eine kernsanierte Wohnung verbindet drei Dinge: laufenden Mietertrag, einen realen Sachwert und einen steuerlichen Vorteil, der Ihre Belastung spürbar senken kann.</p>
+      <div class="pills">
+        <span class="pill" data-i18n="drone_pill1">Mieteinnahmen</span>
+        <span class="pill" data-i18n="drone_pill2">Erhöhte Abschreibung</span>
+        <span class="pill" data-i18n="drone_pill3">Kernsaniert</span>
+        <span class="pill" data-i18n="drone_pill4">Sanierungsstau vermieden</span>
+        <span class="pill" data-i18n="drone_pill5">Sachwert</span>
+        <span class="pill" data-i18n="drone_pill6">Altersvorsorge</span>
+        <span class="pill" data-i18n="drone_pill7">Finanzierbar</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ BEREICH: Konzept ═══ -->
+<div class="hub" id="hub-konzept">
+<div class="hub-bar" role="tablist" aria-label="Konzept"><button type="button" class="hub-tab" role="tab" data-target="konzept" data-i18n="tab_konzept" aria-selected="false">Konzept</button><button type="button" class="hub-tab" role="tab" data-target="wege" data-i18n="tab_fuerwen" aria-selected="false">Für wen</button><button type="button" class="hub-tab" role="tab" data-target="kapitalanlage" data-i18n="tab_pruefung" aria-selected="false">Prüfung</button><button type="button" class="hub-tab" role="tab" data-target="ablauf" data-i18n="tab_ablauf" aria-selected="false">Ablauf</button></div>
+<div class="hub-panels">
 <!-- KONZEPT -->
 <section class="section leistungen" id="konzept">
   <p class="section-label" data-i18n="leist_label">Unser Konzept</p>
@@ -2257,44 +2381,75 @@ h1,h2,.section h2,.hero h1{font-family:var(--f-serif)!important;font-weight:600!
   <p data-i18n="weg_hinweis" style="font-size:12.5px;color:#8a8a8a;line-height:1.7;margin-top:18px;max-width:760px;">Hinweis: Die steuerliche Abschreibung ist nur bei Vermietung möglich. Bei Eigennutzung entfällt dieser Vorteil — dafür entfallen auch Mietausfallrisiko und Verwaltungsaufwand. Was für Sie sinnvoller ist, besprechen wir offen im Gespräch.</p>
 </section>
 
-<!-- IMMOBILIEN -->
-<section class="section listings" id="immobilien">
-  <p class="section-label" data-i18n="imm_label">Aktuelle Objekte</p>
-  <h2 data-i18n="imm_h2">Verfügbare Kapitalanlagen in Hof & Oberfranken</h2>
-  <p class="lead" data-i18n="imm_lead">Kernsanierte Eigentumswohnungen — bezugsfertig, vermietbar und steuerlich optimiert. Für Kapitalanleger und Selbstnutzer. Neue Objekte kommen laufend dazu.</p>
+<!-- KAPITALANLAGE-BEGLEITUNG -->
+<section class="section" id="kapitalanlage" style="background:var(--black);">
+  <p class="section-label" data-i18n="kap_label">Kapitalanlage</p>
+  <h2 data-i18n-html="kap_h2" style="color:var(--offwhite);font-size:clamp(28px,4vw,52px);font-weight:700;letter-spacing:-2px;line-height:1.05;max-width:620px;margin-bottom:14px;">Erst prüfen. Dann kaufen.</h2>
+  <p class="lead" data-i18n="kap_lead" style="max-width:600px;">Bevor Sie kaufen, schauen wir gemeinsam auf die Zahlen, die wirklich zählen — offen, nachvollziehbar und ohne beschönigte Rechenbeispiele.</p>
 
-  <div class="listings-grid" id="listingsGrid">
-    <div class="no-results" id="noResults">Aktuell sind keine Objekte online.<br><span style="font-size:13px;color:#8a8a8a;">Neue Einheiten kommen laufend dazu — melden Sie sich für eine Vorab-Information.</span></div>
-  </div>
-</section>
-
-<!-- MIETOBJEKTE -->
-<section class="section mv" id="vermietung">
-  <p class="section-label" data-i18n="mv_label">Zur Vermietung</p>
-  <h2 data-i18n="mv_h2">Wohnungen zur Miete</h2>
-  <p class="lead" data-i18n="mv_lead" style="max-width:620px;">Nicht jede Einheit steht zum Verkauf. Frei werdende Wohnungen aus unseren sanierten Häusern vermieten wir direkt — kernsaniert, bezugsfertig und ohne Maklerprovision für Sie.</p>
-
-  <div class="mv-vorteile">
-    <div><b data-i18n="mv_v1_t">Kernsaniert</b><span data-i18n="mv_v1_d">Neue Leitungen, Elektrik, Bäder und Böden. Keine Altbau-Überraschungen.</span></div>
-    <div><b data-i18n="mv_v2_t">Niedrige Nebenkosten</b><span data-i18n="mv_v2_d">Moderne Heiztechnik und neue Fenster halten die Heizkosten unten. Die Ausstattung des einzelnen Hauses nennen wir Ihnen im Exposé.</span></div>
-    <div><b data-i18n="mv_v3_t">Provisionsfrei</b><span data-i18n="mv_v3_d">Sie mieten direkt bei uns. Für Sie fällt keine Maklerprovision an.</span></div>
-    <div><b data-i18n="mv_v4_t">Direkter Draht</b><span data-i18n="mv_v4_d">Ein Ansprechpartner für Besichtigung, Vertrag und alles danach.</span></div>
-  </div>
-
-  <div class="mv-grid" id="mietGrid">
-    <div class="mv-leer" id="mietLeer">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
-      <b data-i18n="mv_leer">Aktuell ist keine Wohnung frei.</b>
-      <span data-i18n="mv_leer_sub">Sagen Sie uns, was Sie suchen — wir melden uns, sobald etwas frei wird.</span>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:8px;" class="kap-grid">
+    <div style="background:var(--black-2);border:0.5px solid rgba(201,169,110,0.14);border-radius:20px;padding:26px;">
+      <div style="width:40px;height:40px;border-radius:10px;background:rgba(201,169,110,0.1);border:0.5px solid rgba(201,169,110,0.3);display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+        <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:var(--cu);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
+      </div>
+      <h3 data-i18n="kap_1_t" style="font-size:17px;font-weight:600;color:var(--offwhite);margin-bottom:8px;letter-spacing:-0.3px;">Tatsächlicher Cashflow</h3>
+      <p data-i18n="kap_1_d" style="font-size:13.5px;color:var(--gray-light);line-height:1.65;">Wir rechnen reale Einnahmen und Kosten durch — keine geschönten Renditeversprechen.</p>
+    </div>
+    <div style="background:var(--black-2);border:0.5px solid rgba(201,169,110,0.14);border-radius:20px;padding:26px;">
+      <div style="width:40px;height:40px;border-radius:10px;background:rgba(201,169,110,0.1);border:0.5px solid rgba(201,169,110,0.3);display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+        <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:var(--cu);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
+      </div>
+      <h3 data-i18n="kap_2_t" style="font-size:17px;font-weight:600;color:var(--offwhite);margin-bottom:8px;letter-spacing:-0.3px;">Vermietbarkeit</h3>
+      <p data-i18n="kap_2_d" style="font-size:13.5px;color:var(--gray-light);line-height:1.65;">Wir prüfen Lage, Nachfrage und realistische Mieten — wie gut lässt sich das Objekt wirklich vermieten?</p>
+    </div>
+    <div style="background:var(--black-2);border:0.5px solid rgba(201,169,110,0.14);border-radius:20px;padding:26px;">
+      <div style="width:40px;height:40px;border-radius:10px;background:rgba(201,169,110,0.1);border:0.5px solid rgba(201,169,110,0.3);display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+        <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:var(--cu);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;"><path d="M2 20h20"/><path d="M4 20V8l8-5 8 5v12"/><path d="M9 20v-6h6v6"/></svg>
+      </div>
+      <h3 data-i18n="kap_3_t" style="font-size:17px;font-weight:600;color:var(--offwhite);margin-bottom:8px;letter-spacing:-0.3px;">Baulicher Zustand</h3>
+      <p data-i18n="kap_3_d" style="font-size:13.5px;color:var(--gray-light);line-height:1.65;">Sie erhalten Einblick in Sanierungsumfang, verbaute Technik und Instandhaltungsrücklage — inklusive Dokumentation.</p>
+    </div>
+    <div style="background:var(--black-2);border:0.5px solid rgba(201,169,110,0.14);border-radius:20px;padding:26px;">
+      <div style="width:40px;height:40px;border-radius:10px;background:rgba(201,169,110,0.1);border:0.5px solid rgba(201,169,110,0.3);display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+        <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:var(--cu);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;"><path d="M9 12l2 2 4-4"/><path d="M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7l7-4z"/></svg>
+      </div>
+      <h3 data-i18n="kap_4_t" style="font-size:17px;font-weight:600;color:var(--offwhite);margin-bottom:8px;letter-spacing:-0.3px;">Rentabilitäts-Check</h3>
+      <p data-i18n="kap_4_d" style="font-size:13.5px;color:var(--gray-light);line-height:1.65;">Was bleibt nach Zins, Tilgung und Kosten übrig? Wir rechnen Rendite, Risiken und Steuereffekt offen durch.</p>
     </div>
   </div>
 
-  <div class="mv-cta">
-    <button class="btn-cu" data-i18n="mv_btn" onclick="kreMietanfrage()">Mietgesuch hinterlegen →</button>
-    <span class="mv-cta-sub" data-i18n="mv_cta_sub">Kostenfrei und unverbindlich</span>
+  <button class="btn-cu" data-i18n="kap_btn" style="margin-top:28px;padding:14px 28px;font-size:15px;" onclick="document.getElementById('kontakt').scrollIntoView({behavior:'smooth'})">Zahlen gemeinsam durchgehen →</button>
+</section>
+
+<!-- ABLAUF -->
+<section class="expose" id="ablauf">
+  <div class="expose-inner">
+    <div class="expose-img">
+      <img loading="lazy" src="https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=900&q=85" alt="Ablauf Kapitalanlage" width="900" height="600">
+    </div>
+    <div class="expose-text">
+      <p class="section-label" data-i18n="exp_label">Ablauf</p>
+      <h2 data-i18n="exp_h2">In fünf Schritten zur Anlage.</h2>
+      <p data-i18n="exp_p">Kein Druck, keine Verkaufsveranstaltung. Wir schauen gemeinsam, ob eine Kapitalanlage für Ihre Situation überhaupt sinnvoll ist — und wenn ja, welche.</p>
+      <div class="expose-features">
+        <div class="expose-feat"><div class="feat-dot"></div><span data-i18n="exp_f1">Erstgespräch — Ziele, Eigenkapital, Steuersituation</span></div>
+        <div class="expose-feat"><div class="feat-dot"></div><span data-i18n="exp_f2">Objektvorschlag mit vollständiger Kalkulation</span></div>
+        <div class="expose-feat"><div class="feat-dot"></div><span data-i18n="exp_f3">Finanzierung — auf Wunsch mit unseren Partnern</span></div>
+        <div class="expose-feat"><div class="feat-dot"></div><span data-i18n="exp_f4">Notartermin &amp; Kaufabwicklung</span></div>
+        <div class="expose-feat"><div class="feat-dot"></div><span data-i18n="exp_f5">Übergabe, Vermietung &amp; laufende Betreuung</span></div>
+      </div>
+    </div>
   </div>
 </section>
 
+</div>
+<div class="hub-next"><p data-i18n="next_q2">Was bringt das steuerlich und wie rechnet es sich?</p><a class="btn-cu" href="#hub-steuer" data-i18n="next_b2">Steuer &amp; Rendite →</a></div>
+</div>
+
+<!-- ═══ BEREICH: Steuer & Rendite ═══ -->
+<div class="hub" id="hub-steuer">
+<div class="hub-bar" role="tablist" aria-label="Steuer & Rendite"><button type="button" class="hub-tab" role="tab" data-target="steuervorteil" data-i18n="tab_steuer" aria-selected="false">Steuervorteil</button><button type="button" class="hub-tab" role="tab" data-target="rechner" data-i18n="tab_rechner" aria-selected="false">Renditerechner</button><button type="button" class="hub-tab" role="tab" data-target="vergleich" data-i18n="tab_vergleich" aria-selected="false">Immobilie vs. ETF</button></div>
+<div class="hub-panels">
 <!-- STEUERVORTEIL -->
 <section class="marktwert" id="steuervorteil">
   <div class="marktwert-inner">
@@ -2319,68 +2474,6 @@ h1,h2,.section h2,.hero h1{font-family:var(--f-serif)!important;font-weight:600!
       <button class="btn-cu" data-i18n="mw_btn" style="margin-top:36px;padding:14px 28px;font-size:15px;" onclick="openBooking()">Unterlagen anfordern →</button>
     </div>
   </div>
-</section>
-
-<!-- REFERENZ -->
-<section class="section" id="referenz" style="background:var(--black-2);">
-  <p class="section-label" data-i18n="ref_label">Referenzprojekt</p>
-  <h2 data-i18n="ref_h2">Das Münsterviertel, Hof</h2>
-  <p class="lead" data-i18n="ref_lead" style="max-width:62ch;">Sechs Eigentumswohnungen in einem kernsanierten Altbau — alle sechs Einheiten sind verkauft. Ein Projekt, das zeigt, wie wir arbeiten.</p>
-
-  <div class="ref-grid">
-    <div class="ref-bild" onclick="openRef()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openRef();}">
-      <img loading="lazy" src="referenz-muensterviertel.webp" width="1600" height="1147"
-           alt="Das Münsterviertel in Hof — kernsanierter Altbau mit sechs Eigentumswohnungen, Luftaufnahme">
-      <span class="ref-badge" data-i18n="ref_badge">Alle 6 Einheiten verkauft</span>
-      <span class="ref-lupe" data-i18n="ref_lupe">Details ansehen →</span>
-    </div>
-
-    <div class="ref-text">
-      <div class="ref-zahlen">
-        <div class="ref-zahl"><b>6</b><span data-i18n="ref_z1">Eigentumswohnungen</span></div>
-        <div class="ref-zahl"><b>72–108</b><span data-i18n="ref_z2">m² Wohnfläche</span></div>
-        <div class="ref-zahl"><b>100 %</b><span data-i18n="ref_z3">verkauft</span></div>
-      </div>
-      <p data-i18n="ref_p1">Ein Altbau mit Geschichte, vollständig kernsaniert und in sechs Einheiten zwischen 72 und 108 m² aufgeteilt. Jede Wohnung mit eigenem Balkon, viele mit Blick über Hof.</p>
-      <div class="expose-features" style="margin-top:20px;">
-        <div class="expose-feat"><div class="feat-dot"></div><span data-i18n="ref_f1">Wärmepumpe &amp; Fußbodenheizung, niedrige Energieklasse</span></div>
-        <div class="expose-feat"><div class="feat-dot"></div><span data-i18n="ref_f2">Dreifachverglasung, neue Elektrik und Leitungen</span></div>
-        <div class="expose-feat"><div class="feat-dot"></div><span data-i18n="ref_f3">Design-Vinylboden in Eiche, Feinsteinzeug-Bäder</span></div>
-        <div class="expose-feat"><div class="feat-dot"></div><span data-i18n="ref_f4">Restaurierte Holztreppe, zentrale Schließanlage</span></div>
-        <div class="expose-feat"><div class="feat-dot"></div><span data-i18n="ref_f5">Für Käufer provisionsfrei</span></div>
-      </div>
-      <button class="btn-cu" data-i18n="ref_btn" style="margin-top:26px;padding:14px 26px;font-size:14.5px;" onclick="openRef()">Ähnliches Objekt anfragen →</button>    </div>
-  </div>
-</section>
-
-<!-- SANIERUNG -->
-<section class="section staging" id="sanierung">
-  <p class="section-label" data-i18n="staging_label">Sanierung</p>
-  <h2 data-i18n="staging_h2">Vom Altbestand zur Kapitalanlage.</h2>
-  <p class="lead" data-i18n="staging_lead">Ziehen Sie den Regler und sehen Sie, was aus einer unsanierten Wohnung wird. Genau in diesem Zustand übernehmen Sie Ihre Kapitalanlage — bezugsfertig und vermietbar.</p>
-
-  <div class="staging-slider" id="stagingSlider">
-    <img loading="lazy" class="staging-img staging-after" id="stagingAfter" src="san1-nachher.webp" alt="Nach der Kernsanierung" width="1600" height="1067">
-    <img loading="lazy" class="staging-img staging-before" id="stagingBefore" src="san1-vorher.webp" alt="Vor der Kernsanierung" width="1600" height="1067">
-    <span class="staging-label staging-label-before" data-i18n="staging_before">Vor der Sanierung</span>
-    <span class="staging-label staging-label-after" data-i18n="staging_after">Nach der Sanierung</span>
-    <div class="staging-handle" id="stagingHandle">
-      <div class="staging-knob">&#8249; &#8250;</div>
-    </div>
-  </div>
-  <div class="san-tabs" id="sanTabs" role="tablist">
-    <button type="button" class="san-tab aktiv" role="tab" aria-selected="true" onclick="sanWaehle(0)">
-      <b data-i18n="san_t1">Flur</b><span data-i18n="san_o1">&Auml;u&szlig;ere Bayreuther Str. 23, Hof</span>
-    </button>
-    <button type="button" class="san-tab" role="tab" aria-selected="false" onclick="sanWaehle(1)">
-      <b data-i18n="san_t2">Badezimmer</b><span data-i18n="san_o2">Leimitzer Str. 93, Hof</span>
-    </button>
-    <button type="button" class="san-tab" role="tab" aria-selected="false" onclick="sanWaehle(2)">
-      <b data-i18n="san_t3">K&uuml;che</b><span data-i18n="san_o3">Friedensstr. 10, Hof</span>
-    </button>
-  </div>
-  <p class="staging-hint" data-i18n="staging_hint">← Ziehen Sie den Regler, um den Unterschied zu sehen →</p>
-  <p class="san-fn" data-i18n="san_fn">Sanierungen unseres Partners in Hof. Fotos: Norderfranken.</p>
 </section>
 
 <!-- RENDITE-RECHNER -->
@@ -2649,63 +2742,75 @@ h1,h2,.section h2,.hero h1{font-family:var(--f-serif)!important;font-weight:600!
 
   </section>
 
-<!-- LAGEKARTE -->
-<section class="kt" id="lage">
-  <div class="kt-inner">
-    <div class="rc-head">
-      <p class="section-label" data-i18n="kt_label">Unser Gebiet</p>
-      <h2 data-i18n="kt_h2">Hof und der Landkreis</h2>
-      <p data-i18n="kt_lead">Unser Schwerpunkt liegt in Hof und Umgebung. Kurze Wege, stabile Mieten und Einstiegspreise, die es im Ballungsraum nicht mehr gibt.</p>
-    </div>
+</div>
+<div class="hub-next"><p data-i18n="next_q3">Wie und wo wurde saniert?</p><a class="btn-cu" href="#hub-projekte" data-i18n="next_b3">Projekte ansehen →</a></div>
+</div>
 
-    <div class="kt-karte" id="ktKarte">
-      <div class="kt-zustimmung" id="ktZustimmung">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-        <p data-i18n="kt_hinweis">Die Karte wird von OpenStreetMap geladen. Dabei wird Ihre IP-Adresse an deren Server übertragen.</p>
-        <button type="button" id="ktLaden" data-i18n="kt_laden">Karte laden</button>
-      </div>
-    </div>
+<!-- ═══ BEREICH: Projekte ═══ -->
+<div class="hub" id="hub-projekte">
+<div class="hub-bar" role="tablist" aria-label="Projekte"><button type="button" class="hub-tab" role="tab" data-target="sanierung" data-i18n="tab_sanierung" aria-selected="false">Sanierung</button><button type="button" class="hub-tab" role="tab" data-target="referenz" data-i18n="tab_referenz" aria-selected="false">Referenzprojekt</button><button type="button" class="hub-tab" role="tab" data-target="investment" data-i18n="tab_partner" aria-selected="false">Partner</button><button type="button" class="hub-tab" role="tab" data-target="lage" data-i18n="tab_region" aria-selected="false">Region &amp; Preise</button></div>
+<div class="hub-panels">
+<!-- SANIERUNG -->
+<section class="section staging" id="sanierung">
+  <p class="section-label" data-i18n="staging_label">Sanierung</p>
+  <h2 data-i18n="staging_h2">Vom Altbestand zur Kapitalanlage.</h2>
+  <p class="lead" data-i18n="staging_lead">Ziehen Sie den Regler und sehen Sie, was aus einer unsanierten Wohnung wird. Genau in diesem Zustand übernehmen Sie Ihre Kapitalanlage — bezugsfertig und vermietbar.</p>
 
-    <div class="kt-orte" id="ktOrte"></div>
-
-  <div class="st-block">
-    <div class="rc-head" style="margin-bottom:26px;">
-      <p class="section-label" data-i18n="st_label">Warum Oberfranken</p>
-      <h2 data-i18n="st_h2">Was Sie für Ihr Geld bekommen</h2>
-      <p data-i18n="st_lead">Derselbe Betrag, vier Städte. Bewegen Sie den Regler und sehen Sie, wie viel Wohnung dabei herauskommt.</p>
+  <div class="staging-slider" id="stagingSlider">
+    <img loading="lazy" class="staging-img staging-after" id="stagingAfter" src="san1-nachher.webp" alt="Nach der Kernsanierung" width="1600" height="1067">
+    <img loading="lazy" class="staging-img staging-before" id="stagingBefore" src="san1-vorher.webp" alt="Vor der Kernsanierung" width="1600" height="1067">
+    <span class="staging-label staging-label-before" data-i18n="staging_before">Vor der Sanierung</span>
+    <span class="staging-label staging-label-after" data-i18n="staging_after">Nach der Sanierung</span>
+    <div class="staging-handle" id="stagingHandle">
+      <div class="staging-knob">&#8249; &#8250;</div>
     </div>
-    <div class="rc-feld st-regler">
-      <div class="rc-feld-top"><label for="stBudget" data-i18n="st_budget">Ihr Budget</label><span class="rc-wert" id="stBudgetV">200.000 €</span></div>
-      <input type="range" id="stBudget" min="80000" max="800000" step="10000" value="200000" aria-label="Budget">
-    </div>
-    <div class="st-reihe" id="stReihe"></div>
-    <p class="rc-note" data-i18n="st_note">Grobe Richtwerte für Angebotspreise bestehender Eigentumswohnungen, Stand 2026. Der Wert für Hof orientiert sich am Quadratmeterpreis unserer sanierten Objekte. Tatsächliche Preise hängen von Lage, Zustand und Ausstattung ab.</p>
   </div>
-
+  <div class="san-tabs" id="sanTabs" role="tablist">
+    <button type="button" class="san-tab aktiv" role="tab" aria-selected="true" onclick="sanWaehle(0)">
+      <b data-i18n="san_t1">Flur</b><span data-i18n="san_o1">&Auml;u&szlig;ere Bayreuther Str. 23, Hof</span>
+    </button>
+    <button type="button" class="san-tab" role="tab" aria-selected="false" onclick="sanWaehle(1)">
+      <b data-i18n="san_t2">Badezimmer</b><span data-i18n="san_o2">Leimitzer Str. 93, Hof</span>
+    </button>
+    <button type="button" class="san-tab" role="tab" aria-selected="false" onclick="sanWaehle(2)">
+      <b data-i18n="san_t3">K&uuml;che</b><span data-i18n="san_o3">Friedensstr. 10, Hof</span>
+    </button>
   </div>
+  <p class="staging-hint" data-i18n="staging_hint">← Ziehen Sie den Regler, um den Unterschied zu sehen →</p>
+  <p class="san-fn" data-i18n="san_fn">Sanierungen unseres Partners in Hof. Fotos: Norderfranken.</p>
 </section>
 
-<!-- VORTEILE BANNER -->
-<div class="drone-banner">
-  <div class="drone-wrap">
-    <img loading="lazy" src="https://images.unsplash.com/photo-1614175863115-69462da3b9c8?w=1400&q=82" alt="Immobilien als Kapitalanlage" width="1400" height="933">
-    <div class="drone-overlay"></div>
-    <div class="drone-content">
-      <p class="section-label" data-i18n="drone_label" style="margin-bottom:12px;">Ihre Vorteile</p>
-      <h2 data-i18n-html="drone_h2">Sachwert mit<br>Steuerhebel.</h2>
-      <p data-i18n="drone_p">Eine kernsanierte Wohnung verbindet drei Dinge: laufenden Mietertrag, einen realen Sachwert und einen steuerlichen Vorteil, der Ihre Belastung spürbar senken kann.</p>
-      <div class="pills">
-        <span class="pill" data-i18n="drone_pill1">Mieteinnahmen</span>
-        <span class="pill" data-i18n="drone_pill2">Erhöhte Abschreibung</span>
-        <span class="pill" data-i18n="drone_pill3">Kernsaniert</span>
-        <span class="pill" data-i18n="drone_pill4">Sanierungsstau vermieden</span>
-        <span class="pill" data-i18n="drone_pill5">Sachwert</span>
-        <span class="pill" data-i18n="drone_pill6">Altersvorsorge</span>
-        <span class="pill" data-i18n="drone_pill7">Finanzierbar</span>
-      </div>
+<!-- REFERENZ -->
+<section class="section" id="referenz" style="background:var(--black-2);">
+  <p class="section-label" data-i18n="ref_label">Referenzprojekt</p>
+  <h2 data-i18n="ref_h2">Das Münsterviertel, Hof</h2>
+  <p class="lead" data-i18n="ref_lead" style="max-width:62ch;">Sechs Eigentumswohnungen in einem kernsanierten Altbau — alle sechs Einheiten sind verkauft. Ein Projekt, das zeigt, wie wir arbeiten.</p>
+
+  <div class="ref-grid">
+    <div class="ref-bild" onclick="openRef()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openRef();}">
+      <img loading="lazy" src="referenz-muensterviertel.webp" width="1600" height="1147"
+           alt="Das Münsterviertel in Hof — kernsanierter Altbau mit sechs Eigentumswohnungen, Luftaufnahme">
+      <span class="ref-badge" data-i18n="ref_badge">Alle 6 Einheiten verkauft</span>
+      <span class="ref-lupe" data-i18n="ref_lupe">Details ansehen →</span>
     </div>
+
+    <div class="ref-text">
+      <div class="ref-zahlen">
+        <div class="ref-zahl"><b>6</b><span data-i18n="ref_z1">Eigentumswohnungen</span></div>
+        <div class="ref-zahl"><b>72–108</b><span data-i18n="ref_z2">m² Wohnfläche</span></div>
+        <div class="ref-zahl"><b>100 %</b><span data-i18n="ref_z3">verkauft</span></div>
+      </div>
+      <p data-i18n="ref_p1">Ein Altbau mit Geschichte, vollständig kernsaniert und in sechs Einheiten zwischen 72 und 108 m² aufgeteilt. Jede Wohnung mit eigenem Balkon, viele mit Blick über Hof.</p>
+      <div class="expose-features" style="margin-top:20px;">
+        <div class="expose-feat"><div class="feat-dot"></div><span data-i18n="ref_f1">Wärmepumpe &amp; Fußbodenheizung, niedrige Energieklasse</span></div>
+        <div class="expose-feat"><div class="feat-dot"></div><span data-i18n="ref_f2">Dreifachverglasung, neue Elektrik und Leitungen</span></div>
+        <div class="expose-feat"><div class="feat-dot"></div><span data-i18n="ref_f3">Design-Vinylboden in Eiche, Feinsteinzeug-Bäder</span></div>
+        <div class="expose-feat"><div class="feat-dot"></div><span data-i18n="ref_f4">Restaurierte Holztreppe, zentrale Schließanlage</span></div>
+        <div class="expose-feat"><div class="feat-dot"></div><span data-i18n="ref_f5">Für Käufer provisionsfrei</span></div>
+      </div>
+      <button class="btn-cu" data-i18n="ref_btn" style="margin-top:26px;padding:14px 26px;font-size:14.5px;" onclick="openRef()">Ähnliches Objekt anfragen →</button>    </div>
   </div>
-</div>
+</section>
 
 <!-- PARTNERSCHAFT -->
 <section class="section" id="investment" style="background:var(--black);">
@@ -2777,67 +2882,45 @@ h1,h2,.section h2,.hero h1{font-family:var(--f-serif)!important;font-weight:600!
   </div>
 </section>
 
-<!-- KAPITALANLAGE-BEGLEITUNG -->
-<section class="section" id="kapitalanlage" style="background:var(--black);">
-  <p class="section-label" data-i18n="kap_label">Kapitalanlage</p>
-  <h2 data-i18n-html="kap_h2" style="color:var(--offwhite);font-size:clamp(28px,4vw,52px);font-weight:700;letter-spacing:-2px;line-height:1.05;max-width:620px;margin-bottom:14px;">Erst prüfen. Dann kaufen.</h2>
-  <p class="lead" data-i18n="kap_lead" style="max-width:600px;">Bevor Sie kaufen, schauen wir gemeinsam auf die Zahlen, die wirklich zählen — offen, nachvollziehbar und ohne beschönigte Rechenbeispiele.</p>
+<!-- LAGEKARTE -->
+<section class="kt" id="lage">
+  <div class="kt-inner">
+    <div class="rc-head">
+      <p class="section-label" data-i18n="kt_label">Unser Gebiet</p>
+      <h2 data-i18n="kt_h2">Hof und der Landkreis</h2>
+      <p data-i18n="kt_lead">Unser Schwerpunkt liegt in Hof und Umgebung. Kurze Wege, stabile Mieten und Einstiegspreise, die es im Ballungsraum nicht mehr gibt.</p>
+    </div>
 
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:8px;" class="kap-grid">
-    <div style="background:var(--black-2);border:0.5px solid rgba(201,169,110,0.14);border-radius:20px;padding:26px;">
-      <div style="width:40px;height:40px;border-radius:10px;background:rgba(201,169,110,0.1);border:0.5px solid rgba(201,169,110,0.3);display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
-        <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:var(--cu);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
+    <div class="kt-karte" id="ktKarte">
+      <div class="kt-zustimmung" id="ktZustimmung">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <p data-i18n="kt_hinweis">Die Karte wird von OpenStreetMap geladen. Dabei wird Ihre IP-Adresse an deren Server übertragen.</p>
+        <button type="button" id="ktLaden" data-i18n="kt_laden">Karte laden</button>
       </div>
-      <h3 data-i18n="kap_1_t" style="font-size:17px;font-weight:600;color:var(--offwhite);margin-bottom:8px;letter-spacing:-0.3px;">Tatsächlicher Cashflow</h3>
-      <p data-i18n="kap_1_d" style="font-size:13.5px;color:var(--gray-light);line-height:1.65;">Wir rechnen reale Einnahmen und Kosten durch — keine geschönten Renditeversprechen.</p>
     </div>
-    <div style="background:var(--black-2);border:0.5px solid rgba(201,169,110,0.14);border-radius:20px;padding:26px;">
-      <div style="width:40px;height:40px;border-radius:10px;background:rgba(201,169,110,0.1);border:0.5px solid rgba(201,169,110,0.3);display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
-        <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:var(--cu);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
-      </div>
-      <h3 data-i18n="kap_2_t" style="font-size:17px;font-weight:600;color:var(--offwhite);margin-bottom:8px;letter-spacing:-0.3px;">Vermietbarkeit</h3>
-      <p data-i18n="kap_2_d" style="font-size:13.5px;color:var(--gray-light);line-height:1.65;">Wir prüfen Lage, Nachfrage und realistische Mieten — wie gut lässt sich das Objekt wirklich vermieten?</p>
+
+    <div class="kt-orte" id="ktOrte"></div>
+
+  <div class="st-block">
+    <div class="rc-head" style="margin-bottom:26px;">
+      <p class="section-label" data-i18n="st_label">Warum Oberfranken</p>
+      <h2 data-i18n="st_h2">Was Sie für Ihr Geld bekommen</h2>
+      <p data-i18n="st_lead">Derselbe Betrag, vier Städte. Bewegen Sie den Regler und sehen Sie, wie viel Wohnung dabei herauskommt.</p>
     </div>
-    <div style="background:var(--black-2);border:0.5px solid rgba(201,169,110,0.14);border-radius:20px;padding:26px;">
-      <div style="width:40px;height:40px;border-radius:10px;background:rgba(201,169,110,0.1);border:0.5px solid rgba(201,169,110,0.3);display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
-        <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:var(--cu);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;"><path d="M2 20h20"/><path d="M4 20V8l8-5 8 5v12"/><path d="M9 20v-6h6v6"/></svg>
-      </div>
-      <h3 data-i18n="kap_3_t" style="font-size:17px;font-weight:600;color:var(--offwhite);margin-bottom:8px;letter-spacing:-0.3px;">Baulicher Zustand</h3>
-      <p data-i18n="kap_3_d" style="font-size:13.5px;color:var(--gray-light);line-height:1.65;">Sie erhalten Einblick in Sanierungsumfang, verbaute Technik und Instandhaltungsrücklage — inklusive Dokumentation.</p>
+    <div class="rc-feld st-regler">
+      <div class="rc-feld-top"><label for="stBudget" data-i18n="st_budget">Ihr Budget</label><span class="rc-wert" id="stBudgetV">200.000 €</span></div>
+      <input type="range" id="stBudget" min="80000" max="800000" step="10000" value="200000" aria-label="Budget">
     </div>
-    <div style="background:var(--black-2);border:0.5px solid rgba(201,169,110,0.14);border-radius:20px;padding:26px;">
-      <div style="width:40px;height:40px;border-radius:10px;background:rgba(201,169,110,0.1);border:0.5px solid rgba(201,169,110,0.3);display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
-        <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:var(--cu);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;"><path d="M9 12l2 2 4-4"/><path d="M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7l7-4z"/></svg>
-      </div>
-      <h3 data-i18n="kap_4_t" style="font-size:17px;font-weight:600;color:var(--offwhite);margin-bottom:8px;letter-spacing:-0.3px;">Rentabilitäts-Check</h3>
-      <p data-i18n="kap_4_d" style="font-size:13.5px;color:var(--gray-light);line-height:1.65;">Was bleibt nach Zins, Tilgung und Kosten übrig? Wir rechnen Rendite, Risiken und Steuereffekt offen durch.</p>
-    </div>
+    <div class="st-reihe" id="stReihe"></div>
+    <p class="rc-note" data-i18n="st_note">Grobe Richtwerte für Angebotspreise bestehender Eigentumswohnungen, Stand 2026. Der Wert für Hof orientiert sich am Quadratmeterpreis unserer sanierten Objekte. Tatsächliche Preise hängen von Lage, Zustand und Ausstattung ab.</p>
   </div>
 
-  <button class="btn-cu" data-i18n="kap_btn" style="margin-top:28px;padding:14px 28px;font-size:15px;" onclick="document.getElementById('kontakt').scrollIntoView({behavior:'smooth'})">Zahlen gemeinsam durchgehen →</button>
-</section>
-
-<!-- ABLAUF -->
-<section class="expose" id="ablauf">
-  <div class="expose-inner">
-    <div class="expose-img">
-      <img loading="lazy" src="https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=900&q=85" alt="Ablauf Kapitalanlage" width="900" height="600">
-    </div>
-    <div class="expose-text">
-      <p class="section-label" data-i18n="exp_label">Ablauf</p>
-      <h2 data-i18n="exp_h2">In fünf Schritten zur Anlage.</h2>
-      <p data-i18n="exp_p">Kein Druck, keine Verkaufsveranstaltung. Wir schauen gemeinsam, ob eine Kapitalanlage für Ihre Situation überhaupt sinnvoll ist — und wenn ja, welche.</p>
-      <div class="expose-features">
-        <div class="expose-feat"><div class="feat-dot"></div><span data-i18n="exp_f1">Erstgespräch — Ziele, Eigenkapital, Steuersituation</span></div>
-        <div class="expose-feat"><div class="feat-dot"></div><span data-i18n="exp_f2">Objektvorschlag mit vollständiger Kalkulation</span></div>
-        <div class="expose-feat"><div class="feat-dot"></div><span data-i18n="exp_f3">Finanzierung — auf Wunsch mit unseren Partnern</span></div>
-        <div class="expose-feat"><div class="feat-dot"></div><span data-i18n="exp_f4">Notartermin &amp; Kaufabwicklung</span></div>
-        <div class="expose-feat"><div class="feat-dot"></div><span data-i18n="exp_f5">Übergabe, Vermietung &amp; laufende Betreuung</span></div>
-      </div>
-    </div>
   </div>
 </section>
 
+</div>
+<div class="hub-next"><p data-i18n="next_q4">Passt eine Kapitalanlage zu Ihnen?</p><a class="btn-cu" href="#finder" data-i18n="next_b4">Zum Kurz-Check →</a></div>
+</div>
 <!-- FINDER -->
 <section class="fd" id="finder">
   <div class="fd-inner">
@@ -2940,28 +3023,6 @@ h1,h2,.section h2,.hero h1{font-family:var(--f-serif)!important;font-weight:600!
     </details>
   </div>
 </section>
-
-<!-- VORAB-LISTE -->
-<div class="vl-band" id="vorabliste">
-  <div class="vl-band-inner">
-    <div class="vl-band-text">
-      <p class="section-label" data-i18n="vb_label">Vorab-Information</p>
-      <h2 data-i18n="vb_h2">Neue Wohnungen zuerst erfahren</h2>
-      <p data-i18n="vb_lead">Unsere Einheiten sind meist verkauft, bevor sie öffentlich inseriert werden. Tragen Sie sich ein, dann melden wir uns, sobald etwas Passendes kommt. Wir schreiben Ihnen nur zu neuen Objekten und geben Ihre Daten nicht weiter.</p>
-    </div>
-    <form class="vl-band-form" id="vbForm" novalidate>
-      <div class="vl-band-felder">
-        <input type="email" id="vbMail" required autocomplete="email" inputmode="email" placeholder="Ihre E-Mail-Adresse" data-i18n-ph="vb_ph" aria-label="E-Mail-Adresse für die Vorab-Liste">
-        <button type="submit" id="vbBtn" data-i18n="vb_btn">Eintragen</button>
-      </div>
-      <label class="vl-band-check">
-        <input type="checkbox" id="vbOk" required>
-        <span data-i18n-html="vb_ok">Ich möchte von Keuerleber Immobilien per E-Mail über neue Objekte informiert werden. Diese Einwilligung kann ich jederzeit ohne Angabe von Gründen widerrufen, zum Beispiel per E-Mail an paul.keuerleber@keuerleber-immobilien.de. <a onclick="openLegal(event)">Datenschutzerklärung</a></span>
-      </label>
-      <p class="vl-band-hint" id="vbHint" role="status" aria-live="polite"></p>
-    </form>
-  </div>
-</div>
 
 <!-- ÜBER PAUL -->
 <section class="section about" id="ueber-mich">
@@ -3480,12 +3541,19 @@ h1,h2,.section h2,.hero h1{font-family:var(--f-serif)!important;font-weight:600!
 <footer>
   <a class="logo-mark" href="#" style="text-decoration:none;--lk-h:52px;--lk-n:19px" aria-label="Keuerleber Immobilien"><img class="logo-emblem" src="logo/Wappen_gold.svg" alt="" width="45" height="52"><span class="logo-lock"><span class="lk-name">Keuerleber</span><span class="lk-sub"><i></i><span>Immobilien</span><i></i></span></span></a>
   <div class="footer-right">
-    <div style="margin-bottom:10px;"><a href="/kapitalanlage-hof/">Kapitalanlage in Hof</a> &nbsp;·&nbsp; <a href="/restnutzungsdauer-gutachten/">Erhöhte AfA &amp; Gutachten</a> &nbsp;·&nbsp; <a href="/eigentumswohnung-kaufen-hof/">Eigentumswohnung kaufen in Hof</a></div>
     © 2026 Keuerleber Immobilien · Paul Keuerleber<br>
     Hauptstraße 12 · 95145 Oberkotzau &nbsp;·&nbsp;
     <a href="#" onclick="openLegal(event)" data-i18n="footer_impressum">Impressum</a> &nbsp;·&nbsp;
     <a href="#" onclick="openLegal(event)" data-i18n="footer_datenschutz">Datenschutz</a> &nbsp;·&nbsp;
     <a href="#" onclick="ckOeffnen();return false;" data-i18n="footer_cookies">Statistik-Einstellungen</a>
+  </div>
+  <div class="foot-nav" role="navigation" aria-label="Seitenübersicht">
+    <div><b data-i18n="nav_immobilien">Objekte</b><a href="#immobilien" data-i18n="tab_kaufen">Kaufen</a><a href="#vermietung" data-i18n="tab_mieten">Mieten</a></div>
+    <div><b data-i18n="nav_leistungen">Konzept</b><a href="#konzept" data-i18n="tab_konzept">Konzept</a><a href="#wege" data-i18n="tab_fuerwen">Für wen</a><a href="#kapitalanlage" data-i18n="tab_pruefung">Prüfung</a><a href="#ablauf" data-i18n="tab_ablauf">Ablauf</a></div>
+    <div><b data-i18n="nav_hub_steuer">Steuer &amp; Rendite</b><a href="#steuervorteil" data-i18n="tab_steuer">Steuervorteil</a><a href="#rechner" data-i18n="tab_rechner">Renditerechner</a><a href="#vergleich" data-i18n="tab_vergleich">Immobilie vs. ETF</a></div>
+    <div><b data-i18n="nav_hub_projekte">Projekte</b><a href="#sanierung" data-i18n="tab_sanierung">Sanierung</a><a href="#referenz" data-i18n="tab_referenz">Referenzprojekt</a><a href="#investment" data-i18n="tab_partner">Partner</a><a href="#lage" data-i18n="tab_region">Region &amp; Preise</a></div>
+    <div><b data-i18n="nav_kontakt">Kontakt</b><a href="#finder" data-i18n="nav_finder">Passt das zu mir?</a><a href="#faq" data-i18n="nav_faq">Fragen</a><a href="#ueber-mich" data-i18n="nav_ueber">Über uns</a><a href="#kontakt" data-i18n="nav_kontakt">Kontakt</a></div>
+    <div><b>Themen</b><a href="/kapitalanlage-hof/">Kapitalanlage in Hof</a><a href="/restnutzungsdauer-gutachten/">Erhöhte AfA &amp; Gutachten</a><a href="/eigentumswohnung-kaufen-hof/">Eigentumswohnung kaufen</a></div>
   </div>
 </footer>
 
@@ -5955,6 +6023,49 @@ window.kreMietobjekte = function(){
 <script>
 /* Direktlinks von den Unterseiten: /#impressum und /#datenschutz öffnen das Rechts-Fenster */
 (function(){var h=location.hash;if(h==='#impressum'||h==='#datenschutz'){window.addEventListener('load',function(){setTimeout(function(){try{openLegal();}catch(e){}},2600);});}})();
+</script>
+
+<script>
+/* Bereichs-Tabs: Übersetzungen */
+Object.assign(I18N.de,{"tab_kaufen": "Kaufen", "tab_mieten": "Mieten", "tab_konzept": "Konzept", "tab_fuerwen": "Für wen", "tab_pruefung": "Prüfung", "tab_ablauf": "Ablauf", "tab_steuer": "Steuervorteil", "tab_rechner": "Renditerechner", "tab_vergleich": "Immobilie vs. ETF", "tab_sanierung": "Sanierung", "tab_referenz": "Referenzprojekt", "tab_partner": "Partner", "tab_region": "Region & Preise", "nav_hub_steuer": "Steuer & Rendite", "nav_hub_projekte": "Projekte"});Object.assign(I18N.en,{"tab_kaufen": "Buy", "tab_mieten": "Rent", "tab_konzept": "Concept", "tab_fuerwen": "For whom", "tab_pruefung": "Due diligence", "tab_ablauf": "Process", "tab_steuer": "Tax benefit", "tab_rechner": "Return calculator", "tab_vergleich": "Property vs. ETF", "tab_sanierung": "Renovation", "tab_referenz": "Reference project", "tab_partner": "Partner", "tab_region": "Region & prices", "nav_hub_steuer": "Tax & returns", "nav_hub_projekte": "Projects"});Object.assign(I18N.es,{"tab_kaufen": "Comprar", "tab_mieten": "Alquilar", "tab_konzept": "Concepto", "tab_fuerwen": "Para quién", "tab_pruefung": "Verificación", "tab_ablauf": "Proceso", "tab_steuer": "Ventaja fiscal", "tab_rechner": "Calculadora de rentabilidad", "tab_vergleich": "Inmueble vs. ETF", "tab_sanierung": "Reforma", "tab_referenz": "Proyecto de referencia", "tab_partner": "Socio", "tab_region": "Región y precios", "nav_hub_steuer": "Impuestos y rentabilidad", "nav_hub_projekte": "Proyectos"});
+</script>
+<script>
+Object.assign(I18N.de,{"next_q1": "Wie funktioniert das Ganze?", "next_b1": "Zum Konzept →", "next_q2": "Was bringt das steuerlich und wie rechnet es sich?", "next_b2": "Steuer & Rendite →", "next_q3": "Wie und wo wurde saniert?", "next_b3": "Projekte ansehen →", "next_q4": "Passt eine Kapitalanlage zu Ihnen?", "next_b4": "Zum Kurz-Check →"});Object.assign(I18N.en,{"next_q1": "How does it all work?", "next_b1": "To the concept →", "next_q2": "What are the tax benefits and how does it pay off?", "next_b2": "Tax & returns →", "next_q3": "How and where was it renovated?", "next_b3": "View projects →", "next_q4": "Is a property investment right for you?", "next_b4": "To the quick check →"});Object.assign(I18N.es,{"next_q1": "¿Cómo funciona todo?", "next_b1": "Al concepto →", "next_q2": "¿Qué ventaja fiscal hay y cómo se calcula la rentabilidad?", "next_b2": "Impuestos y rentabilidad →", "next_q3": "¿Cómo y dónde se reformó?", "next_b3": "Ver proyectos →", "next_q4": "¿Le conviene una inversión inmobiliaria?", "next_b4": "Al test rápido →"});
+</script>
+<script>
+/* Bereichs-Tabs: Abschnitte gebündelt, Deep-Links (#rechner, #faq …) öffnen den passenden Tab */
+(function(){
+  var hubs=[].slice.call(document.querySelectorAll('.hub')); if(!hubs.length) return;
+  var NAVH=function(){return window.innerWidth<900?60:76;};
+  function panels(h){return [].slice.call(h.querySelector('.hub-panels').children).filter(function(c){return c.id;});}
+  function hubOf(el){for(var i=0;i<hubs.length;i++) if(hubs[i].contains(el)) return hubs[i]; return null;}
+  function panelOf(h,el){var ps=panels(h);for(var i=0;i<ps.length;i++) if(ps[i].contains(el)) return ps[i]; return null;}
+  function activate(h,id,silent){
+    panels(h).forEach(function(p){p.classList.toggle('hub-off',p.id!==id);});
+    [].forEach.call(h.querySelectorAll('.hub-tab'),function(b){var on=b.dataset.target===id;b.setAttribute('aria-selected',on?'true':'false');if(on&&h.querySelector('.hub-bar').scrollWidth>h.querySelector('.hub-bar').clientWidth){try{b.scrollIntoView({inline:'center',block:'nearest'});}catch(e){}}});
+    if(!silent){try{history.replaceState(null,'','#'+id);}catch(e){}}
+    setTimeout(function(){window.dispatchEvent(new Event('resize'));},40);
+  }
+  function toHub(h){var y=h.getBoundingClientRect().top+window.pageYOffset-NAVH();window.scrollTo({top:y,behavior:'smooth'});}
+  function reveal(el,scroll){var h=hubOf(el);if(!h)return false;var p=panelOf(h,el);if(!p)return false;activate(h,p.id);if(scroll)toHub(h);return true;}
+  hubs.forEach(function(h){
+    [].forEach.call(h.querySelectorAll('.hub-tab'),function(b){b.addEventListener('click',function(){activate(h,b.dataset.target);var bar=h.querySelector('.hub-bar');var top=h.getBoundingClientRect().top;if(top<-20){window.scrollTo({top:h.getBoundingClientRect().top+window.pageYOffset-NAVH(),behavior:'smooth'});}});});
+    activate(h,panels(h)[0].id,true);
+  });
+  document.addEventListener('click',function(e){
+    var a=e.target.closest&&e.target.closest('a[href^="#"]');if(!a)return;var id=a.getAttribute('href').slice(1);if(!id)return;var t=document.getElementById(id);if(!t)return;
+    if(t.classList.contains('hub')){e.preventDefault();toHub(t);try{history.replaceState(null,'','#'+id);}catch(x){}return;}
+    if(hubOf(t)){e.preventDefault();reveal(t,true);}
+  },true);
+  var _sv=Element.prototype.scrollIntoView;
+  Element.prototype.scrollIntoView=function(){var h=hubOf(this);if(h&&!this.classList.contains('hub')&&this.parentElement===h.querySelector('.hub-panels')){activate(h,this.id);toHub(h);return;}return _sv.apply(this,arguments);};
+  function fromHash(delay){var id=location.hash.slice(1);if(!id)return;var t=document.getElementById(id);if(!t)return;
+    if(t.classList.contains('hub')){setTimeout(function(){toHub(t);},delay);return;}
+    if(hubOf(t)){reveal(t,false);setTimeout(function(){toHub(hubOf(t));},delay);}}
+  fromHash(2800);
+  window.addEventListener('hashchange',function(){fromHash(0);});
+  var L=document.documentElement.lang;if(L&&L!=='de'&&typeof setLang==='function'){try{setLang(L);}catch(e){}}
+})();
 </script>
 </body>
 </html>
