@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>E-Mail-Signatur | Keuerleber Immobilien</title>
+<link rel="icon" href="/favicon.ico?g3" sizes="any">
+<link rel="stylesheet" href="/lp.css?v=1">
+<style>
+main.sg{max-width:980px}
+.sg h1{font-size:clamp(32px,5vw,50px)}
+.panel{background:var(--panel);border:.5px solid var(--line);border-radius:18px;padding:22px;margin:22px 0}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.fields label{display:flex;flex-direction:column;gap:6px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);font-weight:500}
+.fields input{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--tx);font:16px/1.3 var(--f-sans);letter-spacing:0;text-transform:none;outline:0}
+.fields input:focus{border-color:var(--gold)}
+.fields small{color:var(--mu);text-transform:none;letter-spacing:0;font-size:12.5px;font-weight:400}
+.preview{background:#fff;border-radius:14px;padding:26px 26px 20px;overflow:auto}
+.acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.acts button{cursor:pointer;border:0;font-family:inherit}
+.acts .btn.ghost{background:none;border:1px solid var(--line)}
+.ok{color:#7fcf9a;font-size:14px;min-height:22px;margin-top:10px}
+ol.how{margin:10px 0 0 20px;color:#cfc9bd}ol.how li{margin:6px 0}
+details.os{background:var(--panel);border:.5px solid var(--line);border-radius:14px;padding:4px 20px;margin:10px 0}details.os summary{cursor:pointer;font-weight:600;color:#fff;padding:14px 0}
+</style>
+</head>
+<body>
+<header class="top"><a class="lk" href="/" aria-label="Keuerleber Immobilien"><img src="/logo/Wappen_gold.svg" alt="" width="47" height="54"><span class="lc"><span class="ln">Keuerleber</span> <span class="ls"><i></i><span>Immobilien</span><i></i></span></span></a></header>
+<main class="sg">
+<p class="eyebrow">Intern · E-Mail-Signatur</p>
+<h1>Ihre Outlook-Signatur</h1>
+<p class="lead">Trage unten deine Social-Media-Links ein, prüfe die Vorschau und kopiere die Signatur mit einem Klick. Danach in Outlook einfügen (Anleitung unten). Die Einträge bleiben nur in deinem Browser gespeichert.</p>
+
+<div class="panel"><div class="fields">
+  <label>Instagram-Name<input id="f-ig" placeholder="z. B. keuerleber.immobilien" autocomplete="off"><small>nur der Name nach instagram.com/ – leer lassen = Symbol entfällt</small></label>
+  <label>LinkedIn-Adresse<input id="f-li" placeholder="https://www.linkedin.com/in/…" autocomplete="off"><small>komplette Adresse deines Profils – leer lassen = Symbol entfällt</small></label>
+  <label>Mobilnummer<input id="f-tel" value="+49 151 67692176" autocomplete="off"></label>
+  <label>Zusatzzeile (optional)<input id="f-extra" placeholder="z. B. Termine nach Vereinbarung" autocomplete="off"></label>
+</div></div>
+
+<div class="preview" id="preview" aria-label="Vorschau der Signatur"></div>
+<div class="acts"><button class="btn" id="b-copy">Signatur kopieren</button><button class="btn ghost" id="b-code">HTML-Code kopieren</button></div>
+<p class="ok" id="ok" role="status"></p>
+
+<h2 style="font-size:28px;margin-top:40px">So fügst du sie in Outlook ein</h2>
+<details class="os" open><summary>Outlook (neu) und Outlook im Web</summary><ol class="how"><li>Oben rechts auf das Zahnrad → <b>Konto</b> → <b>Signaturen</b>.</li><li><b>Neue Signatur</b> wählen, Namen vergeben (z. B. „Keuerleber“).</li><li>Im Textfeld mit <b>Strg+V</b> (Mac: <b>⌘+V</b>) einfügen.</li><li>Unten bei „Standardsignatur“ für neue Nachrichten und Antworten auswählen, <b>Speichern</b>.</li></ol></details>
+<details class="os"><summary>Outlook klassisch (Windows)</summary><ol class="how"><li><b>Datei</b> → <b>Optionen</b> → <b>E-Mail</b> → <b>Signaturen …</b></li><li><b>Neu</b>, Namen vergeben, im Feld darunter <b>Strg+V</b>.</li><li>Rechts oben „Neue Nachrichten“ und „Antworten/Weiterleitungen“ auf die Signatur stellen, <b>OK</b>.</li></ol></details>
+<details class="os"><summary>Outlook für Mac</summary><ol class="how"><li><b>Outlook</b> → <b>Einstellungen</b> → <b>Signaturen</b>.</li><li><b>+</b> klicken, Namen vergeben, mit <b>⌘+V</b> einfügen.</li><li>Unter „Standardsignatur wählen“ die neue Signatur eintragen.</li></ol></details>
+<p class="note">Hinweis: Bei Empfängern zeigt Outlook Bilder aus unbekannten Absendern oft erst nach „Bilder herunterladen“. Das ist normal; der Text und die Links sind sofort sichtbar. Die Bilder liegen auf keuerleber-immobilien.de und müssen online bleiben.</p>
+</main>
+<script>
+(function(){
+  var LIVE='https://keuerleber-immobilien.de';
+  var $=function(id){return document.getElementById(id);};
+  var KEY='kre-sig';
+  var st={}; try{st=JSON.parse(localStorage.getItem(KEY)||'{}');}catch(e){}
+  ['ig','li','tel','extra'].forEach(function(k){if(st[k]!=null)$('f-'+k).value=st[k];});
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function build(base){
+    var ig=$('f-ig').value.trim().replace(/^@/,'').replace(/^https?:\/\/(www\.)?instagram\.com\//i,'').replace(/\/.*$/,'');
+    var li=$('f-li').value.trim(); if(li&&!/^https?:\/\//i.test(li)) li='https://'+li;
+    var tel=$('f-tel').value.trim()||'+49 151 67692176'; var telh=tel.replace(/[^\d+]/g,'');
+    var extra=$('f-extra').value.trim();
+    var G='#9c7f4d', D='#1a1a1a', M='#6b6459', F='font-family:Arial,Helvetica,sans-serif;';
+    var A='style="color:'+G+';text-decoration:none;"';
+    var icons=[];
+    if(ig) icons.push(['https://www.instagram.com/'+ig+'/','icon-instagram.png','Instagram']);
+    if(li) icons.push([li,'icon-linkedin.png','LinkedIn']);
+    icons.push(['https://wa.me/4915167692176','icon-whatsapp.png','WhatsApp']);
+    icons.push([LIVE+'/','icon-web.png','Website']);
+    icons.push(['mailto:paul.keuerleber@keuerleber-immobilien.de','icon-mail.png','E-Mail']);
+    var iconRow=icons.map(function(i){return '<td style="padding:0 8px 0 0;"><a href="'+esc(i[0])+'" target="_blank"><img src="'+base+'/signatur/'+i[1]+'" width="28" height="28" alt="'+i[2]+'" style="display:block;border:0;width:28px;height:28px;"></a></td>';}).join('');
+    var lab='style="'+F+'font-size:12px;color:'+G+';font-weight:bold;padding:2px 8px 2px 0;" valign="top"';
+    var val='style="'+F+'font-size:13px;color:'+D+';padding:2px 0;" valign="top"';
+    return ''+
+'<table cellpadding="0" cellspacing="0" border="0" width="600" style="'+F+'width:600px;font-size:14px;color:'+D+';line-height:1.45;border-collapse:collapse;">'+
+'<tr><td style="'+F+'font-size:14px;color:'+D+';padding:0 0 12px 0;">Mit freundlichen Grüßen</td></tr>'+
+'<tr><td style="'+F+'padding:0 0 2px 0;font-size:17px;font-weight:bold;color:'+D+';">Paul Keuerleber</td></tr>'+
+'<tr><td style="'+F+'padding:0 0 12px 0;font-size:13px;color:'+M+';">Immobilienkaufmann (IHK) &middot; Vertrieb Kapitalanlagen</td></tr>'+
+'<tr><td style="border-top:1px solid #c9a96e;font-size:1px;line-height:1px;height:1px;padding:0;">&nbsp;</td></tr>'+
+'<tr><td style="padding:12px 0 8px 0;"><table cellpadding="0" cellspacing="0" border="0"><tr>'+
+ '<td valign="middle" style="padding:0 20px 0 0;border-right:1px solid #e3d9c4;"><a href="'+LIVE+'/" target="_blank"><img src="'+base+'/signatur/logo-signatur.png" width="250" alt="Keuerleber Immobilien" style="display:block;border:0;width:250px;height:auto;"></a></td>'+
+ '<td valign="middle" style="padding:0 0 0 20px;"><table cellpadding="0" cellspacing="0" border="0">'+
+  '<tr><td '+lab+'>T</td><td '+val+'><a href="tel:'+telh+'" style="color:'+D+';text-decoration:none;">'+esc(tel)+'</a></td></tr>'+
+  '<tr><td '+lab+'>E</td><td '+val+'><a href="mailto:paul.keuerleber@keuerleber-immobilien.de" style="color:'+D+';text-decoration:none;">paul.keuerleber@keuerleber-immobilien.de</a></td></tr>'+
+  '<tr><td '+lab+'>W</td><td '+val+'><a href="'+LIVE+'/" '+A+'>keuerleber-immobilien.de</a></td></tr>'+
+  '<tr><td '+lab+'>A</td><td '+val+'>Hauptstraße 12 &middot; 95145 Oberkotzau</td></tr>'+
+ '</table></td></tr></table></td></tr>'+
+'<tr><td style="padding:4px 0 10px 0;"><table cellpadding="0" cellspacing="0" border="0"><tr>'+iconRow+'</tr></table></td></tr>'+
+'<tr><td style="'+F+'font-size:12px;font-style:italic;color:'+G+';padding:0 0 '+(extra?'2':'10')+'px 0;">Kernsanierte Eigentumswohnungen in Hof &amp; Oberfranken &middot; Beratung kostenfrei</td></tr>'+
+(extra?'<tr><td style="'+F+'font-size:12px;color:'+M+';padding:0 0 10px 0;">'+esc(extra)+'</td></tr>':'')+
+'<tr><td style="'+F+'font-size:11px;color:#8a8378;line-height:1.5;padding:8px 0 0 0;border-top:1px solid #eee7d6;">Keuerleber Immobilien &middot; Inhaber: Paul Keuerleber &middot; Hauptstraße 12 &middot; 95145 Oberkotzau<br>Diese E-Mail kann vertrauliche Informationen enthalten. Wenn Sie nicht der richtige Adressat sind, informieren Sie mich bitte und löschen Sie die Nachricht.</td></tr>'+
+'</table>';
+  }
+  function render(){ $('preview').innerHTML=build(location.origin); var o={};['ig','li','tel','extra'].forEach(function(k){o[k]=$('f-'+k).value;}); try{localStorage.setItem(KEY,JSON.stringify(o));}catch(e){} }
+  ['ig','li','tel','extra'].forEach(function(k){$('f-'+k).addEventListener('input',render);});
+  render();
+  function say(t){$('ok').textContent=t;setTimeout(function(){$('ok').textContent='';},4000);}
+  $('b-copy').onclick=function(){
+    var html=build(LIVE), plain=$('preview').innerText;
+    if(navigator.clipboard&&window.ClipboardItem){
+      navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([plain],{type:'text/plain'})})]).then(function(){say('Signatur kopiert – jetzt in Outlook einfügen (Strg+V / ⌘+V).');},function(){fallback();});
+    } else fallback();
+    function fallback(){ var r=document.createRange(); r.selectNodeContents($('preview')); var s=getSelection(); s.removeAllRanges(); s.addRange(r); try{document.execCommand('copy');say('Signatur kopiert – jetzt in Outlook einfügen.');}catch(e){say('Bitte die Vorschau markieren und mit Strg+C kopieren.');} }
+  };
+  $('b-code').onclick=function(){ navigator.clipboard.writeText(build(LIVE)).then(function(){say('HTML-Code kopiert.');},function(){say('Kopieren nicht möglich.');}); };
+})();
+</script>
+</body>
+</html>
