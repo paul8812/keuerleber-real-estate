@@ -5,7 +5,7 @@ import { html, raw, fmtDT, toast, fullName, modal, sel } from '../util.js';
 import { contactForm, taskForm } from '../forms.js';
 import { cLink, empty, badge, contactOpts, contactName } from '../ui.js';
 
-const FILTERS = [['neu', 'Neu'], ['zugeordnet', 'Zugeordnet'], ['alle', 'Alle']];
+const FILTERS = [['neu', 'Neu'], ['bearbeitet', 'Bearbeitet'], ['alle', 'Alle']];
 const TYP = { anfrage: ['Anfrage', '#5bbf8a'], kontakt: ['Kontakt', '#5fa8d3'], unbekannt: ['Unbekannt', '#e0a84a'] };
 let filter = 'neu';
 
@@ -54,7 +54,8 @@ function detail(m) {
 
 export function render(el, arg) {
   const all = mails().slice().sort((a, b) => (b.datum || '').localeCompare(a.datum || ''));
-  const list = all.filter(m => filter === 'alle' ? true : filter === 'neu' ? m.status === 'neu' : m.status !== 'neu' && m.status !== 'ignoriert');
+  // archiv = ältere Mails unbekannter Absender aus der rückwirkenden Übernahme (nur unter „Alle“)
+  const list = all.filter(m => filter === 'alle' ? true : filter === 'neu' ? m.status === 'neu' : !['neu', 'ignoriert', 'archiv'].includes(m.status));
   const st = db.get('sync', 'mailsync');
   el.innerHTML = html`<div class="head"><div><h1>Posteingang</h1><p class="muted">Mails aus deinem Outlook-Postfach. Anfragen und Mails bekannter Kontakte ordnet der Abgleich automatisch zu und legt Aufgaben an – hier entscheidest du über den Rest.</p></div></div>
     <div class="chips">${FILTERS.map(([k, l]) => html`<button class="chip ${k === filter ? 'on' : ''}" data-f="${k}">${l}${k === 'neu' && newCount() ? html` <i>${newCount()}</i>` : ''}</button>`)}
