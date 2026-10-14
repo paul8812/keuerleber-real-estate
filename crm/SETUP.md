@@ -40,4 +40,12 @@ Bereits lokal erfasste Daten: *Einstellungen → Lokale Daten in die Cloud hochl
 ## Automationen & Google
 - *Automationen* im Menü: Regeln einzeln ein-/ausschaltbar, Fristen einstellbar. Sie laufen, solange das CRM im Browser geöffnet ist (Start, alle 5 Min., beim Zurückkehren in den Tab).
 - Google Kalender/Kontakte: Client-ID gemäß Anleitung in *Automationen → Google* erstellen, dort eintragen, „Kalender synchronisieren“ klicken. Die Anmeldung läuft direkt zwischen deinem Browser und Google.
-- Echte Hintergrund-Automation bei geschlossenem Browser (z. B. E-Mail-Versand) braucht serverseitige Funktionen (Supabase Edge Functions) und ist noch nicht eingerichtet.
+- Damit CRM-Termine in **Outlook** erscheinen: in Outlook unter Einstellungen → Konten das Google-Konto hinzufügen. Nach dem ersten Klick auf „Kalender synchronisieren“ gleicht das CRM alle 10 Minuten automatisch ab, solange es geöffnet ist.
+
+## E-Mail (Outlook / Strato) – Mail-Abgleich
+Läuft auf Pauls Mac im Ordner `~/crm-mailsync` (launchd, alle 3 Minuten, nur Python-Standardbibliothek). Er liest das Strato-Postfach per IMAP (nur lesend, Mails bleiben ungelesen) und schreibt mit Pauls CRM-Login in die `records`-Tabelle:
+- Website-Formulare (Kontakt, Objekt, Termin, Vorab-Liste, Renditerechner) und ImmoScout24/Immowelt/Kleinanzeigen → Kontakt, Vorgang, Aufgabe „Erstkontakt“ (gleicher Schlüssel wie die Regel „Neuer Interessent“), Terminwunsch als Termin „(angefragt)“.
+- Mail eines Kontakts → Verlauf + Aufgabe „Antworten“; gesendete Antwort → Verlauf, Antwort-Aufgaben werden erledigt.
+- Unbekannte Absender → Sammlung `mails` (Menü *Posteingang*). Status des Abgleichs → Sammlung `sync` (Datensatz `mailsync`).
+- Einrichten: im Ordner `crm-mailsync` doppelt auf „Einrichten.command“ klicken (Postfach- und CRM-Passwort eingeben; gespeichert wird nur das Postfach-Passwort und ein CRM-Token, in `~/.config/keuerleber-crm/zugang.json`, nur für Paul lesbar).
+- Keine Mail-Inhalte ins Repo: der Abgleich liegt bewusst außerhalb von `~/keuerleber-real-estate` (der Immo-Manager veröffentlicht diesen Ordner per `git add -A`).

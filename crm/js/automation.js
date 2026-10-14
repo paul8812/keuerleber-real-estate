@@ -3,6 +3,7 @@ import * as db from './db.js';
 import { today, addDays, daysBetween, fullName, toast } from './util.js';
 import { matchesForProperty, lastContact } from './ui.js';
 import { PIPELINES } from './consts.js';
+import * as google from './google.js';
 
 export const RULES = [
   { id: 'neuerInteressent', name: 'Neuer Interessent → Erstkontakt', desc: 'Legt für jeden neuen Interessenten eine Aufgabe „Erstkontakt“ an.', days: 1, unit: 'Tage nach Anlage' },
@@ -86,9 +87,20 @@ export function notifyDue() {
   if (due.length) fire('d' + t0 + due.length, `${due.length} fällige Aufgabe${due.length > 1 ? 'n' : ''}`, due.slice(0, 3).map(t => t.titel).join('\n'));
   sessionStorage.setItem('kre-seen', JSON.stringify(seen));
 }
+// Google-Kalender automatisch abgleichen, solange die Google-Verbindung dieser Sitzung besteht
+// (einmal pro Sitzung „Kalender synchronisieren“ klicken – Browser erlauben das Anmeldefenster nur nach einem Klick).
+let gBusy = false;
+export async function googleAutoSync() {
+  if (gBusy || !google.isConnected()) return;
+  gBusy = true;
+  try { await google.syncCalendar(); localStorage.setItem('kre-g-last', new Date().toISOString()); }
+  catch (e) { console.warn('Google-Abgleich', e); }
+  finally { gBusy = false; }
+}
 let started = false;
 export function start() {
   if (started) return; started = true;
   setTimeout(() => run(), 1500); setInterval(() => run(), 5 * 60000); setInterval(notifyDue, 60000);
+  setInterval(googleAutoSync, 10 * 60000);
   window.addEventListener('focus', () => run()); setTimeout(notifyDue, 3000);
 }

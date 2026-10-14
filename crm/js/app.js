@@ -13,9 +13,10 @@ import * as calc from './views/calc.js';
 import * as stats from './views/stats.js';
 import * as settings from './views/settings.js';
 import * as automation from './views/automation.js';
+import * as inbox from './views/inbox.js';
 import * as auto from './automation.js';
 
-const VIEWS = { dashboard, kontakte: contacts, objekte: properties, pipeline, aufgaben: tasks, kalender: calendar, vorlagen: templates, automation, rechner: calc, statistik: stats, einstellungen: settings };
+const VIEWS = { dashboard, posteingang: inbox, kontakte: contacts, objekte: properties, pipeline, aufgaben: tasks, kalender: calendar, vorlagen: templates, automation, rechner: calc, statistik: stats, einstellungen: settings };
 const main = document.getElementById('main');
 
 function route() {
@@ -23,10 +24,18 @@ function route() {
   const view = VIEWS[name] || dashboard;
   const key = VIEWS[name] ? name : 'dashboard';
   document.querySelectorAll('#nav a').forEach(a => a.classList.toggle('on', a.dataset.k === key));
+  navBadges();
   document.body.classList.remove('nav-open');
   const y = window.scrollY;
   try { view.render(main, arg); } catch (e) { console.error(e); main.innerHTML = `<div class="card"><h2>Fehler</h2><pre>${esc(e.stack || e.message)}</pre></div>`; }
   window.scrollTo(0, location.hash === window._lastHash ? y : 0); window._lastHash = location.hash;
+}
+function navBadges() {
+  const a = document.querySelector('#nav a[data-k="posteingang"]'); if (!a) return;
+  const n = inbox.newCount(); let b = a.querySelector('b.nb');
+  if (!n) { b && b.remove(); return; }
+  if (!b) { b = document.createElement('b'); b.className = 'nb'; a.appendChild(b); }
+  b.textContent = n;
 }
 const rerender = debounce(() => { if (!document.querySelector('.modal-bg')) route(); else pending = true; }, 60);
 let pending = false;
@@ -52,7 +61,7 @@ function shell() {
   res.onclick = () => { res.hidden = true; sq.value = ''; };
   document.addEventListener('click', e => { if (!e.target.closest('.search')) res.hidden = true; });
   document.addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); sq.focus(); sq.select(); } if (e.key === 'Escape') { res.hidden = true; sq.blur(); } });
-  db.onChange(rerender);
+  db.onChange(rerender); db.onChange(navBadges);
   window.addEventListener('hashchange', route);
   window.addEventListener('focus', () => db.isCloud() && db.reload());
   route(); auto.start();

@@ -3,6 +3,21 @@ import { html, raw, toast, fmtDT, esc } from '../util.js';
 import { RULES, ruleCfg, run, enableNotify, notifyEnabled } from '../automation.js';
 import * as google from '../google.js';
 
+function mailCard() {
+  const st = db.get('sync', 'mailsync'), s = st?.stats || {};
+  const neu = (db.all('mails') || []).filter(m => m.status === 'neu').length;
+  const status = !st ? html`<p><b>Noch nicht eingerichtet.</b> Der Abgleich läuft auf deinem Mac: im Ordner <code>crm-mailsync</code> doppelt auf <b>„Einrichten“</b> klicken.</p>`
+    : st.error ? html`<p class="bad">⚠️ ${st.error}</p><p class="muted small">Letzter erfolgreicher Abgleich: ${st.lastOk ? fmtDT(st.lastOk) : '–'}</p>`
+    : html`<p>✓ Aktiv – zuletzt abgeglichen ${fmtDT(st.lastOk || st.lastRun)} (alle 3 Minuten, solange dein Mac an ist).</p>`;
+  return html`${status}
+    ${st ? html`<div class="kpis small"><a class="kpi" href="#/posteingang"><b>${neu}</b><span>neu im Posteingang</span></a><div class="kpi"><b>${s.anfragen || 0}</b><span>Anfragen erkannt</span></div><div class="kpi"><b>${s.aufgaben || 0}</b><span>Aufgaben angelegt</span></div><div class="kpi"><b>${s.erledigt || 0}</b><span>automatisch erledigt</span></div></div>` : ''}
+    <ul class="steps"><li><b>Anfragen</b> über die Website (Kontakt, Objekt, Termin, Vorab-Liste, Renditerechner) und über ImmoScout24, Immowelt und Kleinanzeigen → Kontakt anlegen, Vorgang in der Vertriebs-Pipeline, Aufgabe „Erstkontakt“. Terminwünsche landen als Termin „(angefragt)“ im Kalender.</li>
+      <li><b>Mail von einem Kontakt</b> → Eintrag im Verlauf + Aufgabe „Antworten“.</li>
+      <li><b>Antwort gesendet</b> (Outlook → Gesendet) → Eintrag im Verlauf, offene Antwort-Aufgaben zu diesem Kontakt werden automatisch erledigt.</li>
+      <li><b>Unbekannte Absender</b> → <a class="lnk" href="#/posteingang">Posteingang</a>: dort per Klick Kontakt anlegen, zuordnen, Aufgabe oder ignorieren.</li>
+      <li>Newsletter, Werbung und Abwesenheitsnotizen werden übersprungen. Mails bleiben in Outlook ungelesen; es wird nie etwas gesendet oder gelöscht.</li></ul>`;
+}
+
 export function render(el) {
   const cfg = ruleCfg(), s = db.settings();
   const log = db.all('activities').filter(a => (a.text || '').startsWith('⚡')).sort((a, b) => b.datum.localeCompare(a.datum)).slice(0, 12);
@@ -14,8 +29,9 @@ export function render(el) {
     <section class="card"><h2>Benachrichtigungen</h2><p class="muted">Browser-Hinweis für Termine (1 Std. vorher) und fällige Aufgaben, solange das CRM offen ist.</p>
       <div class="actions"><button class="btn" data-notify>${notifyEnabled() ? '✓ Aktiv – neu anfragen' : 'Benachrichtigungen aktivieren'}</button></div></section>
     <section class="card"><h2>Letzte automatische Aktionen</h2>${log.length ? html`<ul class="list">${log.map(a => html`<li><div class="grow"><div class="ttl">${a.text.replace('⚡ Automatisch: ', '')}</div><div class="sub">${fmtDT(a.datum)}</div></div></li>`)}</ul>` : html`<p class="muted">Noch keine.</p>`}</section>
+    <section class="card" style="grid-column:1/-1"><h2>E-Mail (Outlook / Strato)</h2>${mailCard()}</section>
     <section class="card" style="grid-column:1/-1"><h2>Google Kalender & Kontakte</h2>
-      <p class="muted">Termine werden in beide Richtungen mit deinem Google-Hauptkalender abgeglichen (CRM-Termine → Google, Google-Termine → CRM). Kontakte lassen sich aus Google importieren.</p>
+      <p class="muted">Termine werden in beide Richtungen mit deinem Google-Hauptkalender abgeglichen (CRM-Termine → Google, Google-Termine → CRM). Nach dem ersten Klick auf „Kalender synchronisieren“ gleicht das CRM alle 10 Minuten automatisch ab, solange es geöffnet ist. <b>Damit die Termine in Outlook erscheinen:</b> in Outlook unter Einstellungen → Konten dein Google-Konto hinzufügen.</p>
       <div class="grid"><label class="f full"><span>Google OAuth Client-ID</span><input id="gid" value="${s.googleClientId || ''}" placeholder="123456789-abc….apps.googleusercontent.com"></label></div>
       <div class="actions" style="margin-top:12px"><button class="btn" data-gsave>Client-ID speichern</button><button class="btn primary" data-gsync>Kalender synchronisieren</button><button class="btn" data-gcon>Kontakte aus Google importieren</button><button class="btn ghost" data-gout>Trennen</button></div>
       <p class="muted" id="gmsg" style="margin-top:10px"></p>
@@ -27,7 +43,7 @@ export function render(el) {
   const msg = t => el.querySelector('#gmsg').textContent = t;
   const guard = f => async () => { try { msg('Bitte warten …'); await f(); } catch (e) { msg('Fehler: ' + e.message); } };
   el.querySelector('[data-gsave]').onclick = async () => { await db.saveSettings({ ...db.settings(), googleClientId: el.querySelector('#gid').value.trim() }); toast('Client-ID gespeichert'); };
-  el.querySelector('[data-gsync]').onclick = guard(async () => { const r = await google.syncCalendar(); msg(`Fertig: ${r.pushed} zu Google gesendet, ${r.pulled} neu importiert, ${r.updated} aktualisiert.`); });
+  el.querySelector('[data-gsync]').onclick = guard(async () => { const r = await google.syncCalendar(); msg(`Fertig: ${r.pushed} zu Google gesendet, ${r.pulled} neu importiert, ${r.updated} aktualisiert. Ab jetzt automatisch alle 10 Minuten, solange das CRM offen ist.`); });
   el.querySelector('[data-gcon]').onclick = guard(async () => { msg(`${await google.importContacts()} Kontakte importiert.`); });
   el.querySelector('[data-gout]').onclick = () => { google.disconnect(); msg('Getrennt.'); };
 }
