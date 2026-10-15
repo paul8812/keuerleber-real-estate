@@ -6,9 +6,11 @@
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <image:image><image:loc>https://keuerleber-immobilien.de/og-image.jpg</image:loc><image:title>Keuerleber Immobilien – Kapitalanlage in Hof</image:title></image:image>
+    <!--OBJEKTBILDER_START-->
     <image:image><image:loc>https://keuerleber-immobilien.de/objektbilder/leopoldstr-71-hof-01.webp</image:loc><image:title>Topsanierte 2-Zimmer-Wohnung mit Loggia und Fahrstuhl</image:title></image:image>
     <image:image><image:loc>https://keuerleber-immobilien.de/objektbilder/ernst-reuter-113-hof-01.webp</image:loc><image:title>Renovierte 2-Zimmer-Wohnung mit Balkon und Stellplatz</image:title></image:image>
     <image:image><image:loc>https://keuerleber-immobilien.de/objektbilder/jahnstr-38-hof-01.webp</image:loc><image:title>Hochwertig sanierte 3-Zimmer-Wohnung mit Balkon</image:title></image:image>
+    <!--OBJEKTBILDER_END-->
   </url>
   <url>
     <loc>https://keuerleber-immobilien.de/kapitalanlage-hof/</loc>
@@ -27,8 +29,10 @@
     <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <!--OBJEKTBILDER_START-->
     <image:image><image:loc>https://keuerleber-immobilien.de/objektbilder/leopoldstr-71-hof-01.webp</image:loc><image:title>Topsanierte 2-Zimmer-Wohnung mit Loggia und Fahrstuhl</image:title></image:image>
     <image:image><image:loc>https://keuerleber-immobilien.de/objektbilder/ernst-reuter-113-hof-01.webp</image:loc><image:title>Renovierte 2-Zimmer-Wohnung mit Balkon und Stellplatz</image:title></image:image>
     <image:image><image:loc>https://keuerleber-immobilien.de/objektbilder/jahnstr-38-hof-01.webp</image:loc><image:title>Hochwertig sanierte 3-Zimmer-Wohnung mit Balkon</image:title></image:image>
+    <!--OBJEKTBILDER_END-->
   </url>
 </urlset>

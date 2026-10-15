@@ -17,6 +17,8 @@ export const RULES = [
   { id: 'matches', name: 'Passender Interessent → informieren', desc: 'Bei aktiven Objekten mit Treffer im Suchprofil entsteht eine Aufgabe.', days: 80, unit: '% Mindest-Übereinstimmung' },
   { id: 'ueberfaellig', name: 'Überfällig → Priorität erhöhen', desc: 'Aufgaben, die lange überfällig sind, werden auf „hoch“ gesetzt.', days: 3, unit: 'Tage überfällig' },
   { id: 'abschluss', name: 'Abschluss → Folgeaufgaben', desc: 'Nach Verkauf: Empfehlung/Bewertung anfragen. Nach Auftrag: Objekt vorbereiten.', days: 14, unit: 'Tage nach Abschluss' },
+  { id: 'rechnungStellen', name: 'Abschluss → Rechnung stellen', desc: 'Abgeschlossene Vorgänge ohne Rechnung erzeugen eine Aufgabe „Rechnung stellen“ (Finanzen → Rechnung fällig).', days: null },
+  { id: 'rechnungFaellig', name: 'Rechnung überfällig → Zahlung anmahnen', desc: 'Offene Rechnungen nach Fälligkeit erzeugen eine Aufgabe zur Zahlungserinnerung.', days: 3, unit: 'Tage nach Fälligkeit' },
   { id: 'statusSync', name: 'Pipeline → Objektstatus', desc: 'Reservierung/Notartermin im Vertrieb setzt das Objekt automatisch auf „Reserviert“/„Notartermin“.', days: null },
 ];
 export const ruleCfg = () => { const saved = db.settings().auto || {}; return Object.fromEntries(RULES.map(r => [r.id, { on: true, days: r.days, ...(saved[r.id] || {}) }])); };
@@ -69,6 +71,12 @@ export async function run({ manual = false } = {}) {
       const to = x.stage === 'Reservierung' && p.status === 'Aktiv' ? 'Reserviert' : x.stage === 'Notartermin' && ['Aktiv', 'Reserviert'].includes(p.status) ? 'Notartermin' : null;
       if (to) { await db.save('properties', { ...p, status: to }); await db.log('system', `⚡ Automatisch: Status ${p.status} → ${to}`, { propertyId: p.id, contactId: x.contactId }); n++; }
     }
+    if (on('rechnungStellen')) for (const x of deals) {
+      const P = PIPELINES[x.board]; if (!P || x.stage !== P.won || !x.closedAt || daysBetween(x.closedAt, t0) > 60) continue;
+      if (!db.all('rechnungen').some(r => r.dealId === x.id && r.status !== 'storniert')) await mk('rs:' + x.id, `Rechnung stellen: ${x.titel}`, x.closedAt > t0 ? x.closedAt : t0, { contactId: x.contactId, propertyId: x.propertyId }, 'hoch');
+    }
+    if (on('rechnungFaellig')) for (const r of db.all('rechnungen')) if (r.status === 'offen' && r.faellig && daysBetween(r.faellig, t0) >= d('rechnungFaellig'))
+      await mk('rf:' + r.id, `Zahlung anmahnen: ${r.nr} (${(r.empfaenger || '').split('\n')[0]})`, t0, { contactId: r.contactId, propertyId: r.propertyId }, 'hoch');
     if (on('ueberfaellig')) for (const t of db.all('tasks')) if (!t.done && t.faellig && t.prio === 'normal' && daysBetween(t.faellig, t0) >= d('ueberfaellig')) { await db.save('tasks', { ...t, prio: 'hoch' }); n++; }
   } finally { running = false; }
   if (n && !manual) toast(`⚡ ${n} Automation${n > 1 ? 'en' : ''} ausgeführt`);

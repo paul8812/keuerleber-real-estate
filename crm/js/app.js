@@ -14,9 +14,10 @@ import * as stats from './views/stats.js';
 import * as settings from './views/settings.js';
 import * as automation from './views/automation.js';
 import * as inbox from './views/inbox.js';
+import * as finanzen from './views/finanzen.js';
 import * as auto from './automation.js';
 
-const VIEWS = { dashboard, posteingang: inbox, kontakte: contacts, objekte: properties, pipeline, aufgaben: tasks, kalender: calendar, vorlagen: templates, automation, rechner: calc, statistik: stats, einstellungen: settings };
+const VIEWS = { dashboard, posteingang: inbox, kontakte: contacts, objekte: properties, pipeline, aufgaben: tasks, kalender: calendar, finanzen, vorlagen: templates, automation, rechner: calc, statistik: stats, einstellungen: settings };
 const main = document.getElementById('main');
 
 function route() {

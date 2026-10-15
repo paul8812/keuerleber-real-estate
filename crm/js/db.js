@@ -1,6 +1,6 @@
 // Datenschicht: lokal (localStorage) oder Cloud (Supabase). Gleiche API für beide.
 import { uid, today, toast } from './util.js';
-export const COLS = ['contacts', 'properties', 'deals', 'tasks', 'events', 'activities', 'templates', 'settings', 'mails', 'sync'];
+export const COLS = ['contacts', 'properties', 'deals', 'tasks', 'events', 'activities', 'templates', 'settings', 'mails', 'sync', 'buchungen', 'rechnungen'];
 const LS = 'kre-crm-data', CFG = 'kre-crm-cfg';
 const SB_CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm';
 let data = Object.fromEntries(COLS.map(c => [c, []]));
@@ -136,7 +136,8 @@ async function ensureDefaults() {
 }
 
 // ---------- Backup ----------
-export const exportAll = () => JSON.stringify({ version: 1, exported: new Date().toISOString(), data }, null, 2);
+// Zugangsschlüssel (GitHub) nicht in Backup-Dateien schreiben
+export const exportAll = () => JSON.stringify({ version: 1, exported: new Date().toISOString(), data: { ...data, settings: data.settings.map(({ githubToken, ...s }) => s) } }, null, 2);
 export async function importAll(json, { replace = false } = {}) {
   const d = JSON.parse(json).data; if (!d) throw new Error('Ungültiges Backup');
   for (const c of COLS) {

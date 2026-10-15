@@ -50,14 +50,26 @@ export function propertyForm(p = {}, done) {
     ${sel('heizung', 'Heizung', HEIZUNG, p.heizung, { blank: 1 })}${inp('hausgeld', 'Hausgeld mtl. (€)', p.hausgeld, { type: 'number' })}
     <h4 class="full">Energieausweis</h4>
     ${sel('eKlasse', 'Energieklasse', ENERGIE_KLASSEN, p.eKlasse, { blank: 1 })}${inp('eWert', 'Verbrauch (kWh/m²a)', p.eWert, { type: 'number' })}
-    ${inp('eGueltig', 'Gültig bis', p.eGueltig, { type: 'date' })}
+    ${inp('eGueltig', 'Gültig bis', p.eGueltig, { type: 'date' })}${sel('eArt', 'Art des Ausweises', ['Energiebedarfsausweis', 'Energieverbrauchsausweis'], p.eArt, { blank: 1 })}
+    ${inp('eTraeger', 'Wesentlicher Energieträger', p.eTraeger, { ph: 'z. B. Heizöl EL, Erdgas' })}${inp('eBaujahr', 'Baujahr laut Ausweis', p.eBaujahr)}
     <h4 class="full">Auftrag & Provision</h4>
     ${inp('auftragVon', 'Maklervertrag ab', p.auftragVon, { type: 'date' })}${inp('auftragBis', 'Maklervertrag bis', p.auftragBis, { type: 'date' })}
     ${chk('alleinauftrag', 'Alleinauftrag', p.alleinauftrag)}${inp('provisionGesamt', 'Provision gesamt (%)', p.provisionGesamt, { type: 'number', step: '0.01' })}
     ${inp('mieteJahr', 'Ist-Jahresmiete (€, für Rendite)', p.mieteJahr, { type: 'number' })}${inp('eingestelltAm', 'Online seit', p.eingestelltAm, { type: 'date' })}
-    ${area('beschreibung', 'Objektbeschreibung (für Exposé)', p.beschreibung, { rows: 4 })}
-    ${area('ausstattung', 'Ausstattung / Lage', p.ausstattung)}
-    ${area('bilder', 'Bild-URLs (eine pro Zeile, z. B. objektbilder/xyz.jpg)', p.bilder, { rows: 3 })}
+    ${area('beschreibung', 'Objektbeschreibung (Exposé & Website)', p.beschreibung, { rows: 4 })}
+    ${area('lage', 'Lage', p.lage, { rows: 2 })}
+    ${area('ausstattung', 'Ausstattung (ein Punkt pro Zeile oder mit ; getrennt)', p.ausstattung)}
+    ${area('bilder', 'Fotos (eine Adresse pro Zeile, erstes = Titelbild) – neue Fotos lädst du in der Objektansicht hoch', p.bilder, { rows: 3 })}
+    <h4 class="full">Website</h4>
+    ${chk('webOnline', 'Auf der Website zeigen', p.webOnline)}${chk('webTeaser', 'Teaser: Preis, Adresse & Zahlen nur auf Anfrage', p.webTeaser ?? true)}
+    ${sel('webBadge', 'Hinweis auf der Karte', [['', 'automatisch (Neu / Reserviert)'], ['badge_neu', 'Neu'], ['badge_exklusiv', 'Exklusiv'], ['badge_reduziert', 'Reserviert']], p.webBadge)}${inp('webTeaserBilder', 'Öffentliche Fotos im Teaser', p.webTeaserBilder ?? 4, { type: 'number' })}${inp('webFotosMehr', 'Weitere Fotos auf Anfrage (Anzahl, nicht hochgeladen)', p.webFotosMehr, { type: 'number' })}
+    ${inp('webPos', 'Reihenfolge auf der Website', p.webPos, { type: 'number' })}${inp('mailId', 'Kennung für Info-Mail (optional)', p.mailId)}
+    ${area('webBeschreibungTeaser', 'Teaser-Beschreibung (ohne Preis/Adresse) – leer = Objektbeschreibung', p.webBeschreibungTeaser, { rows: 3 })}
+    ${area('webLageTeaser', 'Teaser-Lage (ohne genaue Adresse)', p.webLageTeaser, { rows: 2 })}
+    <h4 class="full">Kurzkalkulation für die Website (20 % EK, 3,6 % Zins, 2 % Tilgung, 42 % Steuersatz)</h4>
+    ${inp('kalkMiete', 'Kaltmiete mtl. (€)', p.kalkMiete, { type: 'number', step: '0.01' })}${inp('kalkHg', 'Hausgeld nicht umlagefähig mtl. (€)', p.kalkHg, { type: 'number', step: '0.01' })}
+    ${inp('kalkAfa', 'AfA-Satz (%)', p.kalkAfa, { type: 'number', step: '0.01' })}${inp('kalkGeb', 'Gebäudeanteil (%)', p.kalkGeb, { type: 'number', step: '0.1' })}
+    ${chk('kalkGutachten', 'Restnutzungsdauer-Gutachten liegt vor', p.kalkGutachten, { cls: 'full' })}
     ${area('notiz', 'Interne Notizen', p.notiz)}`,
     {
       wide: true,

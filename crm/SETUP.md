@@ -49,3 +49,15 @@ Läuft auf Pauls Mac im Ordner `~/crm-mailsync` (launchd, alle 3 Minuten, nur Py
 - Unbekannte Absender → Sammlung `mails` (Menü *Posteingang*). Status des Abgleichs → Sammlung `sync` (Datensatz `mailsync`).
 - Einrichten: im Ordner `crm-mailsync` doppelt auf „Einrichten.command“ klicken (Postfach- und CRM-Passwort eingeben; gespeichert wird nur das Postfach-Passwort und ein CRM-Token, in `~/.config/keuerleber-crm/zugang.json`, nur für Paul lesbar).
 - Keine Mail-Inhalte ins Repo: der Abgleich liegt bewusst außerhalb von `~/keuerleber-real-estate` (der Immo-Manager veröffentlicht diesen Ordner per `git add -A`).
+
+## Objekte & Website
+- Das CRM ist die Quelle für die Objekte auf der Website. „Website aktualisieren“ (Objekte) bzw. „Auf Website veröffentlichen / Von Website entfernen“ (Objektansicht) schreibt über die GitHub-API: `index.html` (Block zwischen `/*IMMO_START*/` und `/*IMMO_END*/`), die Karten auf `eigentumswohnung-kaufen-hof/` (zwischen `<!--OBJEKTE_START-->`/`<!--OBJEKTE_END-->`) und die Bild-Einträge der `sitemap.xml` (`<!--OBJEKTBILDER_START-->`). Die Ausgabe entspricht exakt dem früheren `tools/publish.rb` des Immo-Managers (Teaser-Logik, Kurzkalkulation).
+- Einmalig: Einstellungen → Website → Fine-grained GitHub-Token (nur dieses Repo, Contents: Read and write). Der Token wird nicht in Backups geschrieben.
+- Fotos aus dem CRM landen in `objektbilder/` – das Repo ist öffentlich, also nur Fotos hochladen, die gezeigt werden dürfen. „Weitere Fotos auf Anfrage“ als Anzahl pflegen.
+- Status „Verkauft / Vermietet“ oder „Archiv“ nimmt ein Objekt beim nächsten Veröffentlichen von der Website.
+
+## Finanzen
+- Menü *Finanzen*: Einnahmen/Ausgaben (Sammlung `buchungen`), Rechnungen (`rechnungen`, Nummern RE-JJJJ-NNN), Übersicht mit Gewinn und USt-Zahllast, CSV-Export für den Steuerberater.
+- Rechnung aus Eckdaten: Vorgang wählen → Empfänger, Objekt, Kaufpreis, Provision (Einstellungen) werden übernommen; Druck/PDF im Keuerleber-Design. „Als bezahlt buchen“ erzeugt die Einnahme.
+- Automationen: abgeschlossener Vorgang ohne Rechnung → „Rechnung stellen“, überfällige Rechnung → „Zahlung anmahnen“.
+- Pflichtangaben (§ 14 UStG) unter Einstellungen → Rechnungen & Steuer pflegen (Steuernummer/USt-IdNr., IBAN, Anschrift).
