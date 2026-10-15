@@ -126,6 +126,7 @@ export function taskForm(t = {}, done) {
     });
 }
 
+const toM = t => { const [h, m] = t.split(':').map(Number); return h * 60 + (m || 0); }, fromM = m => `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
 export function eventForm(e = {}, done) {
   const isNew = !e.id;
   modal(isNew ? 'Neuer Termin' : 'Termin bearbeiten', html`
@@ -136,6 +137,9 @@ export function eventForm(e = {}, done) {
     ${sel('contactId', 'Kontakt', contactOpts(), e.contactId, { blank: 1 })}${sel('propertyId', 'Objekt', propOpts(), e.propertyId, { blank: 1 })}
     ${area('notiz', 'Notiz', e.notiz)}`,
     {
+      onMount: el => { const st = el.querySelector('[name=start]'), en = el.querySelector('[name=ende]'); let dauer = (e.start && e.ende) ? Math.max(15, toM(e.ende) - toM(e.start)) : 60;
+        en.addEventListener('change', () => { if (st.value && en.value) dauer = Math.max(15, toM(en.value) - toM(st.value)); });
+        st.addEventListener('change', () => { if (st.value) en.value = fromM(toM(st.value) + dauer); }); },
       onSave: async v => { const rec = await db.save('events', { ...e, ...v }); if (isNew && v.contactId) await db.log(v.art === 'Besichtigung' ? 'besichtigung' : 'meeting', `${v.art} geplant am ${v.datum} ${v.start}`, { contactId: v.contactId, propertyId: v.propertyId }); toast('Termin gespeichert'); done && done(rec); },
       danger: isNew ? null : { label: 'Löschen', confirm: 'Termin löschen?', fn: async () => { await db.del('events', e.id); } },
     });

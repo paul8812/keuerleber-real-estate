@@ -25,7 +25,7 @@ function route() {
   const [, name = 'dashboard', arg] = location.hash.split('/');
   const view = VIEWS[name] || dashboard;
   const key = VIEWS[name] ? name : 'dashboard';
-  document.querySelectorAll('#nav a').forEach(a => a.classList.toggle('on', a.dataset.k === key));
+  document.querySelectorAll('#nav a, #tabbar a').forEach(a => a.classList.toggle('on', a.dataset.k === key));
   navBadges();
   document.body.classList.remove('nav-open');
   const y = window.scrollY;
@@ -45,6 +45,11 @@ new MutationObserver(() => { if (pending && !document.querySelector('.modal-bg')
 
 function shell() {
   document.getElementById('nav').innerHTML = NAV.map(([k, l, ic]) => `<a href="#/${k}" data-k="${k}"><i>${ic}</i><span>${l}</span></a>`).join('');
+  // Handy: Leiste unten mit den wichtigsten Bereichen
+  if (!document.getElementById('tabbar')) {
+    document.body.insertAdjacentHTML('beforeend', `<nav id="tabbar">${[['dashboard', '◧', 'Übersicht'], ['aufgaben', '✓', 'Aufgaben'], ['+', '+', 'Neu'], ['kalender', '▦', 'Kalender'], ['kontakte', '☺', 'Kontakte']].map(([k, i, l]) => k === '+' ? `<button type="button" data-tabneu><i>${i}</i><span>${l}</span></button>` : `<a href="#/${k}" data-k="${k}"><i>${i}</i><span>${l}</span></a>`).join('')}</nav>`);
+    document.querySelector('[data-tabneu]').onclick = () => document.getElementById('quick').click();
+  }
   document.getElementById('burger').onclick = () => document.body.classList.toggle('nav-open');
   document.getElementById('mode').textContent = db.isCloud() ? '☁ Cloud' : '💾 Lokal';
   if (!db.isCloud() && !document.getElementById('lokalhinweis')) main.insertAdjacentHTML('beforebegin', '<div id="lokalhinweis" class="lokalhinweis">💾 Dieses Gerät arbeitet im <b>lokalen Modus</b> – du siehst nicht die Daten aus der Cloud. <a href="?cloud=1">Zur Cloud wechseln und anmelden</a></div>');
