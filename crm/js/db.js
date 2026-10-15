@@ -5,6 +5,10 @@ const LS = 'kre-crm-data', CFG = 'kre-crm-cfg';
 const SB_CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm';
 let data = Object.fromEntries(COLS.map(c => [c, []]));
 let sb = null, cloud = false;
+// Link aus der „Passwort zurücksetzen“-Mail: Supabase hängt #access_token…&type=recovery bzw. #error… an
+const H0 = location.hash;
+export const RECOVERY = /type=recovery/.test(H0);
+export const AUTH_ERROR = /error_code=([^&]+)/.exec(H0)?.[1] || '';
 const listeners = new Set();
 
 // Standard-Verbindung (anon-Key ist öffentlich vorgesehen; Schutz via Login + RLS)
@@ -45,6 +49,14 @@ export async function login(email, password) {
   const { error } = await sb.auth.signInWithPassword({ email, password });
   if (error) throw error;
   await loadCloud();
+}
+export async function resetPassword(email) {
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
+  if (error) throw error;
+}
+export async function setPassword(password) {
+  const { error } = await sb.auth.updateUser({ password });
+  if (error) throw error;
 }
 export async function signup(email, password) {
   const { data: d, error } = await sb.auth.signUp({ email, password });

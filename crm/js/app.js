@@ -71,8 +71,21 @@ function shell() {
 
 async function boot() {
   const r = await db.init();
+  if (db.RECOVERY || db.AUTH_ERROR) history.replaceState(null, '', location.pathname + location.search);
   if (r.needsLogin) return loginScreen();
   document.getElementById('login').hidden = true; document.getElementById('app').hidden = false; shell();
+  if (db.RECOVERY) newPassword();
+}
+function newPassword() {
+  modal('Neues Passwort festlegen', html`<p class="full muted">Du bist über den Link aus der E-Mail angemeldet. Lege jetzt dein neues Passwort fest (mind. 8 Zeichen).</p>
+    ${inp('pw1', 'Neues Passwort', '', { type: 'password', req: 1, cls: 'full' })}${inp('pw2', 'Passwort wiederholen', '', { type: 'password', req: 1, cls: 'full' })}`, {
+    saveLabel: 'Passwort speichern',
+    onSave: async v => {
+      if (v.pw1.length < 8) { toast('Mindestens 8 Zeichen', 'err'); return false; }
+      if (v.pw1 !== v.pw2) { toast('Die Passwörter stimmen nicht überein', 'err'); return false; }
+      try { await db.setPassword(v.pw1); toast('✓ Neues Passwort gespeichert'); } catch (e) { toast('Fehler: ' + e.message, 'err'); return false; }
+    },
+  });
 }
 function loginScreen() {
   const box = document.getElementById('login'); box.hidden = false;
@@ -80,6 +93,14 @@ function loginScreen() {
   let signup = false;
   const setMode = m => { signup = m; btn.textContent = m ? 'Konto erstellen' : 'Anmelden'; tog.textContent = m ? 'Schon ein Konto? Anmelden' : 'Erstes Mal? Konto erstellen'; err.textContent = ''; form.password.autocomplete = m ? 'new-password' : 'current-password'; };
   tog.onclick = e => { e.preventDefault(); setMode(!signup); };
+  if (db.AUTH_ERROR) err.textContent = db.AUTH_ERROR === 'otp_expired' ? 'Der Link aus der E-Mail ist abgelaufen oder wurde schon benutzt – bitte unten „Passwort vergessen?“ erneut klicken.' : 'Anmeldung über den Link fehlgeschlagen (' + db.AUTH_ERROR + ').';
+  box.querySelector('[data-forgot]').onclick = async e => {
+    e.preventDefault(); err.style.color = '';
+    const email = form.email.value.trim();
+    if (!email) { err.textContent = 'Bitte oben zuerst deine E-Mail-Adresse eintragen, dann erneut klicken.'; form.email.focus(); return; }
+    try { await db.resetPassword(email); err.style.color = 'var(--ok)'; err.textContent = `Falls ein Konto zu ${email} existiert, kommt gleich eine E-Mail mit einem Link. Link anklicken → neues Passwort festlegen.`; }
+    catch (x) { err.textContent = /rate|seconds/i.test(x.message) ? 'Zu viele Versuche – bitte in ein paar Minuten erneut.' : 'Fehler: ' + x.message; }
+  };
   const showSetup = () => {
     const sb = box.querySelector('.setup'); sb.hidden = false;
     sb.innerHTML = `<b>Einmalige Einrichtung der Datenbank</b><ol><li><a target="_blank" rel="noopener" href="${esc(db.SQL_URL())}">SQL-Editor in Supabase öffnen</a> (dort einloggen)</li><li><button type="button" class="btn" data-copy>SQL kopieren</button> und im Editor einfügen</li><li>Auf <b>Run</b> klicken, dann hier erneut anmelden</li></ol>`;
