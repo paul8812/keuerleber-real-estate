@@ -5,6 +5,7 @@ import { KONTAKT_ARTEN, sl } from '../consts.js';
 import { contactForm, dealForm, taskForm, eventForm, activityForm } from '../forms.js';
 import { avatar, badge, empty, timeline, pLink, matchesForContact, lastContact, statusBadge, adresse } from '../ui.js';
 import { taskRow, bindTasks } from './tasks.js';
+import { tempBadge, temperatur } from '../crmplus.js';
 
 let q = '', art = '', status = 'Aktiv', sort = 'name', waehlen = false, sichtbar = [];
 const wahl = new Set();
@@ -18,14 +19,14 @@ function dupes() {
 function list(el) {
   const s = q.toLowerCase();
   let rows = db.all('contacts').filter(c => (!art || c.kategorie === art) && (!status || c.status === status) && (!s || [fullName(c), c.firma, c.email, c.tel, c.mobil, c.ort, c.tags, c.plz].join(' ').toLowerCase().includes(s)));
-  const key = { name: c => fullName(c).toLowerCase(), neu: c => '~' + (9e15 - Date.parse(c.created || 0)), kontakt: c => lastContact(c.id) || '0', follow: c => c.followup || '9999' }[sort];
+  const key = { name: c => fullName(c).toLowerCase(), neu: c => '~' + (9e15 - Date.parse(c.created || 0)), kontakt: c => lastContact(c.id) || '0', follow: c => c.followup || '9999', heiss: c => String(1000 - (temperatur(c)?.s ?? -1)).padStart(4, '0') }[sort];
   rows = rows.slice().sort((a, b) => String(key(a)).localeCompare(String(key(b)), 'de'));
   if (sort === 'kontakt') rows.reverse();
   sichtbar = rows.map(c => c.id);
   const box = c => waehlen ? html`<td class="wahl"><input type="checkbox" data-w="${c.id}" ${wahl.has(c.id) ? raw('checked') : ''} aria-label="auswählen"></td>` : '';
   el.querySelector('#clist').innerHTML = rows.length ? html`<table class="tbl ${waehlen ? 'waehlen' : ''}"><thead><tr>${waehlen ? raw('<th class="wahl"><input type="checkbox" data-wall aria-label="alle auswählen"></th>') : ''}<th></th><th>Name</th><th>Art</th><th>Kontakt</th><th>Ort</th><th>Letzter Kontakt</th><th>Wiedervorlage</th><th class="m-only"></th></tr></thead><tbody>
     ${rows.slice(0, 300).map(c => { const lc = lastContact(c.id); const tel = (c.mobil || c.tel || '').replace(/[^\d+]/g, '');
-      return html`<tr data-id="${c.id}" class="${wahl.has(c.id) ? 'gew' : ''}">${box(c)}<td class="c-av">${avatar(c)}</td><td class="c-name"><b>${fullName(c)}</b>${c.firma && c.nachname ? html`<div class="sub">${c.firma}</div>` : ''}<div class="sub m-only">${[c.kategorie, c.ort].filter(Boolean).join(' · ')}${c.followup && c.followup <= today() ? ' · ⏰ Wiedervorlage' : ''}</div></td><td class="c-art">${c.kategorie}</td><td class="c-kon">${c.mobil || c.tel || ''}<div class="sub">${c.email || ''}</div></td><td class="c-ort">${c.ort || ''}</td><td class="c-lc">${lc ? fmtDate(lc.slice(0, 10)) : '–'}</td><td class="c-wv ${c.followup && c.followup <= today() ? 'late' : ''}">${c.followup ? fmtDate(c.followup) : ''}</td><td class="c-call m-only">${!waehlen ? html`<button type="button" class="rowmehr" data-akt="contact:${c.id}" aria-label="Aktionen">⋯</button>` : ''}${!waehlen && tel ? html`<a href="tel:${tel}" aria-label="Anrufen">📞</a>` : !waehlen && c.email ? html`<a href="mailto:${c.email}" aria-label="E-Mail">✉</a>` : ''}</td></tr>`; })}</tbody></table>
+      return html`<tr data-id="${c.id}" class="${wahl.has(c.id) ? 'gew' : ''}">${box(c)}<td class="c-av">${avatar(c)}</td><td class="c-name"><b>${fullName(c)} ${tempBadge(c)}</b>${c.firma && c.nachname ? html`<div class="sub">${c.firma}</div>` : ''}<div class="sub m-only">${[c.kategorie, c.ort].filter(Boolean).join(' · ')}${c.followup && c.followup <= today() ? ' · ⏰ Wiedervorlage' : ''}</div></td><td class="c-art">${c.kategorie}</td><td class="c-kon">${c.mobil || c.tel || ''}<div class="sub">${c.email || ''}</div></td><td class="c-ort">${c.ort || ''}</td><td class="c-lc">${lc ? fmtDate(lc.slice(0, 10)) : '–'}</td><td class="c-wv ${c.followup && c.followup <= today() ? 'late' : ''}">${c.followup ? fmtDate(c.followup) : ''}</td><td class="c-call m-only">${!waehlen ? html`<button type="button" class="rowmehr" data-akt="contact:${c.id}" aria-label="Aktionen">⋯</button>` : ''}${!waehlen && tel ? html`<a href="tel:${tel}" aria-label="Anrufen">📞</a>` : !waehlen && c.email ? html`<a href="mailto:${c.email}" aria-label="E-Mail">✉</a>` : ''}</td></tr>`; })}</tbody></table>
     ${rows.length > 300 ? html`<p class="muted pad">… ${rows.length - 300} weitere – Suche verfeinern</p>` : ''}`.s : html`<div class="pad">${empty('Keine Kontakte gefunden', 'Mit „+ Kontakt“ anlegen oder CSV importieren')}</div>`.s;
   el.querySelector('#ccount').textContent = rows.length + ' Kontakte';
   el.querySelectorAll('#clist tr[data-id]').forEach(tr => tr.onclick = e => {
@@ -81,7 +82,7 @@ function overview(el) {
     <div class="filters"><input type="search" id="cq" placeholder="Suchen (Name, Firma, E-Mail, Telefon, Ort, Tags) …" value="${q}">
     <select id="ca"><option value="">Alle Arten</option>${KONTAKT_ARTEN.map(a => html`<option ${a === art ? raw('selected') : ''}>${a}</option>`)}</select>
     <select id="cs">${['Aktiv', 'Ruhend', 'Archiv', ''].map(a => html`<option value="${a}" ${a === status ? raw('selected') : ''}>${a || 'Alle Status'}</option>`)}</select>
-    <select id="co">${[['name', 'Name A–Z'], ['neu', 'Neueste zuerst'], ['kontakt', 'Letzter Kontakt'], ['follow', 'Wiedervorlage']].map(([v, l]) => html`<option value="${v}" ${v === sort ? raw('selected') : ''}>${l}</option>`)}</select></div>
+    <select id="co">${[['name', 'Name A–Z'], ['neu', 'Neueste zuerst'], ['kontakt', 'Letzter Kontakt'], ['follow', 'Wiedervorlage'], ['heiss', '🔥 Heißeste zuerst']].map(([v, l]) => html`<option value="${v}" ${v === sort ? raw('selected') : ''}>${l}</option>`)}</select></div>
     <div class="wahlbar card" id="wahlbar" hidden></div>
     <div class="card flush" id="clist"></div>`.s;
   list(el);
@@ -108,7 +109,7 @@ function detail(el, id) {
   const line = (l, v, href) => v ? html`<div class="kv"><span>${l}</span>${href ? html`<a href="${href}">${v}</a>` : html`<b>${v}</b>`}</div>` : '';
   const phone = (c.mobil || c.tel || '').replace(/[^\d+]/g, '');
   el.innerHTML = html`<a href="#/kontakte" class="back">← Kontakte</a>
-    <div class="head"><div class="who">${avatar(c)}<div><h1>${fullName(c)}</h1><p class="muted">${c.kategorie}${c.firma && c.nachname ? ' · ' + c.firma : ''} ${c.status !== 'Aktiv' ? badge(c.status, '#777') : ''}</p></div></div>
+    <div class="head"><div class="who">${avatar(c)}<div><h1>${fullName(c)} ${tempBadge(c)}</h1><p class="muted">${c.kategorie}${c.firma && c.nachname ? ' · ' + c.firma : ''} ${c.status !== 'Aktiv' ? badge(c.status, '#777') : ''}</p></div></div>
       <div class="actions">${c.email ? html`<a class="btn" href="mailto:${c.email}">✉ E-Mail</a>` : ''}${phone ? html`<a class="btn" href="tel:${phone}">📞 Anrufen</a><a class="btn" target="_blank" rel="noopener" href="https://wa.me/${phone.replace(/^0/, '49').replace('+', '')}">WhatsApp</a>` : ''}<button class="btn" data-modell>📄 Exposé / Modellrechnung</button><button class="btn" data-edit>Bearbeiten</button><button class="btn" data-akt="contact:${c.id}" title="Weitere Aktionen">⋯ Mehr</button></div></div>
     <div class="split"><div>
       <section class="card"><h2>Stammdaten</h2>

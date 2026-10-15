@@ -6,7 +6,7 @@ const PH = ['{{anrede_name}}', '{{vorname}}', '{{nachname}}', '{{ort}}', '{{obje
 function fill(txt, c, p, datum) {
   const s = db.settings();
   const anrede = c ? (c.anrede === 'Frau' ? `Frau ${c.nachname}` : c.anrede === 'Herr' ? `Herr ${c.nachname}` : fullName(c)) : '';
-  const map = { anrede_name: anrede, vorname: c?.vorname || '', nachname: c?.nachname || '', ort: c?.ort || p?.ort || '', 'objekt.titel': p?.titel || '', 'objekt.adresse': p ? adresse(p) : '', 'objekt.preis': p?.preis ? new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(p.preis) : '', datum: datum ? fmtDate(datum) : '[Datum]', absender: s.inhaber, firma: s.firma, tel: s.tel, firma_ort: s.ort };
+  const map = { anrede_name: anrede, vorname: c?.vorname || '', nachname: c?.nachname || '', ort: c?.ort || p?.ort || '', 'objekt.titel': p?.titel || '', 'objekt.titel_zu': p?.titel ? ` zu „${p.titel}“` : '', 'objekt.adresse': p ? adresse(p) : '', 'objekt.preis': p?.preis ? new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(p.preis) : '', datum: datum ? fmtDate(datum) : '[Datum]', absender: s.inhaber, firma: s.firma, tel: s.tel, firma_ort: s.ort };
   return (txt || '').replace(/\{\{\s*([\w.]+)\s*\}\}/g, (_, k) => map[k] ?? '');
 }
 let sel_ = null;

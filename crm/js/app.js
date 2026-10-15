@@ -19,6 +19,7 @@ import * as auto from './automation.js';
 import { schnellerfassung } from './schnellerfassung.js';
 import { initMobil } from './mobil.js';
 import { initAktionen } from './aktionen.js';
+import { initCrmPlus } from './crmplus.js';
 import { belegeHochladen } from './views/finanzen.js';
 function belegFoto() { const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*,application/pdf'; i.multiple = true; i.onchange = () => { if (i.files.length) { location.hash = '#/finanzen'; setTimeout(() => belegeHochladen(i.files), 300); } }; i.click(); }
 
@@ -79,7 +80,7 @@ function shell() {
   db.onChange(rerender); db.onChange(navBadges);
   window.addEventListener('hashchange', route);
   window.addEventListener('focus', () => db.isCloud() && db.reload());
-  route(); auto.start(); idleWatch(); initMobil(); initAktionen();
+  route(); auto.start(); idleWatch(); initMobil(); initAktionen(); initCrmPlus();
 }
 
 async function boot() {

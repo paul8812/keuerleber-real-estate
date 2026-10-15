@@ -4,6 +4,15 @@ import { PIPELINES, sl } from '../consts.js';
 import { dealForm } from '../forms.js';
 import { cLink, pLink, empty, dealProvision } from '../ui.js';
 import { prob, isOpen } from './dashboard.js';
+import { offeneAufgaben } from '../crmplus.js';
+import { lastContact } from '../ui.js';
+import { daysBetween } from '../util.js';
+// Hinweise wie in Pipedrive: Vorgang ohne nächsten Schritt / seit Tagen ruhig
+function hinweis(d) {
+  if (!isOpen(d) || !d.contactId) return '';
+  const lc = lastContact(d.contactId) || (d.updated || d.created || '').slice(0, 10), ruhig = lc ? daysBetween(lc.slice(0, 10), today()) : 0;
+  return html`${!offeneAufgaben(d.contactId).length ? html`<div class="dwarn">⚠ Kein nächster Schritt</div>` : ''}${ruhig >= 7 ? html`<div class="druhig">💤 seit ${ruhig} Tagen kein Kontakt</div>` : ''}`;
+}
 
 let board = 'akquise';
 
@@ -19,7 +28,7 @@ export function render(el) {
         <div class="cards">${cards.map(d => { const late = d.faellig && d.faellig < today() && isOpen(d); return html`<div class="deal" draggable="true" data-id="${d.id}"><div class="ttl">${d.titel}</div>
           ${d.contactId ? html`<div class="sub">☺ ${cLink(d.contactId)}</div>` : ''}${d.propertyId ? html`<div class="sub">⌂ ${pLink(d.propertyId)}</div>` : ''}
           ${d.wert ? html`<div class="val">${eur(d.wert)} <small>· ${prob(d)}%</small></div>` : ''}${d.naechsterSchritt ? html`<div class="next ${late ? 'late' : ''}">→ ${d.naechsterSchritt}${d.faellig ? ' (' + fmtDate(d.faellig) + ')' : ''}</div>` : ''}
-          <div class="dmove">${P.stages.indexOf(stage) > 0 ? html`<button type="button" data-mv="-1" aria-label="Phase zurück">‹</button>` : html`<span></span>`}<button type="button" class="dmehr" data-akt="deal:${d.id}" aria-label="Aktionen">⋯</button><select data-st aria-label="Phase wählen">${P.stages.map(x => html`<option value="${x}" ${x === stage ? raw('selected') : ''}>${sl(x)}</option>`)}</select>${P.stages.indexOf(stage) < P.stages.length - 1 ? html`<button type="button" data-mv="1" aria-label="Nächste Phase">›</button>` : html`<span></span>`}</div></div>`; })}</div>
+          ${hinweis(d)}<div class="dmove">${P.stages.indexOf(stage) > 0 ? html`<button type="button" data-mv="-1" aria-label="Phase zurück">‹</button>` : html`<span></span>`}<button type="button" class="dmehr" data-akt="deal:${d.id}" aria-label="Aktionen">⋯</button><select data-st aria-label="Phase wählen">${P.stages.map(x => html`<option value="${x}" ${x === stage ? raw('selected') : ''}>${sl(x)}</option>`)}</select>${P.stages.indexOf(stage) < P.stages.length - 1 ? html`<button type="button" data-mv="1" aria-label="Nächste Phase">›</button>` : html`<span></span>`}</div></div>`; })}</div>
         <button class="addc" data-add="${stage}">+</button></div>`; })}</div>`.s;
   el.querySelector('[data-new]').onclick = () => dealForm({ board });
   el.querySelectorAll('[data-b]').forEach(b => b.onclick = () => { board = b.dataset.b; render(el); });

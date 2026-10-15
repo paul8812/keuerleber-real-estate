@@ -9,6 +9,7 @@ import { completeTask } from './views/tasks.js';
 import { entwurfDialog } from './entwurf.js';
 import { exposeForm } from './modellrechnung.js';
 import { adresse } from './ui.js';
+import { whatsapp, vcard, naechsterSchritt, offeneVorgaenge } from './crmplus.js';
 
 const nummer = c => (c?.mobil || c?.tel || '').replace(/[^\d+]/g, '');
 const wa = n => 'https://wa.me/' + n.replace(/^00/, '').replace(/^\+/, '').replace(/^0/, '49');
@@ -33,7 +34,7 @@ function nachAnruf() {
     ['✅ Erreicht – Gesprächsnotiz', () => activityForm({ contactId: c.id, art: 'anruf' })],
     ['📵 Nicht erreicht – morgen erneut', async () => { await db.log('anruf', 'Anruf – nicht erreicht', { contactId: c.id }); await db.save('tasks', { titel: 'Erneut anrufen: ' + fullName(c), faellig: addDays(today(), 1), prio: 'normal', contactId: c.id, done: false }); toast('Aufgabe für morgen angelegt'); }],
     ['📞 Rückruf vereinbart – Termin', () => eventForm({ titel: 'Rückruf ' + fullName(c), art: 'Sonstiges', contactId: c.id })],
-    ['💬 Nicht erreicht – WhatsApp schreiben', async () => { await db.log('anruf', 'Anruf – nicht erreicht, WhatsApp geschrieben', { contactId: c.id }); oeffne(wa(nummer(c))); }],
+    ['💬 Nicht erreicht – WhatsApp schreiben', async () => { await db.log('anruf', 'Anruf – nicht erreicht', { contactId: c.id }); whatsapp(c); }],
   ], `Gespräch mit ${fullName(c)}?`);
 }
 
@@ -49,26 +50,28 @@ function exposeFuerKontakt(c) {
 }
 export function kontaktAktionen(c) {
   const n = nummer(c), a = adresse(c), L = [];
-  if (n) L.push(['📞 Anrufen', () => { anrufStart(c.id); oeffne('tel:' + n); }, false, 1], ['💬 WhatsApp', () => oeffne(wa(n)), false, 1], ['✉️ SMS', () => oeffne('sms:' + n), false, 1]);
+  if (n) L.push(['📞 Anrufen', () => { anrufStart(c.id); oeffne('tel:' + n); }, false, 1], ['💬 WhatsApp', () => whatsapp(c), false, 1], ['✉️ SMS', () => oeffne('sms:' + n), false, 1]);
   if (c.email) L.push(['📧 E-Mail', () => oeffne('mailto:' + c.email), false, 1]);
   L.push(['📝 Notiz / Gespräch festhalten', () => activityForm({ contactId: c.id })],
+    ...(offeneVorgaenge(c.id).length ? [['🧭 Nächster Schritt planen', () => naechsterSchritt(c)]] : []),
     ['✓ Aufgabe anlegen', () => taskForm({ contactId: c.id, titel: '' })],
     ['▦ Termin anlegen', () => eventForm({ titel: 'Termin ' + fullName(c), contactId: c.id })],
     wiedervorlage(c, 3, 'in 3 Tagen'), wiedervorlage(c, 7, 'in 1 Woche'),
     ['📄 Exposé / Modellrechnung', () => exposeFuerKontakt(c)]);
   if (a && a.length > 4) L.push(['🧭 Route zur Adresse', () => oeffne(route(a))]);
   if (!location.hash.endsWith(c.id)) L.push(['👤 Kontakt öffnen', () => { location.hash = '#/kontakte/' + c.id; }]);
+  if (n || c.email) L.push(['📇 Im Handy-Adressbuch speichern', () => vcard(c)]);
   L.push(['✏️ Bearbeiten', () => contactForm(c)]);
   if (c.status !== 'Archiv') L.push(['📦 Archivieren', async () => { await db.save('contacts', { ...c, status: 'Archiv' }); toast('Archiviert – unter Status „Archiv“ wiederherstellbar'); }, true]);
   return L;
 }
 export function aufgabeAktionen(t) {
   const c = t.contactId && db.get('contacts', t.contactId), L = [];
-  if (!t.done) L.push(['✓ Erledigt', () => completeTask(t, true), false, 1], ['⏭ Morgen', async () => { await db.save('tasks', { ...t, faellig: addDays(today(), 1) }); toast('Auf morgen verschoben'); }, false, 1],
+  if (!t.done) L.push(['✓ Erledigt', () => completeTask(t, true, true), false, 1], ['⏭ Morgen', async () => { await db.save('tasks', { ...t, faellig: addDays(today(), 1) }); toast('Auf morgen verschoben'); }, false, 1],
     ['📅 Montag', async () => { await db.save('tasks', { ...t, faellig: naechsterMontag() }); toast('Auf Montag verschoben'); }, false, 1],
     [t.prio === 'hoch' ? '⬇ Priorität normal' : '⬆ Priorität hoch', async () => { await db.save('tasks', { ...t, prio: t.prio === 'hoch' ? 'normal' : 'hoch' }); }]);
   else L.push(['↺ Wieder öffnen', () => completeTask(t, false)]);
-  if (c && nummer(c)) L.push(['📞 ' + fullName(c) + ' anrufen', () => { anrufStart(c.id); oeffne('tel:' + nummer(c)); }], ['💬 WhatsApp', () => oeffne(wa(nummer(c)))]);
+  if (c && nummer(c)) L.push(['📞 ' + fullName(c) + ' anrufen', () => { anrufStart(c.id); oeffne('tel:' + nummer(c)); }], ['💬 WhatsApp', () => whatsapp(c)]);
   if (c && c.email) L.push(['✉ E-Mail-Entwurf prüfen', () => entwurfDialog(t)]);
   if (c) L.push(['👤 Kontakt öffnen', () => { location.hash = '#/kontakte/' + c.id; }]);
   L.push(['✏️ Bearbeiten', () => taskForm(t)]);
@@ -86,7 +89,7 @@ export function vorgangAktionen(d, karte) {
 }
 export function terminAktionen(e) {
   const c = e.contactId && db.get('contacts', e.contactId), p = e.propertyId && db.get('properties', e.propertyId), ort = e.ort || (p ? adresse(p) : ''), L = [];
-  if (c && nummer(c)) L.push(['📞 ' + fullName(c) + ' anrufen', () => { anrufStart(c.id); oeffne('tel:' + nummer(c)); }], ['💬 WhatsApp', () => oeffne(wa(nummer(c)))]);
+  if (c && nummer(c)) L.push(['📞 ' + fullName(c) + ' anrufen', () => { anrufStart(c.id); oeffne('tel:' + nummer(c)); }], ['💬 WhatsApp', () => whatsapp(c)]);
   if (ort) L.push(['🧭 Route', () => oeffne(route(ort))]);
   if (c && c.email && e.datum >= today()) L.push(['✉ Terminbestätigung prüfen & senden', () => entwurfDialog({ ohneAufgabe: true, auto: 'tb:' + e.id, contactId: c.id, propertyId: e.propertyId, titel: 'Terminbestätigung' })]);
   if (e.datum <= today()) L.push(['✅ Hat stattgefunden – Notiz', () => activityForm({ contactId: e.contactId, propertyId: e.propertyId, art: e.art === 'Besichtigung' ? 'besichtigung' : 'meeting' })]);

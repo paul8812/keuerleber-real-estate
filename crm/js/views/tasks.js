@@ -5,8 +5,9 @@ import { cLink, pLink, empty, badge } from '../ui.js';
 import { PRIOS } from '../consts.js';
 import { entwurfDialog } from '../entwurf.js';
 
-export async function completeTask(t, done = true) {
+export async function completeTask(t, done = true, frage = false) {
   await db.save('tasks', { ...t, done, doneAt: done ? new Date().toISOString() : '' });
+  if (done && frage) window.dispatchEvent(new CustomEvent('crm:erledigt', { detail: t }));  // → „Nächster Schritt?“ (nur bei Erledigen von Hand)
   if (done && t.wiederholung) {
     const step = { daily: 1, weekly: 7, monthly: 30, yearly: 365 }[t.wiederholung];
     let next;
@@ -34,7 +35,7 @@ export function taskRow(t) {
 }
 export function bindTasks(el) {
   if (el._tasksBound) return; el._tasksBound = true;  // Delegation nur einmal anhängen (main bleibt bestehen)
-  el.addEventListener('change', e => { const id = e.target.dataset?.done; if (id) completeTask(db.get('tasks', id), e.target.checked); });
+  el.addEventListener('change', e => { const id = e.target.dataset?.done; if (id) completeTask(db.get('tasks', id), e.target.checked, true); });
   el.addEventListener('click', async e => {
     const sn = e.target.closest('[data-snooze]')?.dataset.snooze;
     if (sn) { const t = db.get('tasks', sn); await db.save('tasks', { ...t, faellig: addDays(today(), 1) }); toast('Auf morgen verschoben'); return; }

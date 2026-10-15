@@ -83,7 +83,7 @@ function aufgabenWisch(main) {
       const el = li; if (!el) return; li = null;
       const id = el.querySelector('[data-done]')?.dataset.done, t = id && db.get('tasks', id);
       el.style.transition = 'transform .2s';
-      if (t && dx > 90) { el.style.transform = 'translateX(110%)'; await new Promise(r => setTimeout(r, 160)); await completeTask(t, true); return; }
+      if (t && dx > 90) { el.style.transform = 'translateX(110%)'; await new Promise(r => setTimeout(r, 160)); await completeTask(t, true, true); return; }
       if (t && dx < -90) { el.style.transform = 'translateX(-110%)'; await new Promise(r => setTimeout(r, 160)); await db.save('tasks', { ...t, faellig: addDays(today(), 1) }); toast('⏭ Auf morgen verschoben'); return; }
       el.style.transform = ''; el.classList.remove('sw-r', 'sw-l'); setTimeout(() => { el.style.transition = ''; }, 220);
     },

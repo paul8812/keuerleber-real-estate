@@ -5,10 +5,10 @@ import { html, inp, area, modal, toast, fullName, fmtDate } from './util.js';
 import { adresse } from './ui.js';
 import { completeTask } from './views/tasks.js';
 
-function fuellen(txt, c, p, datum) {
+export function fuellen(txt, c, p, datum) {
   const s = db.settings();
   const anrede = c ? (c.anrede === 'Frau' && c.nachname ? `Frau ${c.nachname}` : c.anrede === 'Herr' && c.nachname ? `Herr ${c.nachname}` : fullName(c)) : '';
-  const map = { anrede_name: anrede, vorname: c?.vorname || '', nachname: c?.nachname || '', ort: p?.ort || c?.ort || '', 'objekt.titel': p?.titel || '', 'objekt.adresse': p ? adresse(p) : '',
+  const map = { anrede_name: anrede, vorname: c?.vorname || '', nachname: c?.nachname || '', ort: p?.ort || c?.ort || '', 'objekt.titel': p?.titel || '', 'objekt.titel_zu': p?.titel ? ` zu „${p.titel}“` : '', 'objekt.adresse': p ? adresse(p) : '',
     'objekt.preis': p?.preis ? new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(p.preis) : '', datum: datum ? fmtDate(datum) : '[Datum]',
     absender: s.inhaber || '', firma: s.firma || '', tel: s.tel || '', firma_ort: s.ort || '' };
   return (txt || '').replace(/\{\{\s*([\w.]+)\s*\}\}/g, (_, k) => map[k] ?? '');
@@ -49,7 +49,7 @@ export function entwurfDialog(t) {
       const box = form.querySelector('.entwurfdanach'); box.hidden = false; box.scrollIntoView({ block: 'nearest' });
       box.querySelector('[data-gesendet]').onclick = async () => {
         if (e.c) await db.log('email', `E-Mail gesendet: ${v.betreff}`, { contactId: e.c.id, propertyId: t.propertyId });
-        if (!t.ohneAufgabe) await completeTask(db.get('tasks', t.id) || t, true); toast(t.ohneAufgabe ? '✓ Im Verlauf vermerkt' : '✓ Erledigt'); close();
+        if (!t.ohneAufgabe) await completeTask(db.get('tasks', t.id) || t, true, true); toast(t.ohneAufgabe ? '✓ Im Verlauf vermerkt' : '✓ Erledigt'); close();
       };
       box.querySelector('[data-nein]').onclick = close;
       return false;

@@ -163,5 +163,5 @@ export function render(el) {
   el.querySelectorAll('[data-neu]').forEach(b => b.onclick = e => { e.stopPropagation(); eventForm({ datum: b.dataset.neu }); });
   el.querySelectorAll('.day[data-tag]').forEach(x => x.onclick = e => { if (e.target.closest('[data-ev]')) return; bezug = x.dataset.tag; ansicht = 'agenda'; ls('kre-cal-view', ansicht); render(el); });
   el.querySelectorAll('.wraster').forEach(r => r.onclick = e => { if (e.target.closest('[data-ev]')) return; const h0 = +r.closest('.woche').querySelector('.wstd')?.textContent || 8, y = e.offsetY + (e.target === r ? 0 : e.target.offsetTop); const min = Math.round((h0 * 60 + y / 46 * 60) / 30) * 30; eventForm({ datum: r.dataset.d, start: hhmm(min), ende: hhmm(min + 60) }); });
-  el.querySelectorAll('[data-kdone]').forEach(c => c.onchange = async () => { await completeTask(db.get('tasks', c.dataset.kdone), true); toast('Erledigt'); });
+  el.querySelectorAll('[data-kdone]').forEach(c => c.onchange = async () => { await completeTask(db.get('tasks', c.dataset.kdone), true, true); toast('Erledigt'); });
 }

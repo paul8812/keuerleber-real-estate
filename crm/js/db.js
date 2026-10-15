@@ -172,7 +172,7 @@ export async function log(art, text, refs = {}) {
 }
 
 // ---------- Einstellungen & Standardvorlagen ----------
-export const DEFAULT_SETTINGS = { id: 'main', firma: 'Keuerleber Immobilien', inhaber: 'Paul Keuerleber', strasse: '', plz: '95145', ort: 'Oberkotzau', tel: '', email: '', web: 'keuerleber-immobilien.de', provKaeufer: 0, provVerkaeufer: 0, verguetung: 8000, tplVersion: 2, bundesland: 'Bayern', nachfassTage: 60 };
+export const DEFAULT_SETTINGS = { id: 'main', firma: 'Keuerleber Immobilien', inhaber: 'Paul Keuerleber', strasse: '', plz: '95145', ort: 'Oberkotzau', tel: '', email: '', web: 'keuerleber-immobilien.de', provKaeufer: 0, provVerkaeufer: 0, verguetung: 8000, tplVersion: 3, bundesland: 'Bayern', nachfassTage: 60 };
 export const settings = () => data.settings[0] || DEFAULT_SETTINGS;
 export const saveSettings = s => save('settings', { ...s, id: 'main' });
 
@@ -187,6 +187,10 @@ const TPL = [
   ['Nachfassen Vertriebsvereinbarung', 'Akquise', 'Vertriebsvereinbarung {{objekt.titel}}', 'Guten Tag {{anrede_name}},\n\nvielen Dank für das Gespräch. Wie besprochen sende ich Ihnen anbei den Entwurf der Vertriebsvereinbarung für „{{objekt.titel}}“. Sobald sie unterschrieben ist, nehme ich die Einheiten sofort in die Vermarktung an meine Anleger auf.\n\nMit freundlichen Grüßen\n{{absender}}\n{{firma}}\n{{tel}}'],
   ['Reservierung an Verkäufer melden', 'Akquise', 'Reservierung: {{objekt.titel}}', 'Guten Tag {{anrede_name}},\n\nhiermit melde ich die Reservierung der Einheit „{{objekt.titel}}“ ({{objekt.adresse}}) für meinen Kunden [Name Käufer].\n\nBitte senden Sie mir den Kaufvertragsentwurf zu und nennen Sie mir mögliche Notartermine.\n\nMit freundlichen Grüßen\n{{absender}}\n{{firma}}\n{{tel}}'],
   ['Terminbestätigung', 'Allgemein', 'Terminbestätigung {{datum}}', 'Guten Tag {{anrede_name}},\n\nhiermit bestätige ich unseren Termin am {{datum}}.\n\nMit freundlichen Grüßen\n{{absender}}\n{{firma}}\n{{tel}}'],
+  ['WA: Nach der Anfrage', 'WhatsApp', '', 'Hallo {{anrede_name}}, hier ist {{absender}} von {{firma}}. Vielen Dank für Ihre Anfrage{{objekt.titel_zu}}! Wann passt Ihnen ein kurzes Telefonat (ca. 10 Min.)? Exposé und Berechnung schicke ich Ihnen gern vorab.'],
+  ['WA: Nicht erreicht', 'WhatsApp', '', 'Hallo {{anrede_name}}, ich habe gerade versucht, Sie telefonisch zu erreichen. Wann passt es Ihnen am besten? Viele Grüße, {{absender}}'],
+  ['WA: Nachfassen', 'WhatsApp', '', 'Hallo {{anrede_name}}, konnten Sie sich Exposé und Berechnung schon anschauen? Gern gehe ich alles in 10 Minuten mit Ihnen durch – wann passt es Ihnen? Viele Grüße, {{absender}}'],
+  ['WA: Termin-Erinnerung', 'WhatsApp', '', 'Hallo {{anrede_name}}, kurze Erinnerung an unseren Termin am {{datum}}. Ich freue mich auf Sie! Viele Grüße, {{absender}}'],
   ['Geburtstagsgruß', 'Allgemein', 'Alles Gute zum Geburtstag!', 'Liebe/r {{anrede_name}},\n\nzum Geburtstag wünsche ich Ihnen alles Gute, Gesundheit und viel Freude!\n\nHerzliche Grüße\n{{absender}}\n{{firma}}'],
 ];
 async function ensureDefaults() {
@@ -200,6 +204,12 @@ async function ensureDefaults() {
     for (const t of [...data.templates]) if (/Immobilienmakler in der Region|Angebot zur Vermarktung Ihrer Immobilie/.test(t.text || '')) { data.templates = data.templates.filter(x => x !== t); if (cloud) await unpersist('templates', t.id); }
     for (const [name, kategorie, betreff, text] of TPL) if (!data.templates.some(t => t.name === name)) { const r = { id: uid(), name, kategorie, betreff, text, created: new Date().toISOString() }; data.templates.push(r); if (cloud) await persist('templates', r); }
     data.settings[0] = { ...data.settings[0], tplVersion: 2 }; if (cloud) await persist('settings', data.settings[0]);
+    if (!cloud) saveLocal();
+  }
+  if (data.templates.length && !(data.settings[0]?.tplVersion >= 3)) {
+    // WhatsApp-Textbausteine einmalig ergänzen
+    for (const [name, kategorie, betreff, text] of TPL) if (kategorie === 'WhatsApp' && !data.templates.some(t => t.name === name)) { const r = { id: uid(), name, kategorie, betreff, text, created: new Date().toISOString() }; data.templates.push(r); if (cloud) await persist('templates', r); }
+    data.settings[0] = { ...data.settings[0], tplVersion: 3 }; if (cloud) await persist('settings', data.settings[0]);
     if (!cloud) saveLocal();
   }
 }
