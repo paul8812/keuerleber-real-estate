@@ -1,6 +1,6 @@
 import * as db from '../db.js';
 import { html, raw, esc, fmtDate, fmtDT, eur, num, download, toCSV, today, daysBetween, pct, toast, confirmDlg } from '../util.js';
-import { OBJEKT_ARTEN, OBJEKT_STATUS, STATUS_FARBE } from '../consts.js';
+import { OBJEKT_ARTEN, OBJEKT_STATUS, STATUS_FARBE, sl } from '../consts.js';
 import { propertyForm, taskForm, eventForm, dealForm, activityForm } from '../forms.js';
 import { empty, timeline, cLink, statusBadge, badge, adresse, preisM2, matchesForProperty } from '../ui.js';
 import { taskRow, bindTasks } from './tasks.js';
@@ -115,7 +115,7 @@ function detail(el, id) {
         ${p.beschreibung ? html`<h3>Beschreibung</h3><p class="note">${p.beschreibung}</p>` : ''}${p.ausstattung ? html`<h3>Ausstattung / Lage</h3><p class="note">${p.ausstattung}</p>` : ''}${p.notiz ? html`<h3>Interne Notiz</h3><p class="note">${p.notiz}</p>` : ''}</section>
       <section class="card"><h2>Passende Interessenten</h2>${matches.length ? html`<ul class="list">${matches.slice(0, 10).map(x => html`<li><b class="when">${x.m.score}%</b><div class="grow"><div class="ttl">${cLink(x.c.id)}</div><div class="sub">passt: ${x.m.hits.join(', ')}${x.c.sp_budgetMax ? ' · Budget ' + eur(x.c.sp_budgetMax) : ''}</div></div></li>`)}</ul>` : html`<p class="muted">Keine Treffer. Suchprofile bei Interessenten pflegen.</p>`}</section>
     </div><div>
-      <section class="card"><h2>Vorgänge <button class="mini" data-deal>+</button></h2>${deals.length ? html`<ul class="list">${deals.map(d => html`<li data-deal-id="${d.id}"><div class="grow"><div class="ttl">${d.titel}</div><div class="sub">${d.stage} ${d.contactId ? '· ' : ''}${d.contactId ? cLink(d.contactId) : ''}</div></div></li>`)}</ul>` : html`<p class="muted">Keine Vorgänge</p>`}</section>
+      <section class="card"><h2>Vorgänge <button class="mini" data-deal>+</button></h2>${deals.length ? html`<ul class="list">${deals.map(d => html`<li data-deal-id="${d.id}"><div class="grow"><div class="ttl">${d.titel}</div><div class="sub">${sl(d.stage)} ${d.contactId ? '· ' : ''}${d.contactId ? cLink(d.contactId) : ''}</div></div></li>`)}</ul>` : html`<p class="muted">Keine Vorgänge</p>`}</section>
       <section class="card"><h2>Aufgaben <button class="mini" data-task>+</button></h2>${tasks.length ? html`<ul class="tasks">${tasks.map(taskRow)}</ul>` : html`<p class="muted">Keine Aufgaben</p>`}</section>
       <section class="card"><h2>Termine <button class="mini" data-event>+</button></h2>${evs.length ? html`<ul class="list">${evs.map(e => html`<li data-ev="${e.id}"><b class="when">${fmtDate(e.datum)}</b><div class="grow"><div class="ttl">${e.titel}</div><div class="sub">${e.art}${e.contactId ? html` · ${cLink(e.contactId)}` : ''}</div></div></li>`)}</ul>` : html`<p class="muted">Keine Termine</p>`}</section>
       <section class="card"><h2>Verlauf <button class="mini" data-act>+ Eintrag</button></h2>${timeline(acts, { showRefs: true })}</section>

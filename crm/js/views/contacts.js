@@ -1,6 +1,6 @@
 import * as db from '../db.js';
 import { html, raw, fullName, fmtDate, fmtDT, download, toCSV, parseCSV, toast, modal, today, daysBetween, eur } from '../util.js';
-import { KONTAKT_ARTEN } from '../consts.js';
+import { KONTAKT_ARTEN, sl } from '../consts.js';
 import { contactForm, dealForm, taskForm, eventForm, activityForm } from '../forms.js';
 import { avatar, badge, empty, timeline, pLink, matchesForContact, lastContact, statusBadge, adresse } from '../ui.js';
 import { taskRow, bindTasks } from './tasks.js';
@@ -80,7 +80,7 @@ function detail(el, id) {
       ${c.sp_aktiv ? html`<section class="card"><h2>Suchprofil</h2>${line('Gesucht', [c.sp_vermarktung, c.sp_art].filter(Boolean).join(' · '))}${line('Budget bis', c.sp_budgetMax && eur(c.sp_budgetMax))}${line('Fläche ab', c.sp_flaecheMin && c.sp_flaecheMin + ' m²')}${line('Zimmer ab', c.sp_zimmerMin)}${line('Orte', c.sp_orte)}
         <h3>Passende Objekte</h3>${matches.length ? html`<ul class="list">${matches.slice(0, 6).map(x => html`<li><b class="when">${x.m.score}%</b><div class="grow"><div class="ttl">${pLink(x.p.id)}</div><div class="sub">${x.p.ort || ''} · ${eur(x.p.preis)}</div></div></li>`)}</ul>` : html`<p class="muted">Aktuell keine Treffer</p>`}</section>` : ''}
       ${props.length ? html`<section class="card"><h2>Objekte (Eigentümer)</h2><ul class="list">${props.map(p => html`<li><div class="grow"><div class="ttl">${pLink(p.id)}</div><div class="sub">${p.ort || ''} · ${eur(p.preis)}</div></div>${statusBadge(p.status)}</li>`)}</ul></section>` : ''}
-      <section class="card"><h2>Vorgänge <button class="mini" data-deal>+</button></h2>${deals.length ? html`<ul class="list">${deals.map(d => html`<li data-deal-id="${d.id}"><div class="grow"><div class="ttl">${d.titel}</div><div class="sub">${d.stage} · ${eur(d.wert)}</div></div></li>`)}</ul>` : html`<p class="muted">Keine Vorgänge</p>`}</section>
+      <section class="card"><h2>Vorgänge <button class="mini" data-deal>+</button></h2>${deals.length ? html`<ul class="list">${deals.map(d => html`<li data-deal-id="${d.id}"><div class="grow"><div class="ttl">${d.titel}</div><div class="sub">${sl(d.stage)} · ${eur(d.wert)}</div></div></li>`)}</ul>` : html`<p class="muted">Keine Vorgänge</p>`}</section>
     </div><div>
       <section class="card"><h2>Aufgaben <button class="mini" data-task>+</button></h2>${tasks.length ? html`<ul class="tasks">${tasks.map(taskRow)}</ul>` : html`<p class="muted">Keine Aufgaben</p>`}</section>
       <section class="card"><h2>Termine <button class="mini" data-event>+</button></h2>${evs.length ? html`<ul class="list">${evs.map(e => html`<li data-ev="${e.id}"><b class="when">${fmtDate(e.datum)}</b><div class="grow"><div class="ttl">${e.titel}</div><div class="sub">${e.art}${e.ort ? ' · ' + e.ort : ''}</div></div></li>`)}</ul>` : html`<p class="muted">Keine Termine</p>`}</section>

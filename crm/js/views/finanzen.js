@@ -2,7 +2,7 @@
 import * as db from '../db.js';
 import { html, raw, inp, area, sel, chk, modal, toast, confirmDlg, download, toCSV, today, addDays, fmtDate, eur, eur2, fullName } from '../util.js';
 import { contactOpts, propOpts, cLink, pLink, empty, badge, adresse } from '../ui.js';
-import { PIPELINES } from '../consts.js';
+import { PIPELINES, sl } from '../consts.js';
 import * as F from '../finanzen.js';
 import * as KI from '../ki.js';
 import { esc } from '../util.js';
@@ -11,7 +11,7 @@ let tab = 'uebersicht', jahrSel = today().slice(0, 4), artSel = '';
 const MN = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
 const ST = { entwurf: ['Entwurf', '#777'], offen: ['Offen', '#e0a84a'], bezahlt: ['Bezahlt', '#5bbf8a'], storniert: ['Storniert', '#e06a5a'] };
 const reStatus = re => F.istUeberfaellig(re) ? badge('Überfällig', '#e06a5a') : badge(...(ST[re.status] || ST.offen));
-const dealOpts = () => db.all('deals').slice().sort((a, b) => (b.updated || '').localeCompare(a.updated || '')).map(d => [d.id, `${d.titel} · ${d.stage}`]);
+const dealOpts = () => db.all('deals').slice().sort((a, b) => (b.updated || '').localeCompare(a.updated || '')).map(d => [d.id, `${d.titel} · ${sl(d.stage)}`]);
 
 function anrede(c) {
   if (!c) return 'Sehr geehrte Damen und Herren,';
@@ -231,7 +231,7 @@ function uebersicht() {
       <section class="card" style="grid-column:1/-1"><h2>Monate ${jahrSel} <span class="muted small">netto · <i class="lg ein"></i> Einnahmen <i class="lg aus"></i> Ausgaben</span></h2>
         <div class="months">${J.monate.map((m, i) => html`<div class="mo" title="${MN[i]}: Einnahmen ${eur(m.ein)}, Ausgaben ${eur(m.aus)}"><div class="mb"><i class="ein" style="height:${m.ein / max * 100}%"></i><i class="aus" style="height:${m.aus / max * 100}%"></i></div><span>${MN[i]}</span><b class="${m.ein - m.aus < 0 ? 'bad' : ''}">${m.ein || m.aus ? eur(m.ein - m.aus) : ''}</b></div>`)}</div></section>
       <section class="card"><h2>Ausgaben nach Kategorie</h2>${kat.length ? html`<div class="bars">${kat.map(([k, v]) => html`<div class="bar"><span class="bl">${k}</span><div class="bt"><i style="width:${v / kmax * 100}%;background:var(--gold)"></i></div><b>${eur(v)}</b></div>`)}</div>` : empty('Noch keine Ausgaben', '„+ Ausgabe“ oben rechts')}</section>
-      <section class="card"><h2>Rechnung fällig</h2>${zuSchreiben.length ? html`<ul class="list">${zuSchreiben.map(d => html`<li data-redeal="${d.id}"><span class="ic">€</span><div class="grow"><div class="ttl">${d.titel}</div><div class="sub">${d.stage}${d.contactId ? html` · ${cLink(d.contactId)}` : ''}</div></div><button class="mini">Rechnung</button></li>`)}</ul>` : html`<p class="muted">Alle abgeschlossenen Vorgänge sind abgerechnet.</p>`}
+      <section class="card"><h2>Rechnung fällig</h2>${zuSchreiben.length ? html`<ul class="list">${zuSchreiben.map(d => html`<li data-redeal="${d.id}"><span class="ic">€</span><div class="grow"><div class="ttl">${d.titel}</div><div class="sub">${sl(d.stage)}${d.contactId ? html` · ${cLink(d.contactId)}` : ''}</div></div><button class="mini">Rechnung</button></li>`)}</ul>` : html`<p class="muted">Alle abgeschlossenen Vorgänge sind abgerechnet.</p>`}
         ${ueber.length ? html`<h3>Überfällig</h3><ul class="list">${ueber.map(r => html`<li data-re="${r.id}"><b class="when">${fmtDate(r.faellig)}</b><div class="grow"><div class="ttl">${r.nr} · ${(r.empfaenger || '').split('\n')[0]}</div><div class="sub">${eur2(F.summen(r).brutto)}</div></div></li>`)}</ul>` : ''}</section>
     </div>`;
 }

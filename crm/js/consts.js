@@ -19,3 +19,6 @@ export const NAV = [
   ['dashboard', 'Übersicht', '◧'], ['posteingang', 'Posteingang', '✉'], ['kontakte', 'Kontakte', '☺'], ['objekte', 'Objekte', '⌂'], ['pipeline', 'Pipeline', '▤'],
   ['aufgaben', 'Aufgaben', '✓'], ['kalender', 'Kalender', '▦'], ['finanzen', 'Finanzen', '€'], ['automation', 'Automationen', '⚡'], ['vorlagen', 'Vorlagen', '✎'], ['rechner', 'Rechner', '∑'], ['statistik', 'Statistik', '◔'], ['einstellungen', 'Einstellungen', '⚙'],
 ];
+// Anzeigenamen der Einkaufs-Phasen für den Kapitalanlagevertrieb (gespeicherte Werte bleiben gleich – kompatibel mit Mail-Abgleich)
+export const STAGE_LABEL = { 'Neuer Lead': 'Neuer Kontakt', 'Bewertung / Besichtigung': 'Objektprüfung / Kalkulation', 'Angebot / Maklerauftrag': 'Vertriebsvereinbarung', 'Auftrag erhalten': 'Im Vertrieb' };
+export const sl = s => STAGE_LABEL[s] || s;

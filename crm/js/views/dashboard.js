@@ -24,8 +24,8 @@ export function render(el) {
   const cold = contacts.filter(c => c.status === 'Aktiv' && ['Eigentümer', 'Investor', 'Verkäufer', 'Vermieter'].includes(c.kategorie)).map(c => ({ c, last: lastContact(c.id) || (c.created || '').slice(0, 10) })).filter(x => x.last && daysBetween(x.last.slice(0, 10), t0) > (s.nachfassTage || 60)).sort((a, b) => a.last.localeCompare(b.last)).slice(0, 6);
   const expiring = [];
   props.filter(p => !['Archiv', 'Verkauft / Vermietet'].includes(p.status)).forEach(p => {
-    if (p.auftragBis && p.auftragBis >= t0 && p.auftragBis <= addDays(t0, 60)) expiring.push({ p, txt: `Maklervertrag endet ${fmtDate(p.auftragBis)}` });
-    if (p.auftragBis && p.auftragBis < t0) expiring.push({ p, txt: `Maklervertrag abgelaufen ${fmtDate(p.auftragBis)}` });
+    if (p.auftragBis && p.auftragBis >= t0 && p.auftragBis <= addDays(t0, 60)) expiring.push({ p, txt: `Vertriebsvereinbarung endet ${fmtDate(p.auftragBis)}` });
+    if (p.auftragBis && p.auftragBis < t0) expiring.push({ p, txt: `Vertriebsvereinbarung abgelaufen ${fmtDate(p.auftragBis)}` });
     if (p.eGueltig && p.eGueltig <= addDays(t0, 60)) expiring.push({ p, txt: `Energieausweis ${p.eGueltig < t0 ? 'abgelaufen' : 'läuft ab'} ${fmtDate(p.eGueltig)}` });
     if (p.status === 'Aktiv' && !p.preis) expiring.push({ p, txt: 'Aktiv ohne Preis' });
   });

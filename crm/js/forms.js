@@ -1,7 +1,7 @@
 // Formulare (Modals) für alle Datentypen
 import * as db from './db.js';
 import { html, raw, inp, area, sel, chk, modal, toast, today, uid, fullName } from './util.js';
-import { KONTAKT_ARTEN, QUELLEN, OBJEKT_ARTEN, OBJEKT_STATUS, ENERGIE_KLASSEN, HEIZUNG, PIPELINES, DEFAULT_PROB, TERMIN_ARTEN, PRIOS, WIEDERHOLUNG, AKTIVITAET_ARTEN } from './consts.js';
+import { KONTAKT_ARTEN, QUELLEN, OBJEKT_ARTEN, OBJEKT_STATUS, ENERGIE_KLASSEN, HEIZUNG, PIPELINES, DEFAULT_PROB, TERMIN_ARTEN, PRIOS, WIEDERHOLUNG, AKTIVITAET_ARTEN, sl } from './consts.js';
 import { contactOpts, propOpts } from './ui.js';
 
 const STAT = ['Aktiv', 'Ruhend', 'Archiv'];
@@ -88,7 +88,7 @@ export function dealForm(d = {}, done) {
   modal(isNew ? 'Neuer Vorgang' : 'Vorgang bearbeiten', html`
     ${inp('titel', 'Titel', d.titel, { req: 1, cls: 'full' })}
     ${sel('board', 'Pipeline', Object.entries(PIPELINES).map(([k, v]) => [k, v.name]), board)}
-    ${sel('stage', 'Phase', [...new Set(Object.values(PIPELINES).flatMap(p => p.stages))], d.stage || PIPELINES[board].stages[0])}
+    ${sel('stage', 'Phase', [...new Set(Object.values(PIPELINES).flatMap(p => p.stages))].map(x => [x, sl(x)]), d.stage || PIPELINES[board].stages[0])}
     ${sel('contactId', 'Kontakt', contactOpts(), d.contactId, { blank: 1 })}${sel('propertyId', 'Objekt', propOpts(), d.propertyId, { blank: 1 })}
     ${inp('wert', 'Objektwert / Kaufpreis (€)', d.wert, { type: 'number' })}${inp('verguetung', 'Deine Vergütung (€ netto) – leer = Objekt/Standard', d.verguetung, { type: 'number', step: '100' })}
     ${inp('wahrscheinlichkeit', 'Wahrscheinlichkeit (%) – leer = automatisch', d.wahrscheinlichkeit, { type: 'number' })}${inp('naechsterSchritt', 'Nächster Schritt', d.naechsterSchritt)}
@@ -103,8 +103,8 @@ export function dealForm(d = {}, done) {
         if (old !== v.stage) rec.stageAt = new Date().toISOString();
         if ((v.stage === P.won || v.stage === P.lost) && !rec.closedAt) rec.closedAt = today(); if (v.stage !== P.won && v.stage !== P.lost) rec.closedAt = '';
         await db.save('deals', rec);
-        if (isNew) await db.log('system', `Vorgang „${v.titel}“ angelegt (${v.stage})`, { contactId: v.contactId, propertyId: v.propertyId, dealId: rec.id });
-        else if (old !== v.stage) await db.log('system', `Vorgang „${v.titel}“: ${old} → ${v.stage}`, { contactId: v.contactId, propertyId: v.propertyId, dealId: rec.id });
+        if (isNew) await db.log('system', `Vorgang „${v.titel}“ angelegt (${sl(v.stage)})`, { contactId: v.contactId, propertyId: v.propertyId, dealId: rec.id });
+        else if (old !== v.stage) await db.log('system', `Vorgang „${v.titel}“: ${sl(old)} → ${sl(v.stage)}`, { contactId: v.contactId, propertyId: v.propertyId, dealId: rec.id });
         toast('Vorgang gespeichert'); done && done(rec);
       },
       danger: isNew ? null : { label: 'Löschen', confirm: 'Vorgang löschen?', fn: async () => { await db.del('deals', d.id); } },

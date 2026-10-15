@@ -58,7 +58,7 @@ export function schnellerfassung(vorgabe = '') {
     ${area('text', 'Anfrage-Text', vorgabe, { rows: 7, ph: 'Hier einfügen …' })}
     ${sel('anrede', 'Anrede', ['Frau', 'Herr', 'Divers', 'Firma'], r.anrede)}${inp('vorname', 'Vorname', r.vorname)}${inp('nachname', 'Nachname', r.nachname)}
     ${inp('email', 'E-Mail', r.email, { type: 'email' })}${inp('tel', 'Telefon', r.tel, { type: 'tel' })}
-    ${sel('kategorie', 'Art', ['Interessent (Kauf)', 'Interessent (Miete)', 'Eigentümer', 'Sonstige'], r.kategorie)}
+    ${sel('kategorie', 'Art', ['Interessent (Kauf)', 'Interessent (Miete)', 'Bauträger / Verkäufer', 'Eigentümer', 'Sonstige'], r.kategorie)}
     ${sel('quelle', 'Quelle', QUELLEN, r.quelle, { blank: 1 })}
     ${sel('propertyId', 'Objekt', propOpts(), r.propertyId, { blank: 1, cls: 'full' })}
     ${chk('vorgang', 'Vorgang in der Pipeline anlegen', true, { cls: 'full' })}
@@ -71,7 +71,7 @@ export function schnellerfassung(vorgabe = '') {
         const p = parseAnfrage(ta.value);
         for (const k of ['anrede', 'vorname', 'nachname', 'email', 'tel', 'kategorie', 'quelle', 'propertyId']) if (!touched.has(k) && (p[k] || k !== 'propertyId')) f[k].value = p[k] || (k === 'anrede' ? 'Frau' : '');
         const vorh = dublette(f.email.value, f.tel.value);
-        f.vorgang.parentElement.querySelector('span').textContent = (f.kategorie.value === 'Eigentümer' ? 'Akquise-Vorgang' : 'Vorgang') + ' in der Pipeline anlegen';
+        f.vorgang.parentElement.querySelector('span').textContent = (['Eigentümer', 'Bauträger / Verkäufer'].includes(f.kategorie.value) ? 'Einkaufs-Vorgang' : 'Vorgang') + ' in der Pipeline anlegen';
         hint.textContent = vorh ? `ℹ️ ${fullName(vorh)} ist schon im CRM – die Anfrage wird diesem Kontakt zugeordnet.` : '';
       };
       ta.addEventListener('input', upd); ta.addEventListener('paste', () => setTimeout(upd, 0));
@@ -102,7 +102,7 @@ export async function speichern(v) {
   const p = v.propertyId ? db.get('properties', v.propertyId) : null;
   if (v.text) await db.log(/@/.test(v.text) || v.quelle ? 'email' : 'notiz', `Anfrage${p ? ' zu „' + p.titel + '“' : ''}${v.quelle ? ' über ' + v.quelle : ''}:\n${v.text.slice(0, 4000)}`, { contactId: c.id, propertyId: p?.id, eingehend: true });
   if (v.vorgang) {
-    const board = v.kategorie === 'Eigentümer' ? 'akquise' : 'vertrieb';
+    const board = ['Eigentümer', 'Bauträger / Verkäufer'].includes(v.kategorie) ? 'akquise' : 'vertrieb';
     const offen = db.all('deals').find(d => d.contactId === c.id && d.board === board && (d.propertyId || '') === (p?.id || '') && !['Abgeschlossen', 'Absage', 'Auftrag erhalten', 'Verloren'].includes(d.stage));
     if (!offen) {
       const stage = board === 'akquise' ? 'Neuer Lead' : 'Anfrage';
