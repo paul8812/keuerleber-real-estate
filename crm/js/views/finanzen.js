@@ -4,6 +4,8 @@ import { html, raw, inp, area, sel, chk, modal, toast, confirmDlg, download, toC
 import { contactOpts, propOpts, cLink, pLink, empty, badge, adresse } from '../ui.js';
 import { PIPELINES } from '../consts.js';
 import * as F from '../finanzen.js';
+import * as KI from '../ki.js';
+import { esc } from '../util.js';
 
 let tab = 'uebersicht', jahrSel = today().slice(0, 4), artSel = '';
 const MN = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
@@ -112,26 +114,86 @@ export function rechnungDetail(re) {
 // ---------- Einnahme / Ausgabe ----------
 export function buchungForm(b = {}, done) {
   const isNew = !b.id, art = b.art || 'ausgabe';
-  modal(isNew ? (art === 'einnahme' ? 'Neue Einnahme' : 'Neue Ausgabe') : 'Buchung bearbeiten', html`
+  modal(isNew ? (art === 'einnahme' ? 'Neue Einnahme' : 'Neue Ausgabe') : (b.ki ? 'Beleg prüfen' : 'Buchung bearbeiten'), html`
+    ${b.pruefen || b.hinweis ? html`<p class="full kihint">${b.ki ? `🤖 KI-erkannt (${Math.round((b.kiSicherheit || 0) * 100)} % sicher)` : ''}${b.hinweis ? ' · ' + b.hinweis : ''}${b.pruefen ? ' – bitte kurz prüfen und speichern.' : ''}</p>` : b.ki ? html`<p class="full muted small">🤖 Von der KI erkannt und verbucht.</p>` : ''}
     ${sel('art', 'Art', [['ausgabe', 'Ausgabe'], ['einnahme', 'Einnahme']], art)}${inp('datum', 'Datum', b.datum || today(), { type: 'date', req: 1 })}
-    ${sel('kategorie', 'Kategorie', art === 'einnahme' ? F.KAT_EINNAHME : F.KAT_AUSGABE, b.kategorie)}${inp('beschreibung', 'Beschreibung', b.beschreibung, { ph: 'z. B. ImmoScout24 Inserat Oktober' })}
-    ${inp('brutto', 'Betrag brutto (€)', b.brutto, { type: 'number', step: '0.01', req: 1 })}${sel('ustSatz', 'Enthaltene USt', F.UST_SAETZE, b.ustSatz ?? (F.kleinunternehmer() && art === 'einnahme' ? 0 : 19))}
+    ${sel('kategorie', 'Kategorie', art === 'einnahme' ? F.KAT_EINNAHME : F.KAT_AUSGABE, b.kategorie)}${inp('konto', 'Konto (SKR03)', b.konto || F.konto(b.kategorie || (art === 'einnahme' ? F.KAT_EINNAHME[0] : F.KAT_AUSGABE[0]), b.ustSatz ?? 19), { ph: 'automatisch' })}
+    ${inp('beschreibung', 'Beschreibung', b.beschreibung, { ph: 'z. B. ImmoScout24 Inserat Oktober' })}${inp('lieferant', art === 'einnahme' ? 'Kunde' : 'Lieferant / Aussteller', b.lieferant)}
+    ${inp('brutto', 'Betrag brutto (€)', b.brutto, { type: 'number', step: '0.01', req: 1 })}${sel('ustSatz', 'Enthaltene USt', F.UST_SAETZE, b.ustSatz ?? (F.kleinunternehmer() ? 0 : 19))}
     ${sel('contactId', 'Kontakt (optional)', contactOpts(), b.contactId, { blank: 1 })}${sel('propertyId', 'Objekt (optional)', propOpts(), b.propertyId, { blank: 1 })}
-    ${inp('beleg', 'Beleg-Nr. / Ablage', b.beleg, { ph: 'z. B. RE 4711, Ordner 2026' })}${sel('zahlart', 'Bezahlt per', ['Überweisung', 'Lastschrift', 'Karte', 'PayPal', 'Bar'], b.zahlart || 'Überweisung')}
-    <p class="full muted small" id="bsplit"></p>`, {
+    ${inp('beleg', 'Beleg-/Rechnungs-Nr.', b.beleg || b.rechnungsnr, { ph: 'z. B. RE 4711' })}${sel('zahlart', 'Bezahlt per', ['Überweisung', 'Lastschrift', 'Karte', 'PayPal', 'Bar'], b.zahlart || 'Überweisung')}
+    ${chk('offen', 'Noch nicht bezahlt (offene Rechnung)', !!b.offen, { cls: 'full' })}
+    <p class="full muted small" id="bsplit"></p>
+    ${b.belegId ? html`<div class="full"><button type="button" class="btn" data-beleg>📎 Beleg ansehen</button></div>` : ''}`, {
+    wide: !!b.belegId,
     onMount: el => {
       const f = el.querySelector('form'), g = n => f.querySelector(`[name=${n}]`);
-      const upd = () => { const { netto, ust } = F.bruttoZuNetto(g('brutto').value || 0, g('ustSatz').value); el.querySelector('#bsplit').textContent = `Netto ${eur2(netto)} · USt ${eur2(ust)}`; };
-      g('art').addEventListener('change', () => { const k = g('art').value === 'einnahme' ? F.KAT_EINNAHME : F.KAT_AUSGABE; g('kategorie').innerHTML = k.map(x => `<option>${x}</option>`).join(''); });
-      f.addEventListener('input', upd); upd();
+      let kontoManuell = !!b.konto && b.konto !== F.konto(b.kategorie, b.ustSatz);
+      const upd = () => { const { netto, ust } = F.bruttoZuNetto(g('brutto').value || 0, g('ustSatz').value); el.querySelector('#bsplit').textContent = `Netto ${eur2(netto)} · USt ${eur2(ust)}`; if (!kontoManuell) g('konto').value = F.konto(g('kategorie').value, g('ustSatz').value); };
+      g('konto').addEventListener('input', () => { kontoManuell = true; });
+      g('art').addEventListener('change', () => { const k = g('art').value === 'einnahme' ? F.KAT_EINNAHME : F.KAT_AUSGABE; g('kategorie').innerHTML = k.map(x => `<option>${esc(x)}</option>`).join(''); upd(); });
+      f.addEventListener('input', upd); f.addEventListener('change', upd); upd();
+      el.querySelector('[data-beleg]')?.addEventListener('click', () => belegAnsehen(b.belegId));
     },
     onSave: async v => {
       const { netto, ust } = F.bruttoZuNetto(v.brutto, v.ustSatz);
-      await db.save('buchungen', { ...b, ...v, brutto: F.r2(v.brutto), ustSatz: Number(v.ustSatz), netto, ust });
-      toast('Gebucht'); done && done();
+      await db.save('buchungen', { ...b, ...v, brutto: F.r2(v.brutto), ustSatz: Number(v.ustSatz), netto, ust, konto: v.konto || F.konto(v.kategorie, v.ustSatz), pruefen: false });
+      if (b.pruefen && b.belegId) for (const x of db.all('buchungen')) if (x.belegId === b.belegId && x.id !== b.id && x.pruefen) await db.save('buchungen', { ...x, pruefen: false });
+      toast(b.pruefen ? '✓ Geprüft' : 'Gebucht'); done && done();
     },
-    danger: isNew ? null : { label: 'Löschen', confirm: 'Buchung löschen?', fn: async () => { await db.del('buchungen', b.id); } },
+    danger: isNew ? null : { label: 'Löschen', confirm: 'Buchung löschen?' + (b.belegId ? ' Der Beleg wird mit gelöscht.' : ''), fn: async () => { await db.del('buchungen', b.id); if (b.belegId && !db.all('buchungen').some(x => x.belegId === b.belegId)) await db.delFile(b.belegId); } },
   });
+}
+
+export async function belegAnsehen(id) {
+  const w = window.open('', '_blank'); if (!w) { toast('Pop-up blockiert – bitte erlauben', 'err'); return; }
+  w.document.write('<title>Beleg</title><body style="margin:0;background:#222;color:#ccc;font:14px sans-serif"><p style="padding:20px">Beleg wird geladen …</p>');
+  try {
+    const f = await db.getFile(id); if (!f) throw new Error('Beleg nicht gefunden');
+    const blob = await (await fetch(f.dataUrl)).blob(); w.location.href = URL.createObjectURL(blob);
+  } catch (e) { w.document.body.innerHTML = `<p style="padding:20px">${esc(e.message)}</p>`; }
+}
+
+// ---------- KI-Belegeingang ----------
+function kiEinrichten() {
+  modal('🤖 KI-Belegerkennung einrichten', html`<div class="full">
+    <p>Die KI liest Fotos und PDFs deiner Belege, erkennt Betrag, Datum, Lieferant und Steuer, ordnet Kategorie, Konto (SKR03) und Objekt zu und bucht alles automatisch.</p>
+    <p class="muted">Dafür braucht das CRM einmalig einen Zugangsschlüssel für die KI (Claude von Anthropic). Kosten: ca. 1–2 Cent pro Beleg, abgerechnet über dein eigenes Guthaben.</p>
+    <p><a class="btn primary" href="#/einstellungen" data-close>Zu den Einstellungen → KI-Belegerkennung</a></p></div>`);
+}
+
+export function belegeHochladen(files) {
+  files = [...files].filter(f => /^image\/|pdf$/.test(f.type) || /\.(jpe?g|png|heic|webp|pdf)$/i.test(f.name));
+  if (!files.length) return;
+  if (!KI.hasKey()) return kiEinrichten();
+  const rows = files.map((f, i) => ({ i, f, st: 'wartet' }));
+  const m = modal(`📷 Belegeingang (${files.length})`, html`<div class="full"><p class="muted small" id="kistat">Die KI liest deine Belege …</p><ul class="list kilist" id="kilist"></ul></div>`, { wide: true });
+  const list = m.el.querySelector('#kilist'), stat = m.el.querySelector('#kistat');
+  const draw = () => {
+    list.innerHTML = rows.map(r => {
+      const b = r.buchungen?.[0], ic = { wartet: '⏳', liest: '🔍', ok: '✅', pruefen: '⚠️', dublette: '⧉', fehler: '❌' }[r.st];
+      const sub = r.st === 'liest' ? 'wird gelesen …' : r.st === 'wartet' ? 'in der Warteschlange' : r.st === 'fehler' ? r.err : r.st === 'dublette' ? `schon gebucht am ${fmtDate(r.dup.datum)} – übersprungen` :
+        `${b.art === 'einnahme' ? '+' : '−'}${eur2(b.belegBrutto)} · ${b.kategorie} · Konto ${b.konto}${r.buchungen.length > 1 ? ` · ${r.buchungen.length} Steuersätze` : ''}${b.propertyId ? ' · ' + (db.get('properties', b.propertyId)?.titel || '') : ''}${b.hinweis ? ' · ' + b.hinweis : ''}`;
+      return `<li data-ki="${r.i}" class="${r.buchungen || r.dup ? 'click' : ''}"><span class="ic">${ic}</span><div class="grow"><div class="ttl">${esc(b ? `${fmtDate(b.datum)} · ${b.lieferant || b.beschreibung}` : r.f.name)}</div><div class="sub ${r.st === 'fehler' ? 'bad' : ''}">${esc(sub)}</div></div>${r.st === 'pruefen' ? '<button type="button" class="mini">Prüfen</button>' : ''}</li>`;
+    }).join('');
+    const fertig = rows.filter(r => !['wartet', 'liest'].includes(r.st)).length, n = k => rows.filter(r => r.st === k).length;
+    stat.textContent = fertig < rows.length ? `Die KI liest deine Belege … ${fertig} von ${rows.length}` :
+      `Fertig: ${n('ok') + n('pruefen')} verbucht${n('pruefen') ? `, ${n('pruefen')} bitte kurz prüfen` : ''}${n('dublette') ? `, ${n('dublette')} doppelt (übersprungen)` : ''}${n('fehler') ? `, ${n('fehler')} Fehler` : ''}.`;
+  };
+  list.onclick = e => { const li = e.target.closest('[data-ki]'); const r = li && rows[li.dataset.ki]; if (!r) return; if (r.buchungen) buchungForm(db.get('buchungen', r.buchungen[0].id) || r.buchungen[0], () => { r.st = 'ok'; draw(); }); else if (r.dup) buchungForm(r.dup); };
+  draw();
+  const one = async r => {
+    r.st = 'liest'; draw();
+    try {
+      const datei = await KI.lesen(r.f), e = await KI.analysieren(datei);
+      if (e.sicherheit === 0 && !e.brutto) throw new Error(e.hinweis || 'Kein Beleg erkannt');
+      const dup = KI.dublette(e);
+      if (dup) { r.st = 'dublette'; r.dup = dup; }
+      else { r.buchungen = await KI.verbuchen(e, datei, r.f.name); r.st = r.buchungen[0].pruefen ? 'pruefen' : 'ok'; }
+    } catch (x) { r.st = 'fehler'; r.err = x.message; }
+    draw();
+  };
+  (async () => { const q = [...rows]; await Promise.all([0, 1, 2].map(async () => { while (q.length) await one(q.shift()); })); })();
 }
 
 // ---------- Ansicht ----------
@@ -172,20 +234,28 @@ function rechnungen() {
 }
 
 function buchungen() {
-  const list = db.all('buchungen').filter(b => (b.datum || '').startsWith(jahrSel) && (!artSel || b.art === artSel)).sort((a, b) => (b.datum || '').localeCompare(a.datum || ''));
+  const nPr = db.all('buchungen').filter(b => b.pruefen).length;
+  const list = db.all('buchungen').filter(b => artSel === 'pruefen' ? b.pruefen : (b.datum || '').startsWith(jahrSel) && (!artSel || b.art === artSel)).sort((a, b) => (b.datum || '').localeCompare(a.datum || ''));
   const ein = list.filter(b => b.art === 'einnahme').reduce((s, b) => s + (b.brutto || 0), 0), aus = list.filter(b => b.art === 'ausgabe').reduce((s, b) => s + (b.brutto || 0), 0);
-  return html`<div class="chips"><button class="chip ${!artSel ? 'on' : ''}" data-art="">Alle</button><button class="chip ${artSel === 'einnahme' ? 'on' : ''}" data-art="einnahme">Einnahmen</button><button class="chip ${artSel === 'ausgabe' ? 'on' : ''}" data-art="ausgabe">Ausgaben</button>
+  return html`<div class="chips"><button class="chip ${!artSel ? 'on' : ''}" data-art="">Alle</button><button class="chip ${artSel === 'einnahme' ? 'on' : ''}" data-art="einnahme">Einnahmen</button><button class="chip ${artSel === 'ausgabe' ? 'on' : ''}" data-art="ausgabe">Ausgaben</button>${nPr ? html`<button class="chip ${artSel === 'pruefen' ? 'on' : ''}" data-art="pruefen">⚠ Zu prüfen <i>${nPr}</i></button>` : ''}
       <span class="muted small" style="margin-left:auto">Brutto: +${eur2(ein)} / −${eur2(aus)}</span><button class="btn" data-csv>CSV für Steuerberater</button></div>
-    <div class="card">${list.length ? html`<table class="tbl"><thead><tr><th>Datum</th><th>Kategorie</th><th>Beschreibung</th><th class="right">Netto</th><th class="right">USt</th><th class="right">Brutto</th></tr></thead><tbody>
-    ${list.map(b => html`<tr data-b="${b.id}" class="click"><td>${fmtDate(b.datum)}</td><td>${b.kategorie}</td><td>${b.beschreibung || ''}${b.rechnungId ? html` <span class="muted">· aus Rechnung</span>` : ''}</td><td class="right">${eur2(b.netto)}</td><td class="right muted">${b.ustSatz ? eur2(b.ust) : '–'}</td><td class="right ${b.art === 'einnahme' ? 'ok' : 'bad'}">${b.art === 'einnahme' ? '+' : '−'}${eur2(b.brutto)}</td></tr>`)}</tbody></table>` : empty('Keine Buchungen', 'Bezahlte Rechnungen werden automatisch als Einnahme gebucht.')}</div>`;
+    <div class="card">${list.length ? html`<table class="tbl"><thead><tr><th>Datum</th><th>Kategorie</th><th>Konto</th><th>Beschreibung</th><th class="right">Netto</th><th class="right">USt</th><th class="right">Brutto</th></tr></thead><tbody>
+    ${list.map(b => html`<tr data-b="${b.id}" class="click"><td>${b.pruefen ? '⚠️ ' : ''}${fmtDate(b.datum)}</td><td>${b.kategorie}</td><td class="muted">${b.konto || F.konto(b.kategorie, b.ustSatz)}</td><td>${b.belegId ? '📎 ' : ''}${b.beschreibung || ''}${b.lieferant && !(b.beschreibung || '').includes(b.lieferant) ? html` <span class="muted">· ${b.lieferant}</span>` : ''}${b.offen ? html` <span class="bad small">offen</span>` : ''}${b.rechnungId ? html` <span class="muted">· aus Rechnung</span>` : ''}</td><td class="right">${eur2(b.netto)}</td><td class="right muted">${b.ustSatz ? eur2(b.ust) : '–'}</td><td class="right ${b.art === 'einnahme' ? 'ok' : 'bad'}">${b.art === 'einnahme' ? '+' : '−'}${eur2(b.brutto)}</td></tr>`)}</tbody></table>` : empty('Keine Buchungen', '📷 Belege hochladen – die KI bucht sie automatisch. Bezahlte Rechnungen werden automatisch als Einnahme gebucht.')}</div>`;
 }
 
 export function render(el) {
   const TABS = [['uebersicht', 'Übersicht'], ['rechnungen', 'Rechnungen'], ['buchungen', 'Einnahmen & Ausgaben']];
   el.innerHTML = html`<div class="head"><h1>Finanzen</h1><div class="actions"><select class="chipsel" data-jahr>${jahre().map(y => html`<option ${y === jahrSel ? raw('selected') : ''}>${y}</option>`)}</select>
-      <button class="btn" data-neu="ausgabe">+ Ausgabe</button><button class="btn" data-neu="einnahme">+ Einnahme</button><button class="btn primary" data-neu="rechnung">+ Rechnung</button></div></div>
+      <label class="btn primary">📷 Belege hochladen<input type="file" accept="image/*,application/pdf,.pdf,.heic" multiple data-belege hidden></label>
+      <button class="btn" data-neu="ausgabe">+ Ausgabe</button><button class="btn" data-neu="einnahme">+ Einnahme</button><button class="btn" data-neu="rechnung">+ Rechnung</button></div></div>
+    <p class="muted small kidrop">${KI.hasKey() ? '🤖 Fotos oder PDFs von Belegen hochladen oder hierher ziehen – die KI erkennt alles und verbucht automatisch.' : raw('🤖 Neu: Belege einfach fotografieren, die KI verbucht sie. <a class="lnk" href="#/einstellungen">Einmalig einrichten →</a>')}</p>
     <div class="chips">${TABS.map(([k, l]) => html`<button class="chip ${k === tab ? 'on' : ''}" data-tab="${k}">${l}</button>`)}</div>
     ${tab === 'uebersicht' ? uebersicht() : tab === 'rechnungen' ? rechnungen() : buchungen()}`.s;
+  el.querySelector('[data-belege]').onchange = e => { belegeHochladen(e.target.files); e.target.value = ''; };
+  if (!el.dataset.drop) { el.dataset.drop = 1;
+    el.addEventListener('dragover', e => { if (location.hash.startsWith('#/finanzen') && e.dataTransfer?.types?.includes('Files')) { e.preventDefault(); el.classList.add('dropping'); } });
+    el.addEventListener('dragleave', e => { if (e.target === el) el.classList.remove('dropping'); });
+    el.addEventListener('drop', e => { if (!location.hash.startsWith('#/finanzen')) return; e.preventDefault(); el.classList.remove('dropping'); belegeHochladen(e.dataTransfer.files); }); }
   el.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { tab = b.dataset.tab; render(el); });
   el.querySelector('[data-goto]')?.addEventListener('click', e => { e.preventDefault(); tab = 'rechnungen'; render(el); });
   el.querySelector('[data-jahr]').onchange = e => { jahrSel = e.target.value; render(el); };
@@ -196,7 +266,7 @@ export function render(el) {
   el.querySelectorAll('[data-art]').forEach(b => b.onclick = () => { artSel = b.dataset.art; render(el); });
   el.querySelector('[data-csv]')?.addEventListener('click', () => {
     const rows = db.all('buchungen').filter(b => (b.datum || '').startsWith(jahrSel)).sort((a, b) => a.datum.localeCompare(b.datum));
-    download(`buchungen-${jahrSel}.csv`, toCSV(rows, [[b => fmtDate(b.datum), 'Datum'], [b => b.art === 'einnahme' ? 'Einnahme' : 'Ausgabe', 'Art'], ['kategorie', 'Kategorie'], ['beschreibung', 'Beschreibung'],
+    download(`buchungen-${jahrSel}.csv`, toCSV(rows, [[b => fmtDate(b.datum), 'Datum'], [b => b.art === 'einnahme' ? 'Einnahme' : 'Ausgabe', 'Art'], ['kategorie', 'Kategorie'], [b => b.konto || F.konto(b.kategorie, b.ustSatz), 'Konto SKR03'], ['beschreibung', 'Beschreibung'], ['lieferant', 'Lieferant/Kunde'],
       [b => String(b.netto).replace('.', ','), 'Netto'], ['ustSatz', 'USt-Satz %'], [b => String(b.ust).replace('.', ','), 'USt'], [b => String(b.brutto).replace('.', ','), 'Brutto'],
       [b => db.get('rechnungen', b.rechnungId)?.nr || '', 'Rechnung'], [b => fullName(db.get('contacts', b.contactId)) || '', 'Kontakt'], ['beleg', 'Beleg'], ['zahlart', 'Zahlart']]), 'text/csv');
   });

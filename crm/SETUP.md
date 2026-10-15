@@ -69,3 +69,10 @@ Läuft auf Pauls Mac im Ordner `~/crm-mailsync` (launchd, alle 3 Minuten, nur Py
 - **Selbst-erledigend:** Anruf/Mail/Treffen beim Kontakt eingetragen (oder 📞/✉ in der Aufgabe geklickt) → Kontakt-Aufgaben haken sich ab.
 - In jeder Aufgabe: 📞 anrufen, ✉ mailen, ⏭ auf morgen schieben.
 Alle Regeln sind unter „Automationen“ einzeln abschaltbar.
+
+## KI-Belegerkennung
+- Einmalig: Einstellungen → 🤖 KI-Belegerkennung → Anthropic-Schlüssel (console.anthropic.com → API Keys) einfügen → „Speichern & testen“.
+- Finanzen → **📷 Belege hochladen** (am Handy öffnet sich die Kamera) oder Dateien auf die Seite ziehen. Fotos und PDFs, mehrere gleichzeitig.
+- Die KI erkennt Datum, Lieferant, Rechnungsnummer, Beträge je Steuersatz, Kategorie, Konto (SKR03-Vorschlag), Zahlart und das Objekt. Danach wird automatisch gebucht; der Beleg wird gespeichert (📎 in der Buchung).
+- Unsichere Belege oder Belege mit Hinweis (z. B. Bewirtung) landen unter „⚠ Zu prüfen“ und erzeugen eine Aufgabe. Doppelte Belege werden erkannt und übersprungen. Offene Eingangsrechnungen → Aufgabe „Rechnung bezahlen“; sie zählen erst nach Zahlung in der Übersicht (EÜR).
+- Kosten: ca. 1–2 Cent pro Beleg.

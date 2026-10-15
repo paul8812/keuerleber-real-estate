@@ -33,6 +33,7 @@ export const RULES = [
   { id: 'dubletten', name: 'Doppelter Kontakt → prüfen', desc: 'Gleiche E-Mail oder Telefonnummer bei zwei Kontakten erzeugt eine Prüf-Aufgabe.', days: null },
   { id: 'websiteFehlt', name: 'Aktives Objekt nicht online → veröffentlichen', desc: 'Aktive Objekte, die nicht auf keuerleber-immobilien.de stehen (oder ungespeicherte Änderungen haben), erzeugen eine Aufgabe.', days: 2, unit: 'Tage Wartezeit' },
   { id: 'autoErledigt', name: 'Kontakt aufgenommen → Aufgabe erledigt', desc: 'Sobald du einen Anruf, eine Mail oder ein Treffen beim Kontakt einträgst (oder eine Mail aus Outlook rausgeht), haken sich „Erstkontakt“, „Feedback“, „Nachfassen“ usw. selbst ab.', days: null },
+  { id: 'belegPruefen', name: 'KI-Beleg unsicher → prüfen', desc: 'Belege, bei denen die KI unsicher war oder einen Hinweis hat (z. B. Bewirtung), erzeugen eine Prüf-Aufgabe. Offene Eingangsrechnungen erzeugen „Rechnung bezahlen“.', days: null },
   { id: 'statusSync', name: 'Pipeline → Objektstatus', desc: 'Reservierung/Notartermin im Vertrieb setzt das Objekt automatisch auf „Reserviert“/„Notartermin“.', days: null },
 ];
 export const ruleCfg = () => { const saved = db.settings().auto || {}; return Object.fromEntries(RULES.map(r => [r.id, { on: true, days: r.days, ...(saved[r.id] || {}) }])); };
@@ -123,6 +124,13 @@ export async function run({ manual = false } = {}) {
         const a = seit && acts.find(a => a.contactId === t.contactId && (a.created || a.datum) > seit && a.datum.slice(0, 10) >= seit.slice(0, 10));
         if (a) { await db.save('tasks', { ...t, done: true, doneAt: new Date().toISOString() }); await db.log('system', `⚡ Automatisch erledigt: ${t.titel.replace(/^⚡ /, '')}`, { contactId: t.contactId, propertyId: t.propertyId }); n++; }
       }
+    }
+    if (on('belegPruefen')) {
+      const pr = db.all('buchungen').filter(b => b.pruefen && (b.belegTeil || 0) <= 1);
+      if (pr.length) await mk(`bp:${t0}`, `KI-Belege prüfen (${pr.length}): Finanzen → Einnahmen & Ausgaben → ⚠ Zu prüfen`, t0);
+      for (const b of db.all('buchungen')) if (b.offen && b.art === 'ausgabe' && (b.belegTeil || 0) <= 1) await mk('rb:' + (b.belegId || b.id), `Rechnung bezahlen: ${b.lieferant || b.beschreibung} (${String(b.belegBrutto ?? b.brutto).replace('.', ',')} €)`, t0, { propertyId: b.propertyId });
+      for (const t of db.all('tasks')) if (!t.done && (t.auto || '').startsWith('rb:') && !db.all('buchungen').some(b => (b.belegId || b.id) === t.auto.slice(3) && b.offen)) { await db.save('tasks', { ...t, done: true, doneAt: new Date().toISOString() }); n++; }
+      for (const t of db.all('tasks')) if (!t.done && (t.auto || '').startsWith('bp:') && (t.auto !== `bp:${t0}` || !pr.length)) { await db.save('tasks', { ...t, done: true, doneAt: new Date().toISOString() }); n++; }
     }
     if (on('ueberfaellig')) for (const t of db.all('tasks')) if (!t.done && t.faellig && t.prio === 'normal' && daysBetween(t.faellig, t0) >= d('ueberfaellig')) { await db.save('tasks', { ...t, prio: 'hoch' }); n++; }
   } finally { running = false; }

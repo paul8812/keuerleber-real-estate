@@ -3,8 +3,17 @@ import * as db from './db.js';
 import { esc, eur2, fmtDate, today, addDays, fullName } from './util.js';
 import { adresse } from './ui.js';
 
-export const KAT_AUSGABE = ['Werbung & Portale', 'Fahrzeug & Fahrtkosten', 'Büro & Material', 'Software & IT', 'Telefon & Internet', 'Versicherungen', 'Steuerberater & Beratung', 'Fortbildung', 'Bewirtung', 'Bank & Gebühren', 'Fotografie & Homestaging', 'Gutachten & Energieausweis', 'Miete & Raumkosten', 'Sonstige Ausgaben'];
+export const KAT_AUSGABE = ['Werbung & Portale', 'Fahrzeug & Fahrtkosten', 'Büro & Material', 'Software & IT', 'Telefon & Internet', 'Versicherungen', 'Steuerberater & Beratung', 'Fortbildung', 'Bewirtung', 'Bank & Gebühren', 'Fotografie & Homestaging', 'Gutachten & Energieausweis', 'Miete & Raumkosten', 'Reisekosten & Übernachtung', 'Porto & Versand', 'Beiträge & Gebühren', 'Geringwertige Wirtschaftsgüter (bis 800 € netto)', 'Anschaffung Anlagegut (über 800 € netto)', 'Sonstige Ausgaben'];
 export const KAT_EINNAHME = ['Provision Käufer', 'Provision Verkäufer', 'Vermietungsprovision', 'Beratung', 'Sonstige Einnahmen'];
+// Kontenvorschlag nach DATEV SKR03 (Steuerberater kann abweichend zuordnen)
+export const KONTEN = {
+  'Werbung & Portale': '4610', 'Fahrzeug & Fahrtkosten': '4530', 'Büro & Material': '4930', 'Software & IT': '4964', 'Telefon & Internet': '4920',
+  'Versicherungen': '4360', 'Steuerberater & Beratung': '4950', 'Fortbildung': '4945', 'Bewirtung': '4650', 'Bank & Gebühren': '4970',
+  'Fotografie & Homestaging': '4600', 'Gutachten & Energieausweis': '3100', 'Miete & Raumkosten': '4210', 'Reisekosten & Übernachtung': '4670',
+  'Porto & Versand': '4910', 'Beiträge & Gebühren': '4380', 'Geringwertige Wirtschaftsgüter (bis 800 € netto)': '4855', 'Anschaffung Anlagegut (über 800 € netto)': '0490',
+  'Sonstige Ausgaben': '4900', 'Provision Käufer': '8400', 'Provision Verkäufer': '8400', 'Vermietungsprovision': '8400', 'Beratung': '8400', 'Sonstige Einnahmen': '8400',
+};
+export const konto = (kat, satz) => (KONTEN[kat] === '8400' && Number(satz) === 0) ? '8100' : (KONTEN[kat] || '');
 export const UST_SAETZE = [[19, '19 %'], [7, '7 %'], [0, '0 % / steuerfrei']];
 export const RE_TYPEN = [
   ['kaeufer', 'Käuferprovision', 'Provision Käufer'],
@@ -66,7 +75,7 @@ export async function alsBezahlt(re, datum = today()) {
 
 // Kennzahlen eines Jahres aus den Buchungen
 export function jahr(y) {
-  const b = db.all('buchungen').filter(x => (x.datum || '').startsWith(String(y)));
+  const b = db.all('buchungen').filter(x => !x.offen && (x.datum || '').startsWith(String(y)));  // EÜR: erst bei Zahlung
   const sum = (arr, k) => r2(arr.reduce((s, x) => s + (Number(x[k]) || 0), 0));
   const ein = b.filter(x => x.art === 'einnahme'), aus = b.filter(x => x.art === 'ausgabe');
   const monate = Array.from({ length: 12 }, (_, i) => { const m = `${y}-${String(i + 1).padStart(2, '0')}`; return { m, ein: sum(ein.filter(x => x.datum.startsWith(m)), 'netto'), aus: sum(aus.filter(x => x.datum.startsWith(m)), 'netto') }; });

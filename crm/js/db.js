@@ -83,7 +83,7 @@ export const userEmail = async () => sb ? (await sb.auth.getUser()).data.user?.e
 async function loadCloud() {
   COLS.forEach(c => data[c] = []);
   for (let from = 0; ; from += 1000) {
-    const { data: rows, error } = await sb.from('records').select('collection,data').range(from, from + 999);
+    const { data: rows, error } = await sb.from('records').select('collection,data').neq('collection', 'dateien').range(from, from + 999);
     if (error) throw error;
     rows.forEach(r => (data[r.collection] ||= []).push(r.data));
     if (rows.length < 1000) break;
@@ -120,6 +120,22 @@ export function nextNr(prefix, col, field = 'nr') {
   const n = data[col].reduce((m, r) => Math.max(m, parseInt((r[field] || '').replace(/\D/g, '')) || 0), 0) + 1;
   return prefix + String(n).padStart(4, '0');
 }
+// Belegdateien (Fotos/PDFs) – getrennt gespeichert und nur bei Bedarf geladen
+export async function putFile(id, dataUrl, meta = {}) {
+  const rec = { id, dataUrl, ...meta, created: new Date().toISOString() };
+  if (!cloud) { try { localStorage.setItem('kre-crm-file-' + id, JSON.stringify(rec)); } catch { toast('Lokaler Speicher voll – Beleg nur in der Cloud speicherbar', 'err'); } return; }
+  const { error } = await sb.from('records').upsert({ id, collection: 'dateien', data: rec, updated_at: rec.created });
+  if (error) { toast('Beleg speichern fehlgeschlagen: ' + error.message, 'err'); throw error; }
+}
+export async function getFile(id) {
+  if (!cloud) { try { return JSON.parse(localStorage.getItem('kre-crm-file-' + id)); } catch { return null; } }
+  const { data: rows, error } = await sb.from('records').select('data').eq('id', id).limit(1);
+  if (error) throw error; return rows[0]?.data || null;
+}
+export async function delFile(id) {
+  if (!cloud) { localStorage.removeItem('kre-crm-file-' + id); return; }
+  await sb.from('records').delete().eq('id', id);
+}
 export async function log(art, text, refs = {}) {
   return save('activities', { art, text, datum: new Date().toISOString(), ...refs });
 }
@@ -149,7 +165,7 @@ async function ensureDefaults() {
 
 // ---------- Backup ----------
 // Zugangsschlüssel (GitHub) nicht in Backup-Dateien schreiben
-export const exportAll = () => JSON.stringify({ version: 1, exported: new Date().toISOString(), data: { ...data, settings: data.settings.map(({ githubToken, ...s }) => s) } }, null, 2);
+export const exportAll = () => JSON.stringify({ version: 1, exported: new Date().toISOString(), data: { ...data, settings: data.settings.map(({ githubToken, anthropicKey, ...s }) => s) } }, null, 2);
 export async function importAll(json, { replace = false } = {}) {
   const d = JSON.parse(json).data; if (!d) throw new Error('Ungültiges Backup');
   for (const c of COLS) {
