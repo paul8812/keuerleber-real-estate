@@ -125,3 +125,5 @@ details{margin-top:12px}.steps{margin:10px 0 0 18px;display:flex;flex-direction:
 main{padding-bottom:calc(84px + env(safe-area-inset-bottom))!important}#toast-root{bottom:calc(80px + env(safe-area-inset-bottom));right:12px;left:12px}}
 .calbar .calnav b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}@media(max-width:700px){.calbar .calnav{flex-wrap:nowrap}.calbar .calnav b{font-size:14px}.calbar .calnav .btn{padding:8px 10px}}
 @media(max-width:700px){.calbar .calnav{flex:1 1 100%;min-width:0}}
+.mfaqr{display:flex;justify-content:center;margin:12px 0}.mfaqr img{width:200px;height:200px;background:#fff;padding:10px;border-radius:10px}.mfasecret{word-break:break-all;user-select:all}.mfahint{font-size:13px;color:var(--gold)}#mfabox .ok{color:var(--ok)}
+.sqlbox{background:#0e0e10;border:1px solid var(--line);border-radius:8px;padding:10px;font-size:11px;white-space:pre-wrap;word-break:break-word;margin:6px 0}

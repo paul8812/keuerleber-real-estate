@@ -159,7 +159,8 @@ export async function belegAnsehen(id) {
   w.document.write('<title>Beleg</title><body style="margin:0;background:#222;color:#ccc;font:14px sans-serif"><p style="padding:20px">Beleg wird geladen …</p>');
   try {
     const f = await db.getFile(id); if (!f) throw new Error('Beleg nicht gefunden');
-    const blob = await (await fetch(f.dataUrl)).blob(); w.location.href = URL.createObjectURL(blob);
+    const [kopf, b64] = f.dataUrl.split(','), bin = atob(b64), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+    w.location.href = URL.createObjectURL(new Blob([u8], { type: (kopf.match(/data:([^;]+)/) || [])[1] || 'application/octet-stream' }));
   } catch (e) { w.document.body.innerHTML = `<p style="padding:20px">${esc(e.message)}</p>`; }
 }
 

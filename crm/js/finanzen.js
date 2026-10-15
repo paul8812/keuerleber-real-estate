@@ -118,7 +118,7 @@ export function druck(re) {
   .fuss b{color:#14110d;font-weight:600}.storno{color:#b4483a;font-weight:700;letter-spacing:.2em}
   @media print{body{padding:0}.noprint{display:none}}
   .noprint{position:fixed;top:12px;right:12px}.noprint button{font:inherit;background:#c9a96e;border:0;padding:8px 16px;border-radius:6px;cursor:pointer}
-  </style><body><div class="noprint"><button onclick="print()">Drucken / als PDF speichern</button></div>
+  </style><body><div class="noprint"><button type="button" class="druckknopf">Drucken / als PDF speichern</button></div>
   <div class="kopf"><div class="lk"><img src="${esc(A('logo/Wappen_gold.svg'))}" alt=""><span class="lc"><span class="ln">Keuerleber</span><span class="ls"><i></i><span>Immobilien</span><i></i></span></span></div>
     <div class="k"><b>${esc(S.inhaber || '')}</b><br>${esc([S.strasse, [S.plz, S.ort].filter(Boolean).join(' ')].filter(Boolean).join(', '))}<br>${esc([S.tel, S.email].filter(Boolean).join(' · '))}<br>${esc(S.web || '')}</div></div>
   <div class="adr"><div><span class="abs">${esc(absender)}</span><div class="empf">${esc(re.empfaenger || '')}</div></div>
@@ -137,7 +137,7 @@ export function druck(re) {
     <div><b>Kontakt</b><br>${esc(S.tel || '')}<br>${esc(S.email || '')}<br>${esc(S.web || '')}</div>
     <div><b>Bankverbindung</b><br>${esc(S.bank || '')}<br>IBAN ${esc(S.iban || '–')}<br>${S.bic ? 'BIC ' + esc(S.bic) + '<br>' : ''}${S.steuernummer ? 'Steuernummer ' + esc(S.steuernummer) + '<br>' : ''}${S.ustId ? 'USt-IdNr. ' + esc(S.ustId) : ''}</div></div>
   </body></html>`);
-  w.document.close();
+  w.document.close(); w.document.querySelector('.druckknopf')?.addEventListener('click', () => w.print());
 }
 
 // Pflichtangaben, die für eine ordnungsgemäße Rechnung (§ 14 UStG) noch fehlen

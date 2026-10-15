@@ -138,6 +138,6 @@ function drucken(p, o, r) {
   .klein{font-size:9.5px;color:#4d473f;line-height:1.5;margin:0}
   .fuss{margin-top:22px;padding-top:10px;border-top:1px solid #a8813f;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;font-size:9px;color:#6b6459;line-height:1.5}.fuss b{color:#14110d}
   @media print{body{padding:0}.noprint{display:none}}.noprint{position:fixed;top:12px;right:12px}.noprint button{font:inherit;background:#c9a96e;border:0;padding:8px 16px;border-radius:6px;cursor:pointer}
-  </style><body><div class="noprint"><button onclick="print()">Drucken / als PDF speichern</button></div>${expose}${rechnung}</body></html>`);
-  w.document.close();
+  </style><body><div class="noprint"><button type="button" class="druckknopf">Drucken / als PDF speichern</button></div>${expose}${rechnung}</body></html>`);
+  w.document.close(); w.document.querySelector('.druckknopf')?.addEventListener('click', () => w.print());
 }

@@ -1,7 +1,7 @@
 import * as db from '../db.js';
 import * as KI from '../ki.js';
 const MSG = {};  // Statusmeldungen überleben das Neuzeichnen nach dem Speichern
-import { html, raw, inp, sel, chk, collect, toast, download, today, confirmDlg } from '../util.js';
+import { html, raw, inp, sel, chk, collect, toast, download, today, confirmDlg, modal } from '../util.js';
 import { BUNDESLAENDER } from '../consts.js';
 import { seed } from '../seed.js';
 import * as W from '../website.js';
@@ -18,6 +18,11 @@ export function render(el) {
       <form id="fem" class="grid"><h4 class="full">Login-E-Mail ändern</h4>
         <label class="f full"><span>Neue E-Mail-Adresse</span><input name="email" type="email" autocomplete="email" required></label>
         <div class="full actions"><button class="btn">E-Mail ändern</button></div></form>
+      <h4 class="full" style="margin-top:14px">Zwei-Faktor-Anmeldung (2FA)</h4>
+      <div id="mfabox" class="muted small">wird geprüft …</div>
+      <h4 class="full" style="margin-top:14px">Sitzung</h4>
+      <div class="grid"><label class="f"><span>Automatisch abmelden nach Inaktivität</span><select id="idle">${[[15, '15 Minuten'], [30, '30 Minuten'], [60, '1 Stunde'], [240, '4 Stunden'], [0, 'nie (nicht empfohlen)']].map(([v, l]) => html`<option value="${v}" ${String(v) === String(s.autoLogoutMin ?? 60) ? raw('selected') : ''}>${l}</option>`)}</select></label>
+        <div class="f"><span>&nbsp;</span><button type="button" class="btn danger" data-logoutall>Auf allen Geräten abmelden</button></div></div>
       <p class="muted small" id="zmsg">${MSG.z || ''}</p></section>` : ''}
     <section class="card"><h2>Firma & Standardwerte</h2><form id="fs" class="grid">${inp('firma', 'Firma', s.firma)}${inp('inhaber', 'Inhaber / Absender', s.inhaber)}${inp('strasse', 'Straße', s.strasse)}${inp('plz', 'PLZ', s.plz)}${inp('ort', 'Ort', s.ort)}${inp('tel', 'Telefon', s.tel)}${inp('email', 'E-Mail', s.email)}${inp('web', 'Website', s.web)}
       ${sel('bundesland', 'Bundesland (Grunderwerbsteuer)', Object.keys(BUNDESLAENDER), s.bundesland)}${inp('verguetung', 'Standard-Vergütung je verkaufter Einheit (€ netto, zahlt der Verkäufer)', s.verguetung ?? 8000, { type: 'number', step: '100' })}${inp('nachfassTage', 'Erinnerung „lange nicht kontaktiert“ nach (Tagen)', s.nachfassTage, { type: 'number' })}
@@ -69,6 +74,9 @@ export function render(el) {
   const zmsg = (t, okk) => { MSG.z = t; const m = document.querySelector('#zmsg'); if (m) { m.textContent = t; m.style.color = okk ? 'var(--ok)' : ''; } };
   if (db.isCloud()) {
     db.userEmail().then(m => { const b = el.querySelector('#myemail'); if (b) b.textContent = m || '–'; });
+    el.querySelector('#idle').onchange = async e => { await db.saveSettings({ ...db.settings(), autoLogoutMin: Number(e.target.value) }); toast('Gespeichert'); };
+    el.querySelector('[data-logoutall]').onclick = async () => { if (await confirmDlg('Auf allen Geräten (Handy, Mac, Browser) abmelden? Danach musst du dich überall neu anmelden.')) db.logoutAll(); };
+    mfaBox(el);
     el.querySelector('#fpw').onsubmit = async e => {
       e.preventDefault(); const f = e.target;
       if (f.pw1.value.length < 8) return zmsg('Das Passwort braucht mindestens 8 Zeichen.');
@@ -86,4 +94,41 @@ export function render(el) {
   el.querySelector('[data-up]').onclick = async () => { if (!db.isCloud()) return toast('Zuerst Cloud verbinden', 'err'); if (!await confirmDlg('Lokal gespeicherte Daten in die Cloud kopieren?')) return; toast((await db.uploadLocalToCloud()) + ' Einträge hochgeladen'); await db.reload(); };
   el.querySelector('[data-seed]').onclick = async () => { if (await confirmDlg('Beispieldaten hinzufügen (Demo-Kontakte, -Objekte, -Vorgänge)?')) { await seed(); toast('Beispieldaten geladen'); } };
   el.querySelector('[data-wipe]').onclick = async () => { if (await confirmDlg('ALLE Daten unwiderruflich löschen?') && await confirmDlg('Wirklich sicher? Vorher ein Backup herunterladen!')) { await db.wipeAll(); toast('Alle Daten gelöscht'); } };
+}
+
+const MFA_SQL = `drop policy if exists "eigene Daten" on public.records;
+create policy "eigene Daten" on public.records for all to authenticated
+  using (user_id = auth.uid() and (select auth.jwt()->>'aal') = 'aal2')
+  with check (user_id = auth.uid() and (select auth.jwt()->>'aal') = 'aal2');`;
+// 2FA: Authenticator-App (z. B. Google Authenticator, Microsoft Authenticator, Apple Passwörter) koppeln
+async function mfaBox(el) {
+  const box = el.querySelector('#mfabox'); if (!box) return;
+  let f = [];
+  try { f = await db.mfaFactors(); } catch (e) { box.textContent = '2FA nicht verfügbar: ' + e.message; return; }
+  if (f.length) {
+    box.innerHTML = html`<p class="ok">✓ Aktiv – bei jeder Anmeldung wird zusätzlich der Code aus deiner Authenticator-App abgefragt.</p>
+      <details style="margin-top:10px"><summary>🛡 Letzter Schritt: 2FA auch auf dem Server erzwingen (empfohlen)</summary>
+        <p class="muted small" style="margin:8px 0">Dann gibt die Datenbank selbst ohne 2FA-Code keine einzige Zeile heraus – auch nicht, wenn jemand dein Passwort hätte und das CRM umgeht. Einmal im Supabase-SQL-Editor ausführen:</p>
+        <pre class="sqlbox">${MFA_SQL}</pre>
+        <div class="actions"><button type="button" class="btn" data-sqlcopy>SQL kopieren</button><a class="btn" target="_blank" rel="noopener" href="${db.SQL_URL()}">SQL-Editor öffnen</a></div>
+        <p class="muted small" style="margin-top:6px">Läuft der Mail-Abgleich auf dem Mac: danach dort einmal „Einrichten“ starten (fragt den Code ab).</p></details>
+      <div class="actions" style="margin-top:8px"><button type="button" class="btn ghost" data-mfaoff>2FA entfernen</button></div>`.s;
+    box.querySelector('[data-sqlcopy]').onclick = async () => { await navigator.clipboard.writeText(MFA_SQL); toast('SQL kopiert'); };
+    box.querySelector('[data-mfaoff]').onclick = async () => { if (!await confirmDlg('2FA wirklich entfernen? Dann reicht wieder allein das Passwort. Hast du den Server-Schutz aktiviert, musst du ihn vorher im SQL-Editor zurücknehmen – sonst sperrst du dich aus.')) return; try { await db.mfaRemove(f[0].id); toast('2FA entfernt'); mfaBox(el); } catch (x) { toast(x.message, 'err'); } };
+    return;
+  }
+  box.innerHTML = html`<p>Noch nicht aktiv. Mit 2FA kommt niemand in dein CRM, selbst wenn er dein Passwort kennt – zusätzlich wird ein Code aus der Authenticator-App auf deinem Handy verlangt.</p>
+    <div class="actions" style="margin-top:8px"><button type="button" class="btn primary" data-mfaon>2FA jetzt einrichten</button></div>`.s;
+  box.querySelector('[data-mfaon]').onclick = async () => {
+    let d; try { d = await db.mfaEnroll(); } catch (x) { toast('2FA konnte nicht gestartet werden: ' + x.message, 'err'); return; }
+    modal('🔐 Zwei-Faktor-Anmeldung einrichten', html`<div class="full mfasetup">
+      <ol class="steps"><li>Öffne auf deinem Handy eine Authenticator-App (z. B. <b>Google Authenticator</b>, <b>Microsoft Authenticator</b> oder am iPhone <b>Passwörter → Codes</b>).</li>
+      <li>Scanne diesen QR-Code – oder tippe den Schlüssel ein.</li><li>Gib den 6-stelligen Code ein, den die App anzeigt.</li></ol>
+      <div class="mfaqr"><img alt="QR-Code für die Authenticator-App" src="${d.totp.qr_code}"></div>
+      <p class="muted small">Schlüssel zum Eintippen: <code class="mfasecret">${d.totp.secret}</code></p></div>
+      <label class="f full"><span>6-stelliger Code aus der App</span><input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="123 456" required></label>`, {
+      saveLabel: 'Bestätigen & aktivieren',
+      onSave: async v => { try { await db.mfaConfirm(d.id, v.code); toast('✓ 2FA ist aktiv'); mfaBox(el); } catch (x) { toast(x.message, 'err'); return false; } },
+    });
+  };
 }

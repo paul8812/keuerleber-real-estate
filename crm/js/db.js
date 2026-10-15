@@ -2,7 +2,13 @@
 import { uid, today, toast } from './util.js';
 export const COLS = ['contacts', 'properties', 'deals', 'tasks', 'events', 'activities', 'templates', 'settings', 'mails', 'sync', 'buchungen', 'rechnungen'];
 const LS = 'kre-crm-data', CFG = 'kre-crm-cfg';
-const SB_CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm';
+// Supabase-Bibliothek liegt im eigenen Repository (kein fremdes CDN zur Laufzeit)
+const SB_LIB = new URL('../vendor/supabase.js?v=2.45.4', import.meta.url).href;
+async function sbLib() {
+  if (window.supabase?.createClient) return window.supabase;
+  await new Promise((res, rej) => { const s = document.createElement('script'); s.src = SB_LIB; s.onload = res; s.onerror = () => rej(new Error('Supabase-Bibliothek konnte nicht geladen werden')); document.head.appendChild(s); });
+  return window.supabase;
+}
 let data = Object.fromEntries(COLS.map(c => [c, []]));
 let sb = null, cloud = false;
 // Link aus der „Passwort zurücksetzen“-Mail: Supabase hängt #access_token…&type=recovery bzw. #error… an
@@ -33,11 +39,12 @@ export async function init() {
   const c = cfg();
   if (c.url && c.key) {
     try {
-      const { createClient } = await import(SB_CDN);
+      const { createClient } = await sbLib();
       sb = createClient(c.url, c.key, { auth: { persistSession: true, autoRefreshToken: true } });
       const { data: s } = await sb.auth.getSession();
       cloud = true;
       if (!s.session) return { needsLogin: true };
+      if (await needsMfa()) return { needsLogin: true, needsMfa: true };
       await loadCloud();
       return { ok: true };
     } catch (e) {
@@ -50,8 +57,26 @@ export async function init() {
 export async function login(email, password) {
   const { error } = await sb.auth.signInWithPassword({ email, password });
   if (error) throw error;
+  if (await needsMfa()) return 'mfa';
+  await loadCloud(); return 'ok';
+}
+// ---------- Zwei-Faktor-Anmeldung (TOTP, Authenticator-App) ----------
+export async function needsMfa() { const { data } = await sb.auth.mfa.getAuthenticatorAssuranceLevel(); return !!data && data.nextLevel === 'aal2' && data.currentLevel !== 'aal2'; }
+export const mfaFactors = async () => ((await sb.auth.mfa.listFactors()).data?.totp || []).filter(f => f.status === 'verified');
+export async function mfaLogin(code) {
+  const f = (await mfaFactors())[0]; if (!f) throw new Error('Keine Zwei-Faktor-App eingerichtet');
+  const { error } = await sb.auth.mfa.challengeAndVerify({ factorId: f.id, code: String(code).replace(/\D/g, '') });
+  if (error) throw new Error(/invalid|expired/i.test(error.message) ? 'Code falsch oder abgelaufen – bitte den aktuellen Code eingeben.' : error.message);
   await loadCloud();
 }
+export async function mfaEnroll() {
+  for (const f of ((await sb.auth.mfa.listFactors()).data?.all || []).filter(f => f.status !== 'verified')) await sb.auth.mfa.unenroll({ factorId: f.id });
+  const { data, error } = await sb.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'Keuerleber CRM ' + new Date().toISOString().slice(0, 16) });
+  if (error) throw error; return data;
+}
+export async function mfaConfirm(factorId, code) { const { error } = await sb.auth.mfa.challengeAndVerify({ factorId, code: String(code).replace(/\D/g, '') }); if (error) throw new Error(/invalid|expired/i.test(error.message) ? 'Code falsch – bitte den aktuellen 6-stelligen Code eingeben.' : error.message); }
+export async function mfaRemove(factorId) { const { error } = await sb.auth.mfa.unenroll({ factorId }); if (error) throw error; }
+export async function logoutAll() { if (sb) await sb.auth.signOut({ scope: 'global' }); location.reload(); }
 export async function resetPassword(email) {
   const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
   if (error) throw error;

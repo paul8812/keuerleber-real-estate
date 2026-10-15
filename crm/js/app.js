@@ -72,13 +72,14 @@ function shell() {
   db.onChange(rerender); db.onChange(navBadges);
   window.addEventListener('hashchange', route);
   window.addEventListener('focus', () => db.isCloud() && db.reload());
-  route(); auto.start();
+  route(); auto.start(); idleWatch();
 }
 
 async function boot() {
   const r = await db.init();
   if (db.RECOVERY || db.AUTH_ERROR) history.replaceState(null, '', location.pathname + location.search);
-  if (r.needsLogin) return loginScreen();
+  if (r.needsLogin) return loginScreen({ mfa: r.needsMfa });
+  if (db.isCloud() && abgelaufen()) { await db.logout(); return; }
   document.getElementById('login').hidden = true; document.getElementById('app').hidden = false; shell();
   if (db.RECOVERY) newPassword();
 }
@@ -93,12 +94,26 @@ function newPassword() {
     },
   });
 }
-function loginScreen() {
+// Automatisch abmelden nach Inaktivität (Einstellung „Mein Zugang“, Standard 60 Min.)
+const LA = 'kre-last-active';
+const idleMin = () => { const v = db.settings().autoLogoutMin; return v === 0 || v === '0' ? 0 : Number(v) || 60; };
+function abgelaufen() { try { const t = Number(localStorage.getItem(LA)); return idleMin() > 0 && t && Date.now() - t > idleMin() * 60000; } catch { return false; } }
+function aktiv() { try { localStorage.setItem(LA, String(Date.now())); } catch { /* egal */ } }
+function idleWatch() {
+  if (!db.isCloud()) return; aktiv(); let t = 0;
+  ['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach(ev => window.addEventListener(ev, () => { if (Date.now() - t > 15000) { t = Date.now(); aktiv(); } }, { passive: true }));
+  setInterval(() => { if (abgelaufen()) db.logout(); }, 30000);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && abgelaufen()) db.logout(); });
+}
+function loginScreen({ mfa = false } = {}) {
   const box = document.getElementById('login'); box.hidden = false;
   const form = box.querySelector('form'), err = box.querySelector('.err'), btn = form.querySelector('button.primary'), tog = box.querySelector('[data-toggle]');
   let signup = false;
   const setMode = m => { signup = m; btn.textContent = m ? 'Konto erstellen' : 'Anmelden'; tog.textContent = m ? 'Schon ein Konto? Anmelden' : 'Erstes Mal? Konto erstellen'; err.textContent = ''; form.password.autocomplete = m ? 'new-password' : 'current-password'; };
   tog.onclick = e => { e.preventDefault(); setMode(!signup); };
+  let mfaMode = false;
+  const mfaStufe = () => { mfaMode = true; for (const n of ['email', 'password']) { form[n].hidden = true; form[n].required = false; } form.code.hidden = false; form.code.required = true; box.querySelector('.mfahint').hidden = false; btn.textContent = 'Bestätigen'; tog.hidden = true; box.querySelector('[data-forgot]').hidden = true; box.querySelector('[data-linkfix]').hidden = true; setTimeout(() => form.code.focus(), 50); };
+  if (mfa) mfaStufe();
   if (db.AUTH_ERROR) err.textContent = db.AUTH_ERROR === 'otp_expired' ? 'Der Link aus der E-Mail ist abgelaufen oder wurde schon benutzt – bitte unten „Passwort vergessen?“ erneut klicken.' : 'Anmeldung über den Link fehlgeschlagen (' + db.AUTH_ERROR + ').';
   const lf = box.querySelector('.linkfix');
   box.querySelector('[data-linkfix]').onclick = e => { e.preventDefault(); lf.hidden = !lf.hidden; if (!lf.hidden) lf.querySelector('input').focus(); };
@@ -123,17 +138,18 @@ function loginScreen() {
   form.onsubmit = async e => {
     e.preventDefault(); err.textContent = ''; btn.disabled = true;
     try {
+      if (mfaMode) { await db.mfaLogin(form.code.value); aktiv(); box.hidden = true; document.getElementById('app').hidden = false; shell(); if (db.RECOVERY) newPassword(); return; }
       const email = form.email.value.trim(), pw = form.password.value;
       if (signup) {
         if (pw.length < 8) throw new Error('Passwort mindestens 8 Zeichen');
         const r = await db.signup(email, pw);
         if (r === 'confirm') { err.style.color = 'var(--ok)'; err.textContent = 'Bestätigungs-E-Mail gesendet – Link klicken, dann hier anmelden.'; setMode(false); btn.disabled = false; return; }
-      } else await db.login(email, pw);
-      box.hidden = true; document.getElementById('app').hidden = false; shell();
+      } else if (await db.login(email, pw) === 'mfa') { form.password.value = ''; mfaStufe(); btn.disabled = false; return; }
+      aktiv(); box.hidden = true; document.getElementById('app').hidden = false; shell();
     } catch (x) {
       err.style.color = ''; const m = x.message || String(x);
       if (/records|relation|schema cache|does not exist/i.test(m)) { err.textContent = 'Datenbank-Tabelle fehlt noch.'; showSetup(); }
-      else err.textContent = (signup ? 'Registrierung fehlgeschlagen: ' : 'Anmeldung fehlgeschlagen: ') + m;
+      else err.textContent = /invalid login credentials/i.test(m) ? 'E-Mail oder Passwort falsch.' : (signup ? 'Registrierung fehlgeschlagen: ' : 'Anmeldung fehlgeschlagen: ') + m;
       btn.disabled = false;
     }
   };
