@@ -9,6 +9,17 @@ import * as W from '../website.js';
 export function render(el) {
   const s = db.settings(), c = db.cfg();
   el.innerHTML = html`<div class="head"><h1>Einstellungen</h1></div><div class="cols">
+    <section class="card widgetcard"><h2>📱 Widget für den Home-Bildschirm</h2>
+      <p class="muted">Fällige Aufgaben, Termine, neue Anfragen und offene Vorgänge direkt auf dem iPhone-Home-Bildschirm (auch Sperrbildschirm). Antippen öffnet das CRM. Läuft über die kostenlose App <b>Scriptable</b>.</p>
+      <ol class="schritte">
+        <li><a class="lnk" target="_blank" rel="noopener" href="https://apps.apple.com/de/app/scriptable/id1405459188">Scriptable im App Store laden</a></li>
+        <li>Hier auf <b>„Skript kopieren“</b> tippen</li>
+        <li>Scriptable öffnen → <b>＋</b> oben rechts → einfügen → oben den Namen „Keuerleber CRM“ eintragen → <b>Fertig</b></li>
+        <li>Skript einmal antippen und mit deinen CRM-Daten anmelden (mit 2FA: Code eingeben). Das Passwort wird nicht gespeichert.</li>
+        <li>Home-Bildschirm lange drücken → <b>＋</b> → Scriptable → Größe wählen → Widget antippen → bei „Script“ <b>Keuerleber CRM</b> wählen</li>
+      </ol>
+      <div class="actions"><button type="button" class="btn primary" data-widgetcopy>📋 Skript kopieren</button><a class="btn" target="_blank" rel="noopener" href="widget/keuerleber-widget.js">Skript ansehen</a></div>
+      <p class="muted small">Klein: 3 Zahlen · Mittel: Zahlen, nächster Termin, 2 Aufgaben · Groß: zusätzlich dein Fokus heute. Aktualisiert sich etwa alle 15 Minuten. „Auf allen Geräten abmelden“ sperrt auch das Widget.</p></section>
     ${db.isCloud() ? html`<section class="card"><h2>🔐 Mein Zugang</h2>
       <p class="muted">Angemeldet als <b id="myemail">…</b></p>
       <form id="fpw" class="grid"><h4 class="full">Passwort ändern</h4>
@@ -60,6 +71,16 @@ export function render(el) {
       <label class="btn">Backup einspielen<input type="file" accept=".json" data-rs hidden></label>
       <button class="btn" data-up>Lokale Daten in die Cloud hochladen</button><button class="btn" data-seed>Beispieldaten laden</button><button class="btn danger" data-wipe>Alle Daten löschen</button></div>
       <p class="muted">Empfehlung: wöchentlich ein Backup herunterladen.</p></section></div>`.s;
+  el.querySelector('[data-widgetcopy]').onclick = async () => {
+    const laden = () => fetch('widget/keuerleber-widget.js', { cache: 'no-store' }).then(r => r.text());
+    try {
+      // Safari erlaubt das Kopieren nur direkt im Tipp → Inhalt als Promise übergeben
+      if (window.ClipboardItem) await navigator.clipboard.write([new ClipboardItem({ 'text/plain': laden().then(t => new Blob([t], { type: 'text/plain' })) })]);
+      else await navigator.clipboard.writeText(await laden());
+      toast('✓ Skript kopiert – jetzt in Scriptable einfügen');
+    }
+    catch { toast('Kopieren ging nicht – „Skript ansehen“ öffnen und alles kopieren', 'err'); }
+  };
   el.querySelector('#fs').onsubmit = async e => { e.preventDefault(); await db.saveSettings({ ...s, ...collect(e.target) }); toast('Gespeichert'); };
   const wmsg = t => { MSG.w = t; const m = document.querySelector('#wmsg'); if (m) m.textContent = t; };
   el.querySelector('#fw').onsubmit = async e => { e.preventDefault(); const t = e.target.githubToken.value.trim(); if (t) await db.saveSettings({ ...db.settings(), githubToken: t });

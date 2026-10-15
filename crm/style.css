@@ -220,3 +220,4 @@ li.task.sw-r{box-shadow:inset 4px 0 0 var(--ok,#5bbf7a)}li.task.sw-l{box-shadow:
 .dwarn{font-size:12px;color:#e0a35a;margin-top:6px}.druhig{font-size:12px;color:var(--mut);margin-top:4px}
 @media(max-width:700px){.fact a,.fact button{width:42px;height:42px}.fokus .ttl{white-space:nowrap}.fokus .sub{white-space:nowrap}}
 @media(max-width:700px){#clist .tbl td.c-call{display:flex;gap:8px;align-items:center}#clist .rowmehr{margin:0}}
+.schritte{margin:8px 0 12px;padding-left:20px;line-height:1.6}.schritte li{margin-bottom:4px}
