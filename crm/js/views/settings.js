@@ -9,6 +9,16 @@ import * as W from '../website.js';
 export function render(el) {
   const s = db.settings(), c = db.cfg();
   el.innerHTML = html`<div class="head"><h1>Einstellungen</h1></div><div class="cols">
+    ${db.isCloud() ? html`<section class="card"><h2>🔐 Mein Zugang</h2>
+      <p class="muted">Angemeldet als <b id="myemail">…</b></p>
+      <form id="fpw" class="grid"><h4 class="full">Passwort ändern</h4>
+        <label class="f"><span>Neues Passwort</span><input name="pw1" type="password" autocomplete="new-password" minlength="8" required></label>
+        <label class="f"><span>Wiederholen</span><input name="pw2" type="password" autocomplete="new-password" minlength="8" required></label>
+        <div class="full actions"><button class="btn primary">Passwort speichern</button></div></form>
+      <form id="fem" class="grid"><h4 class="full">Login-E-Mail ändern</h4>
+        <label class="f full"><span>Neue E-Mail-Adresse</span><input name="email" type="email" autocomplete="email" required></label>
+        <div class="full actions"><button class="btn">E-Mail ändern</button></div></form>
+      <p class="muted small" id="zmsg">${MSG.z || ''}</p></section>` : ''}
     <section class="card"><h2>Firma & Standardwerte</h2><form id="fs" class="grid">${inp('firma', 'Firma', s.firma)}${inp('inhaber', 'Inhaber / Absender', s.inhaber)}${inp('strasse', 'Straße', s.strasse)}${inp('plz', 'PLZ', s.plz)}${inp('ort', 'Ort', s.ort)}${inp('tel', 'Telefon', s.tel)}${inp('email', 'E-Mail', s.email)}${inp('web', 'Website', s.web)}
       ${sel('bundesland', 'Bundesland (Grunderwerbsteuer)', Object.keys(BUNDESLAENDER), s.bundesland)}${inp('verguetung', 'Standard-Vergütung je verkaufter Einheit (€ netto, zahlt der Verkäufer)', s.verguetung ?? 8000, { type: 'number', step: '100' })}${inp('nachfassTage', 'Erinnerung „lange nicht kontaktiert“ nach (Tagen)', s.nachfassTage, { type: 'number' })}
       <h4 class="full">Rechnungen & Steuer</h4>${inp('steuernummer', 'Steuernummer', s.steuernummer)}${inp('ustId', 'USt-IdNr. (falls vorhanden)', s.ustId)}
@@ -56,6 +66,20 @@ export function render(el) {
   el.querySelector('[data-wdel]')?.addEventListener('click', async () => { const { githubToken, ...rest } = db.settings(); await db.saveSettings(rest); toast('Schlüssel entfernt'); });
   el.querySelector('#fc').onsubmit = e => { e.preventDefault(); const v = collect(e.target); db.setCfg({ url: v.url.replace(/\/+$/, ''), key: v.key }); location.reload(); };
   el.querySelector('[data-off]')?.addEventListener('click', () => { db.setCfg({ off: true }); location.reload(); });
+  const zmsg = (t, okk) => { MSG.z = t; const m = document.querySelector('#zmsg'); if (m) { m.textContent = t; m.style.color = okk ? 'var(--ok)' : ''; } };
+  if (db.isCloud()) {
+    db.userEmail().then(m => { const b = el.querySelector('#myemail'); if (b) b.textContent = m || '–'; });
+    el.querySelector('#fpw').onsubmit = async e => {
+      e.preventDefault(); const f = e.target;
+      if (f.pw1.value.length < 8) return zmsg('Das Passwort braucht mindestens 8 Zeichen.');
+      if (f.pw1.value !== f.pw2.value) return zmsg('Die beiden Passwörter stimmen nicht überein.');
+      try { await db.setPassword(f.pw1.value); f.reset(); zmsg('✓ Neues Passwort gespeichert – ab jetzt damit anmelden.', 1); } catch (x) { zmsg('✗ ' + (/different from the old/i.test(x.message) ? 'Das neue Passwort muss sich vom alten unterscheiden.' : /weak|short/i.test(x.message) ? 'Passwort zu schwach – bitte länger oder mit Zahlen/Zeichen.' : x.message)); }
+    };
+    el.querySelector('#fem').onsubmit = async e => {
+      e.preventDefault(); const em = e.target.email.value.trim();
+      try { await db.setEmail(em); e.target.reset(); zmsg(`✓ Bestätigungs-Mail an ${em} gesendet (je nach Einstellung auch an die alte Adresse). Erst nach Klick auf den Link gilt die neue Login-E-Mail.`, 1); } catch (x) { zmsg('✗ ' + x.message); }
+    };
+  }
   el.querySelector('[data-logout]')?.addEventListener('click', () => db.logout());
   el.querySelector('[data-bk]').onclick = () => download(`crm-backup-${today()}.json`, db.exportAll(), 'application/json');
   el.querySelector('[data-rs]').onchange = async e => { const f = e.target.files[0]; if (!f) return; if (!await confirmDlg('Backup einspielen? Vorhandene Einträge mit gleicher ID werden überschrieben.')) return; try { await db.importAll(await f.text()); toast('Backup eingespielt'); } catch (x) { toast('Fehler: ' + x.message, 'err'); } };

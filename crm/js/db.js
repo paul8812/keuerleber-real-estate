@@ -58,6 +58,10 @@ export async function setPassword(password) {
   const { error } = await sb.auth.updateUser({ password });
   if (error) throw error;
 }
+export async function setEmail(email) {
+  const { error } = await sb.auth.updateUser({ email }, { emailRedirectTo: location.origin + location.pathname });
+  if (error) throw error;
+}
 export async function signup(email, password) {
   const { data: d, error } = await sb.auth.signUp({ email, password });
   if (error) throw error;
