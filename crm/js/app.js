@@ -47,6 +47,7 @@ function shell() {
   document.getElementById('nav').innerHTML = NAV.map(([k, l, ic]) => `<a href="#/${k}" data-k="${k}"><i>${ic}</i><span>${l}</span></a>`).join('');
   document.getElementById('burger').onclick = () => document.body.classList.toggle('nav-open');
   document.getElementById('mode').textContent = db.isCloud() ? '☁ Cloud' : '💾 Lokal';
+  if (!db.isCloud() && !document.getElementById('lokalhinweis')) main.insertAdjacentHTML('beforebegin', '<div id="lokalhinweis" class="lokalhinweis">💾 Dieses Gerät arbeitet im <b>lokalen Modus</b> – du siehst nicht die Daten aus der Cloud. <a href="?cloud=1">Zur Cloud wechseln und anmelden</a></div>');
   document.getElementById('quick').onclick = () => modal('Neu anlegen', html`<div class="full quickgrid">${[['anfrage', '📋 Anfrage einfügen'], ['contact', '☺ Kontakt'], ['property', '⌂ Objekt'], ['task', '✓ Aufgabe'], ['event', '▦ Termin'], ['note', '📝 Notiz / Anruf']].map(([k, l]) => html`<button type="button" class="btn big" data-k="${k}">${l}</button>`)}</div>`, {
     onMount: (el, close) => el.querySelectorAll('[data-k]').forEach(b => b.onclick = () => { close(); ({ anfrage: () => schnellerfassung(), contact: () => contactForm({}, c => location.hash = '#/kontakte/' + c.id), property: () => propertyForm({}, p => location.hash = '#/objekte/' + p.id), task: () => taskForm(), event: () => eventForm(), note: () => activityForm() })[b.dataset.k](); }) });
   // globale Suche

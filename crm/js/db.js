@@ -13,6 +13,8 @@ const listeners = new Set();
 
 // Standard-Verbindung (anon-Key ist öffentlich vorgesehen; Schutz via Login + RLS)
 const DEFAULT_CFG = { url: 'https://silkguwwkfwoqdfisfky.supabase.co', key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpbGtndXd3a2Z3b3FkZmlzZmt5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0ODQyNDQsImV4cCI6MjEwNzA2MDI0NH0.zetUJKtz6w4za2-M1yaEYPenE84ML0sPUXFS3DLaABA' };
+// ?cloud=1 im Link schaltet ein Gerät, das auf „lokal“ steht, zurück auf die Cloud-Datenbank
+try { if (/[?&]cloud=1/.test(location.search)) { const c = JSON.parse(localStorage.getItem(CFG) || '{}'); if (c.off) localStorage.removeItem(CFG); history.replaceState(null, '', location.pathname + location.hash); } } catch { /* egal */ }
 export const cfg = () => { try { const c = JSON.parse(localStorage.getItem(CFG)) || {}; if (c.off) return {}; return c.url ? c : DEFAULT_CFG; } catch { return DEFAULT_CFG; } };
 export const setCfg = c => localStorage.setItem(CFG, JSON.stringify(c));
 export const isCloud = () => cloud;

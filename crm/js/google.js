@@ -41,15 +41,28 @@ export async function syncCalendar() {
   }
   const q = new URLSearchParams({ timeMin: new Date(addDays(t0, -30) + 'T00:00:00').toISOString(), timeMax: new Date(addDays(t0, 180) + 'T00:00:00').toISOString(), singleEvents: 'true', maxResults: '500', orderBy: 'startTime' });
   const list = await api(`${CAL}?${q}`);
+  const seen = new Set((list.items || []).filter(g => g.status !== 'cancelled').map(g => g.id));
+  // In Google gelöschte Termine auch im CRM entfernen (nur importierte Google-Termine im Abfragezeitraum)
+  for (const e of db.all('events').filter(e => e.source === 'google' && e.googleId && e.datum >= addDays(t0, -30) && e.datum < addDays(t0, 180) && !seen.has(e.googleId))) { await db.del('events', e.id); updated++; }
   for (const g of list.items || []) {
     if (g.status === 'cancelled' || g.extendedProperties?.private?.crmId) continue;
     const ex = db.all('events').find(e => e.googleId === g.id);
     const dt = g.start.dateTime ? new Date(g.start.dateTime) : null, de = g.end?.dateTime ? new Date(g.end.dateTime) : null;
-    const rec = { titel: g.summary || '(ohne Titel)', art: 'Sonstiges', datum: g.start.date || g.start.dateTime.slice(0, 10), start: dt ? dt.toTimeString().slice(0, 5) : '', ende: de ? de.toTimeString().slice(0, 5) : '', ort: g.location || '', notiz: g.description || '', googleId: g.id, source: 'google' };
+    const titel = g.summary || '(ohne Titel)', c = kontaktImTitel(titel);
+    const rec = { titel, art: artAusTitel(titel), ...(c && !ex?.contactId ? { contactId: c.id } : {}), datum: g.start.date || g.start.dateTime.slice(0, 10), start: dt ? dt.toTimeString().slice(0, 5) : '', ende: de ? de.toTimeString().slice(0, 5) : '', ort: g.location || '', notiz: g.description || '', googleId: g.id, source: 'google' };
     if (!ex) { await db.save('events', { ...rec, googleSynced: new Date(Date.now() + 1000).toISOString() }); pulled++; }
     else if (ex.source === 'google' && (g.updated || '') > (ex.googleSynced || '')) { await db.save('events', { ...ex, ...rec, googleSynced: new Date(Date.now() + 1000).toISOString() }); updated++; }
   }
   return { pushed, pulled, updated };
+}
+// Termin-Art und Kontakt aus dem Google-Titel erraten („Besichtigung Jahnstraße“, „Termin Sultanow“)
+export function artAusTitel(t) {
+  const x = (t || '').toLowerCase();
+  return /besichtig/.test(x) ? 'Besichtigung' : /notar/.test(x) ? 'Notartermin' : /beratung|erstgespräch|kennenlernen/.test(x) ? 'Beratungsgespräch' : /übergabe|abnahme/.test(x) ? 'Übergabe' : /foto|bilder|video|drohne/.test(x) ? 'Fotoshooting' : /gutacht|energieausweis/.test(x) ? 'Energieausweis / Gutachter' : /bewertung/.test(x) ? 'Bewertungstermin' : 'Sonstiges';
+}
+export function kontaktImTitel(t) {
+  const x = ' ' + (t || '').toLowerCase().replace(/[^a-zäöüß ]/g, ' ') + ' ';
+  return db.all('contacts').find(c => c.nachname && c.nachname.length > 2 && x.includes(' ' + c.nachname.toLowerCase() + ' ') && (!c.vorname || x.includes(c.vorname.toLowerCase()) || db.all('contacts').filter(o => o.nachname === c.nachname).length === 1));
 }
 export async function importContacts() {
   await connect(); let n = 0, page = '';
