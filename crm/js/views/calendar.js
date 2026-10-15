@@ -70,7 +70,7 @@ function evKarte(e, konf) {
       <div class="sub"><span class="art">${e.art}</span>${c ? html` · ${cLink(c.id)}` : ''}${p ? html` · ${pLink(p.id)}` : ''}${ort && !p ? ' · ' + ort : ''}${e.source === 'google' ? ' · Google' : ''}</div></div>
     <span class="cact">${tel ? html`<a href="tel:${tel.replace(/[^0-9+]/g, '')}" title="Anrufen">📞</a>` : ''}${ort ? html`<a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(ort)}" title="Route">🧭</a>` : ''}</span></li>`;
 }
-function aufgabeZeile(t) { return html`<li class="ctask" data-task="${t.id}"><input type="checkbox" data-done="${t.id}"><span class="grow">${t.titel.replace(/^⚡ /, '')}</span>${t.contactId ? cLink(t.contactId) : ''}</li>`; }
+function aufgabeZeile(t) { return html`<li class="ctask" data-task="${t.id}"><input type="checkbox" data-kdone="${t.id}"><span class="grow">${t.titel.replace(/^⚡ /, '')}</span>${t.contactId ? cLink(t.contactId) : ''}</li>`; }
 
 function agenda(evs) {
   const t0 = today(), tage = [], aufgaben = db.all('tasks').filter(t => !t.done && t.faellig);
@@ -163,5 +163,5 @@ export function render(el) {
   el.querySelectorAll('[data-neu]').forEach(b => b.onclick = e => { e.stopPropagation(); eventForm({ datum: b.dataset.neu }); });
   el.querySelectorAll('.day[data-tag]').forEach(x => x.onclick = e => { if (e.target.closest('[data-ev]')) return; bezug = x.dataset.tag; ansicht = 'agenda'; ls('kre-cal-view', ansicht); render(el); });
   el.querySelectorAll('.wraster').forEach(r => r.onclick = e => { if (e.target.closest('[data-ev]')) return; const h0 = +r.closest('.woche').querySelector('.wstd')?.textContent || 8, y = e.offsetY + (e.target === r ? 0 : e.target.offsetTop); const min = Math.round((h0 * 60 + y / 46 * 60) / 30) * 30; eventForm({ datum: r.dataset.d, start: hhmm(min), ende: hhmm(min + 60) }); });
-  el.querySelectorAll('[data-done]').forEach(c => c.onchange = async () => { await completeTask(db.get('tasks', c.dataset.done), true); toast('Erledigt'); });
+  el.querySelectorAll('[data-kdone]').forEach(c => c.onchange = async () => { await completeTask(db.get('tasks', c.dataset.kdone), true); toast('Erledigt'); });
 }

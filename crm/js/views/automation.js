@@ -21,7 +21,7 @@ function mailCard() {
 export function render(el) {
   const cfg = ruleCfg(), s = db.settings();
   const log = db.all('activities').filter(a => (a.text || '').startsWith('⚡')).sort((a, b) => b.datum.localeCompare(a.datum)).slice(0, 12);
-  el.innerHTML = html`<div class="head"><div><h1>Automationen</h1><p class="muted">Laufen automatisch, sobald das CRM geöffnet ist (beim Start, alle 5 Minuten und beim Zurückkehren in den Tab).</p></div><div class="actions"><button class="btn primary" data-run>⚡ Jetzt ausführen</button></div></div>
+  el.innerHTML = html`<div class="head"><div><h1>Automationen</h1><p class="muted">Laufen automatisch, sobald das CRM geöffnet ist (beim Start, alle 5 Minuten und beim Zurückkehren in den Tab).</p><p class="sicherhinweis">🔒 Das CRM verschickt <b>nie selbst</b> E-Mails oder Nachrichten. Automationen legen nur Aufgaben an – bei Mail-Aufgaben liegt über ✉ ein fertiger Entwurf bereit, den du prüfst und selbst aus Outlook sendest.</p></div><div class="actions"><button class="btn primary" data-run>⚡ Jetzt ausführen</button></div></div>
     <div class="cols"><section class="card" style="grid-column:1/-1"><h2>Regeln</h2>
       ${RULES.map(r => html`<div class="rule"><label class="sw"><input type="checkbox" data-on="${r.id}" ${cfg[r.id].on ? raw('checked') : ''}><i></i></label><div class="grow"><div class="ttl">${r.name}</div><div class="sub">${r.desc}</div></div>
         ${r.days != null ? html`<label class="rd"><input type="number" min="0" data-days="${r.id}" value="${cfg[r.id].days}"><small>${r.unit}</small></label>` : ''}</div>`)}
