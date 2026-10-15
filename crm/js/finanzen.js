@@ -4,18 +4,19 @@ import { esc, eur2, fmtDate, today, addDays, fullName } from './util.js';
 import { adresse } from './ui.js';
 
 export const KAT_AUSGABE = ['Werbung & Portale', 'Fahrzeug & Fahrtkosten', 'Büro & Material', 'Software & IT', 'Telefon & Internet', 'Versicherungen', 'Steuerberater & Beratung', 'Fortbildung', 'Bewirtung', 'Bank & Gebühren', 'Fotografie & Homestaging', 'Gutachten & Energieausweis', 'Miete & Raumkosten', 'Reisekosten & Übernachtung', 'Porto & Versand', 'Beiträge & Gebühren', 'Geringwertige Wirtschaftsgüter (bis 800 € netto)', 'Anschaffung Anlagegut (über 800 € netto)', 'Sonstige Ausgaben'];
-export const KAT_EINNAHME = ['Provision Käufer', 'Provision Verkäufer', 'Vermietungsprovision', 'Beratung', 'Sonstige Einnahmen'];
+export const KAT_EINNAHME = ['Vertriebsvergütung', 'Provision Käufer', 'Provision Verkäufer', 'Vermietungsprovision', 'Beratung', 'Sonstige Einnahmen'];
 // Kontenvorschlag nach DATEV SKR03 (Steuerberater kann abweichend zuordnen)
 export const KONTEN = {
   'Werbung & Portale': '4610', 'Fahrzeug & Fahrtkosten': '4530', 'Büro & Material': '4930', 'Software & IT': '4964', 'Telefon & Internet': '4920',
   'Versicherungen': '4360', 'Steuerberater & Beratung': '4950', 'Fortbildung': '4945', 'Bewirtung': '4650', 'Bank & Gebühren': '4970',
   'Fotografie & Homestaging': '4600', 'Gutachten & Energieausweis': '3100', 'Miete & Raumkosten': '4210', 'Reisekosten & Übernachtung': '4670',
   'Porto & Versand': '4910', 'Beiträge & Gebühren': '4380', 'Geringwertige Wirtschaftsgüter (bis 800 € netto)': '4855', 'Anschaffung Anlagegut (über 800 € netto)': '0490',
-  'Sonstige Ausgaben': '4900', 'Provision Käufer': '8400', 'Provision Verkäufer': '8400', 'Vermietungsprovision': '8400', 'Beratung': '8400', 'Sonstige Einnahmen': '8400',
+  'Sonstige Ausgaben': '4900', 'Vertriebsvergütung': '8400', 'Provision Käufer': '8400', 'Provision Verkäufer': '8400', 'Vermietungsprovision': '8400', 'Beratung': '8400', 'Sonstige Einnahmen': '8400',
 };
 export const konto = (kat, satz) => (KONTEN[kat] === '8400' && Number(satz) === 0) ? '8100' : (KONTEN[kat] || '');
 export const UST_SAETZE = [[19, '19 %'], [7, '7 %'], [0, '0 % / steuerfrei']];
 export const RE_TYPEN = [
+  ['vertrieb', 'Vertriebsvergütung (an Verkäufer / Bauträger)', 'Vertriebsvergütung'],
   ['kaeufer', 'Käuferprovision', 'Provision Käufer'],
   ['verkaeufer', 'Verkäuferprovision', 'Provision Verkäufer'],
   ['vermietung', 'Vermietungsprovision', 'Vermietungsprovision'],
@@ -49,8 +50,10 @@ export function empfaenger(c) {
 }
 
 // Provision aus Kaufpreis/Miete: Prozentsatz brutto (inkl. USt), wie im Maklervertrag üblich
-export function provisionsPosition(typ, { kaufpreis, prozentBrutto, objekt, monatsmieten, kaltmiete }) {
+export const standardVerguetung = () => Number(db.settings().verguetung) || 8000;
+export function provisionsPosition(typ, { kaufpreis, prozentBrutto, objekt, monatsmieten, kaltmiete, betrag, kaeufer, notartermin }) {
   const kl = kleinunternehmer(), ust = kl ? 0 : 19;
+  if (typ === 'vertrieb') return { text: `Vertriebsvergütung gemäß Vertriebsvereinbarung für die erfolgreiche Vermittlung${objekt ? ' der Einheit ' + objekt : ''}${kaeufer ? '\nKäufer: ' + kaeufer : ''}${notartermin ? ', notarieller Kaufvertrag vom ' + fmtDate(notartermin) : ''}`, menge: 1, einzel: r2(betrag), ust };
   if (typ === 'vermietung') {
     const netto = r2((Number(kaltmiete) || 0) * (Number(monatsmieten) || 2) / (1 + ust / 100));
     return { text: `Vermietungsprovision${objekt ? ' für das Objekt ' + objekt : ''} – ${String(monatsmieten || 2).replace('.', ',')} Nettokaltmieten à ${eur2(kaltmiete)}`, menge: 1, einzel: netto, ust };
@@ -65,7 +68,7 @@ export const istUeberfaellig = re => re.status === 'offen' && re.faellig && re.f
 
 // Buchung zur bezahlten Rechnung (idempotent über feste ID)
 export async function alsBezahlt(re, datum = today()) {
-  const s = summen(re), typ = RE_TYPEN.find(t => t[0] === re.typ) || RE_TYPEN[3];
+  const s = summen(re), typ = RE_TYPEN.find(t => t[0] === re.typ) || RE_TYPEN[RE_TYPEN.length - 1];
   const ustSatz = Object.keys(s.steuern).length === 1 ? Number(Object.keys(s.steuern)[0]) : (s.ust ? 19 : 0);
   await db.save('rechnungen', { ...re, status: 'bezahlt', bezahltAm: datum });
   await db.save('buchungen', { id: 'b-' + re.id, art: 'einnahme', datum, kategorie: typ[2], beschreibung: `${re.nr} – ${(re.empfaenger || '').split('\n')[0]}`,

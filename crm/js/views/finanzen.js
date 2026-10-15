@@ -23,12 +23,13 @@ function anrede(c) {
 // ---------- Rechnung aus Eckdaten ----------
 export function rechnungForm(re = {}, done) {
   const isNew = !re.id, S = db.settings();
-  const v0 = { typ: 'kaeufer', prozent: S.provKaeufer ?? 3.57, monatsmieten: 2, ust: F.kleinunternehmer() ? 0 : 19, ...(re.eingabe || {}), ...(isNew ? re : {}) };
+  const v0 = { typ: 'vertrieb', betrag: F.standardVerguetung(), prozent: S.provKaeufer || 3.57, monatsmieten: 2, ust: F.kleinunternehmer() ? 0 : 19, ...(re.eingabe || {}), ...(isNew ? re : {}) };
   const fehlend = F.fehlendeAngaben();
   modal(isNew ? 'Neue Rechnung' : `Rechnung ${re.nr} bearbeiten`, html`
     ${fehlend.length ? html`<p class="full bad small">Für eine vollständige Rechnung fehlen in den Einstellungen noch: ${fehlend.join(', ')}.</p>` : ''}
     ${sel('typ', 'Art', F.RE_TYPEN.map(t => [t[0], t[1]]), v0.typ)}${sel('dealId', 'Vorgang (füllt den Rest automatisch)', dealOpts(), v0.dealId, { blank: 1 })}
     ${sel('contactId', 'Rechnungsempfänger', contactOpts(), v0.contactId, { blank: 1 })}${sel('propertyId', 'Objekt', propOpts(), v0.propertyId, { blank: 1 })}
+    <div class="full grid sub-grid" data-show="vertrieb">${inp('betrag', 'Deine Vergütung (€ netto)', v0.betrag, { type: 'number', step: '0.01' })}${sel('kaeuferId', 'Käufer der Einheit', contactOpts(), v0.kaeuferId, { blank: 1 })}<p class="full muted small">Rechnungsempfänger ist der Verkäufer bzw. Bauträger – der Käufer zahlt nichts.</p></div>
     <div class="full grid sub-grid" data-show="kaeufer verkaeufer">${inp('kaufpreis', 'Kaufpreis (€)', v0.kaufpreis, { type: 'number', step: '0.01' })}${inp('prozent', 'Provision in % inkl. USt', v0.prozent, { type: 'number', step: '0.01' })}</div>
     <div class="full grid sub-grid" data-show="vermietung">${inp('kaltmiete', 'Nettokaltmiete (€/Monat)', v0.kaltmiete, { type: 'number', step: '0.01' })}${inp('monatsmieten', 'Anzahl Monatsmieten', v0.monatsmieten, { type: 'number', step: '0.5' })}</div>
     <div class="full grid sub-grid" data-show="frei">${inp('leistung', 'Leistung', v0.leistung, { cls: 'full' })}${inp('betragNetto', 'Betrag netto (€)', v0.betragNetto, { type: 'number', step: '0.01' })}${sel('ust', 'Umsatzsteuer', F.UST_SAETZE, v0.ust)}</div>
@@ -42,9 +43,16 @@ export function rechnungForm(re = {}, done) {
       const show = () => el.querySelectorAll('[data-show]').forEach(d => d.hidden = !d.dataset.show.split(' ').includes(g('typ').value));
       const fillFromDeal = () => {
         const d = db.get('deals', g('dealId').value); if (!d) return;
-        if (d.contactId) g('contactId').value = d.contactId;
-        if (d.propertyId) g('propertyId').value = d.propertyId;
         const p = db.get('properties', d.propertyId);
+        if (d.propertyId) g('propertyId').value = d.propertyId;
+        if (d.board === 'vertrieb' && p?.vermarktung !== 'Miete') {
+          g('typ').value = 'vertrieb'; if (d.contactId) g('kaeuferId').value = d.contactId;
+          if (p?.eigentuemerId) g('contactId').value = p.eigentuemerId;
+          g('betrag').value = Number(d.verguetung) || Number(p?.verguetung) || F.standardVerguetung();
+          if (d.closedAt) g('leistungsdatum').value = d.closedAt;
+          return;
+        }
+        if (d.contactId) g('contactId').value = d.contactId;
         const kp = d.wert || p?.preis; if (kp && !g('kaufpreis').value) g('kaufpreis').value = kp;
         if (p?.vermarktung === 'Miete') { g('typ').value = 'vermietung'; if (p.preis && !g('kaltmiete').value) g('kaltmiete').value = p.preis; }
         else if (d.board === 'akquise') { g('typ').value = 'verkaeufer'; g('prozent').value = S.provVerkaeufer ?? 3.57; }
@@ -72,6 +80,7 @@ export function rechnungForm(re = {}, done) {
     const objekt = p ? `„${p.titel}“${adresse(p) ? ', ' + adresse(p) : ''}` : '';
     let pos;
     if (v.typ === 'frei') pos = { text: v.leistung || 'Leistung', menge: 1, einzel: F.r2(v.betragNetto), ust: Number(v.ust) };
+    else if (v.typ === 'vertrieb') pos = F.provisionsPosition('vertrieb', { betrag: Number(v.betrag), objekt, kaeufer: fullName(db.get('contacts', v.kaeuferId)) || '', notartermin: v.leistungsdatum });
     else pos = F.provisionsPosition(v.typ, { kaufpreis: Number(v.kaufpreis), prozentBrutto: Number(v.prozent), objekt, monatsmieten: Number(v.monatsmieten), kaltmiete: Number(v.kaltmiete) });
     if (v.textAnpassung) pos.text = v.textAnpassung;
     const base = isNew ? F.neueRechnung() : re;
@@ -80,7 +89,7 @@ export function rechnungForm(re = {}, done) {
       nr: isNew && datum.slice(0, 4) !== base.nr.slice(3, 7) ? F.naechsteNr(datum) : base.nr,
       faellig: isNew || datum !== re.datum ? addDays(datum, Number(S.zahlungsziel) || 14) : base.faellig,
       empfaenger: F.empfaenger(c), anrede: anrede(c), betreff: p ? `Objekt: ${p.titel}${adresse(p) ? ', ' + adresse(p) : ''}` : '',
-      positionen: [pos], notiz: v.notiz, eingabe: { typ: v.typ, dealId: v.dealId, contactId: v.contactId, propertyId: v.propertyId, kaufpreis: v.kaufpreis, prozent: v.prozent, kaltmiete: v.kaltmiete, monatsmieten: v.monatsmieten, leistung: v.leistung, betragNetto: v.betragNetto, ust: v.ust, textAnpassung: v.textAnpassung } };
+      positionen: [pos], notiz: v.notiz, eingabe: { typ: v.typ, dealId: v.dealId, contactId: v.contactId, propertyId: v.propertyId, kaufpreis: v.kaufpreis, prozent: v.prozent, betrag: v.betrag, kaeuferId: v.kaeuferId, kaltmiete: v.kaltmiete, monatsmieten: v.monatsmieten, leistung: v.leistung, betragNetto: v.betragNetto, ust: v.ust, textAnpassung: v.textAnpassung } };
   }
 }
 
@@ -210,7 +219,7 @@ function uebersicht() {
   const gewinn = J.einNetto - J.ausNetto, zahllast = J.ust - J.vorsteuer;
   const max = Math.max(1, ...J.monate.flatMap(m => [m.ein, m.aus]));
   const kat = Object.entries(J.kat).sort((a, b) => b[1] - a[1]), kmax = Math.max(1, ...kat.map(k => k[1]));
-  const zuSchreiben = db.all('deals').filter(d => { const P = PIPELINES[d.board]; return P && d.stage === P.won && !db.all('rechnungen').some(r => r.dealId === d.id && r.status !== 'storniert'); });
+  const zuSchreiben = db.all('deals').filter(d => { const P = PIPELINES[d.board]; return d.board === 'vertrieb' && P && d.stage === P.won && !db.all('rechnungen').some(r => r.dealId === d.id && r.status !== 'storniert'); });
   return html`<div class="kpis">
       <div class="kpi"><b>${eur(J.einNetto)}</b><span>Einnahmen ${jahrSel} (netto)</span></div>
       <div class="kpi"><b>${eur(J.ausNetto)}</b><span>Ausgaben ${jahrSel} (netto)</span></div>
@@ -261,7 +270,7 @@ export function render(el) {
   el.querySelector('[data-jahr]').onchange = e => { jahrSel = e.target.value; render(el); };
   el.querySelectorAll('[data-neu]').forEach(b => b.onclick = () => b.dataset.neu === 'rechnung' ? rechnungForm() : buchungForm({ art: b.dataset.neu }));
   el.querySelectorAll('[data-re]').forEach(r => r.onclick = e => { if (!e.target.closest('a')) rechnungDetail(db.get('rechnungen', r.dataset.re)); });
-  el.querySelectorAll('[data-redeal]').forEach(r => r.onclick = e => { if (!e.target.closest('a')) { const d = db.get('deals', r.dataset.redeal); rechnungForm({ dealId: d.id, contactId: d.contactId, propertyId: d.propertyId, kaufpreis: d.wert || db.get('properties', d.propertyId)?.preis, typ: d.board === 'akquise' ? 'verkaeufer' : 'kaeufer', prozent: d.provision || (d.board === 'akquise' ? db.settings().provVerkaeufer : db.settings().provKaeufer) }); } });
+  el.querySelectorAll('[data-redeal]').forEach(r => r.onclick = e => { if (!e.target.closest('a')) { const d = db.get('deals', r.dataset.redeal), p = db.get('properties', d.propertyId); rechnungForm({ dealId: d.id, typ: 'vertrieb', leistungsdatum: d.closedAt || today(), contactId: p?.eigentuemerId, kaeuferId: d.contactId, propertyId: d.propertyId, betrag: Number(d.verguetung) || Number(p?.verguetung) || F.standardVerguetung() }); } });
   el.querySelectorAll('[data-b]').forEach(r => r.onclick = e => { if (!e.target.closest('a')) { const b = db.get('buchungen', r.dataset.b); b.rechnungId ? rechnungDetail(db.get('rechnungen', b.rechnungId)) : buchungForm(b); } });
   el.querySelectorAll('[data-art]').forEach(b => b.onclick = () => { artSel = b.dataset.art; render(el); });
   el.querySelector('[data-csv]')?.addEventListener('click', () => {

@@ -8,8 +8,8 @@ import { ausstehend } from './website.js';
 
 // Was in jeder Pipeline-Phase als Nächstes zu tun ist
 export const SCHRITTE = {
-  vertrieb: { 'Anfrage': 'Exposé senden & Besichtigung anbieten', 'Besichtigung': 'Finanzierungsnachweis anfordern', 'Finanzierung / Prüfung': 'Finanzierungsbestätigung prüfen, Reservierung anbieten', 'Reservierung': 'Notartermin vereinbaren & Kaufvertragsentwurf anfordern', 'Notartermin': 'Unterlagen an Notar senden, Übergabe vorbereiten' },
-  akquise: { 'Neuer Lead': 'Eigentümer anrufen (Erstgespräch)', 'Erstkontakt': 'Bewertungstermin vereinbaren', 'Bewertung / Besichtigung': 'Wertermittlung & Angebot erstellen', 'Angebot / Maklerauftrag': 'Maklerauftrag nachfassen' },
+  vertrieb: { 'Anfrage': 'Exposé & Kurzkalkulation senden, Beratungstermin anbieten', 'Beratungsgespräch': 'Persönliche Berechnung (Steuervorteil, Cashflow) erstellen & Besichtigung anbieten', 'Besichtigung': 'Finanzierungsunterlagen / Bankzusage anfordern', 'Finanzierung / Prüfung': 'Finanzierungszusage prüfen, Reservierung anbieten', 'Reservierung': 'Reservierung an Verkäufer melden, Notartermin & Kaufvertragsentwurf anfordern', 'Notartermin': 'Unterlagen an Notar senden – nach Beurkundung Vergütung beim Verkäufer abrechnen' },
+  akquise: { 'Neuer Lead': 'Verkäufer / Bauträger anrufen (Erstgespräch)', 'Erstkontakt': 'Preisliste, Grundrisse & Objektunterlagen anfordern', 'Bewertung / Besichtigung': 'Objekt prüfen & Anleger-Kalkulation erstellen', 'Angebot / Maklerauftrag': 'Vertriebsvereinbarung (Vergütung je Einheit) abschließen' },
 };
 const KONTAKT_ARTEN = ['anruf', 'email', 'meeting', 'whatsapp', 'besichtigung'];
 
@@ -20,12 +20,12 @@ export const RULES = [
   { id: 'kaltKontakt', name: 'Lange nicht kontaktiert → Kontakt aufnehmen', desc: 'Eigentümer/Investoren ohne Kontakt erhalten monatlich eine Erinnerung.', days: 60, unit: 'Tage ohne Kontakt' },
   { id: 'wiedervorlage', name: 'Wiedervorlage fällig → Aufgabe', desc: 'Aus dem Wiedervorlage-Datum eines Kontakts wird automatisch eine Aufgabe.', days: null },
   { id: 'geburtstag', name: 'Geburtstag → Gruß senden', desc: 'Aufgabe am Geburtstag (Vorlage „Geburtstagsgruß“ nutzen).', days: 0, unit: 'Tage vorher' },
-  { id: 'vertragEnde', name: 'Maklervertrag läuft aus → verlängern', desc: 'Warnt rechtzeitig vor Vertragsende.', days: 30, unit: 'Tage vorher' },
+  { id: 'vertragEnde', name: 'Vertriebsvereinbarung läuft aus → verlängern', desc: 'Warnt rechtzeitig vor Vertragsende.', days: 30, unit: 'Tage vorher' },
   { id: 'energieausweis', name: 'Energieausweis läuft ab → erneuern', desc: 'Aufgabe, wenn der Energieausweis bald abläuft.', days: 60, unit: 'Tage vorher' },
   { id: 'matches', name: 'Passender Interessent → informieren', desc: 'Bei aktiven Objekten mit Treffer im Suchprofil entsteht eine Aufgabe.', days: 80, unit: '% Mindest-Übereinstimmung' },
   { id: 'ueberfaellig', name: 'Überfällig → Priorität erhöhen', desc: 'Aufgaben, die lange überfällig sind, werden auf „hoch“ gesetzt.', days: 3, unit: 'Tage überfällig' },
   { id: 'abschluss', name: 'Abschluss → Folgeaufgaben', desc: 'Nach Verkauf: Empfehlung/Bewertung anfragen. Nach Auftrag: Objekt vorbereiten.', days: 14, unit: 'Tage nach Abschluss' },
-  { id: 'rechnungStellen', name: 'Abschluss → Rechnung stellen', desc: 'Abgeschlossene Vorgänge ohne Rechnung erzeugen eine Aufgabe „Rechnung stellen“ (Finanzen → Rechnung fällig).', days: null },
+  { id: 'rechnungStellen', name: 'Verkauf abgeschlossen → Vergütung abrechnen', desc: 'Jeder abgeschlossene Verkauf ohne Rechnung erzeugt „Vergütung beim Verkäufer abrechnen“ (Finanzen → Rechnung fällig).', days: null },
   { id: 'rechnungFaellig', name: 'Rechnung überfällig → Zahlung anmahnen', desc: 'Offene Rechnungen nach Fälligkeit erzeugen eine Aufgabe zur Zahlungserinnerung.', days: 3, unit: 'Tage nach Fälligkeit' },
   { id: 'phasenSchritte', name: 'Neue Pipeline-Phase → nächster Schritt', desc: 'Jede Phase eines Vorgangs erzeugt automatisch die passende To-do (z. B. Reservierung → Notartermin vereinbaren). Beim Weiterschieben erledigt sich die alte von selbst.', days: null },
   { id: 'terminBestaetigen', name: 'Termin morgen → bestätigen', desc: 'Am Vortag jeder Besichtigung/jedes Kundentermins entsteht „Termin bestätigen“.', days: 1, unit: 'Tage vorher' },
@@ -59,7 +59,7 @@ export async function run({ manual = false } = {}) {
       await mk('bf:' + e.id, `Feedback einholen: ${nm(e.contactId)} (${e.titel})`, addDays(e.datum, d('besichtigungFeedback')), { contactId: e.contactId, propertyId: e.propertyId });
     if (on('dealStillstand')) for (const x of deals) if (isOpen(x) && x.updated && daysBetween(x.updated.slice(0, 10), t0) >= d('dealStillstand'))
       await mk(`ds:${x.id}:${x.updated.slice(0, 10)}`, `Vorgang nachfassen: ${x.titel}`, t0, { contactId: x.contactId, propertyId: x.propertyId });
-    if (on('kaltKontakt')) for (const c of contacts) if (c.status === 'Aktiv' && ['Eigentümer', 'Investor', 'Verkäufer', 'Vermieter'].includes(c.kategorie)) {
+    if (on('kaltKontakt')) for (const c of contacts) if (c.status === 'Aktiv' && ['Eigentümer', 'Investor', 'Verkäufer', 'Vermieter', 'Bauträger / Verkäufer'].includes(c.kategorie)) {
       const last = (lastContact(c.id) || c.created || '').slice(0, 10);
       if (last && daysBetween(last, t0) > d('kaltKontakt')) await mk(`kk:${c.id}:${t0.slice(0, 7)}`, `Kontakt aufnehmen: ${fullName(c)} (seit ${daysBetween(last, t0)} Tagen kein Kontakt)`, t0, { contactId: c.id });
     }
@@ -71,7 +71,7 @@ export async function run({ manual = false } = {}) {
     for (const p of props) {
       if (['Archiv', 'Verkauft / Vermietet'].includes(p.status)) continue;
       if (on('vertragEnde') && p.auftragBis && p.auftragBis >= t0 && p.auftragBis <= addDays(t0, d('vertragEnde')))
-        await mk(`ve:${p.id}:${p.auftragBis}`, `Maklervertrag verlängern: ${p.titel} (endet ${p.auftragBis.split('-').reverse().join('.')})`, addDays(p.auftragBis, -14) < t0 ? t0 : addDays(p.auftragBis, -14), { propertyId: p.id, contactId: p.eigentuemerId }, 'hoch');
+        await mk(`ve:${p.id}:${p.auftragBis}`, `Vertriebsvereinbarung verlängern: ${p.titel} (endet ${p.auftragBis.split('-').reverse().join('.')})`, addDays(p.auftragBis, -14) < t0 ? t0 : addDays(p.auftragBis, -14), { propertyId: p.id, contactId: p.eigentuemerId }, 'hoch');
       if (on('energieausweis') && p.eGueltig && p.eGueltig <= addDays(t0, d('energieausweis'))) await mk(`ea:${p.id}:${p.eGueltig}`, `Energieausweis erneuern: ${p.titel}`, t0, { propertyId: p.id });
       if (on('matches') && p.status === 'Aktiv') for (const x of matchesForProperty(p)) if (x.m.score >= d('matches'))
         await mk(`mt:${x.c.id}:${p.id}`, `Interessent informieren: ${fullName(x.c)} ↔ ${p.titel} (${x.m.score} %)`, t0, { contactId: x.c.id, propertyId: p.id });
@@ -87,8 +87,8 @@ export async function run({ manual = false } = {}) {
       if (to) { await db.save('properties', { ...p, status: to }); await db.log('system', `⚡ Automatisch: Status ${p.status} → ${to}`, { propertyId: p.id, contactId: x.contactId }); n++; }
     }
     if (on('rechnungStellen')) for (const x of deals) {
-      const P = PIPELINES[x.board]; if (!P || x.stage !== P.won || !x.closedAt || daysBetween(x.closedAt, t0) > 60) continue;
-      if (!db.all('rechnungen').some(r => r.dealId === x.id && r.status !== 'storniert')) await mk('rs:' + x.id, `Rechnung stellen: ${x.titel}`, x.closedAt > t0 ? x.closedAt : t0, { contactId: x.contactId, propertyId: x.propertyId }, 'hoch');
+      const P = PIPELINES[x.board]; if (x.board !== 'vertrieb' || !P || x.stage !== P.won || !x.closedAt || daysBetween(x.closedAt, t0) > 60) continue;
+      if (!db.all('rechnungen').some(r => r.dealId === x.id && r.status !== 'storniert')) await mk('rs:' + x.id, `Vergütung beim Verkäufer abrechnen: ${x.titel}`, x.closedAt > t0 ? x.closedAt : t0, { contactId: x.contactId, propertyId: x.propertyId }, 'hoch');
     }
     if (on('rechnungFaellig')) for (const r of db.all('rechnungen')) if (r.status === 'offen' && r.faellig && daysBetween(r.faellig, t0) >= d('rechnungFaellig'))
       await mk('rf:' + r.id, `Zahlung anmahnen: ${r.nr} (${(r.empfaenger || '').split('\n')[0]})`, t0, { contactId: r.contactId, propertyId: r.propertyId }, 'hoch');

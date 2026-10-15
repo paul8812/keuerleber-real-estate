@@ -64,7 +64,7 @@ export function exposee(p) {
   <div class="pr">${p.preis ? eur(p.preis) + (p.vermarktung === 'Miete' ? ' mtl. kalt' : '') : 'Preis auf Anfrage'}</div>
   <table>${rows.map(r => `<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td></tr>`).join('')}</table>
   ${p.beschreibung ? `<h2>Objektbeschreibung</h2><p>${esc(p.beschreibung)}</p>` : ''}${p.ausstattung ? `<h2>Ausstattung & Lage</h2><p>${esc(p.ausstattung)}</p>` : ''}
-  ${prov != null && p.vermarktung === 'Kauf' ? `<h2>Käuferprovision</h2><p>${esc(String(prov))} % inkl. MwSt. des Kaufpreises.</p>` : ''}
+  ${p.vermarktung !== 'Miete' ? `<h2>Provision</h2><p>Für den Käufer provisionsfrei.</p>` : ''}
   <div class="ft"><b>${esc(s.firma)}</b> · ${esc(s.inhaber)}<br>${esc([s.strasse, s.plz + ' ' + s.ort].filter(Boolean).join(', '))}<br>${esc([s.tel, s.email, s.web].filter(Boolean).join(' · '))}</div></body></html>`);
   w.document.close();
 }
@@ -110,8 +110,8 @@ function detail(el, id) {
     <div class="split"><div>
       <section class="card"><h2>Objektdaten</h2>${kv('Wohnfläche', p.flaeche && num(p.flaeche, 1) + ' m²')}${kv('Grundstück', p.grundstueck && num(p.grundstueck) + ' m²')}${kv('Zimmer', p.zimmer)}${kv('Baujahr', p.baujahr)}${kv('Etage', p.etage)}${kv('Bäder', p.bad)}${kv('Stellplätze', p.stellplaetze)}${kv('Heizung', p.heizung)}${kv('Hausgeld', p.hausgeld && eur(p.hausgeld))}
         ${kv('Energieklasse', p.eKlasse && `${p.eKlasse}${p.eWert ? ' · ' + p.eWert + ' kWh/m²a' : ''}${p.eGueltig ? ' · bis ' + fmtDate(p.eGueltig) : ''}`)}
-        ${p.eigentuemerId ? html`<div class="kv"><span>Eigentümer</span><b>${cLink(p.eigentuemerId)}</b></div>` : ''}
-        ${kv('Maklervertrag', p.auftragVon || p.auftragBis ? `${p.alleinauftrag ? 'Alleinauftrag · ' : ''}${fmtDate(p.auftragVon)} – ${fmtDate(p.auftragBis)}` : '')}${kv('Provision', p.provisionGesamt && p.provisionGesamt + ' %')}
+        ${p.eigentuemerId ? html`<div class="kv"><span>Verkäufer / Bauträger</span><b>${cLink(p.eigentuemerId)}</b></div>` : ''}
+        ${kv('Vertriebsvereinbarung', p.auftragVon || p.auftragBis ? `${p.alleinauftrag ? 'Exklusiv · ' : ''}${fmtDate(p.auftragVon)} – ${fmtDate(p.auftragBis)}` : '')}${kv('Deine Vergütung', eur(Number(p.verguetung) || Number(db.settings().verguetung) || 8000) + ' netto' + (p.verguetung ? '' : ' (Standard)'))}
         ${p.beschreibung ? html`<h3>Beschreibung</h3><p class="note">${p.beschreibung}</p>` : ''}${p.ausstattung ? html`<h3>Ausstattung / Lage</h3><p class="note">${p.ausstattung}</p>` : ''}${p.notiz ? html`<h3>Interne Notiz</h3><p class="note">${p.notiz}</p>` : ''}</section>
       <section class="card"><h2>Passende Interessenten</h2>${matches.length ? html`<ul class="list">${matches.slice(0, 10).map(x => html`<li><b class="when">${x.m.score}%</b><div class="grow"><div class="ttl">${cLink(x.c.id)}</div><div class="sub">passt: ${x.m.hits.join(', ')}${x.c.sp_budgetMax ? ' · Budget ' + eur(x.c.sp_budgetMax) : ''}</div></div></li>`)}</ul>` : html`<p class="muted">Keine Treffer. Suchprofile bei Interessenten pflegen.</p>`}</section>
     </div><div>

@@ -11,7 +11,7 @@ export function render(el) {
   el.innerHTML = html`<div class="head"><h1>Rechner</h1></div><div class="cols calc">
     <section class="card" id="c1"><h2>Kaufnebenkosten</h2><div class="grid">
       ${f('k_preis', 'Kaufpreis (€)', 350000)}<label class="f"><span>Bundesland</span><select id="k_bl">${Object.keys(BUNDESLAENDER).map(b => html`<option ${b === s.bundesland ? raw('selected') : ''}>${b}</option>`)}</select></label>
-      ${f('k_notar', 'Notar (%)', 1.5, 0.1)}${f('k_gb', 'Grundbuch (%)', 0.5, 0.1)}${f('k_mak', 'Käuferprovision (%)', s.provKaeufer, 0.01)}</div><div id="o1"></div></section>
+      ${f('k_notar', 'Notar (%)', 1.5, 0.1)}${f('k_gb', 'Grundbuch (%)', 0.5, 0.1)}${f('k_mak', 'Käuferprovision (%)', s.provKaeufer || 0, 0.01)}</div><div id="o1"></div></section>
     <section class="card" id="c2"><h2>Provision</h2><div class="grid">
       ${f('p_preis', 'Kaufpreis (€)', 350000)}${f('p_k', 'Käuferprovision brutto (%)', s.provKaeufer, 0.01)}${f('p_v', 'Verkäuferprovision brutto (%)', s.provVerkaeufer, 0.01)}${f('p_split', 'Provisionsanteil Mitarbeiter/Partner (%)', 0, 1)}</div><div id="o2"></div></section>
     <section class="card" id="c3"><h2>Rendite</h2><div class="grid">

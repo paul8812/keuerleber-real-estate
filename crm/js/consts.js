@@ -1,4 +1,4 @@
-export const KONTAKT_ARTEN = ['Eigentümer', 'Interessent (Kauf)', 'Interessent (Miete)', 'Käufer', 'Verkäufer', 'Mieter', 'Vermieter', 'Investor', 'Partner / Dienstleister', 'Notar', 'Bank / Finanzierer', 'Handwerker', 'Sonstige'];
+export const KONTAKT_ARTEN = ['Eigentümer', 'Interessent (Kauf)', 'Interessent (Miete)', 'Käufer', 'Verkäufer', 'Mieter', 'Vermieter', 'Investor', 'Bauträger / Verkäufer', 'Partner / Dienstleister', 'Notar', 'Bank / Finanzierer', 'Handwerker', 'Sonstige'];
 export const QUELLEN = ['Empfehlung', 'Website', 'ImmoScout24', 'Immowelt', 'Kleinanzeigen', 'Social Media', 'Kaltakquise', 'Netzwerk', 'Bestandskunde', 'Flyer / Brief', 'Sonstige'];
 export const OBJEKT_ARTEN = ['Eigentumswohnung', 'Einfamilienhaus', 'Mehrfamilienhaus', 'Doppelhaushälfte', 'Reihenhaus', 'Wohn- & Geschäftshaus', 'Grundstück', 'Gewerbe', 'Garage / Stellplatz', 'Sonstiges'];
 export const OBJEKT_STATUS = ['Akquise', 'Vorbereitung', 'Aktiv', 'Reserviert', 'Notartermin', 'Verkauft / Vermietet', 'Archiv'];
@@ -7,10 +7,10 @@ export const ENERGIE_KLASSEN = ['A+', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 export const HEIZUNG = ['Gas', 'Öl', 'Fernwärme', 'Wärmepumpe', 'Pellets', 'Strom', 'Holz', 'Sonstige'];
 export const AKTIVITAET_ARTEN = [['notiz', 'Notiz', '📝'], ['anruf', 'Anruf', '📞'], ['email', 'E-Mail', '✉️'], ['besichtigung', 'Besichtigung', '🏠'], ['meeting', 'Termin / Meeting', '🤝'], ['whatsapp', 'WhatsApp / SMS', '💬'], ['system', 'System', '⚙️']];
 export const PIPELINES = {
-  akquise: { name: 'Akquise (Eigentümer)', stages: ['Neuer Lead', 'Erstkontakt', 'Bewertung / Besichtigung', 'Angebot / Maklerauftrag', 'Auftrag erhalten', 'Verloren'], won: 'Auftrag erhalten', lost: 'Verloren' },
-  vertrieb: { name: 'Vertrieb (Interessenten)', stages: ['Anfrage', 'Besichtigung', 'Finanzierung / Prüfung', 'Reservierung', 'Notartermin', 'Abgeschlossen', 'Absage'], won: 'Abgeschlossen', lost: 'Absage' },
+  akquise: { name: 'Einkauf (Verkäufer / Bauträger)', stages: ['Neuer Lead', 'Erstkontakt', 'Bewertung / Besichtigung', 'Angebot / Maklerauftrag', 'Auftrag erhalten', 'Verloren'], won: 'Auftrag erhalten', lost: 'Verloren' },
+  vertrieb: { name: 'Vertrieb (Interessenten)', stages: ['Anfrage', 'Beratungsgespräch', 'Besichtigung', 'Finanzierung / Prüfung', 'Reservierung', 'Notartermin', 'Abgeschlossen', 'Absage'], won: 'Abgeschlossen', lost: 'Absage' },
 };
-export const DEFAULT_PROB = { 'Neuer Lead': 10, 'Erstkontakt': 20, 'Bewertung / Besichtigung': 40, 'Angebot / Maklerauftrag': 60, 'Auftrag erhalten': 100, 'Verloren': 0, 'Anfrage': 10, 'Besichtigung': 30, 'Finanzierung / Prüfung': 50, 'Reservierung': 75, 'Notartermin': 90, 'Abgeschlossen': 100, 'Absage': 0 };
+export const DEFAULT_PROB = { 'Neuer Lead': 10, 'Erstkontakt': 20, 'Bewertung / Besichtigung': 40, 'Angebot / Maklerauftrag': 60, 'Auftrag erhalten': 100, 'Verloren': 0, 'Anfrage': 10, 'Beratungsgespräch': 20, 'Besichtigung': 30, 'Finanzierung / Prüfung': 50, 'Reservierung': 75, 'Notartermin': 90, 'Abgeschlossen': 100, 'Absage': 0 };
 export const TERMIN_ARTEN = ['Besichtigung', 'Beratungsgespräch', 'Bewertungstermin', 'Notartermin', 'Übergabe', 'Fotoshooting', 'Energieausweis / Gutachter', 'Sonstiges'];
 export const PRIOS = [['hoch', 'Hoch'], ['normal', 'Normal'], ['niedrig', 'Niedrig']];
 export const WIEDERHOLUNG = [['', 'Keine'], ['daily', 'Täglich'], ['weekly', 'Wöchentlich'], ['monthly', 'Monatlich'], ['yearly', 'Jährlich']];

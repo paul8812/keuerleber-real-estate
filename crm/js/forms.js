@@ -41,7 +41,7 @@ export function propertyForm(p = {}, done) {
   modal(isNew ? 'Neues Objekt' : 'Objekt bearbeiten', html`
     ${inp('titel', 'Titel / Bezeichnung', p.titel, { req: 1, cls: 'full' })}
     ${sel('vermarktung', 'Vermarktung', ['Kauf', 'Miete'], p.vermarktung || 'Kauf')}${sel('art', 'Objektart', OBJEKT_ARTEN, p.art || 'Eigentumswohnung')}
-    ${sel('status', 'Status', OBJEKT_STATUS, p.status || 'Akquise')}${sel('eigentuemerId', 'Eigentümer', contactOpts(), p.eigentuemerId, { blank: 1 })}
+    ${sel('status', 'Status', OBJEKT_STATUS, p.status || 'Akquise')}${sel('eigentuemerId', 'Verkäufer / Bauträger', contactOpts(), p.eigentuemerId, { blank: 1 })}
     ${inp('strasse', 'Straße / Nr.', p.strasse)}${inp('plz', 'PLZ', p.plz)}${inp('ort', 'Ort', p.ort)}
     ${inp('preis', 'Preis / Kaltmiete (€)', p.preis, { type: 'number' })}${inp('flaeche', 'Wohnfläche (m²)', p.flaeche, { type: 'number', step: '0.1' })}
     ${inp('grundstueck', 'Grundstück (m²)', p.grundstueck, { type: 'number' })}${inp('zimmer', 'Zimmer', p.zimmer, { type: 'number', step: '0.5' })}
@@ -52,9 +52,9 @@ export function propertyForm(p = {}, done) {
     ${sel('eKlasse', 'Energieklasse', ENERGIE_KLASSEN, p.eKlasse, { blank: 1 })}${inp('eWert', 'Verbrauch (kWh/m²a)', p.eWert, { type: 'number' })}
     ${inp('eGueltig', 'Gültig bis', p.eGueltig, { type: 'date' })}${sel('eArt', 'Art des Ausweises', ['Energiebedarfsausweis', 'Energieverbrauchsausweis'], p.eArt, { blank: 1 })}
     ${inp('eTraeger', 'Wesentlicher Energieträger', p.eTraeger, { ph: 'z. B. Heizöl EL, Erdgas' })}${inp('eBaujahr', 'Baujahr laut Ausweis', p.eBaujahr)}
-    <h4 class="full">Auftrag & Provision</h4>
-    ${inp('auftragVon', 'Maklervertrag ab', p.auftragVon, { type: 'date' })}${inp('auftragBis', 'Maklervertrag bis', p.auftragBis, { type: 'date' })}
-    ${chk('alleinauftrag', 'Alleinauftrag', p.alleinauftrag)}${inp('provisionGesamt', 'Provision gesamt (%)', p.provisionGesamt, { type: 'number', step: '0.01' })}
+    <h4 class="full">Vertrieb & Vergütung</h4>
+    ${inp('verguetung', 'Deine Vergütung je Einheit (€ netto, vom Verkäufer) – leer = Standard', p.verguetung, { type: 'number', step: '100', ph: String(db.settings().verguetung || 8000) })}${chk('alleinauftrag', 'Exklusiver Vertrieb', p.alleinauftrag)}
+    ${inp('auftragVon', 'Vertriebsvereinbarung ab', p.auftragVon, { type: 'date' })}${inp('auftragBis', 'Vertriebsvereinbarung bis', p.auftragBis, { type: 'date' })}
     ${inp('mieteJahr', 'Ist-Jahresmiete (€, für Rendite)', p.mieteJahr, { type: 'number' })}${inp('eingestelltAm', 'Online seit', p.eingestelltAm, { type: 'date' })}
     ${area('beschreibung', 'Objektbeschreibung (Exposé & Website)', p.beschreibung, { rows: 4 })}
     ${area('lage', 'Lage', p.lage, { rows: 2 })}
@@ -90,7 +90,7 @@ export function dealForm(d = {}, done) {
     ${sel('board', 'Pipeline', Object.entries(PIPELINES).map(([k, v]) => [k, v.name]), board)}
     ${sel('stage', 'Phase', [...new Set(Object.values(PIPELINES).flatMap(p => p.stages))], d.stage || PIPELINES[board].stages[0])}
     ${sel('contactId', 'Kontakt', contactOpts(), d.contactId, { blank: 1 })}${sel('propertyId', 'Objekt', propOpts(), d.propertyId, { blank: 1 })}
-    ${inp('wert', 'Objektwert / Kaufpreis (€)', d.wert, { type: 'number' })}${inp('provision', 'Provision gesamt (%) – leer = Standard', d.provision, { type: 'number', step: '0.01' })}
+    ${inp('wert', 'Objektwert / Kaufpreis (€)', d.wert, { type: 'number' })}${inp('verguetung', 'Deine Vergütung (€ netto) – leer = Objekt/Standard', d.verguetung, { type: 'number', step: '100' })}
     ${inp('wahrscheinlichkeit', 'Wahrscheinlichkeit (%) – leer = automatisch', d.wahrscheinlichkeit, { type: 'number' })}${inp('naechsterSchritt', 'Nächster Schritt', d.naechsterSchritt)}
     ${inp('faellig', 'Fällig am', d.faellig, { type: 'date' })}${inp('verlustGrund', 'Verlustgrund (falls verloren)', d.verlustGrund)}
     ${area('notiz', 'Notiz', d.notiz)}`,

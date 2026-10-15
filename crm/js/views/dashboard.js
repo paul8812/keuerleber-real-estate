@@ -40,8 +40,8 @@ export function render(el) {
       ${kpi(contacts.length, 'Kontakte', '#/kontakte')}
       ${kpi(tasks.length, 'Fällige Aufgaben', '#/aufgaben', tasks.length ? 'warn' : '')}
       ${kpi(eur(pipeVal), 'Pipeline-Volumen', '#/pipeline')}
-      ${kpi(eur(forecast), 'Provisions-Prognose (gewichtet)', '#/pipeline')}
-      ${kpi(eur(umsatz), `Provision ${year} (abgeschlossen)`, '#/statistik')}
+      ${kpi(eur(forecast), 'Vergütungs-Prognose (gewichtet)', '#/pipeline')}
+      ${kpi(eur(umsatz), `Vergütung ${year} (abgeschlossen)`, '#/statistik')}
     </div>
     <div class="cols">
       <section class="card"><h2>Heute & überfällig</h2>${tasks.length ? html`<ul class="tasks">${tasks.slice(0, 10).map(taskRow)}</ul>` : empty('Alles erledigt 🎉')}</section>

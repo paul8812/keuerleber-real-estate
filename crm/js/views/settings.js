@@ -10,7 +10,7 @@ export function render(el) {
   const s = db.settings(), c = db.cfg();
   el.innerHTML = html`<div class="head"><h1>Einstellungen</h1></div><div class="cols">
     <section class="card"><h2>Firma & Standardwerte</h2><form id="fs" class="grid">${inp('firma', 'Firma', s.firma)}${inp('inhaber', 'Inhaber / Absender', s.inhaber)}${inp('strasse', 'Straße', s.strasse)}${inp('plz', 'PLZ', s.plz)}${inp('ort', 'Ort', s.ort)}${inp('tel', 'Telefon', s.tel)}${inp('email', 'E-Mail', s.email)}${inp('web', 'Website', s.web)}
-      ${sel('bundesland', 'Bundesland (Grunderwerbsteuer)', Object.keys(BUNDESLAENDER), s.bundesland)}${inp('provKaeufer', 'Käuferprovision (% brutto)', s.provKaeufer, { type: 'number', step: '0.01' })}${inp('provVerkaeufer', 'Verkäuferprovision (% brutto)', s.provVerkaeufer, { type: 'number', step: '0.01' })}${inp('nachfassTage', 'Erinnerung „lange nicht kontaktiert“ nach (Tagen)', s.nachfassTage, { type: 'number' })}
+      ${sel('bundesland', 'Bundesland (Grunderwerbsteuer)', Object.keys(BUNDESLAENDER), s.bundesland)}${inp('verguetung', 'Standard-Vergütung je verkaufter Einheit (€ netto, zahlt der Verkäufer)', s.verguetung ?? 8000, { type: 'number', step: '100' })}${inp('nachfassTage', 'Erinnerung „lange nicht kontaktiert“ nach (Tagen)', s.nachfassTage, { type: 'number' })}
       <h4 class="full">Rechnungen & Steuer</h4>${inp('steuernummer', 'Steuernummer', s.steuernummer)}${inp('ustId', 'USt-IdNr. (falls vorhanden)', s.ustId)}
       ${inp('iban', 'IBAN', s.iban)}${inp('bic', 'BIC', s.bic)}${inp('bank', 'Bank', s.bank)}${inp('zahlungsziel', 'Zahlungsziel (Tage)', s.zahlungsziel ?? 14, { type: 'number' })}
       ${chk('kleinunternehmer', 'Kleinunternehmer nach § 19 UStG (keine Umsatzsteuer ausweisen)', s.kleinunternehmer, { cls: 'full' })}

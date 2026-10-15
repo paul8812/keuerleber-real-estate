@@ -39,6 +39,7 @@ export const matchesForProperty = p => db.all('contacts').filter(c => c.status !
 export const matchesForContact = c => db.all('properties').filter(p => ['Aktiv', 'Vorbereitung', 'Reserviert'].includes(p.status)).map(p => ({ p, m: matchScore(c, p) })).filter(x => x.m && x.m.score >= 60).sort((a, b) => b.m.score - a.m.score);
 
 export const lastContact = id => db.all('activities').filter(a => a.contactId === id && a.art !== 'system').reduce((m, a) => a.datum > m ? a.datum : m, '');
-export const dealProvision = d => { const s = db.settings(); const pr = d.propertyId ? db.get('properties', d.propertyId) : null; const pct = d.provision ?? (pr?.provisionGesamt) ?? (s.provKaeufer + s.provVerkaeufer); return (d.wert || 0) * pct / 100; };
+// Kapitalanlagevertrieb: feste Vergütung je verkaufter Einheit, gezahlt vom Verkäufer/Bauträger (Käufer zahlt keine Provision)
+export const dealProvision = d => { if (d.board !== 'vertrieb') return 0; const s = db.settings(); const pr = d.propertyId ? db.get('properties', d.propertyId) : null; return Number(d.verguetung) || Number(pr?.verguetung) || Number(s.verguetung) || 8000; };
 export const preisM2 = p => p.preis && p.flaeche ? p.preis / p.flaeche : null;
 export { html, raw, esc, eur, num };

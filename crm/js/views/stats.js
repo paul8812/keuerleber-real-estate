@@ -20,10 +20,10 @@ export function render(el) {
   const volWon = wonV.reduce((s, d) => s + (d.wert || 0), 0);
   const lostReasons = Object.entries(deals.filter(d => d.verlustGrund).reduce((a, d) => { a[d.verlustGrund] = (a[d.verlustGrund] || 0) + 1; return a; }, {})).sort((a, b) => b[1] - a[1]);
   el.innerHTML = html`<div class="head"><h1>Statistik</h1></div>
-    <div class="kpis"><div class="kpi"><b>${eur(rev.reduce((s, r) => s + r[1], 0))}</b><span>Provision ${year}</span></div><div class="kpi"><b>${eur(volWon)}</b><span>Verkaufsvolumen (gesamt)</span></div>
+    <div class="kpis"><div class="kpi"><b>${eur(rev.reduce((s, r) => s + r[1], 0))}</b><span>Vergütung ${year}</span></div><div class="kpi"><b>${eur(volWon)}</b><span>Verkaufsvolumen (gesamt)</span></div>
       <div class="kpi"><b>${won + lost ? pct(won / (won + lost) * 100, 0) : '–'}</b><span>Akquise-Erfolgsquote</span></div><div class="kpi"><b>${avgDays != null ? avgDays + ' Tage' : '–'}</b><span>Ø Vermarktungsdauer</span></div></div>
     <div class="cols">
-      <section class="card"><h2>Provision je Monat ${year}</h2>${bars(rev, eur)}</section>
+      <section class="card"><h2>Vergütung je Monat ${year}</h2>${bars(rev, eur)}</section>
       <section class="card"><h2>Objekte nach Status</h2>${bars(OBJEKT_STATUS.map(s => [s, props.filter(p => p.status === s).length, STATUS_FARBE[s]]).filter(r => r[1]))}</section>
       <section class="card"><h2>Trichter Akquise</h2>${bars(funnel(aq, 'akquise'))}</section>
       <section class="card"><h2>Trichter Vertrieb</h2>${bars(funnel(PIPELINES.vertrieb, 'vertrieb'))}</section>

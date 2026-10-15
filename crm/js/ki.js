@@ -43,7 +43,7 @@ export async function lesen(file) {
 function prompt() {
   const s = db.settings();
   const objekte = db.all('properties').filter(p => p.status !== 'Archiv').map(p => `${p.id}: ${p.titel} (${[p.strasse, p.plz, p.ort].filter(Boolean).join(' ')})`).join('\n') || '–';
-  return `Du bist Buchhalter eines Immobilienmaklers (Einzelunternehmen „${s.firma || 'Keuerleber Immobilien'}“, Inhaber ${s.inhaber || 'Paul Keuerleber'}, ${[s.strasse, s.plz, s.ort].filter(Boolean).join(' ')}). Lies den Beleg und gib NUR ein JSON-Objekt zurück, ohne Text davor oder danach.
+  return `Du bist Buchhalter eines Kapitalanlage-Vertriebs (Vermittlung von Anlage-Wohnungen an Investoren; die Vergütung zahlt der Verkäufer/Bauträger; Einzelunternehmen „${s.firma || 'Keuerleber Immobilien'}“, Inhaber ${s.inhaber || 'Paul Keuerleber'}, ${[s.strasse, s.plz, s.ort].filter(Boolean).join(' ')}). Lies den Beleg und gib NUR ein JSON-Objekt zurück, ohne Text davor oder danach.
 
 Felder:
 {
