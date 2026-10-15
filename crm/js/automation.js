@@ -4,6 +4,14 @@ import { today, addDays, daysBetween, fullName, toast } from './util.js';
 import { matchesForProperty, lastContact } from './ui.js';
 import { PIPELINES } from './consts.js';
 import * as google from './google.js';
+import { ausstehend } from './website.js';
+
+// Was in jeder Pipeline-Phase als Nächstes zu tun ist
+export const SCHRITTE = {
+  vertrieb: { 'Anfrage': 'Exposé senden & Besichtigung anbieten', 'Besichtigung': 'Finanzierungsnachweis anfordern', 'Finanzierung / Prüfung': 'Finanzierungsbestätigung prüfen, Reservierung anbieten', 'Reservierung': 'Notartermin vereinbaren & Kaufvertragsentwurf anfordern', 'Notartermin': 'Unterlagen an Notar senden, Übergabe vorbereiten' },
+  akquise: { 'Neuer Lead': 'Eigentümer anrufen (Erstgespräch)', 'Erstkontakt': 'Bewertungstermin vereinbaren', 'Bewertung / Besichtigung': 'Wertermittlung & Angebot erstellen', 'Angebot / Maklerauftrag': 'Maklerauftrag nachfassen' },
+};
+const KONTAKT_ARTEN = ['anruf', 'email', 'meeting', 'whatsapp', 'besichtigung'];
 
 export const RULES = [
   { id: 'neuerInteressent', name: 'Neuer Interessent → Erstkontakt', desc: 'Legt für jeden neuen Interessenten eine Aufgabe „Erstkontakt“ an.', days: 1, unit: 'Tage nach Anlage' },
@@ -19,6 +27,12 @@ export const RULES = [
   { id: 'abschluss', name: 'Abschluss → Folgeaufgaben', desc: 'Nach Verkauf: Empfehlung/Bewertung anfragen. Nach Auftrag: Objekt vorbereiten.', days: 14, unit: 'Tage nach Abschluss' },
   { id: 'rechnungStellen', name: 'Abschluss → Rechnung stellen', desc: 'Abgeschlossene Vorgänge ohne Rechnung erzeugen eine Aufgabe „Rechnung stellen“ (Finanzen → Rechnung fällig).', days: null },
   { id: 'rechnungFaellig', name: 'Rechnung überfällig → Zahlung anmahnen', desc: 'Offene Rechnungen nach Fälligkeit erzeugen eine Aufgabe zur Zahlungserinnerung.', days: 3, unit: 'Tage nach Fälligkeit' },
+  { id: 'phasenSchritte', name: 'Neue Pipeline-Phase → nächster Schritt', desc: 'Jede Phase eines Vorgangs erzeugt automatisch die passende To-do (z. B. Reservierung → Notartermin vereinbaren). Beim Weiterschieben erledigt sich die alte von selbst.', days: null },
+  { id: 'terminBestaetigen', name: 'Termin morgen → bestätigen', desc: 'Am Vortag jeder Besichtigung/jedes Kundentermins entsteht „Termin bestätigen“.', days: 1, unit: 'Tage vorher' },
+  { id: 'suchprofil', name: 'Interessent ohne Suchprofil → erfragen', desc: 'Damit das Objekt-Matching funktioniert: Aufgabe „Suchprofil erfragen“.', days: 2, unit: 'Tage nach Anlage' },
+  { id: 'dubletten', name: 'Doppelter Kontakt → prüfen', desc: 'Gleiche E-Mail oder Telefonnummer bei zwei Kontakten erzeugt eine Prüf-Aufgabe.', days: null },
+  { id: 'websiteFehlt', name: 'Aktives Objekt nicht online → veröffentlichen', desc: 'Aktive Objekte, die nicht auf keuerleber-immobilien.de stehen (oder ungespeicherte Änderungen haben), erzeugen eine Aufgabe.', days: 2, unit: 'Tage Wartezeit' },
+  { id: 'autoErledigt', name: 'Kontakt aufgenommen → Aufgabe erledigt', desc: 'Sobald du einen Anruf, eine Mail oder ein Treffen beim Kontakt einträgst (oder eine Mail aus Outlook rausgeht), haken sich „Erstkontakt“, „Feedback“, „Nachfassen“ usw. selbst ab.', days: null },
   { id: 'statusSync', name: 'Pipeline → Objektstatus', desc: 'Reservierung/Notartermin im Vertrieb setzt das Objekt automatisch auf „Reserviert“/„Notartermin“.', days: null },
 ];
 export const ruleCfg = () => { const saved = db.settings().auto || {}; return Object.fromEntries(RULES.map(r => [r.id, { on: true, days: r.days, ...(saved[r.id] || {}) }])); };
@@ -77,6 +91,39 @@ export async function run({ manual = false } = {}) {
     }
     if (on('rechnungFaellig')) for (const r of db.all('rechnungen')) if (r.status === 'offen' && r.faellig && daysBetween(r.faellig, t0) >= d('rechnungFaellig'))
       await mk('rf:' + r.id, `Zahlung anmahnen: ${r.nr} (${(r.empfaenger || '').split('\n')[0]})`, t0, { contactId: r.contactId, propertyId: r.propertyId }, 'hoch');
+    if (on('phasenSchritte')) for (const x of deals) {
+      const P = PIPELINES[x.board]; if (!P) continue;
+      for (const t of db.all('tasks')) if (!t.done && (t.auto || '').startsWith(`st:${x.id}:`) && t.auto !== `st:${x.id}:${x.stage}`) { await db.save('tasks', { ...t, done: true, doneAt: new Date().toISOString() }); n++; }
+      const step = SCHRITTE[x.board]?.[x.stage], since = (x.stageAt || x.updated || x.created || '').slice(0, 10);
+      if (step && isOpen(x) && since && daysBetween(since, t0) <= 7) await mk(`st:${x.id}:${x.stage}`, `${step}: ${x.contactId ? nm(x.contactId) : x.titel}`, t0, { contactId: x.contactId, propertyId: x.propertyId, dealId: x.id }, ['Reservierung', 'Notartermin', 'Angebot / Maklerauftrag'].includes(x.stage) ? 'hoch' : 'normal');
+    }
+    if (on('terminBestaetigen')) for (const e of events) if (e.contactId && e.datum > t0 && e.datum <= addDays(t0, Math.max(1, d('terminBestaetigen'))) && !/notar/i.test(e.art || ''))
+      await mk('tb:' + e.id, `Termin bestätigen: ${nm(e.contactId)} – ${e.titel || e.art} am ${e.datum.split('-').reverse().join('.')}${e.start ? ' ' + e.start : ''}`, t0, { contactId: e.contactId, propertyId: e.propertyId });
+    if (on('suchprofil')) for (const c of contacts) if ((c.kategorie || '').startsWith('Interessent') && c.status === 'Aktiv' && !c.sp_aktiv && c.created && daysBetween(c.created.slice(0, 10), t0) <= 30)
+      await mk('sp:' + c.id, `Suchprofil erfragen: ${fullName(c)} (Budget, Ort, Zimmer)`, addDays(c.created.slice(0, 10), d('suchprofil')), { contactId: c.id });
+    if (on('dubletten')) {
+      const seen = new Map(), norm = v => String(v || '').toLowerCase().replace(/[^0-9a-z@.+]/g, '').replace(/^(\+49|0049)/, '0');
+      for (const c of contacts) if (c.status !== 'Archiv') for (const k of [c.email && 'e' + norm(c.email), ...[c.tel, c.mobil].filter(v => norm(v).length >= 7).map(v => 't' + norm(v))].filter(Boolean)) {
+        const o = seen.get(k);
+        if (o && o.id !== c.id) { const ids = [o.id, c.id].sort(); await mk(`du:${ids[0]}:${ids[1]}`, `Doppelten Kontakt prüfen: ${fullName(o)} / ${fullName(c)}`, t0, { contactId: c.id }, 'niedrig'); }
+        else seen.set(k, c);
+      }
+    }
+    if (on('websiteFehlt')) for (const p of props) {
+      const offen = db.all('tasks').filter(t => !t.done && (t.auto || '').startsWith(`wo:${p.id}:`));
+      const fehlt = p.status === 'Aktiv' && p.webOnline !== false && (!p.webLive || ausstehend(p));
+      if (!fehlt) { for (const t of offen) { await db.save('tasks', { ...t, done: true, doneAt: new Date().toISOString() }); n++; } continue; }
+      const since = ((p.webLive ? p.updated : p.created) || p.updated || t0).slice(0, 10);
+      if (daysBetween(since, t0) >= d('websiteFehlt')) await mk(`wo:${p.id}:${p.webLive ? (p.webPublished || 'upd') : 'neu'}`, p.webLive ? `Website aktualisieren: ${p.titel}` : `Auf Website veröffentlichen: ${p.titel}`, t0, { propertyId: p.id });
+    }
+    if (on('autoErledigt')) {
+      const acts = db.all('activities').filter(a => a.contactId && KONTAKT_ARTEN.includes(a.art) && !a.eingehend && !String(a.id || '').startsWith('mail-act-'));
+      for (const t of db.all('tasks')) if (!t.done && t.contactId && /^(ni|bf|kk|wv|ds|sp|mail|tb|mt):/.test(t.auto || '')) {
+        const seit = t.created || '';
+        const a = seit && acts.find(a => a.contactId === t.contactId && (a.created || a.datum) > seit && a.datum.slice(0, 10) >= seit.slice(0, 10));
+        if (a) { await db.save('tasks', { ...t, done: true, doneAt: new Date().toISOString() }); await db.log('system', `⚡ Automatisch erledigt: ${t.titel.replace(/^⚡ /, '')}`, { contactId: t.contactId, propertyId: t.propertyId }); n++; }
+      }
+    }
     if (on('ueberfaellig')) for (const t of db.all('tasks')) if (!t.done && t.faellig && t.prio === 'normal' && daysBetween(t.faellig, t0) >= d('ueberfaellig')) { await db.save('tasks', { ...t, prio: 'hoch' }); n++; }
   } finally { running = false; }
   if (n && !manual) toast(`⚡ ${n} Automation${n > 1 ? 'en' : ''} ausgeführt`);

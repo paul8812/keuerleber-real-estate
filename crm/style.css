@@ -97,3 +97,6 @@ details{margin-top:12px}.steps{margin:10px 0 0 18px;display:flex;flex-direction:
 .pweb{position:absolute;right:10px;top:10px;background:rgba(8,8,8,.75);color:#cfe9d9;font-size:11px;padding:2px 9px;border-radius:99px}
 .webcard{margin-bottom:16px}.webrow{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap}.webrow h2{margin-bottom:6px}.webrow p{margin:2px 0}
 .fotolbl{cursor:pointer}
+.tquick{display:flex;gap:4px;margin-left:6px}.tquick a,.tquick button{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:none;color:var(--txt);cursor:pointer;text-decoration:none;font-size:14px;opacity:.75}.tquick a:hover,.tquick button:hover{opacity:1;border-color:var(--gold)}
+.quickgrid [data-k=anfrage]{grid-column:1/-1;border-color:var(--gold)}.sfhint{color:var(--gold);font-size:13px;min-height:1em}
+@media(max-width:600px){.tquick a,.tquick button{width:28px;height:28px}.task{flex-wrap:wrap}.tquick{margin-left:auto}}

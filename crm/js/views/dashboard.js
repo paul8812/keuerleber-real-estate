@@ -3,6 +3,7 @@ import { html, today, addDays, fmtDate, fmtDateShort, eur, daysBetween, fullName
 import { PIPELINES, DEFAULT_PROB } from '../consts.js';
 import { cLink, pLink, empty, timeline, matchesForProperty, lastContact, dealProvision, avatar } from '../ui.js';
 import { taskRow, bindTasks } from './tasks.js';
+import { schnellerfassung } from '../schnellerfassung.js';
 import { eventForm, taskForm, contactForm, propertyForm, activityForm } from '../forms.js';
 
 export const prob = d => d.wahrscheinlichkeit !== '' && d.wahrscheinlichkeit != null ? d.wahrscheinlichkeit : (DEFAULT_PROB[d.stage] ?? 0);
@@ -33,7 +34,7 @@ export function render(el) {
   const hour = new Date().getHours(), greet = hour < 11 ? 'Guten Morgen' : hour < 18 ? 'Guten Tag' : 'Guten Abend';
   const kpi = (v, l, href, cls = '') => html`<a class="kpi ${cls}" href="${href}"><b>${v}</b><span>${l}</span></a>`;
   el.innerHTML = html`<div class="head"><div><h1>${greet}, ${(s.inhaber || '').split(' ')[0]}</h1><p class="muted">${new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p></div>
-      <div class="actions"><button class="btn" data-q="contact">+ Kontakt</button><button class="btn" data-q="property">+ Objekt</button><button class="btn" data-q="task">+ Aufgabe</button><button class="btn" data-q="event">+ Termin</button><button class="btn" data-q="note">+ Notiz</button></div></div>
+      <div class="actions"><button class="btn primary" data-q="anfrage">📋 Anfrage einfügen</button><button class="btn" data-q="contact">+ Kontakt</button><button class="btn" data-q="property">+ Objekt</button><button class="btn" data-q="task">+ Aufgabe</button><button class="btn" data-q="event">+ Termin</button><button class="btn" data-q="note">+ Notiz</button></div></div>
     <div class="kpis">
       ${kpi(props.filter(p => p.status === 'Aktiv').length, 'Aktive Objekte', '#/objekte')}
       ${kpi(contacts.length, 'Kontakte', '#/kontakte')}
@@ -54,6 +55,6 @@ export function render(el) {
     </div>`.s;
   bindTasks(el);
   el.querySelectorAll('[data-ev]').forEach(li => li.onclick = e => { if (!e.target.closest('a')) eventForm(db.get('events', li.dataset.ev)); });
-  const q = { contact: () => contactForm({}, c => location.hash = '#/kontakte/' + c.id), property: () => propertyForm({}, p => location.hash = '#/objekte/' + p.id), task: () => taskForm(), event: () => eventForm(), note: () => activityForm() };
+  const q = { anfrage: () => schnellerfassung(), contact: () => contactForm({}, c => location.hash = '#/kontakte/' + c.id), property: () => propertyForm({}, p => location.hash = '#/objekte/' + p.id), task: () => taskForm(), event: () => eventForm(), note: () => activityForm() };
   el.querySelectorAll('[data-q]').forEach(b => b.onclick = q[b.dataset.q]);
 }

@@ -16,6 +16,7 @@ import * as automation from './views/automation.js';
 import * as inbox from './views/inbox.js';
 import * as finanzen from './views/finanzen.js';
 import * as auto from './automation.js';
+import { schnellerfassung } from './schnellerfassung.js';
 
 const VIEWS = { dashboard, posteingang: inbox, kontakte: contacts, objekte: properties, pipeline, aufgaben: tasks, kalender: calendar, finanzen, vorlagen: templates, automation, rechner: calc, statistik: stats, einstellungen: settings };
 const main = document.getElementById('main');
@@ -46,8 +47,8 @@ function shell() {
   document.getElementById('nav').innerHTML = NAV.map(([k, l, ic]) => `<a href="#/${k}" data-k="${k}"><i>${ic}</i><span>${l}</span></a>`).join('');
   document.getElementById('burger').onclick = () => document.body.classList.toggle('nav-open');
   document.getElementById('mode').textContent = db.isCloud() ? '☁ Cloud' : '💾 Lokal';
-  document.getElementById('quick').onclick = () => modal('Neu anlegen', html`<div class="full quickgrid">${[['contact', '☺ Kontakt'], ['property', '⌂ Objekt'], ['task', '✓ Aufgabe'], ['event', '▦ Termin'], ['note', '📝 Notiz / Anruf']].map(([k, l]) => html`<button type="button" class="btn big" data-k="${k}">${l}</button>`)}</div>`, {
-    onMount: (el, close) => el.querySelectorAll('[data-k]').forEach(b => b.onclick = () => { close(); ({ contact: () => contactForm({}, c => location.hash = '#/kontakte/' + c.id), property: () => propertyForm({}, p => location.hash = '#/objekte/' + p.id), task: () => taskForm(), event: () => eventForm(), note: () => activityForm() })[b.dataset.k](); }) });
+  document.getElementById('quick').onclick = () => modal('Neu anlegen', html`<div class="full quickgrid">${[['anfrage', '📋 Anfrage einfügen'], ['contact', '☺ Kontakt'], ['property', '⌂ Objekt'], ['task', '✓ Aufgabe'], ['event', '▦ Termin'], ['note', '📝 Notiz / Anruf']].map(([k, l]) => html`<button type="button" class="btn big" data-k="${k}">${l}</button>`)}</div>`, {
+    onMount: (el, close) => el.querySelectorAll('[data-k]').forEach(b => b.onclick = () => { close(); ({ anfrage: () => schnellerfassung(), contact: () => contactForm({}, c => location.hash = '#/kontakte/' + c.id), property: () => propertyForm({}, p => location.hash = '#/objekte/' + p.id), task: () => taskForm(), event: () => eventForm(), note: () => activityForm() })[b.dataset.k](); }) });
   // globale Suche
   const sq = document.getElementById('gsearch'), res = document.getElementById('gresults');
   const search = () => {

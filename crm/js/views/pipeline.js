@@ -35,7 +35,7 @@ export function render(el) {
       e.preventDefault(); col.classList.remove('over');
       const d = db.get('deals', e.dataTransfer.getData('text/plain')); const stage = col.dataset.stage;
       if (!d || d.stage === stage) return;
-      const old = d.stage; const upd = { ...d, stage };
+      const old = d.stage; const upd = { ...d, stage, stageAt: new Date().toISOString() };
       if (stage === P.won || stage === P.lost) upd.closedAt = today(); else upd.closedAt = '';
       await db.save('deals', upd);
       await db.log('system', `Vorgang „${d.titel}“: ${old} → ${stage}`, { contactId: d.contactId, propertyId: d.propertyId, dealId: d.id });

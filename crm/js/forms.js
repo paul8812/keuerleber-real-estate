@@ -100,6 +100,7 @@ export function dealForm(d = {}, done) {
         const old = d.stage; const P = PIPELINES[v.board];
         if (!P.stages.includes(v.stage)) { toast('Phase passt nicht zur Pipeline', 'err'); return false; }
         const rec = { ...d, ...v };
+        if (old !== v.stage) rec.stageAt = new Date().toISOString();
         if ((v.stage === P.won || v.stage === P.lost) && !rec.closedAt) rec.closedAt = today(); if (v.stage !== P.won && v.stage !== P.lost) rec.closedAt = '';
         await db.save('deals', rec);
         if (isNew) await db.log('system', `Vorgang „${v.titel}“ angelegt (${v.stage})`, { contactId: v.contactId, propertyId: v.propertyId, dealId: rec.id });

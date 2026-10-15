@@ -20,15 +20,27 @@ export async function completeTask(t, done = true) {
 const FILTERS = [['heute', 'Heute & überfällig'], ['woche', 'Diese Woche'], ['offen', 'Alle offenen'], ['erledigt', 'Erledigt']];
 let filter = 'heute', prio = '';
 
+// Schnellaktionen direkt in der Aufgabe: anrufen, mailen, auf morgen schieben
+function quick(t) {
+  const c = t.contactId ? db.get('contacts', t.contactId) : null, tel = c && (c.mobil || c.tel);
+  const subj = encodeURIComponent((t.titel || '').replace(/^⚡ /, '').split(':')[0]);
+  return html`<span class="tquick">${tel ? html`<a href="tel:${tel.replace(/[^0-9+]/g, '')}" title="Anrufen ${tel}" data-call="${t.id}">📞</a>` : ''}${c && c.email ? html`<a href="mailto:${c.email}?subject=${subj}" title="Mail an ${c.email}" data-mail="${t.id}">✉</a>` : ''}<button type="button" title="Auf morgen verschieben" data-snooze="${t.id}">⏭</button></span>`;
+}
 export function taskRow(t) {
   const late = !t.done && t.faellig && t.faellig < today();
   return html`<li class="task ${t.done ? 'done' : ''} ${late ? 'late' : ''}"><input type="checkbox" data-done="${t.id}" ${t.done ? html`checked` : ''}>
     <div class="grow" data-edit="${t.id}"><div class="ttl">${t.titel}</div><div class="sub">${t.faellig ? fmtDate(t.faellig) : 'ohne Datum'}${t.contactId ? html` · ${cLink(t.contactId)}` : ''}${t.propertyId ? html` · ${pLink(t.propertyId)}` : ''}${t.wiederholung ? ' · ↻' : ''}</div></div>
-    ${t.prio === 'hoch' ? badge('hoch', '#e06a5a') : t.prio === 'niedrig' ? badge('niedrig', '#777') : ''}</li>`;
+    ${t.prio === 'hoch' ? badge('hoch', '#e06a5a') : t.prio === 'niedrig' ? badge('niedrig', '#777') : ''}${t.done ? '' : quick(t)}</li>`;
 }
 export function bindTasks(el) {
   el.addEventListener('change', e => { const id = e.target.dataset?.done; if (id) completeTask(db.get('tasks', id), e.target.checked); });
-  el.addEventListener('click', e => { const id = e.target.closest('[data-edit]')?.dataset.edit; if (id && !e.target.closest('a')) taskForm(db.get('tasks', id)); });
+  el.addEventListener('click', async e => {
+    const sn = e.target.closest('[data-snooze]')?.dataset.snooze;
+    if (sn) { const t = db.get('tasks', sn); await db.save('tasks', { ...t, faellig: addDays(today(), 1) }); toast('Auf morgen verschoben'); return; }
+    const call = e.target.closest('[data-call],[data-mail]');
+    if (call) { const t = db.get('tasks', call.dataset.call || call.dataset.mail); if (t?.contactId) db.log(call.dataset.call ? 'anruf' : 'email', `${call.dataset.call ? 'Anruf' : 'E-Mail'} zu: ${t.titel.replace(/^⚡ /, '')}`, { contactId: t.contactId, propertyId: t.propertyId }); return; }
+    const id = e.target.closest('[data-edit]')?.dataset.edit; if (id && !e.target.closest('a')) taskForm(db.get('tasks', id));
+  });
 }
 
 export function render(el) {

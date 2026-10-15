@@ -61,3 +61,11 @@ Läuft auf Pauls Mac im Ordner `~/crm-mailsync` (launchd, alle 3 Minuten, nur Py
 - Rechnung aus Eckdaten: Vorgang wählen → Empfänger, Objekt, Kaufpreis, Provision (Einstellungen) werden übernommen; Druck/PDF im Keuerleber-Design. „Als bezahlt buchen“ erzeugt die Einnahme.
 - Automationen: abgeschlossener Vorgang ohne Rechnung → „Rechnung stellen“, überfällige Rechnung → „Zahlung anmahnen“.
 - Pflichtangaben (§ 14 UStG) unter Einstellungen → Rechnungen & Steuer pflegen (Steuernummer/USt-IdNr., IBAN, Anschrift).
+
+## Automationen (neu)
+- **📋 Anfrage einfügen** (Übersicht oder „+ Neu“): Anfrage-Text reinkopieren → Name, Mail, Telefon, Quelle und Objekt werden erkannt; Kontakt, Vorgang und Aufgaben entstehen automatisch. Bekannte Kontakte werden zugeordnet statt doppelt angelegt.
+- **Pipeline-Schritte:** Jede Phase erzeugt die passende nächste To-do; beim Weiterschieben hakt sich die alte ab.
+- **Termin bestätigen** am Vortag, **Suchprofil erfragen** bei neuen Interessenten, **Doppelte Kontakte**, **Aktives Objekt nicht online**.
+- **Selbst-erledigend:** Anruf/Mail/Treffen beim Kontakt eingetragen (oder 📞/✉ in der Aufgabe geklickt) → Kontakt-Aufgaben haken sich ab.
+- In jeder Aufgabe: 📞 anrufen, ✉ mailen, ⏭ auf morgen schieben.
+Alle Regeln sind unter „Automationen“ einzeln abschaltbar.
