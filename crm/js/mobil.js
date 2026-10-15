@@ -16,7 +16,9 @@ function aktionen(main) {
   if (!bar || bar.dataset.mob) return;
   bar.dataset.mob = '1';
   const alle = [...bar.children].filter(x => x.matches('.btn'));
-  const neben = alle.filter(x => !x.matches('.primary') && !x.matches('a[href^="tel:"],a[href^="mailto:"],a[href*="wa.me"]'));
+  const akt = bar.querySelector('[data-akt]');
+  const neben = alle.filter(x => x !== akt && !x.matches('.primary') && !x.matches('a[href^="tel:"],a[href^="mailto:"],a[href*="wa.me"]'));
+  if (akt) { neben.forEach(x => x.classList.add('inmenu')); akt.textContent = '⋯'; akt.classList.add('mehrbtn'); return; }  // eigenes Aktionsmenü enthält alles
   if (alle.length <= 3 || neben.length < 2) return;
   neben.forEach(x => x.classList.add('inmenu'));
   const mehr = document.createElement('button'); mehr.type = 'button'; mehr.className = 'btn mehrbtn'; mehr.setAttribute('aria-label', 'Weitere Aktionen'); mehr.textContent = '⋯';
@@ -25,7 +27,9 @@ function aktionen(main) {
 }
 export function sheet(items, titel = '') {
   const bg = document.createElement('div'); bg.className = 'msheet-bg';
-  bg.innerHTML = `<div class="msheet" role="menu">${titel ? `<p class="msheet-t">${esc(titel)}</p>` : ''}${items.map(([l, , d], i) => `<button type="button" class="${d ? 'danger' : ''}" data-i="${i}">${esc(l)}</button>`).join('')}<button type="button" class="abbr" data-x>Abbrechen</button></div>`;
+  const top = items.map((x, i) => [x, i]).filter(([x]) => x[3]), rest = items.map((x, i) => [x, i]).filter(([x]) => !x[3]);
+  const kachel = ([[l], i]) => { const m = l.match(/^(\S+)\s+(.*)$/) || [, '', l]; return `<button type="button" data-i="${i}"><i>${esc(m[1])}</i><span>${esc(m[2])}</span></button>`; };
+  bg.innerHTML = `<div class="msheet" role="menu"><div class="mgroup">${titel ? `<p class="msheet-t">${esc(titel)}</p>` : ''}${top.length ? `<div class="mtop">${top.map(kachel).join('')}</div>` : ''}${rest.map(([[l, , d], i]) => `<button type="button" class="${d ? 'danger' : ''}" data-i="${i}">${esc(l)}</button>`).join('')}</div><button type="button" class="abbr" data-x>Abbrechen</button></div>`;
   const zu = () => { bg.classList.add('weg'); setTimeout(() => bg.remove(), 180); };
   bg.onclick = e => {
     if (e.target === bg || e.target.closest('[data-x]')) return zu();

@@ -49,7 +49,7 @@ export function entwurfDialog(t) {
       const box = form.querySelector('.entwurfdanach'); box.hidden = false; box.scrollIntoView({ block: 'nearest' });
       box.querySelector('[data-gesendet]').onclick = async () => {
         if (e.c) await db.log('email', `E-Mail gesendet: ${v.betreff}`, { contactId: e.c.id, propertyId: t.propertyId });
-        await completeTask(db.get('tasks', t.id) || t, true); toast('✓ Erledigt'); close();
+        if (!t.ohneAufgabe) await completeTask(db.get('tasks', t.id) || t, true); toast(t.ohneAufgabe ? '✓ Im Verlauf vermerkt' : '✓ Erledigt'); close();
       };
       box.querySelector('[data-nein]').onclick = close;
       return false;

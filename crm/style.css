@@ -193,3 +193,18 @@ li.task.sw-r{box-shadow:inset 4px 0 0 var(--ok,#5bbf7a)}li.task.sw-l{box-shadow:
  .tbl{font-size:14px}input[type=checkbox]{flex:0 0 22px}.addc{min-height:44px}
 }
 @media(max-width:700px){.head:has(.who) .actions{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;width:100%}.head:has(.who) .actions .btn{padding-left:6px;padding-right:6px;justify-content:center;text-align:center}.head:has(.who) .mehrbtn{order:9}}
+/* ---- Schnell-Aktionen ---- */
+.pcard,#clist tr[data-id],li.task,.deal,[data-ev],li.ctask{-webkit-touch-callout:none}
+.gedrueckt{transform:scale(.98);transition:transform .15s;outline:2px solid var(--gold);outline-offset:-2px}
+.rowmehr{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:none;color:var(--txt);font-size:20px;margin-right:8px}
+#clist .c-call{display:flex;align-items:center}
+.cact button{background:none;border:1px solid var(--line);border-radius:8px;color:var(--txt);min-width:34px;min-height:34px;cursor:pointer;font-size:16px}
+.dmehr{display:none}
+.msheet{max-height:80dvh;overflow-y:auto;overscroll-behavior:contain}
+@media(hover:none),(max-width:700px){.dmove{grid-template-columns:40px 40px 1fr 40px!important}.dmehr{display:block;font-size:18px}.cact a,.cact button{min-width:44px;min-height:44px;display:inline-grid;place-items:center}}
+@media(hover:hover){.tquick [data-akt]{opacity:.5}}
+.mgroup{display:flex;flex-direction:column;gap:1px;background:var(--line);border-radius:14px;overflow:hidden}
+.msheet .mgroup button{border-radius:0!important}.msheet .msheet-t{border-radius:0}
+.mtop{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:1px;background:var(--line)}
+.msheet .mtop button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 4px;font-size:13px}.mtop i{font-style:normal;font-size:22px}
+.msheet .mgroup>button{padding:13px 16px;font-size:16px}

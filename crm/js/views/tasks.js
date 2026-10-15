@@ -24,7 +24,7 @@ let filter = 'heute', prio = '';
 // Schnellaktionen direkt in der Aufgabe: anrufen, mailen, auf morgen schieben
 function quick(t) {
   const c = t.contactId ? db.get('contacts', t.contactId) : null, tel = c && (c.mobil || c.tel);
-  return html`<span class="tquick">${tel ? html`<a href="tel:${tel.replace(/[^0-9+]/g, '')}" title="Anrufen ${tel}" data-call="${t.id}">📞</a>` : ''}${c && c.email || /:Reservierung$/.test(t.auto || '') ? html`<button type="button" title="E-Mail-Entwurf prüfen & senden" data-entwurf="${t.id}">✉</button>` : ''}<button type="button" title="Auf morgen verschieben" data-snooze="${t.id}">⏭</button></span>`;
+  return html`<span class="tquick">${tel ? html`<a href="tel:${tel.replace(/[^0-9+]/g, '')}" title="Anrufen ${tel}" data-call="${t.id}">📞</a>` : ''}${c && c.email || /:Reservierung$/.test(t.auto || '') ? html`<button type="button" title="E-Mail-Entwurf prüfen & senden" data-entwurf="${t.id}">✉</button>` : ''}<button type="button" title="Auf morgen verschieben" data-snooze="${t.id}">⏭</button><button type="button" title="Weitere Aktionen" data-akt="task:${t.id}">⋯</button></span>`;
 }
 export function taskRow(t) {
   const late = !t.done && t.faellig && t.faellig < today();

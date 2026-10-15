@@ -68,7 +68,7 @@ function evKarte(e, konf) {
     <div class="zeit">${e.start ? html`<b>${e.start}</b><small>${e.ende && e.ende !== e.start ? e.ende : ''}</small>` : html`<small>ganztägig</small>`}</div>
     <div class="grow"><div class="ttl">${e.titel}${konf.has(e.id) ? html` <span class="konf" title="Überschneidet sich mit einem anderen Termin">⚠ Überschneidung</span>` : ''}</div>
       <div class="sub"><span class="art">${e.art}</span>${c ? html` · ${cLink(c.id)}` : ''}${p ? html` · ${pLink(p.id)}` : ''}${ort && !p ? ' · ' + ort : ''}${e.source === 'google' ? ' · Google' : ''}</div></div>
-    <span class="cact">${tel ? html`<a href="tel:${tel.replace(/[^0-9+]/g, '')}" title="Anrufen">📞</a>` : ''}${ort ? html`<a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(ort)}" title="Route">🧭</a>` : ''}</span></li>`;
+    <span class="cact">${tel ? html`<a href="tel:${tel.replace(/[^0-9+]/g, '')}" title="Anrufen">📞</a>` : ''}${ort ? html`<a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(ort)}" title="Route">🧭</a>` : ''}<button type="button" data-akt="event:${e.id}" title="Weitere Aktionen">⋯</button></span></li>`;
 }
 function aufgabeZeile(t) { return html`<li class="ctask" data-task="${t.id}"><input type="checkbox" data-kdone="${t.id}"><span class="grow">${t.titel.replace(/^⚡ /, '')}</span>${t.contactId ? cLink(t.contactId) : ''}</li>`; }
 

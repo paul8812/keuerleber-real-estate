@@ -98,7 +98,7 @@ function detail(el, id) {
   const kv = (l, v) => v || v === 0 ? html`<div class="kv"><span>${l}</span><b>${v}</b></div>` : '';
   const erl = deals.filter(d => d.board === 'vertrieb' && d.stage === 'Besichtigung').length;
   el.innerHTML = html`<a href="#/objekte" class="back">← Objekte</a>
-    <div class="head"><div><p class="muted">${p.nr} · ${p.art} · ${p.vermarktung}</p><h1>${p.titel}</h1><p class="muted">${adresse(p)}</p></div><div class="actions">${statusBadge(p.status)}<button class="btn primary" data-expose>📄 Exposé & Modellrechnung</button><button class="btn" data-edit>Bearbeiten</button></div></div>
+    <div class="head"><div><p class="muted">${p.nr} · ${p.art} · ${p.vermarktung}</p><h1>${p.titel}</h1><p class="muted">${adresse(p)}</p></div><div class="actions">${statusBadge(p.status)}<button class="btn primary" data-expose>📄 Exposé & Modellrechnung</button><button class="btn" data-edit>Bearbeiten</button><button class="btn" data-akt="property:${p.id}" title="Weitere Aktionen">⋯ Mehr</button></div></div>
     ${imgs.length ? html`<div class="gallery">${imgs.map((i, n) => html`<div class="gimg"><img src="${i.startsWith('objektbilder/') ? '../' + i : i}" loading="lazy" alt="">${p.webTeaser && n < (Number(p.webTeaserBilder) || 4) ? html`<span>öffentlich</span>` : n === 0 ? html`<span>Titelbild</span>` : ''}</div>`)}</div>` : ''}
     ${webCard(p)}
     <div class="kpis small">

@@ -147,7 +147,7 @@ export function eventForm(e = {}, done) {
 
 export function activityForm(refs = {}, done) {
   modal('Eintrag hinzufügen', html`
-    ${sel('art', 'Art', AKTIVITAET_ARTEN.filter(a => a[0] !== 'system').map(a => [a[0], a[2] + ' ' + a[1]]), 'notiz')}
+    ${sel('art', 'Art', AKTIVITAET_ARTEN.filter(a => a[0] !== 'system').map(a => [a[0], a[2] + ' ' + a[1]]), refs.art || 'notiz')}
     ${sel('contactId', 'Kontakt', contactOpts(), refs.contactId, { blank: 1 })}${sel('propertyId', 'Objekt', propOpts(), refs.propertyId, { blank: 1 })}
     ${area('text', 'Inhalt', '', { rows: 4, cls: 'full' })}
     ${inp('followup', 'Wiedervorlage setzen (optional)', '', { type: 'date' })}`,
