@@ -1,5 +1,6 @@
 import * as db from '../db.js';
-import { html, raw, fullName, fmtDate, fmtDT, download, toCSV, parseCSV, toast, modal, today, daysBetween, eur } from '../util.js';
+import { exposeForm } from '../modellrechnung.js';
+import { html, raw, fullName, fmtDate, fmtDT, download, toCSV, parseCSV, toast, modal, sel, today, daysBetween, eur } from '../util.js';
 import { KONTAKT_ARTEN, sl } from '../consts.js';
 import { contactForm, dealForm, taskForm, eventForm, activityForm } from '../forms.js';
 import { avatar, badge, empty, timeline, pLink, matchesForContact, lastContact, statusBadge, adresse } from '../ui.js';
@@ -70,7 +71,7 @@ function detail(el, id) {
   const phone = (c.mobil || c.tel || '').replace(/[^\d+]/g, '');
   el.innerHTML = html`<a href="#/kontakte" class="back">← Kontakte</a>
     <div class="head"><div class="who">${avatar(c)}<div><h1>${fullName(c)}</h1><p class="muted">${c.kategorie}${c.firma && c.nachname ? ' · ' + c.firma : ''} ${c.status !== 'Aktiv' ? badge(c.status, '#777') : ''}</p></div></div>
-      <div class="actions">${c.email ? html`<a class="btn" href="mailto:${c.email}">✉ E-Mail</a>` : ''}${phone ? html`<a class="btn" href="tel:${phone}">📞 Anrufen</a><a class="btn" target="_blank" rel="noopener" href="https://wa.me/${phone.replace(/^0/, '49').replace('+', '')}">WhatsApp</a>` : ''}<button class="btn" data-edit>Bearbeiten</button></div></div>
+      <div class="actions">${c.email ? html`<a class="btn" href="mailto:${c.email}">✉ E-Mail</a>` : ''}${phone ? html`<a class="btn" href="tel:${phone}">📞 Anrufen</a><a class="btn" target="_blank" rel="noopener" href="https://wa.me/${phone.replace(/^0/, '49').replace('+', '')}">WhatsApp</a>` : ''}<button class="btn" data-modell>📄 Exposé / Modellrechnung</button><button class="btn" data-edit>Bearbeiten</button></div></div>
     <div class="split"><div>
       <section class="card"><h2>Stammdaten</h2>
         ${line('E-Mail', c.email, c.email && 'mailto:' + c.email)}${line('Telefon', c.tel, c.tel && 'tel:' + c.tel)}${line('Mobil', c.mobil, c.mobil && 'tel:' + c.mobil)}
@@ -88,6 +89,11 @@ function detail(el, id) {
     </div></div>`.s;
   bindTasks(el);
   el.querySelector('[data-edit]').onclick = () => contactForm(c);
+  el.querySelector('[data-modell]').onclick = () => {
+    const ps = db.all('properties').filter(p => !['Archiv', 'Verkauft / Vermietet'].includes(p.status)), tip = db.all('deals').find(d => d.contactId === c.id && d.propertyId)?.propertyId;
+    if (!ps.length) return toast('Noch keine aktiven Objekte im CRM', 'err');
+    modal('Objekt für Exposé / Modellrechnung', html`${sel('pid', 'Objekt', ps.map(p => [p.id, `${p.nr || ''} ${p.titel}`.trim()]), tip || ps[0].id, { cls: 'full' })}`, { saveLabel: 'Weiter', onSave: v => { setTimeout(() => exposeForm(db.get('properties', v.pid), { contactId: c.id }), 0); } });
+  };
   el.querySelector('[data-task]').onclick = () => taskForm({ contactId: id });
   el.querySelector('[data-event]').onclick = () => eventForm({ contactId: id });
   el.querySelector('[data-act]').onclick = () => activityForm({ contactId: id });

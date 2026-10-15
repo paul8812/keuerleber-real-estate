@@ -14,7 +14,7 @@ export const DEFAULT_PROB = { 'Neuer Lead': 10, 'Erstkontakt': 20, 'Bewertung / 
 export const TERMIN_ARTEN = ['Besichtigung', 'Beratungsgespräch', 'Bewertungstermin', 'Notartermin', 'Übergabe', 'Fotoshooting', 'Energieausweis / Gutachter', 'Sonstiges'];
 export const PRIOS = [['hoch', 'Hoch'], ['normal', 'Normal'], ['niedrig', 'Niedrig']];
 export const WIEDERHOLUNG = [['', 'Keine'], ['daily', 'Täglich'], ['weekly', 'Wöchentlich'], ['monthly', 'Monatlich'], ['yearly', 'Jährlich']];
-export const BUNDESLAENDER = { 'Baden-Württemberg': 5, 'Bayern': 3.5, 'Berlin': 6, 'Brandenburg': 6.5, 'Bremen': 5, 'Hamburg': 5.5, 'Hessen': 6, 'Mecklenburg-Vorpommern': 6, 'Niedersachsen': 5, 'Nordrhein-Westfalen': 6.5, 'Rheinland-Pfalz': 5, 'Saarland': 6.5, 'Sachsen': 5.5, 'Sachsen-Anhalt': 5, 'Schleswig-Holstein': 6.5, 'Thüringen': 5 };
+export const BUNDESLAENDER = { 'Baden-Württemberg': 5, 'Bayern': 3.5, 'Berlin': 6, 'Brandenburg': 6.5, 'Bremen': 5.5, 'Hamburg': 5.5, 'Hessen': 6, 'Mecklenburg-Vorpommern': 6, 'Niedersachsen': 5, 'Nordrhein-Westfalen': 6.5, 'Rheinland-Pfalz': 5, 'Saarland': 6.5, 'Sachsen': 5.5, 'Sachsen-Anhalt': 5, 'Schleswig-Holstein': 6.5, 'Thüringen': 5 };
 export const NAV = [
   ['dashboard', 'Übersicht', '◧'], ['posteingang', 'Posteingang', '✉'], ['kontakte', 'Kontakte', '☺'], ['objekte', 'Objekte', '⌂'], ['pipeline', 'Pipeline', '▤'],
   ['aufgaben', 'Aufgaben', '✓'], ['kalender', 'Kalender', '▦'], ['finanzen', 'Finanzen', '€'], ['automation', 'Automationen', '⚡'], ['vorlagen', 'Vorlagen', '✎'], ['rechner', 'Rechner', '∑'], ['statistik', 'Statistik', '◔'], ['einstellungen', 'Einstellungen', '⚙'],
