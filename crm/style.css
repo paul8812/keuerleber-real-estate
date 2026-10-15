@@ -142,3 +142,54 @@ button,a,.chip,input,select,textarea,label{touch-action:manipulation}
 .wahlbar{position:sticky;top:8px;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;border-color:var(--gold)}.wahlbar .actions{margin-left:auto}
 .tbl td.wahl,.tbl th.wahl{width:40px}.tbl.waehlen tr[data-id]{cursor:pointer}.tbl tr.gew td{background:rgba(201,169,110,.10)}.tbl .wahl input{width:20px;height:20px}
 @media(max-width:700px){.wahlbar{top:calc(env(safe-area-inset-top) + 60px)}.wahlbar .actions{margin-left:0;width:100%}.wahlbar .actions .btn{flex:1}}
+/* ---- Handy v2 ---- */
+.m-only{display:none}
+.btn,.chip,#tabbar,.tquick,.dmove{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.msheet-bg{position:fixed;inset:0;z-index:150;background:rgba(0,0,0,0);display:flex;align-items:flex-end;justify-content:center;transition:background .18s}
+.msheet-bg.da{background:rgba(0,0,0,.55)}.msheet-bg.weg{background:rgba(0,0,0,0)}
+.msheet{width:100%;max-width:520px;margin:0 8px calc(8px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:2px;transform:translateY(110%);transition:transform .2s ease-out}
+.msheet-bg.da .msheet{transform:none}.msheet-bg.weg .msheet{transform:translateY(110%)}
+.msheet button{background:var(--panel2);color:var(--txt);border:0;padding:16px;font:inherit;font-size:17px;text-align:center}
+.msheet button:first-of-type,.msheet .msheet-t+button{border-radius:14px 14px 0 0}.msheet button:nth-last-child(2){border-radius:0 0 14px 14px}
+.msheet .msheet-t{margin:0;padding:10px;text-align:center;color:var(--mut);font-size:13px;background:var(--panel2);border-radius:14px 14px 0 0}
+.msheet button.danger{color:var(--bad)}.msheet .abbr{margin-top:8px;border-radius:14px!important;font-weight:600}
+.msheet button:active{background:var(--line)}
+#ptr{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 8px);margin-left:-20px;width:40px;height:40px;border-radius:50%;background:var(--panel2);border:1px solid var(--line);display:grid;place-items:center;z-index:30;opacity:0;pointer-events:none;color:var(--gold);font-size:18px}
+#ptr span{transition:transform .2s}#ptr.bereit span{transform:rotate(180deg)}#ptr.laedt span{animation:dreh .8s linear infinite}
+@keyframes dreh{to{transform:rotate(360deg)}}
+.touch li.task{touch-action:pan-y;position:relative;background:var(--panel)}
+li.task.sw-r{box-shadow:inset 4px 0 0 var(--ok,#5bbf7a)}li.task.sw-l{box-shadow:inset -4px 0 0 var(--gold)}
+@media(max-width:700px){
+ .m-only{display:revert}
+ /* Kopf: Titel + Aktionen in einer Zeile, Nebenaktionen im ⋯-Menü */
+ .head{gap:10px}.head .actions{flex-wrap:wrap;gap:8px}.head .actions .inmenu{display:none!important}.mehrbtn{font-size:22px;line-height:1;min-width:46px}
+ /* Filter: Suche oben, Auswahlfelder nebeneinander */
+ .filters{display:flex!important;flex-wrap:wrap;gap:8px}.filters input{flex:1 1 100%}.filters select{flex:1 1 0;min-width:0;padding-left:10px;padding-right:22px;text-overflow:ellipsis}
+ /* Aufgaben: Text nutzt die volle Breite, Schnellaktionen darunter */
+ li.task{display:grid!important;grid-template-columns:30px 1fr auto;column-gap:10px;row-gap:6px;align-items:start}
+ li.task>input[type=checkbox]{margin-top:2px}li.task>.grow{grid-column:2/3;min-width:0}li.task>.badge{grid-column:3;align-self:start}
+ li.task>.tquick{grid-column:2/-1;margin:0;justify-content:flex-start;gap:8px}
+ li.task .ttl{word-break:break-word}
+ /* Kontakte als Karten-Liste */
+ #clist .tbl thead{display:none}
+ #clist .tbl tr[data-id]{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--line)}
+ #clist .tbl.waehlen tr[data-id]{grid-template-columns:auto auto 1fr auto}
+ #clist .tbl td{padding:0;border:0;display:block}#clist .tbl td.c-art,#clist .tbl td.c-kon,#clist .tbl td.c-ort,#clist .tbl td.c-lc,#clist .tbl td.c-wv{display:none}
+ #clist .c-name{min-width:0}#clist .c-name b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ #clist .c-call a{display:grid;place-items:center;width:44px;height:44px;border-radius:12px;border:1px solid var(--line);text-decoration:none;font-size:18px}
+ /* Kennzahlen kompakter */
+ .kpis{grid-template-columns:1fr 1fr;gap:8px}.kpi{padding:12px 14px}.kpi b{font-size:20px}
+ /* leere Karten nur als Zeile */
+ section.card.leer{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}section.card.leer h2{margin:0}section.card.leer .empty{padding:0;text-align:right}section.card.leer .empty p{margin:0;font-size:13px}section.card.leer .empty small{display:none}
+ /* Fotos als Wisch-Galerie */
+ .gallery{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:8px;margin:0 -14px 16px;padding:0 14px;scrollbar-width:none}.gallery::-webkit-scrollbar{display:none}
+ .gallery .gimg{flex:0 0 86%;scroll-snap-align:center}.gallery img{height:230px}
+ /* Woche: 3 Tage sichtbar, seitlich wischen */
+ .wochecard{scroll-snap-type:x mandatory;padding:6px}.woche{grid-template-columns:34px repeat(7,calc((100vw - 28px - 12px - 34px)/3));min-width:0}
+ .wzeit{position:sticky;left:0;z-index:3;background:var(--panel)}.wtag{scroll-snap-align:start}
+ /* Bottom-Sheet: Griff */
+ .modal>header{position:relative;touch-action:none;padding-top:22px}.modal>header::before{content:'';position:absolute;top:8px;left:50%;width:40px;height:5px;margin-left:-20px;border-radius:3px;background:var(--line)}
+ .modal{transition:none}
+ .tbl{font-size:14px}input[type=checkbox]{flex:0 0 22px}.addc{min-height:44px}
+}
+@media(max-width:700px){.head:has(.who) .actions{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;width:100%}.head:has(.who) .actions .btn{padding-left:6px;padding-right:6px;justify-content:center;text-align:center}.head:has(.who) .mehrbtn{order:9}}

@@ -23,11 +23,13 @@ function list(el) {
   if (sort === 'kontakt') rows.reverse();
   sichtbar = rows.map(c => c.id);
   const box = c => waehlen ? html`<td class="wahl"><input type="checkbox" data-w="${c.id}" ${wahl.has(c.id) ? raw('checked') : ''} aria-label="auswählen"></td>` : '';
-  el.querySelector('#clist').innerHTML = rows.length ? html`<table class="tbl ${waehlen ? 'waehlen' : ''}"><thead><tr>${waehlen ? raw('<th class="wahl"><input type="checkbox" data-wall aria-label="alle auswählen"></th>') : ''}<th></th><th>Name</th><th>Art</th><th>Kontakt</th><th>Ort</th><th>Letzter Kontakt</th><th>Wiedervorlage</th></tr></thead><tbody>
-    ${rows.slice(0, 300).map(c => { const lc = lastContact(c.id); return html`<tr data-id="${c.id}" class="${wahl.has(c.id) ? 'gew' : ''}">${box(c)}<td>${avatar(c)}</td><td><b>${fullName(c)}</b>${c.firma && c.nachname ? html`<div class="sub">${c.firma}</div>` : ''}</td><td>${c.kategorie}</td><td>${c.mobil || c.tel || ''}<div class="sub">${c.email || ''}</div></td><td>${c.ort || ''}</td><td>${lc ? fmtDate(lc.slice(0, 10)) : '–'}</td><td class="${c.followup && c.followup <= today() ? 'late' : ''}">${c.followup ? fmtDate(c.followup) : ''}</td></tr>`; })}</tbody></table>
+  el.querySelector('#clist').innerHTML = rows.length ? html`<table class="tbl ${waehlen ? 'waehlen' : ''}"><thead><tr>${waehlen ? raw('<th class="wahl"><input type="checkbox" data-wall aria-label="alle auswählen"></th>') : ''}<th></th><th>Name</th><th>Art</th><th>Kontakt</th><th>Ort</th><th>Letzter Kontakt</th><th>Wiedervorlage</th><th class="m-only"></th></tr></thead><tbody>
+    ${rows.slice(0, 300).map(c => { const lc = lastContact(c.id); const tel = (c.mobil || c.tel || '').replace(/[^\d+]/g, '');
+      return html`<tr data-id="${c.id}" class="${wahl.has(c.id) ? 'gew' : ''}">${box(c)}<td class="c-av">${avatar(c)}</td><td class="c-name"><b>${fullName(c)}</b>${c.firma && c.nachname ? html`<div class="sub">${c.firma}</div>` : ''}<div class="sub m-only">${[c.kategorie, c.ort].filter(Boolean).join(' · ')}${c.followup && c.followup <= today() ? ' · ⏰ Wiedervorlage' : ''}</div></td><td class="c-art">${c.kategorie}</td><td class="c-kon">${c.mobil || c.tel || ''}<div class="sub">${c.email || ''}</div></td><td class="c-ort">${c.ort || ''}</td><td class="c-lc">${lc ? fmtDate(lc.slice(0, 10)) : '–'}</td><td class="c-wv ${c.followup && c.followup <= today() ? 'late' : ''}">${c.followup ? fmtDate(c.followup) : ''}</td><td class="c-call m-only">${!waehlen && tel ? html`<a href="tel:${tel}" aria-label="Anrufen">📞</a>` : !waehlen && c.email ? html`<a href="mailto:${c.email}" aria-label="E-Mail">✉</a>` : ''}</td></tr>`; })}</tbody></table>
     ${rows.length > 300 ? html`<p class="muted pad">… ${rows.length - 300} weitere – Suche verfeinern</p>` : ''}`.s : html`<div class="pad">${empty('Keine Kontakte gefunden', 'Mit „+ Kontakt“ anlegen oder CSV importieren')}</div>`.s;
   el.querySelector('#ccount').textContent = rows.length + ' Kontakte';
   el.querySelectorAll('#clist tr[data-id]').forEach(tr => tr.onclick = e => {
+    if (e.target.closest('a[href^="tel:"],a[href^="mailto:"]')) return;
     if (!waehlen) { location.hash = '#/kontakte/' + tr.dataset.id; return; }
     const id = tr.dataset.id; wahl.has(id) ? wahl.delete(id) : wahl.add(id); list(el);
   });
@@ -44,8 +46,9 @@ function leiste(el) {
   bar.hidden = !waehlen;
   if (!waehlen) return;
   const n = wahl.size;
-  bar.innerHTML = html`<b>${n} ausgewählt</b><span class="muted small">Tipp: „Alle“ anhaken, dann die behalten-Kontakte wieder abwählen.</span>
-    <div class="actions"><button class="btn" data-wa ${n ? '' : raw('disabled')}>📦 Archivieren</button><button class="btn danger" data-wd ${n ? '' : raw('disabled')}>🗑 Löschen</button><button class="btn ghost" data-wx>Fertig</button></div>`.s;
+  bar.innerHTML = html`<b>${n} ausgewählt</b><span class="muted small">Tipp: „Alle auswählen“, dann die Kontakte, die bleiben sollen, wieder antippen.</span>
+    <div class="actions"><button class="btn" data-walle>${sichtbar.length && sichtbar.every(id => wahl.has(id)) ? 'Keine' : 'Alle'} auswählen</button><button class="btn" data-wa ${n ? '' : raw('disabled')}>📦 Archivieren</button><button class="btn danger" data-wd ${n ? '' : raw('disabled')}>🗑 Löschen</button><button class="btn ghost" data-wx>Fertig</button></div>`.s;
+  bar.querySelector('[data-walle]').onclick = () => { const alle = sichtbar.every(id => wahl.has(id)); sichtbar.forEach(id => alle ? wahl.delete(id) : wahl.add(id)); list(el); };
   bar.querySelector('[data-wx]').onclick = () => { waehlen = false; wahl.clear(); overview(el); };
   bar.querySelector('[data-wa]').onclick = async () => {
     if (!(await confirmDlg(`${n} Kontakte ins Archiv verschieben? (Jederzeit über Status „Archiv“ wiederherstellbar)`))) return;

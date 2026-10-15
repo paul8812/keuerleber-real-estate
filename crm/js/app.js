@@ -17,6 +17,7 @@ import * as inbox from './views/inbox.js';
 import * as finanzen from './views/finanzen.js';
 import * as auto from './automation.js';
 import { schnellerfassung } from './schnellerfassung.js';
+import { initMobil } from './mobil.js';
 
 const VIEWS = { dashboard, posteingang: inbox, kontakte: contacts, objekte: properties, pipeline, aufgaben: tasks, kalender: calendar, finanzen, vorlagen: templates, automation, rechner: calc, statistik: stats, einstellungen: settings };
 const main = document.getElementById('main');
@@ -75,7 +76,7 @@ function shell() {
   db.onChange(rerender); db.onChange(navBadges);
   window.addEventListener('hashchange', route);
   window.addEventListener('focus', () => db.isCloud() && db.reload());
-  route(); auto.start(); idleWatch();
+  route(); auto.start(); idleWatch(); initMobil();
 }
 
 async function boot() {
