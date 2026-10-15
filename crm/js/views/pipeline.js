@@ -18,7 +18,8 @@ export function render(el) {
       return html`<div class="col ${stage === P.won ? 'won' : stage === P.lost ? 'lost' : ''}" data-stage="${stage}"><div class="colh"><b>${sl(stage)}</b><span>${cards.length}${tot ? ' · ' + eur(tot) : ''}</span></div>
         <div class="cards">${cards.map(d => { const late = d.faellig && d.faellig < today() && isOpen(d); return html`<div class="deal" draggable="true" data-id="${d.id}"><div class="ttl">${d.titel}</div>
           ${d.contactId ? html`<div class="sub">☺ ${cLink(d.contactId)}</div>` : ''}${d.propertyId ? html`<div class="sub">⌂ ${pLink(d.propertyId)}</div>` : ''}
-          ${d.wert ? html`<div class="val">${eur(d.wert)} <small>· ${prob(d)}%</small></div>` : ''}${d.naechsterSchritt ? html`<div class="next ${late ? 'late' : ''}">→ ${d.naechsterSchritt}${d.faellig ? ' (' + fmtDate(d.faellig) + ')' : ''}</div>` : ''}</div>`; })}</div>
+          ${d.wert ? html`<div class="val">${eur(d.wert)} <small>· ${prob(d)}%</small></div>` : ''}${d.naechsterSchritt ? html`<div class="next ${late ? 'late' : ''}">→ ${d.naechsterSchritt}${d.faellig ? ' (' + fmtDate(d.faellig) + ')' : ''}</div>` : ''}
+          <div class="dmove">${P.stages.indexOf(stage) > 0 ? html`<button type="button" data-mv="-1" aria-label="Phase zurück">‹</button>` : html`<span></span>`}<select data-st aria-label="Phase wählen">${P.stages.map(x => html`<option value="${x}" ${x === stage ? raw('selected') : ''}>${sl(x)}</option>`)}</select>${P.stages.indexOf(stage) < P.stages.length - 1 ? html`<button type="button" data-mv="1" aria-label="Nächste Phase">›</button>` : html`<span></span>`}</div></div>`; })}</div>
         <button class="addc" data-add="${stage}">+</button></div>`; })}</div>`.s;
   el.querySelector('[data-new]').onclick = () => dealForm({ board });
   el.querySelectorAll('[data-b]').forEach(b => b.onclick = () => { board = b.dataset.b; render(el); });
@@ -28,12 +29,10 @@ export function render(el) {
     c.ondragstart = e => { e.dataTransfer.setData('text/plain', c.dataset.id); c.classList.add('drag'); };
     c.ondragend = () => c.classList.remove('drag');
   });
-  el.querySelectorAll('.col').forEach(col => {
-    col.ondragover = e => { e.preventDefault(); col.classList.add('over'); };
-    col.ondragleave = () => col.classList.remove('over');
-    col.ondrop = async e => {
-      e.preventDefault(); col.classList.remove('over');
-      const d = db.get('deals', e.dataTransfer.getData('text/plain')); const stage = col.dataset.stage;
+  // Handy: Phase über Pfeile oder Auswahl ändern (Ziehen funktioniert auf Touch nicht)
+  el.querySelectorAll('.deal [data-mv]').forEach(btn => btn.onclick = e => { e.stopPropagation(); const d = db.get('deals', btn.closest('.deal').dataset.id), i = P.stages.indexOf(d.stage) + Number(btn.dataset.mv); if (P.stages[i]) verschieben(d, P.stages[i]); });
+  el.querySelectorAll('.deal [data-st]').forEach(sel => { sel.onclick = e => e.stopPropagation(); sel.onchange = () => verschieben(db.get('deals', sel.closest('.deal').dataset.id), sel.value); });
+  async function verschieben(d, stage) {
       if (!d || d.stage === stage) return;
       const old = d.stage; const upd = { ...d, stage, stageAt: new Date().toISOString() };
       if (stage === P.won || stage === P.lost) upd.closedAt = today(); else upd.closedAt = '';
@@ -41,6 +40,11 @@ export function render(el) {
       await db.log('system', `Vorgang „${d.titel}“: ${sl(old)} → ${sl(stage)}`, { contactId: d.contactId, propertyId: d.propertyId, dealId: d.id });
       if (stage === P.won && board === 'akquise' && d.propertyId) { const p = db.get('properties', d.propertyId); if (p && p.status === 'Akquise') { await db.save('properties', { ...p, status: 'Vorbereitung' }); toast('Objekt auf „Vorbereitung“ gesetzt'); } }
       if (stage === P.won && board === 'vertrieb' && d.propertyId) { const p = db.get('properties', d.propertyId); if (p) { await db.save('properties', { ...p, status: 'Verkauft / Vermietet' }); toast('🎉 Abschluss – Objekt als verkauft/vermietet markiert'); } }
-    };
+      toast(`→ ${sl(stage)}`);
+  }
+  el.querySelectorAll('.col').forEach(col => {
+    col.ondragover = e => { e.preventDefault(); col.classList.add('over'); };
+    col.ondragleave = () => col.classList.remove('over');
+    col.ondrop = async e => { e.preventDefault(); col.classList.remove('over'); await verschieben(db.get('deals', e.dataTransfer.getData('text/plain')), col.dataset.stage);     };
   });
 }

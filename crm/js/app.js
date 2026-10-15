@@ -50,7 +50,10 @@ function shell() {
     document.body.insertAdjacentHTML('beforeend', `<nav id="tabbar">${[['dashboard', '◧', 'Übersicht'], ['aufgaben', '✓', 'Aufgaben'], ['+', '+', 'Neu'], ['kalender', '▦', 'Kalender'], ['kontakte', '☺', 'Kontakte']].map(([k, i, l]) => k === '+' ? `<button type="button" data-tabneu><i>${i}</i><span>${l}</span></button>` : `<a href="#/${k}" data-k="${k}"><i>${i}</i><span>${l}</span></a>`).join('')}</nav>`);
     document.querySelector('[data-tabneu]').onclick = () => document.getElementById('quick').click();
   }
-  document.getElementById('burger').onclick = () => document.body.classList.toggle('nav-open');
+  document.getElementById('burger').onclick = e => { e.stopPropagation(); document.body.classList.toggle('nav-open'); };
+  document.addEventListener('click', e => { if (document.body.classList.contains('nav-open') && !e.target.closest('#side')) document.body.classList.remove('nav-open'); });
+  if (matchMedia('(max-width:700px)').matches) document.getElementById('gsearch').placeholder = 'Suchen …';
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && db.isCloud()) db.reload(); });
   document.getElementById('mode').textContent = db.isCloud() ? '☁ Cloud' : '💾 Lokal';
   if (!db.isCloud() && !document.getElementById('lokalhinweis')) main.insertAdjacentHTML('beforebegin', '<div id="lokalhinweis" class="lokalhinweis">💾 Dieses Gerät arbeitet im <b>lokalen Modus</b> – du siehst nicht die Daten aus der Cloud. <a href="?cloud=1">Zur Cloud wechseln und anmelden</a></div>');
   document.getElementById('quick').onclick = () => modal('Neu anlegen', html`<div class="full quickgrid">${[['anfrage', '📋 Anfrage einfügen'], ['contact', '☺ Kontakt'], ['property', '⌂ Objekt'], ['task', '✓ Aufgabe'], ['event', '▦ Termin'], ['note', '📝 Notiz / Anruf']].map(([k, l]) => html`<button type="button" class="btn big" data-k="${k}">${l}</button>`)}</div>`, {

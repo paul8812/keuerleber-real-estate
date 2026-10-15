@@ -46,12 +46,18 @@ export function collect(form) {
   return o;
 }
 
+// Hintergrund beim Dialog festhalten (iOS scrollt sonst die Seite dahinter mit)
+let sperren = 0, sperrY = 0;
+export function scrollSperre(an) {
+  if (an) { if (sperren++ === 0) { sperrY = window.scrollY; Object.assign(document.body.style, { position: 'fixed', top: -sperrY + 'px', left: '0', right: '0' }); document.documentElement.classList.add('modal-open'); } }
+  else if (sperren > 0 && --sperren === 0) { Object.assign(document.body.style, { position: '', top: '', left: '', right: '' }); document.documentElement.classList.remove('modal-open'); window.scrollTo(0, sperrY); }
+}
 // ---------- Modal ----------
 export function modal(title, body, { onSave, saveLabel = 'Speichern', wide = false, onMount, danger } = {}) {
   const root = document.getElementById('modal-root');
   const el = document.createElement('div'); el.className = 'modal-bg';
   el.innerHTML = `<div class="modal ${wide ? 'wide' : ''}" role="dialog" aria-modal="true"><header><h3>${esc(title)}</h3><button type="button" class="x" data-close aria-label="Schließen">×</button></header><form class="mbody"><div class="grid">${body.s}</div><footer>${danger ? `<button type="button" class="btn danger left" data-danger>${esc(danger.label)}</button>` : ''}<button type="button" class="btn ghost" data-close>Abbrechen</button>${onSave ? `<button class="btn primary">${esc(saveLabel)}</button>` : ''}</footer></form></div>`;
-  const close = () => { el.remove(); document.removeEventListener('keydown', onKey); };
+  let zu = false; const close = () => { if (zu) return; zu = true; el.remove(); document.removeEventListener('keydown', onKey); scrollSperre(false); };
   const onKey = e => { if (e.key === 'Escape') close(); };
   document.addEventListener('keydown', onKey);
   el.addEventListener('mousedown', e => { if (e.target === el) close(); });
@@ -59,18 +65,18 @@ export function modal(title, body, { onSave, saveLabel = 'Speichern', wide = fal
   const form = el.querySelector('form');
   form.onsubmit = async e => { e.preventDefault(); if (!onSave) return; const r = await onSave(collect(form), close, form); if (r !== false) close(); };
   if (danger) el.querySelector('[data-danger]').onclick = async () => { if (await confirmDlg(danger.confirm || 'Wirklich löschen?')) { await danger.fn(); close(); } };
-  root.appendChild(el);
+  root.appendChild(el); scrollSperre(true);
   onMount && onMount(el, close);
-  const first = el.querySelector('input:not([type=checkbox]),select,textarea'); first && first.focus();
+  const first = el.querySelector('input:not([type=checkbox]),select,textarea'); if (first && matchMedia('(hover:hover)').matches) first.focus();  // am Handy keine Tastatur sofort aufklappen
   return { el, close };
 }
 export function confirmDlg(msg) {
   return new Promise(res => {
     const root = document.getElementById('modal-root'); const el = document.createElement('div'); el.className = 'modal-bg';
     el.innerHTML = `<div class="modal small"><div class="mbody"><p class="confirm">${esc(msg)}</p><footer><button class="btn ghost" data-n>Abbrechen</button><button class="btn primary" data-y>Ja</button></footer></div></div>`;
-    const done = v => { el.remove(); res(v); };
+    const done = v => { el.remove(); scrollSperre(false); res(v); };
     el.querySelector('[data-n]').onclick = () => done(false); el.querySelector('[data-y]').onclick = () => done(true);
-    root.appendChild(el); el.querySelector('[data-y]').focus();
+    root.appendChild(el); scrollSperre(true); el.querySelector('[data-y]').focus();
   });
 }
 export function download(name, text, type = 'text/plain') {

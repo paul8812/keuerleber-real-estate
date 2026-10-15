@@ -128,3 +128,17 @@ main{padding-bottom:calc(84px + env(safe-area-inset-bottom))!important}#toast-ro
 .mfaqr{display:flex;justify-content:center;margin:12px 0}.mfaqr img{width:200px;height:200px;background:#fff;padding:10px;border-radius:10px}.mfasecret{word-break:break-all;user-select:all}.mfahint{font-size:13px;color:var(--gold)}#mfabox .ok{color:var(--ok)}
 .sqlbox{background:#0e0e10;border:1px solid var(--line);border-radius:8px;padding:10px;font-size:11px;white-space:pre-wrap;word-break:break-word;margin:6px 0}
 .sicherhinweis{margin-top:8px;background:rgba(91,191,138,.1);border:1px solid rgba(91,191,138,.35);border-radius:10px;padding:8px 12px;font-size:13px;color:var(--txt)}.entwurfdanach{background:rgba(201,169,110,.1);border:1px solid var(--line);border-radius:10px;padding:12px}
+/* ---- Handy / Touch ---- */
+html{-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none}body{overscroll-behavior-y:none}
+button,a,.chip,input,select,textarea,label{touch-action:manipulation}
+.dmove{display:none}
+@media(hover:none),(max-width:700px){.dmove{display:grid;grid-template-columns:40px 1fr 40px;gap:6px;margin-top:8px}.dmove button{height:40px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font-size:18px}.dmove select{height:40px}.deal[draggable]{-webkit-user-drag:none}}
+@media(max-width:700px){input,select,textarea{font-size:16px!important}#burger{width:44px;height:44px;font-size:24px}.btn{min-height:42px}.calnav .btn{min-width:42px}.chip{min-height:38px}input[type=checkbox]{width:22px;height:22px}.tquick a,.tquick button{width:40px;height:40px}.mini{min-width:36px;min-height:36px}
+.chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}.chips::-webkit-scrollbar{display:none}.chips>*{flex:0 0 auto}
+.kanban{scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}.col{min-width:84vw;width:84vw;scroll-snap-align:start}
+.modal-bg{padding:0;align-items:flex-end;overflow:hidden}.modal,.modal.wide{max-width:none;border-radius:16px 16px 0 0;max-height:92dvh;display:flex;flex-direction:column}.modal.small{border-radius:16px 16px 0 0;max-width:none}.modal>header{flex:0 0 auto}.modal .mbody{overflow:auto;overscroll-behavior:contain;flex:1 1 auto;padding-bottom:calc(16px + env(safe-area-inset-bottom))}.mbody footer{position:sticky;bottom:0;background:var(--panel);padding-top:10px;z-index:2}.mbody footer .btn{flex:1}
+#toast-root{top:calc(env(safe-area-inset-top) + 64px);bottom:auto!important;pointer-events:none;align-items:center}.toast{padding:8px 14px;font-size:14px;max-width:100%}}
+@media(hover:none){.list li:hover,.cev:hover,.tbl tbody tr:hover{background:inherit}.btn:active,.chip:active{transform:scale(.97)}}
+.wahlbar{position:sticky;top:8px;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;border-color:var(--gold)}.wahlbar .actions{margin-left:auto}
+.tbl td.wahl,.tbl th.wahl{width:40px}.tbl.waehlen tr[data-id]{cursor:pointer}.tbl tr.gew td{background:rgba(201,169,110,.10)}.tbl .wahl input{width:20px;height:20px}
+@media(max-width:700px){.wahlbar{top:calc(env(safe-area-inset-top) + 60px)}.wahlbar .actions{margin-left:0;width:100%}.wahlbar .actions .btn{flex:1}}

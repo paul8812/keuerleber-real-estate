@@ -1,12 +1,13 @@
 import * as db from '../db.js';
 import { exposeForm } from '../modellrechnung.js';
-import { html, raw, fullName, fmtDate, fmtDT, download, toCSV, parseCSV, toast, modal, sel, today, daysBetween, eur } from '../util.js';
+import { html, raw, fullName, fmtDate, fmtDT, download, toCSV, parseCSV, toast, modal, sel, today, daysBetween, eur, confirmDlg } from '../util.js';
 import { KONTAKT_ARTEN, sl } from '../consts.js';
 import { contactForm, dealForm, taskForm, eventForm, activityForm } from '../forms.js';
 import { avatar, badge, empty, timeline, pLink, matchesForContact, lastContact, statusBadge, adresse } from '../ui.js';
 import { taskRow, bindTasks } from './tasks.js';
 
-let q = '', art = '', status = 'Aktiv', sort = 'name';
+let q = '', art = '', status = 'Aktiv', sort = 'name', waehlen = false, sichtbar = [];
+const wahl = new Set();
 
 function dupes() {
   const g = {}; const add = (k, c) => { if (k) (g[k] ||= []).push(c); };
@@ -20,11 +21,43 @@ function list(el) {
   const key = { name: c => fullName(c).toLowerCase(), neu: c => '~' + (9e15 - Date.parse(c.created || 0)), kontakt: c => lastContact(c.id) || '0', follow: c => c.followup || '9999' }[sort];
   rows = rows.slice().sort((a, b) => String(key(a)).localeCompare(String(key(b)), 'de'));
   if (sort === 'kontakt') rows.reverse();
-  el.querySelector('#clist').innerHTML = rows.length ? html`<table class="tbl"><thead><tr><th></th><th>Name</th><th>Art</th><th>Kontakt</th><th>Ort</th><th>Letzter Kontakt</th><th>Wiedervorlage</th></tr></thead><tbody>
-    ${rows.slice(0, 300).map(c => { const lc = lastContact(c.id); return html`<tr data-id="${c.id}"><td>${avatar(c)}</td><td><b>${fullName(c)}</b>${c.firma && c.nachname ? html`<div class="sub">${c.firma}</div>` : ''}</td><td>${c.kategorie}</td><td>${c.mobil || c.tel || ''}<div class="sub">${c.email || ''}</div></td><td>${c.ort || ''}</td><td>${lc ? fmtDate(lc.slice(0, 10)) : '–'}</td><td class="${c.followup && c.followup <= today() ? 'late' : ''}">${c.followup ? fmtDate(c.followup) : ''}</td></tr>`; })}</tbody></table>
+  sichtbar = rows.map(c => c.id);
+  const box = c => waehlen ? html`<td class="wahl"><input type="checkbox" data-w="${c.id}" ${wahl.has(c.id) ? raw('checked') : ''} aria-label="auswählen"></td>` : '';
+  el.querySelector('#clist').innerHTML = rows.length ? html`<table class="tbl ${waehlen ? 'waehlen' : ''}"><thead><tr>${waehlen ? raw('<th class="wahl"><input type="checkbox" data-wall aria-label="alle auswählen"></th>') : ''}<th></th><th>Name</th><th>Art</th><th>Kontakt</th><th>Ort</th><th>Letzter Kontakt</th><th>Wiedervorlage</th></tr></thead><tbody>
+    ${rows.slice(0, 300).map(c => { const lc = lastContact(c.id); return html`<tr data-id="${c.id}" class="${wahl.has(c.id) ? 'gew' : ''}">${box(c)}<td>${avatar(c)}</td><td><b>${fullName(c)}</b>${c.firma && c.nachname ? html`<div class="sub">${c.firma}</div>` : ''}</td><td>${c.kategorie}</td><td>${c.mobil || c.tel || ''}<div class="sub">${c.email || ''}</div></td><td>${c.ort || ''}</td><td>${lc ? fmtDate(lc.slice(0, 10)) : '–'}</td><td class="${c.followup && c.followup <= today() ? 'late' : ''}">${c.followup ? fmtDate(c.followup) : ''}</td></tr>`; })}</tbody></table>
     ${rows.length > 300 ? html`<p class="muted pad">… ${rows.length - 300} weitere – Suche verfeinern</p>` : ''}`.s : html`<div class="pad">${empty('Keine Kontakte gefunden', 'Mit „+ Kontakt“ anlegen oder CSV importieren')}</div>`.s;
   el.querySelector('#ccount').textContent = rows.length + ' Kontakte';
-  el.querySelectorAll('#clist tr[data-id]').forEach(tr => tr.onclick = () => location.hash = '#/kontakte/' + tr.dataset.id);
+  el.querySelectorAll('#clist tr[data-id]').forEach(tr => tr.onclick = e => {
+    if (!waehlen) { location.hash = '#/kontakte/' + tr.dataset.id; return; }
+    const id = tr.dataset.id; wahl.has(id) ? wahl.delete(id) : wahl.add(id); list(el);
+  });
+  const all = el.querySelector('[data-wall]');
+  if (all) { const n = sichtbar.filter(id => wahl.has(id)).length; all.checked = n && n === sichtbar.length; all.indeterminate = n > 0 && n < sichtbar.length;
+    all.onclick = e => { e.stopPropagation(); const an = e.target.checked; sichtbar.forEach(id => an ? wahl.add(id) : wahl.delete(id)); list(el); }; }
+  leiste(el);
+}
+
+// Mehrfachauswahl: du wählst aus, das CRM fragt nach – nichts passiert ohne deine Bestätigung
+function leiste(el) {
+  const bar = el.querySelector('#wahlbar'); if (!bar) return;
+  for (const id of [...wahl]) if (!db.get('contacts', id)) wahl.delete(id);
+  bar.hidden = !waehlen;
+  if (!waehlen) return;
+  const n = wahl.size;
+  bar.innerHTML = html`<b>${n} ausgewählt</b><span class="muted small">Tipp: „Alle“ anhaken, dann die behalten-Kontakte wieder abwählen.</span>
+    <div class="actions"><button class="btn" data-wa ${n ? '' : raw('disabled')}>📦 Archivieren</button><button class="btn danger" data-wd ${n ? '' : raw('disabled')}>🗑 Löschen</button><button class="btn ghost" data-wx>Fertig</button></div>`.s;
+  bar.querySelector('[data-wx]').onclick = () => { waehlen = false; wahl.clear(); overview(el); };
+  bar.querySelector('[data-wa]').onclick = async () => {
+    if (!(await confirmDlg(`${n} Kontakte ins Archiv verschieben? (Jederzeit über Status „Archiv“ wiederherstellbar)`))) return;
+    for (const id of [...wahl]) { const c = db.get('contacts', id); if (c) { c.status = 'Archiv'; await db.save('contacts', c); } }
+    toast(`📦 ${n} Kontakte archiviert`); wahl.clear(); list(el);
+  };
+  bar.querySelector('[data-wd]').onclick = async () => {
+    const namen = [...wahl].slice(0, 5).map(id => fullName(db.get('contacts', id))).join(', ') + (n > 5 ? ` und ${n - 5} weitere` : '');
+    if (!(await confirmDlg(`${n} Kontakte endgültig löschen? (${namen}) – Das kann nicht rückgängig gemacht werden. Tipp: vorher „Export“ als Sicherung.`))) return;
+    for (const id of [...wahl]) await db.del('contacts', id);
+    toast(`🗑 ${n} Kontakte gelöscht`); wahl.clear(); list(el);
+  };
 }
 
 function importDlg() {
@@ -41,17 +74,19 @@ function importDlg() {
 export function render(el, id) { id ? detail(el, id) : overview(el); }
 
 function overview(el) {
-  el.innerHTML = html`<div class="head"><h1>Kontakte <small id="ccount" class="muted"></small></h1><div class="actions"><button class="btn" data-dupe>Dubletten</button><button class="btn" data-imp>Import</button><button class="btn" data-exp>Export</button><button class="btn primary" data-new>+ Kontakt</button></div></div>
+  el.innerHTML = html`<div class="head"><h1>Kontakte <small id="ccount" class="muted"></small></h1><div class="actions"><button class="btn ${waehlen ? 'primary' : ''}" data-sel>☑ Auswählen</button><button class="btn" data-dupe>Dubletten</button><button class="btn" data-imp>Import</button><button class="btn" data-exp>Export</button><button class="btn primary" data-new>+ Kontakt</button></div></div>
     <div class="filters"><input type="search" id="cq" placeholder="Suchen (Name, Firma, E-Mail, Telefon, Ort, Tags) …" value="${q}">
     <select id="ca"><option value="">Alle Arten</option>${KONTAKT_ARTEN.map(a => html`<option ${a === art ? raw('selected') : ''}>${a}</option>`)}</select>
     <select id="cs">${['Aktiv', 'Ruhend', 'Archiv', ''].map(a => html`<option value="${a}" ${a === status ? raw('selected') : ''}>${a || 'Alle Status'}</option>`)}</select>
     <select id="co">${[['name', 'Name A–Z'], ['neu', 'Neueste zuerst'], ['kontakt', 'Letzter Kontakt'], ['follow', 'Wiedervorlage']].map(([v, l]) => html`<option value="${v}" ${v === sort ? raw('selected') : ''}>${l}</option>`)}</select></div>
+    <div class="wahlbar card" id="wahlbar" hidden></div>
     <div class="card flush" id="clist"></div>`.s;
   list(el);
   el.querySelector('#cq').oninput = e => { q = e.target.value; list(el); };
   el.querySelector('#ca').onchange = e => { art = e.target.value; list(el); };
   el.querySelector('#cs').onchange = e => { status = e.target.value; list(el); };
   el.querySelector('#co').onchange = e => { sort = e.target.value; list(el); };
+  el.querySelector('[data-sel]').onclick = () => { waehlen = !waehlen; wahl.clear(); overview(el); };
   el.querySelector('[data-new]').onclick = () => contactForm({}, c => location.hash = '#/kontakte/' + c.id);
   el.querySelector('[data-imp]').onclick = importDlg;
   el.querySelector('[data-exp]').onclick = () => download('kontakte.csv', toCSV(db.all('contacts'), [['kategorie', 'kategorie'], ['anrede', 'anrede'], ['vorname', 'vorname'], ['nachname', 'nachname'], ['firma', 'firma'], ['email', 'email'], ['tel', 'tel'], ['mobil', 'mobil'], ['strasse', 'strasse'], ['plz', 'plz'], ['ort', 'ort'], ['quelle', 'quelle'], ['tags', 'tags'], ['notiz', 'notiz']]), 'text/csv');
