@@ -94,6 +94,14 @@ function loginScreen() {
   const setMode = m => { signup = m; btn.textContent = m ? 'Konto erstellen' : 'Anmelden'; tog.textContent = m ? 'Schon ein Konto? Anmelden' : 'Erstes Mal? Konto erstellen'; err.textContent = ''; form.password.autocomplete = m ? 'new-password' : 'current-password'; };
   tog.onclick = e => { e.preventDefault(); setMode(!signup); };
   if (db.AUTH_ERROR) err.textContent = db.AUTH_ERROR === 'otp_expired' ? 'Der Link aus der E-Mail ist abgelaufen oder wurde schon benutzt – bitte unten „Passwort vergessen?“ erneut klicken.' : 'Anmeldung über den Link fehlgeschlagen (' + db.AUTH_ERROR + ').';
+  const lf = box.querySelector('.linkfix');
+  box.querySelector('[data-linkfix]').onclick = e => { e.preventDefault(); lf.hidden = !lf.hidden; if (!lf.hidden) lf.querySelector('input').focus(); };
+  lf.querySelector('input').addEventListener('input', e => {
+    const v = e.target.value.trim(), frag = v.includes('#') ? v.slice(v.indexOf('#') + 1) : '';
+    if (/access_token=/.test(frag)) { err.style.color = 'var(--ok)'; err.textContent = 'Link erkannt – einen Moment …'; location.hash = frag; location.reload(); }
+    else if (/error_code=otp_expired/.test(v)) { err.style.color = ''; err.textContent = 'Dieser Link ist abgelaufen oder wurde schon benutzt – bitte „Passwort vergessen?“ erneut klicken und den neuen Link verwenden.'; }
+    else if (v.length > 20) { err.style.color = ''; err.textContent = 'In dieser Adresse fehlt „#access_token=…“. Bitte die Adresse der Fehlerseite kopieren, nachdem du den Link angeklickt hast.'; }
+  });
   box.querySelector('[data-forgot]').onclick = async e => {
     e.preventDefault(); err.style.color = '';
     const email = form.email.value.trim();

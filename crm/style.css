@@ -102,3 +102,4 @@ details{margin-top:12px}.steps{margin:10px 0 0 18px;display:flex;flex-direction:
 @media(max-width:600px){.tquick a,.tquick button{width:28px;height:28px}.task{flex-wrap:wrap}.tquick{margin-left:auto}}
 .kidrop{margin:-6px 0 14px}.dropping{outline:2px dashed var(--gold);outline-offset:-8px;border-radius:12px}.kihint{background:rgba(224,168,74,.12);border:1px solid rgba(224,168,74,.35);padding:10px 12px;border-radius:10px;font-size:13px}.kilist li .sub{white-space:normal}
 .card:has(> .tbl){overflow-x:auto}@media(max-width:600px){.tbl th,.tbl td{padding:9px 8px;font-size:13px}.kidrop{font-size:12px}}
+.linkfix:not([hidden]){display:flex;flex-direction:column;gap:6px;text-align:left}
