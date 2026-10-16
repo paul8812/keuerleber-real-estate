@@ -110,7 +110,7 @@ function detail(el, id) {
   const phone = (c.mobil || c.tel || '').replace(/[^\d+]/g, '');
   el.innerHTML = html`<a href="#/kontakte" class="back">← Kontakte</a>
     <div class="head"><div class="who">${avatar(c)}<div><h1>${fullName(c)} ${tempBadge(c)}</h1><p class="muted">${c.kategorie}${c.firma && c.nachname ? ' · ' + c.firma : ''} ${c.status !== 'Aktiv' ? badge(c.status, '#777') : ''}</p></div></div>
-      <div class="actions">${c.email ? html`<a class="btn" href="mailto:${c.email}">✉ E-Mail</a>` : ''}${phone ? html`<a class="btn" href="tel:${phone}">📞 Anrufen</a><a class="btn" target="_blank" rel="noopener" href="https://wa.me/${phone.replace(/^0/, '49').replace('+', '')}">WhatsApp</a>` : ''}<button class="btn" data-modell>📄 Exposé / Modellrechnung</button><button class="btn" data-edit>Bearbeiten</button><button class="btn" data-akt="contact:${c.id}" title="Weitere Aktionen">⋯ Mehr</button></div></div>
+      <div class="actions">${c.email ? html`<a class="btn" href="mailto:${c.email}">E-Mail</a>` : ''}${phone ? html`<a class="btn" href="tel:${phone}">Anrufen</a><a class="btn" target="_blank" rel="noopener" href="https://wa.me/${phone.replace(/^0/, '49').replace('+', '')}">WhatsApp</a>` : ''}<button class="btn" data-modell>Exposé</button><button class="btn" data-edit>Bearbeiten</button><button class="btn" data-akt="contact:${c.id}" title="Weitere Aktionen">⋯ Mehr</button></div></div>
     <div class="split"><div>
       <section class="card"><h2>Stammdaten</h2>
         ${line('E-Mail', c.email, c.email && 'mailto:' + c.email)}${line('Telefon', c.tel, c.tel && 'tel:' + c.tel)}${line('Mobil', c.mobil, c.mobil && 'tel:' + c.mobil)}

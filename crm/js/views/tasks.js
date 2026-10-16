@@ -29,8 +29,9 @@ function quick(t) {
 }
 export function taskRow(t) {
   const late = !t.done && t.faellig && t.faellig < today();
-  return html`<li class="task ${t.done ? 'done' : ''} ${late ? 'late' : ''}"><input type="checkbox" data-done="${t.id}" ${t.done ? html`checked` : ''}>
-    <div class="grow" data-edit="${t.id}"><div class="ttl">${t.titel}</div><div class="sub">${t.faellig ? fmtDate(t.faellig) : 'ohne Datum'}${t.contactId ? html` · ${cLink(t.contactId)}` : ''}${t.propertyId ? html` · ${pLink(t.propertyId)}` : ''}${t.wiederholung ? ' · ↻' : ''}</div></div>
+  const auto = /^⚡ /.test(t.titel || '');
+  return html`<li class="task ${t.done ? 'done' : ''} ${late ? 'late' : ''} ${auto ? 'auto' : ''}"><input type="checkbox" data-done="${t.id}" ${t.done ? html`checked` : ''}>
+    <div class="grow" data-edit="${t.id}"><div class="ttl">${(t.titel || '').replace(/^⚡ /, '')}</div><div class="sub">${t.faellig ? (late ? 'überfällig seit ' : '') + fmtDate(t.faellig) : 'ohne Datum'}${auto ? html` · <span class="autotag" title="Vom CRM automatisch angelegt">automatisch</span>` : ''}${t.contactId ? html` · ${cLink(t.contactId)}` : ''}${t.propertyId && db.get('properties', t.propertyId) ? html` · ${pLink(t.propertyId)}` : ''}${t.wiederholung ? ' · ↻' : ''}</div></div>
     ${t.prio === 'hoch' ? badge('hoch', '#e06a5a') : t.prio === 'niedrig' ? badge('niedrig', '#777') : ''}${t.done ? '' : quick(t)}</li>`;
 }
 export function bindTasks(el) {

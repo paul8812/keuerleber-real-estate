@@ -18,7 +18,8 @@ export const artInfo = art => AKTIVITAET_ARTEN.find(a => a[0] === art) || ['noti
 
 export function timeline(acts, { showRefs = false } = {}) {
   if (!acts.length) return empty('Noch keine Einträge');
-  return html`<ul class="tl">${acts.slice().sort((a, b) => b.datum.localeCompare(a.datum)).map(a => { const [, label, ic] = artInfo(a.art); return html`<li><span class="ic">${ic}</span><div><div class="meta"><b>${label}</b> · ${fmtDT(a.datum)}${showRefs && a.contactId ? html` · ${cLink(a.contactId)}` : ''}${showRefs && a.propertyId ? html` · ${pLink(a.propertyId)}` : ''}</div><div class="txt">${a.text}</div></div></li>`; })}</ul>`;
+  const sys = acts.filter(a => a.art === 'system').length, nurSys = sys === acts.length;
+  return html`<ul class="tl ${sys && !nurSys ? 'mitsys' : ''}">${acts.slice().sort((a, b) => b.datum.localeCompare(a.datum)).map(a => { const [, label, ic] = artInfo(a.art); return html`<li class="${a.art === 'system' ? 'sys' : ''}"><span class="ic">${ic}</span><div><div class="meta"><b>${label}</b> · ${fmtDT(a.datum)}${showRefs && a.contactId ? html` · ${cLink(a.contactId)}` : ''}${showRefs && a.propertyId ? html` · ${pLink(a.propertyId)}` : ''}</div><div class="txt">${(a.text || '').replace(/^⚡ /, '')}</div></div></li>`; })}</ul>${sys && !nurSys ? html`<button type="button" class="mini tlsys" data-tlsys>${sys} automatische Einträge einblenden</button>` : ''}`;
 }
 
 // Suchprofil-Matching: Interessent <-> Objekt

@@ -34,27 +34,36 @@ export function render(el) {
   const matches = props.filter(p => p.status === 'Aktiv').flatMap(p => matchesForProperty(p).slice(0, 2).map(x => ({ p, ...x }))).slice(0, 6);
   const hour = new Date().getHours(), greet = hour < 11 ? 'Guten Morgen' : hour < 18 ? 'Guten Tag' : 'Guten Abend';
   const kpi = (v, l, href, cls = '') => html`<a class="kpi ${cls}" href="${href}"><b>${v}</b><span>${l}</span></a>`;
-  el.innerHTML = html`<div class="head"><div><h1>${greet}, ${(s.inhaber || '').split(' ')[0]}</h1><p class="muted">${new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p></div>
-      <div class="actions"><button class="btn primary" data-q="anfrage">📋 Anfrage einfügen</button><button class="btn" data-q="contact">+ Kontakt</button><button class="btn" data-q="property">+ Objekt</button><button class="btn" data-q="task">+ Aufgabe</button><button class="btn" data-q="event">+ Termin</button><button class="btn" data-q="note">+ Notiz</button></div></div>
+  const ueber = tasks.filter(t => t.faellig < t0).length, neu = db.all('tasks').filter(t => !t.done && /^ni:/.test(t.auto || '')).length, termHeute = events.filter(e => e.datum === t0).length;
+  const satz = [tasks.length ? `${tasks.length} ${tasks.length === 1 ? 'Aufgabe steht' : 'Aufgaben stehen'} an${ueber ? `, davon ${ueber} überfällig` : ''}` : 'Keine Aufgaben fällig',
+    termHeute ? `${termHeute} ${termHeute === 1 ? 'Termin' : 'Termine'} heute` : events.length ? `nächster Termin ${fmtDateShort(events[0].datum)}${events[0].start ? ' um ' + events[0].start : ''}` : 'keine Termine diese Woche',
+    neu ? `${neu} neue ${neu === 1 ? 'Anfrage wartet' : 'Anfragen warten'}` : ''].filter(Boolean).join(', ') + '.';
+  const SEK = [
+    ['Termine (7 Tage)', events.length, () => html`<ul class="list">${events.map(e => html`<li data-ev="${e.id}"><b class="when">${fmtDateShort(e.datum)} ${e.start || ''}</b><div class="grow"><div class="ttl">${e.titel}</div><div class="sub">${e.art}${e.contactId ? html` · ${cLink(e.contactId)}` : ''}${e.ort ? ' · ' + e.ort : ''}</div></div></li>`)}</ul>`],
+    ['Wiedervorlagen', followups.length, () => html`<ul class="list">${followups.slice(0, 8).map(c => html`<li>${avatar(c)}<div class="grow"><div class="ttl">${cLink(c.id)}</div><div class="sub">fällig ${fmtDate(c.followup)} · ${c.kategorie}</div></div></li>`)}</ul>`],
+    ['Neue Objekt-Treffer', matches.length, () => html`<ul class="list">${matches.map(x => html`<li><b class="when">${x.m.score}%</b><div class="grow"><div class="ttl">${cLink(x.c.id)} ↔ ${pLink(x.p.id)}</div><div class="sub">passt: ${x.m.hits.join(', ')}</div></div></li>`)}</ul>`],
+    ['Achtung bei Objekten', expiring.length, () => html`<ul class="list">${expiring.slice(0, 8).map(x => html`<li><span class="ic">⚠️</span><div class="grow"><div class="ttl">${pLink(x.p.id)}</div><div class="sub">${x.txt}</div></div></li>`)}</ul>`],
+    ['Lange nicht kontaktiert', cold.length, () => html`<ul class="list">${cold.map(x => html`<li>${avatar(x.c)}<div class="grow"><div class="ttl">${cLink(x.c.id)}</div><div class="sub">${x.c.kategorie} · seit ${daysBetween(x.last.slice(0, 10), t0)} Tagen kein Kontakt</div></div></li>`)}</ul>`],
+    ['Geburtstage (14 Tage)', bdays.length, () => html`<ul class="list">${bdays.map(x => html`<li><span class="ic">🎂</span><div class="grow"><div class="ttl">${cLink(x.c.id)}</div><div class="sub">${fmtDate(x.n)}</div></div></li>`)}</ul>`],
+  ];
+  const voll = SEK.filter(x => x[1]), leer = SEK.filter(x => !x[1]).map(x => x[0].replace(/ \(.*\)/, ''));
+  const acts = db.all('activities').filter(a => a.art !== 'system').sort((a, b) => b.datum.localeCompare(a.datum)).slice(0, 6);
+  el.innerHTML = html`<div class="head dashhead"><div><p class="datum">${new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })}</p><h1>${greet}, ${(s.inhaber || '').split(' ')[0]}</h1><p class="briefing">${satz}</p></div>
+      <div class="actions"><button class="btn primary" data-q="anfrage">Anfrage einfügen</button></div></div>
     ${fokusKarte()}
-    <div class="kpis">
+    <div class="kpis strip">
       ${kpi(props.filter(p => p.status === 'Aktiv').length, 'Aktive Objekte', '#/objekte')}
-      ${kpi(contacts.length, 'Kontakte', '#/kontakte')}
-      ${kpi(tasks.length, 'Fällige Aufgaben', '#/aufgaben', tasks.length ? 'warn' : '')}
+      ${kpi(contacts.filter(c => c.status !== 'Archiv').length, 'Kontakte', '#/kontakte')}
+      ${kpi(open.length, 'Offene Vorgänge', '#/pipeline')}
       ${kpi(eur(pipeVal), 'Pipeline-Volumen', '#/pipeline')}
-      ${kpi(eur(forecast), 'Vergütungs-Prognose (gewichtet)', '#/pipeline')}
-      ${kpi(eur(umsatz), `Vergütung ${year} (abgeschlossen)`, '#/statistik')}
+      ${kpi(eur(forecast), 'Prognose Vergütung', '#/pipeline')}
+      ${kpi(eur(umsatz), `Vergütung ${year}`, '#/statistik')}
     </div>
-    <div class="cols">
-      <section class="card"><h2>Heute & überfällig</h2>${tasks.length ? html`<ul class="tasks">${tasks.slice(0, 10).map(taskRow)}</ul>` : empty('Alles erledigt 🎉')}</section>
-      <section class="card"><h2>Termine (7 Tage)</h2>${events.length ? html`<ul class="list">${events.map(e => html`<li data-ev="${e.id}"><b class="when">${fmtDateShort(e.datum)} ${e.start || ''}</b><div class="grow"><div class="ttl">${e.titel}</div><div class="sub">${e.art}${e.contactId ? html` · ${cLink(e.contactId)}` : ''}${e.ort ? ' · ' + e.ort : ''}</div></div></li>`)}</ul>` : empty('Keine Termine in den nächsten 7 Tagen')}</section>
-      <section class="card"><h2>Wiedervorlagen</h2>${followups.length ? html`<ul class="list">${followups.slice(0, 8).map(c => html`<li>${avatar(c)}<div class="grow"><div class="ttl">${cLink(c.id)}</div><div class="sub">fällig ${fmtDate(c.followup)} · ${c.kategorie}</div></div></li>`)}</ul>` : empty('Keine Wiedervorlagen fällig')}</section>
-      <section class="card"><h2>Lange nicht kontaktiert</h2>${cold.length ? html`<ul class="list">${cold.map(x => html`<li>${avatar(x.c)}<div class="grow"><div class="ttl">${cLink(x.c.id)}</div><div class="sub">${x.c.kategorie} · seit ${daysBetween(x.last.slice(0, 10), t0)} Tagen kein Kontakt</div></div></li>`)}</ul>` : empty('Alle Eigentümer-Kontakte sind aktuell')}</section>
-      <section class="card"><h2>Neue Objekt-Treffer</h2>${matches.length ? html`<ul class="list">${matches.map(x => html`<li><b class="when">${x.m.score}%</b><div class="grow"><div class="ttl">${cLink(x.c.id)} ↔ ${pLink(x.p.id)}</div><div class="sub">passt: ${x.m.hits.join(', ')}</div></div></li>`)}</ul>` : empty('Keine Treffer', 'Suchprofile bei Interessenten hinterlegen')}</section>
-      <section class="card"><h2>Achtung bei Objekten</h2>${expiring.length ? html`<ul class="list">${expiring.slice(0, 8).map(x => html`<li><span class="ic">⚠️</span><div class="grow"><div class="ttl">${pLink(x.p.id)}</div><div class="sub">${x.txt}</div></div></li>`)}</ul>` : empty('Nichts Kritisches')}</section>
-      <section class="card"><h2>Geburtstage (14 Tage)</h2>${bdays.length ? html`<ul class="list">${bdays.map(x => html`<li><span class="ic">🎂</span><div class="grow"><div class="ttl">${cLink(x.c.id)}</div><div class="sub">${fmtDate(x.n)}</div></div></li>`)}</ul>` : empty('Keine Geburtstage')}</section>
-      <section class="card"><h2>Letzte Aktivitäten</h2>${timeline(db.all('activities').slice().sort((a, b) => b.datum.localeCompare(a.datum)).slice(0, 6), { showRefs: true })}</section>
-    </div>`.s;
+    <div class="cols dashcols">
+      ${voll.map(([t, , f]) => html`<section class="card"><h2>${t}</h2>${f()}</section>`)}
+      ${acts.length ? html`<section class="card"><h2>Zuletzt passiert</h2>${timeline(acts, { showRefs: true })}</section>` : ''}
+    </div>
+    ${leer.length ? html`<p class="ruhig">Nichts offen bei ${leer.join(', ').replace(/, ([^,]*)$/, ' und $1')}.</p>` : ''}`.s;
   bindTasks(el); bindFokus(el);
   el.querySelectorAll('[data-ev]').forEach(li => li.onclick = e => { if (!e.target.closest('a')) eventForm(db.get('events', li.dataset.ev)); });
   const q = { anfrage: () => schnellerfassung(), contact: () => contactForm({}, c => location.hash = '#/kontakte/' + c.id), property: () => propertyForm({}, p => location.hash = '#/objekte/' + p.id), task: () => taskForm(), event: () => eventForm(), note: () => activityForm() };

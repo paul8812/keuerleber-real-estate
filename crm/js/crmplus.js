@@ -59,26 +59,26 @@ export function fokus() {
   const t0 = today(), L = [], jetzt = Date.now();
   // 1. Neue Anfragen, auf die noch niemand reagiert hat (Geschwindigkeit gewinnt Kunden)
   db.all('contacts').filter(c => c.status !== 'Archiv' && /Interessent/.test(c.kategorie || '') && c.created && jetzt - Date.parse(c.created) < 4 * 864e5 && !kontaktiert(c.id))
-    .forEach(c => { const h = Math.round((jetzt - Date.parse(c.created)) / 36e5); L.push({ p: 0, i: '⚡', t: `Neue Anfrage: ${fullName(c)}`, sub: `wartet seit ${h < 24 ? h + ' Std.' : Math.round(h / 24) + ' Tagen'} – schnell melden`, c, akt: 'contact:' + c.id }); });
+    .forEach(c => { const h = Math.round((jetzt - Date.parse(c.created)) / 36e5); L.push({ p: 0, k: 'neu', z: 'neu', t: `Neue Anfrage: ${fullName(c)}`, sub: `wartet seit ${h < 24 ? h + ' Std.' : Math.round(h / 24) === 1 ? '1 Tag' : Math.round(h / 24) + ' Tagen'}, am besten gleich melden`, c, akt: 'contact:' + c.id }); });
   // 2. Termine heute
-  db.all('events').filter(e => e.datum === t0).sort((a, b) => (a.start || '').localeCompare(b.start || '')).forEach(e => { const c = e.contactId && db.get('contacts', e.contactId); L.push({ p: 1, i: '▦', t: `${e.start || 'Heute'} ${e.titel}`, sub: e.ort || (e.propertyId && db.get('properties', e.propertyId) ? adresse(db.get('properties', e.propertyId)) : e.art), c, akt: 'event:' + e.id }); });
+  db.all('events').filter(e => e.datum === t0).sort((a, b) => (a.start || '').localeCompare(b.start || '')).forEach(e => { const c = e.contactId && db.get('contacts', e.contactId); L.push({ p: 1, k: 'termin', z: e.start || 'heute', t: e.titel, sub: e.ort || (e.propertyId && db.get('properties', e.propertyId) ? adresse(db.get('properties', e.propertyId)) : e.art), c, akt: 'event:' + e.id }); });
   // 3. Wichtige fällige Aufgaben
   db.all('tasks').filter(t => !t.done && t.faellig && t.faellig <= t0).sort((a, b) => ((b.prio === 'hoch') - (a.prio === 'hoch')) || a.faellig.localeCompare(b.faellig)).slice(0, 4)
-    .forEach(t => L.push({ p: 2, i: t.faellig < t0 ? '⏰' : '✓', t: t.titel.replace(/^⚡ /, ''), sub: t.faellig < t0 ? `überfällig seit ${fmtDate(t.faellig)}` : 'heute fällig', c: t.contactId && db.get('contacts', t.contactId), akt: 'task:' + t.id, task: t }));
+    .forEach(t => L.push({ p: 2, k: t.faellig < t0 ? 'ueber' : 'heute', z: t.faellig < t0 ? '!' : '✓', t: t.titel.replace(/^⚡ /, ''), sub: t.faellig < t0 ? `überfällig seit ${fmtDate(t.faellig)}` : 'heute fällig', c: t.contactId && db.get('contacts', t.contactId), akt: 'task:' + t.id, task: t }));
   // 4. Vorgänge ohne nächsten Schritt
   db.all('deals').filter(d => offen(d) && d.contactId && !offeneAufgaben(d.contactId).length && db.get('contacts', d.contactId)).slice(0, 3)
-    .forEach(d => L.push({ p: 3, i: '🧭', t: `Kein nächster Schritt: ${fullName(db.get('contacts', d.contactId))}`, sub: `${d.titel} · ${d.stage}`, c: db.get('contacts', d.contactId), schritt: d.id, akt: 'deal:' + d.id }));
+    .forEach(d => L.push({ p: 3, k: 'schritt', z: '→', t: `Kein nächster Schritt: ${fullName(db.get('contacts', d.contactId))}`, sub: `${d.titel} · ${d.stage}`, c: db.get('contacts', d.contactId), schritt: d.id, akt: 'deal:' + d.id }));
   const neu = new Set(L.filter(x => x.p === 0).map(x => x.c.id));  // neue Anfrage schon oben → nicht doppelt als Aufgabe
   const gesehen = new Set();
   return L.filter(x => !(x.p === 2 && x.c && neu.has(x.c.id))).filter(x => { const k = x.akt; if (gesehen.has(k)) return false; gesehen.add(k); return true; }).sort((a, b) => a.p - b.p).slice(0, 8);
 }
 export function fokusKarte() {
-  const L = fokus();
-  return html`<section class="card fokuscard"><h2>Dein Fokus heute <span class="muted small">${L.length ? L.length + ' Punkte' : ''}</span></h2>${L.length ? html`<ul class="fokus">${L.map(x => {
+  const L = fokus(), faellig = db.all('tasks').filter(t => !t.done && t.faellig && t.faellig <= today()).length, gezeigt = L.filter(x => x.task).length;
+  return html`<section class="card fokuscard"><h2>Dein Fokus heute</h2>${L.length ? html`<ul class="fokus">${L.map(x => {
     const n = nummer(x.c);
-    return html`<li><span class="fi">${x.i}</span><div class="grow"><div class="ttl">${x.t}</div><div class="sub">${x.sub || ''}</div></div><span class="fact">
+    return html`<li class="k-${x.k}"><span class="fi">${x.z}</span><div class="grow"><div class="ttl">${x.t}</div><div class="sub">${x.sub || ''}</div></div><span class="fact">
       ${x.task ? html`<button type="button" data-fdone="${x.task.id}" title="Erledigt">✓</button>` : ''}${x.schritt ? html`<button type="button" data-fschritt="${x.schritt}" title="Nächsten Schritt planen">＋</button>` : ''}
-      ${n && !x.task ? html`<a href="tel:${n}" title="Anrufen">📞</a>` : ''}<button type="button" data-akt="${x.akt}" title="Weitere Aktionen">⋯</button></span></li>`; })}</ul>` : html`<p class="fokusleer">✨ Alles im Griff – nichts Dringendes offen.</p>`}</section>`;
+      ${n && !x.task ? html`<a href="tel:${n}" title="Anrufen">📞</a>` : ''}<button type="button" data-akt="${x.akt}" title="Weitere Aktionen">⋯</button></span></li>`; })}</ul>` : html`<p class="fokusleer">Alles im Griff, nichts Dringendes offen.</p>`}${faellig > gezeigt ? html`<a class="fokusmehr" href="#/aufgaben">Alle ${faellig} fälligen Aufgaben ansehen</a>` : ''}</section>`;
 }
 export function bindFokus(el) {
   el.querySelectorAll('[data-fdone]').forEach(b => b.onclick = async () => { const { completeTask } = await import('./views/tasks.js'); await completeTask(db.get('tasks', b.dataset.fdone), true, true); toast('✓ Erledigt'); });
@@ -109,4 +109,5 @@ export function vcard(c) {
   download((fullName(c) || 'kontakt').replace(/[^\wäöüÄÖÜß -]/g, '') + '.vcf', v, 'text/vcard');
 }
 
-export function initCrmPlus() { window.addEventListener('crm:erledigt', e => setTimeout(() => nachErledigt(e.detail), 450)); }
+export function initCrmPlus() {
+  document.addEventListener('click', e => { const b = e.target.closest('[data-tlsys]'); if (!b) return; const ul = b.previousElementSibling; const an = ul.classList.toggle('zeigsys'); b.textContent = an ? 'Automatische Einträge ausblenden' : b.textContent.replace(/^Automatische.*/, '') || 'Automatische Einträge einblenden'; if (!an) b.textContent = ul.querySelectorAll('li.sys').length + ' automatische Einträge einblenden'; }); window.addEventListener('crm:erledigt', e => setTimeout(() => nachErledigt(e.detail), 450)); }
