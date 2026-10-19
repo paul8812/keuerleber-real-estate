@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /crm/
+Disallow: /signatur/
+Disallow: /visitenkarte/
 
 Sitemap: https://keuerleber-immobilien.de/sitemap.xml
