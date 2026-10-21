@@ -28,8 +28,8 @@
 <p class="lead">Auf zehn Seiten erklären wir verständlich, worauf es bei einer Eigentumswohnung als Kapitalanlage ankommt: Rendite, Abschreibung, Nebenkosten, Finanzierung, Prüfung und Ablauf.</p>
 <ul class="chk"><li>Rendite richtig rechnen (Brutto, Netto, Cashflow)</li><li>Abschreibung (AfA) und Restnutzungsdauer-Gutachten</li><li>Kaufnebenkosten in Bayern</li><li>Checkliste vor dem Notartermin</li><li>Typische Fehler und wie Sie sie vermeiden</li></ul>
 <h2 style="font-size:28px;margin-top:30px">Leitfaden kostenlos erhalten</h2>
-<form class="kf" id="lf" novalidate><input type="text" name="n" placeholder="Ihr Name" autocomplete="name" aria-label="Ihr Name"><input type="email" name="m" placeholder="E-Mail-Adresse" autocomplete="email" inputmode="email" aria-label="E-Mail-Adresse"><input class="hp" type="text" name="bc" tabindex="-1" autocomplete="off" aria-hidden="true">
-<label class="c"><input type="checkbox" name="ok"><span>Ich bin damit einverstanden, dass Keuerleber Immobilien mich zu meiner Anfrage per E-Mail kontaktiert. Mehr in der <a href="/#datenschutz" target="_blank" rel="noopener">Datenschutzerklärung</a>.</span></label>
+<form class="kf" id="lf" novalidate><input type="text" name="n" placeholder="Ihr Name" autocomplete="name" aria-label="Ihr Name"><input type="email" name="m" placeholder="E-Mail-Adresse" autocomplete="email" inputmode="email" aria-label="E-Mail-Adresse"><input type="tel" name="t" placeholder="Telefonnummer" autocomplete="tel" inputmode="tel" aria-label="Telefonnummer"><input class="hp" type="text" name="bc" tabindex="-1" autocomplete="off" aria-hidden="true">
+<label class="c"><input type="checkbox" name="ok"><span>Ich bin damit einverstanden, dass Keuerleber Immobilien mich zu meiner Anfrage per E-Mail oder telefonisch kontaktiert. Mehr in der <a href="/#datenschutz" target="_blank" rel="noopener">Datenschutzerklärung</a>.</span></label>
 <button class="b" type="submit">Leitfaden herunterladen</button><p class="h" role="status" aria-live="polite"></p></form>
 <div id="lok" hidden><div class="kq-res"><b class="t">Ihr Leitfaden ist bereit.</b><p style="margin:0 0 14px">Der Download startet automatisch. Falls nicht, klicken Sie hier:</p><a class="btn" id="ldl" href="/leitfaden-kapitalanlage-hof.pdf" download>PDF herunterladen</a></div></div>
 <script>(function(){
@@ -42,11 +42,12 @@ function send(subject,fields,msg,ok,fail){
    .then(function(r){return r.json()}).then(function(j){if(j&&j.success===false)throw 0;ok()}).catch(fail);
 }
 var f=document.getElementById('lf'),h=f.querySelector('.h');
-f.onsubmit=function(e){e.preventDefault();var n=f.n.value.trim(),m=f.m.value.trim();
+f.onsubmit=function(e){e.preventDefault();var n=f.n.value.trim(),m=f.m.value.trim(),t=f.t.value.trim();
  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m)){h.textContent='Bitte geben Sie eine gültige E-Mail-Adresse an.';return}
+ if(t.replace(/\D/g,'').length<6){h.textContent='Bitte geben Sie Ihre Telefonnummer an.';return}
  if(!f.ok.checked){h.textContent='Bitte bestätigen Sie die Einwilligung.';return}
  if(f.bc.value)return;var b=f.querySelector('.b');b.disabled=true;b.textContent='Wird gesendet…';
- send('Leitfaden-Download: '+(n||m),{name:n||m,email:m,'Seite':location.pathname},'Leitfaden „Kapitalanlage in Hof“ heruntergeladen.\n\nName: '+(n||'—')+'\nE-Mail: '+m,
+ send('Leitfaden-Download: '+(n||m),{name:n||m,email:m,'Telefon':t,'Seite':location.pathname},'Leitfaden „Kapitalanlage in Hof“ heruntergeladen.\n\nName: '+(n||'—')+'\nE-Mail: '+m+'\nTelefon: '+t,
   function(){f.hidden=true;document.getElementById('lok').hidden=false;document.getElementById('ldl').click()},
   function(){b.disabled=false;b.textContent='Leitfaden herunterladen';h.textContent='Das Senden hat nicht geklappt. Bitte versuchen Sie es erneut.'})}
 })();</script><style>
