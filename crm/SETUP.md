@@ -42,14 +42,14 @@ Bereits lokal erfasste Daten: *Einstellungen → Lokale Daten in die Cloud hochl
 - Google Kalender/Kontakte: Client-ID gemäß Anleitung in *Automationen → Google* erstellen, dort eintragen, „Kalender synchronisieren“ klicken. Die Anmeldung läuft direkt zwischen deinem Browser und Google.
 - Damit CRM-Termine in **Outlook** erscheinen: in Outlook unter Einstellungen → Konten das Google-Konto hinzufügen. Nach dem ersten Klick auf „Kalender synchronisieren“ gleicht das CRM alle 10 Minuten automatisch ab, solange es geöffnet ist.
 
-## E-Mail (Outlook / Strato) – Mail-Abgleich
-Läuft auf Pauls Mac im Ordner `~/crm-mailsync` (launchd, alle 3 Minuten, nur Python-Standardbibliothek). Er liest das Strato-Postfach per IMAP (nur lesend, Mails bleiben ungelesen) und schreibt mit Pauls CRM-Login in die `records`-Tabelle:
-- Website-Formulare (Kontakt, Objekt, Termin, Vorab-Liste, Renditerechner) und ImmoScout24/Immowelt/Kleinanzeigen → Kontakt, Vorgang, Aufgabe „Erstkontakt“ (gleicher Schlüssel wie die Regel „Neuer Interessent“), Terminwunsch als Termin „(angefragt)“.
+## E-Mail (Outlook / Strato) – Mail-Abgleich (Server)
+Läuft seit 22.10.2026 auf dem Server: Supabase Edge Function `mailsync` (Quelltext: `supabase/functions/mailsync/index.ts`), alle 3 Minuten aufgerufen von pg_cron (Job `crm-mailsync`). Unabhängig vom Mac. Liest das Strato-Postfach per IMAP (nur lesend, BODY.PEEK – Mails bleiben ungelesen) und schreibt mit dem Service-Schlüssel in `records`:
+- Website-Formulare (Kontakt, Objekt, Termin, Vorab-Liste, Renditerechner) und ImmoScout24/Immowelt/Kleinanzeigen → Kontakt, Vorgang, Aufgabe „Erstkontakt“, Terminwunsch als Termin „(angefragt)“. Website-Anfragen, die schon über `website_anfragen` kamen (lead-sync.js), werden nicht doppelt angelegt. Kam eine Website-Anfrage nur per Mail (lead-sync im Browser blockiert), schickt der Abgleich die Telegram-Nachricht selbst (`mailsync_push`, nur für Mails < 2 Std.).
 - Mail eines Kontakts → Verlauf + Aufgabe „Antworten“; gesendete Antwort → Verlauf, Antwort-Aufgaben werden erledigt.
-- Unbekannte Absender → Sammlung `mails` (Menü *Posteingang*). Status des Abgleichs → Sammlung `sync` (Datensatz `mailsync`).
-- Einrichten: im Ordner `crm-mailsync` doppelt auf „Einrichten.command“ klicken (Postfach- und CRM-Passwort eingeben; gespeichert wird nur das Postfach-Passwort und ein CRM-Token, in `~/.config/keuerleber-crm/zugang.json`, nur für Paul lesbar).
-- Der Abgleich hat eine eigene CRM-Anmeldung. „Abmelden“ im CRM (auch der Auto-Logout nach Inaktivität) meldet nur das jeweilige Gerät ab; „Auf allen Geräten abmelden“ und ein Passwortwechsel beenden auch die Anmeldung des Abgleichs → danach „Einrichten.command“ erneut starten. Die Karte unter *Automationen* warnt, wenn sich der Mac länger als 30 Minuten nicht gemeldet hat.
-- Keine Mail-Inhalte ins Repo: der Abgleich liegt bewusst außerhalb von `~/keuerleber-real-estate` (der Immo-Manager veröffentlicht diesen Ordner per `git add -A`).
+- Unbekannte Absender → Sammlung `mails` (Menü *Posteingang*). Status → Sammlung `sync` (Datensatz `mailsync`, `ort: "server"`).
+- Einrichtung (einmalig, schon erledigt): `mailsyncSQL()` aus `crm/js/db.js` im SQL-Editor ausführen (Tabelle `privat.mailsync`, RPCs, Cron-Job), Edge Function `mailsync` im Dashboard bereitstellen (Editor, JWT-Prüfung an). Danach im CRM *Automationen → E-Mail* das Strato-Passwort eintragen → „Server-Abgleich aktivieren“. Das Passwort liegt verschlüsselt im Supabase Vault (`mailsync_imap`); die Funktion holt es über `mailsync_start()` (nur `service_role`, geschützt durch den Zufallswert in `privat.mailsync.geheim`, Sperre gegen Doppelläufe).
+- Testen ohne echtes Postfach: Prüfstand mit falschem IMAP-Server und Supabase-Attrappe (siehe PR); die Logik entspricht 1:1 dem früheren `crm_mailsync.py`.
+- Der frühere Mac-Abgleich (`~/crm-mailsync`, launchd) ist abgelöst und kann mit „Entfernen.command“ gelöscht werden.
 
 ## Website-Anfragen direkt ins CRM
 - Alle Formulare der Website (Beratungs-Popup, Kontakt, Objekt, Termin, Vorab-Liste, Renditerechner) spiegeln jede Anfrage zusätzlich per `lead-sync.js` in die Supabase-Tabelle `website_anfragen` (nur Einfügen für `anon`; lesen/löschen nur der CRM-Inhaber). Die Mail über Web3Forms bleibt als Sicherheit bestehen.

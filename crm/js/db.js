@@ -223,6 +223,99 @@ drop trigger if exists anfrage_antwort on public.website_anfragen;
 create trigger anfrage_antwort after insert on public.website_anfragen for each row execute function public.antwort_anfrage();`;
 export async function sofortStatus() { if (!sb) throw new Error('Keine Cloud-Datenbank verbunden'); const { data, error } = await sb.rpc('sofort_status'); if (error) throw error; return data; }
 export async function sofortSetzen(p) { if (!sb) throw new Error('Keine Cloud-Datenbank verbunden'); const { data, error } = await sb.rpc('sofort_setzen', { p }); if (error) throw error; return data; }
+// Mail-Abgleich auf dem Server (Edge Function „mailsync“, alle 3 Minuten über pg_cron). Ersetzt den Abgleich auf dem Mac.
+// Das Strato-Passwort liegt verschlüsselt im Supabase Vault (Name „mailsync_imap“), gesetzt nur über mailsync_setzen();
+// die Edge Function holt es über mailsync_start() mit dem Zufallswert aus privat.mailsync (nur service_role darf das).
+// Dieses SQL enthält keine Geheimnisse (der Anon-Key ist öffentlich).
+export const mailsyncSQL = () => { const c = cfg(); return `create extension if not exists pg_net with schema extensions;
+create extension if not exists pg_cron with schema pg_catalog;
+create schema if not exists privat;
+revoke all on schema privat from public, anon, authenticated;
+create table if not exists privat.mailsync (
+  id int primary key default 1 check (id = 1),
+  postfach text not null default 'paul.keuerleber@keuerleber-immobilien.de',
+  aktiv boolean not null default false,
+  geheim text not null default replace(gen_random_uuid()::text, '-', '') || replace(gen_random_uuid()::text, '-', ''),
+  stand jsonb not null default '{}'::jsonb,
+  sperre_bis timestamptz,
+  geaendert timestamptz not null default now()
+);
+insert into privat.mailsync (id) values (1) on conflict (id) do nothing;
+alter table privat.mailsync enable row level security;
+revoke all on privat.mailsync from public, anon, authenticated;
+
+create or replace function public.mailsync_status() returns jsonb language sql stable security definer set search_path = public, privat as $$
+  select case when auth.uid() is not null and exists (select 1 from public.records r where r.user_id = auth.uid()) then
+    (select jsonb_build_object('aktiv', m.aktiv, 'postfach', m.postfach, 'geaendert', m.geaendert,
+      'passwort', exists (select 1 from vault.secrets v where v.name = 'mailsync_imap')) from privat.mailsync m where m.id = 1)
+  end
+$$;
+create or replace function public.mailsync_setzen(p_passwort text, p_postfach text default null) returns jsonb language plpgsql security definer set search_path = public, privat as $$
+declare sid uuid;
+begin
+  if auth.uid() is null or not exists (select 1 from public.records r where r.user_id = auth.uid()) then raise exception 'nicht berechtigt'; end if;
+  select v.id into sid from vault.secrets v where v.name = 'mailsync_imap';
+  if coalesce(p_passwort, '') = '' then
+    if sid is not null then delete from vault.secrets where id = sid; end if;
+    update privat.mailsync set aktiv = false, sperre_bis = null, geaendert = now() where id = 1;
+  else
+    if sid is null then perform vault.create_secret(p_passwort, 'mailsync_imap', 'Strato-Postfach für den Mail-Abgleich (Server)');
+    else perform vault.update_secret(sid, p_passwort); end if;
+    update privat.mailsync set aktiv = true, sperre_bis = null, geaendert = now(),
+      postfach = coalesce(nullif(lower(trim(p_postfach)), ''), postfach) where id = 1;
+  end if;
+  return public.mailsync_status();
+end $$;
+create or replace function public.mailsync_start(p_geheim text) returns jsonb language plpgsql security definer set search_path = public, privat as $$
+declare m privat.mailsync; pw text; uid uuid;
+begin
+  select * into m from privat.mailsync where id = 1 for update;
+  if m.id is null or m.geheim is distinct from p_geheim then return jsonb_build_object('ok', false, 'grund', 'falsch'); end if;
+  if not m.aktiv then return jsonb_build_object('ok', false, 'grund', 'nicht aktiv'); end if;
+  if m.sperre_bis > now() then return jsonb_build_object('ok', false, 'grund', 'läuft bereits'); end if;
+  select d.decrypted_secret into pw from vault.decrypted_secrets d where d.name = 'mailsync_imap';
+  if coalesce(pw, '') = '' then return jsonb_build_object('ok', false, 'grund', 'kein Passwort'); end if;
+  select r.user_id into uid from public.records r limit 1;
+  update privat.mailsync set sperre_bis = now() + interval '5 minutes' where id = 1;
+  return jsonb_build_object('ok', true, 'postfach', m.postfach, 'passwort', pw, 'stand', m.stand, 'user_id', uid);
+end $$;
+create or replace function public.mailsync_ende(p_geheim text, p_stand jsonb) returns boolean language plpgsql security definer set search_path = public, privat as $$
+begin
+  update privat.mailsync set stand = coalesce(p_stand, stand), sperre_bis = null where id = 1 and geheim = p_geheim;
+  return found;
+end $$;
+revoke all on function public.mailsync_status() from public, anon;
+revoke all on function public.mailsync_setzen(text, text) from public, anon;
+revoke all on function public.mailsync_start(text) from public, anon, authenticated;
+revoke all on function public.mailsync_ende(text, jsonb) from public, anon, authenticated;
+grant execute on function public.mailsync_status() to authenticated;
+grant execute on function public.mailsync_setzen(text, text) to authenticated;
+grant execute on function public.mailsync_start(text) to service_role;
+grant execute on function public.mailsync_ende(text, jsonb) to service_role;
+-- Auffangnetz: Website-Anfrage nur per Mail angekommen (lead-sync.js im Browser blockiert) → Telegram trotzdem
+create or replace function public.mailsync_push(p_geheim text, p_text text) returns boolean language plpgsql security definer set search_path = public, privat, extensions as $$
+declare c privat.sofort;
+begin
+  if not exists (select 1 from privat.mailsync m where m.id = 1 and m.geheim = p_geheim) then return false; end if;
+  select * into c from privat.sofort where id = 1;
+  if c.tg_token is null or c.tg_chat is null then return false; end if;
+  perform net.http_post(url := 'https://api.telegram.org/bot' || c.tg_token || '/sendMessage',
+    body := jsonb_build_object('chat_id', c.tg_chat, 'text', left(p_text, 3500)),
+    headers := '{"Content-Type":"application/json"}'::jsonb, timeout_milliseconds := 20000);
+  return true;
+end $$;
+revoke all on function public.mailsync_push(text, text) from public, anon, authenticated;
+grant execute on function public.mailsync_push(text, text) to service_role;
+
+select cron.schedule('crm-mailsync', '*/3 * * * *', $c$
+  select net.http_post(
+    url := '${c.url}/functions/v1/mailsync',
+    headers := jsonb_build_object('Content-Type', 'application/json', 'Authorization', 'Bearer ${c.key}', 'x-mailsync', m.geheim),
+    body := '{}'::jsonb, timeout_milliseconds := 150000)
+  from privat.mailsync m where m.id = 1 and m.aktiv
+$c$);`; };
+export async function mailsyncStatus() { if (!sb) throw new Error('Keine Cloud-Datenbank verbunden'); const { data, error } = await sb.rpc('mailsync_status'); if (error) throw error; return data; }
+export async function mailsyncSetzen(passwort, postfach) { if (!sb) throw new Error('Keine Cloud-Datenbank verbunden'); const { data, error } = await sb.rpc('mailsync_setzen', { p_passwort: passwort, p_postfach: postfach || null }); if (error) throw error; return data; }
 export const SQL_URL = () => { const m = (cfg().url || '').match(/https:\/\/([^.]+)\.supabase\.co/); return m ? `https://supabase.com/dashboard/project/${m[1]}/sql/new` : 'https://supabase.com/dashboard'; };
 // Nur dieses Gerät abmelden. Ohne scope meldet supabase-js *global* ab und macht damit auch den
 // Zugang des Mail-Abgleichs auf dem Mac ungültig (refresh_token_not_found) – das passierte bei jedem Auto-Logout.

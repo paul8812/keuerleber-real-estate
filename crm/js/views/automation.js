@@ -7,20 +7,24 @@ import * as anfragen from '../anfragen.js';
 function mailCard() {
   const st = db.get('sync', 'mailsync'), s = st?.stats || {};
   const neu = (db.all('mails') || []).filter(m => m.status === 'neu').length;
-  // Der Mac meldet sich bei jedem Lauf (alle 3 Min.). Bleibt die Meldung aus, ist der Mac aus/offline
-  // oder seine CRM-Anmeldung abgelaufen – das kann er selbst nicht mehr ins CRM schreiben.
+  const server = st?.ort === 'server';
+  // Der Abgleich meldet sich bei jedem Lauf (alle 3 Min.). Bleibt die Meldung aus, läuft er nicht.
   const still = st && st.lastRun && Date.now() - new Date(st.lastRun).getTime() > 30 * 60000;
-  const status = !st ? html`<p><b>Noch nicht eingerichtet.</b> Der Abgleich läuft auf deinem Mac: im Ordner <code>crm-mailsync</code> doppelt auf <b>„Einrichten“</b> klicken.</p>`
-    : still ? html`<p class="bad">⚠️ <b>Seit ${fmtDT(st.lastRun)} keine Meldung vom Mac.</b></p><p>Entweder ist der Mac aus bzw. offline – dann geht es von selbst weiter, sobald er wieder läuft. Oder die CRM-Anmeldung des Abgleichs ist abgelaufen (z. B. nach „Auf allen Geräten abmelden“ oder einem Passwortwechsel): dann im Ordner <code>crm-mailsync</code> doppelt auf <b>„Einrichten“</b> klicken. Verpasste Mails werden danach automatisch nachgeholt.</p>`
+  const status = !st ? html`<p><b>Noch nicht eingerichtet.</b> Strato-Passwort unten eintragen und auf „Server-Abgleich aktivieren“ klicken.</p>`
+    : still ? html`<p class="bad">⚠️ <b>Seit ${fmtDT(st.lastRun)} kein Abgleich.</b></p><p>${server ? 'Prüfe unten, ob der Server-Abgleich aktiv ist, und trage das Strato-Passwort bei Bedarf neu ein.' : 'Der alte Abgleich auf dem Mac läuft nicht mehr. Trag unten dein Strato-Passwort ein – dann läuft der Abgleich ab sofort auf dem Server, auch wenn dein Mac aus ist.'} Verpasste Mails werden automatisch nachgeholt.</p>`
     : st.error ? html`<p class="bad">⚠️ ${st.error}</p><p class="muted small">Letzter erfolgreicher Abgleich: ${st.lastOk ? fmtDT(st.lastOk) : '–'}</p>`
-    : html`<p>✓ Aktiv – zuletzt abgeglichen ${fmtDT(st.lastOk || st.lastRun)} (alle 3 Minuten, solange dein Mac an ist).</p>`;
+    : html`<p>✓ Aktiv – zuletzt abgeglichen ${fmtDT(st.lastOk || st.lastRun)} (${server ? 'alle 3 Minuten auf dem Server, auch wenn dein Mac aus ist' : 'auf dem Mac, solange er an ist'}).</p>`;
   return html`${status}
     ${st ? html`<div class="kpis small"><a class="kpi" href="#/posteingang"><b>${neu}</b><span>neu im Posteingang</span></a><div class="kpi"><b>${s.anfragen || 0}</b><span>Anfragen erkannt</span></div><div class="kpi"><b>${s.aufgaben || 0}</b><span>Aufgaben angelegt</span></div><div class="kpi"><b>${s.erledigt || 0}</b><span>automatisch erledigt</span></div></div>` : ''}
-    <ul class="steps"><li><b>Anfragen</b> über die Website (Kontakt, Objekt, Termin, Vorab-Liste, Renditerechner) und über ImmoScout24, Immowelt und Kleinanzeigen → Kontakt anlegen, Vorgang in der Vertriebs-Pipeline, Aufgabe „Erstkontakt“. Terminwünsche landen als Termin „(angefragt)“ im Kalender.</li>
+    <div class="grid" style="margin-top:12px"><label class="f"><span>Strato-Postfach</span><input id="mspf" autocomplete="off" spellcheck="false" placeholder="paul.keuerleber@keuerleber-immobilien.de"></label><label class="f"><span>Passwort des Postfachs</span><input id="mspw" type="password" autocomplete="off" placeholder="wird verschlüsselt gespeichert"></label></div>
+    <div class="actions"><button type="button" class="btn primary" data-mson>Server-Abgleich aktivieren</button><button type="button" class="btn ghost" data-msoff hidden>Ausschalten</button></div>
+    <p class="small" id="msmsg"></p>
+    <div id="mssetup" hidden><p class="bad small">Einmalige Einrichtung fehlt noch:</p><ol class="steps"><li><a class="lnk" target="_blank" rel="noopener" href="${db.SQL_URL()}">SQL-Editor in Supabase öffnen</a></li><li><button type="button" class="btn" data-mssql>SQL kopieren</button> und dort einfügen, <b>Run</b> klicken</li><li>Edge Function <code>mailsync</code> bereitstellen (siehe crm/SETUP.md)</li></ol></div>
+    <ul class="steps"><li><b>Anfragen</b> über ImmoScout24, Immowelt und Kleinanzeigen sowie Website-Mails, die nicht schon direkt ins CRM kamen → Kontakt anlegen, Vorgang in der Vertriebs-Pipeline, Aufgabe „Erstkontakt“. Terminwünsche landen als Termin „(angefragt)“ im Kalender.</li>
       <li><b>Mail von einem Kontakt</b> → Eintrag im Verlauf + Aufgabe „Antworten“.</li>
       <li><b>Antwort gesendet</b> (Outlook → Gesendet) → Eintrag im Verlauf, offene Antwort-Aufgaben zu diesem Kontakt werden automatisch erledigt.</li>
       <li><b>Unbekannte Absender</b> → <a class="lnk" href="#/posteingang">Posteingang</a>: dort per Klick Kontakt anlegen, zuordnen, Aufgabe oder ignorieren.</li>
-      <li>Newsletter, Werbung und Abwesenheitsnotizen werden übersprungen. Mails bleiben in Outlook ungelesen; es wird nie etwas gesendet oder gelöscht.</li></ul>`;
+      <li>Newsletter, Werbung und Abwesenheitsnotizen werden übersprungen. Mails bleiben in Outlook ungelesen; es wird nie etwas gesendet oder gelöscht. Das Passwort liegt verschlüsselt in Supabase (Vault) und ist im CRM nicht mehr lesbar.</li></ul>`;
 }
 
 function webCard() {
@@ -106,6 +110,27 @@ export function render(el) {
     q1('#rskey').value = ''; say('rsmsg', '✓ Aktiv. Teste es, indem du ein Formular auf der Website mit deiner eigenen Mail abschickst.');
   }));
   q1('[data-rsoff]')?.addEventListener('click', sicher('rsmsg', async () => { zeige(await db.sofortSetzen({ rs_key: '' })); say('rsmsg', 'Sofort-Antwort ausgeschaltet.'); }));
+  // Mail-Abgleich auf dem Server: Passwort setzen/entfernen
+  const msZeige = st => {
+    if (!q1('#mspf') || !st) return;
+    q1('#mspf').value = st.postfach || '';
+    q1('[data-msoff]').hidden = !st.aktiv;
+    q1('[data-mson]').textContent = st.aktiv ? 'Passwort ändern' : 'Server-Abgleich aktivieren';
+    if (st.aktiv && !q1('#msmsg').textContent) say('msmsg', '✓ Server-Abgleich aktiv – Passwort verschlüsselt hinterlegt.');
+  };
+  const msFehlt = e => /mailsync_(status|setzen)|PGRST202|42883|schema cache/i.test((e?.message || '') + (e?.code || ''));
+  db.mailsyncStatus().then(msZeige).catch(e => { if (msFehlt(e)) { const x = q1('#mssetup'); if (x) x.hidden = false; } else say('msmsg', '⚠️ ' + e.message); });
+  q1('[data-mssql]')?.addEventListener('click', async () => { await navigator.clipboard.writeText(db.mailsyncSQL()); toast('SQL kopiert'); });
+  q1('[data-mson]')?.addEventListener('click', sicher('msmsg', async () => {
+    const pw = q1('#mspw').value;
+    if (!pw) return say('msmsg', 'Bitte das Passwort deines Strato-Postfachs eingeben (dasselbe wie in Outlook).');
+    say('msmsg', 'Speichere …');
+    const st = await db.mailsyncSetzen(pw, val('mspf'));
+    q1('#mspw').value = '';
+    say('msmsg', '✓ Gespeichert. Der erste Abgleich läuft innerhalb von 3 Minuten; verpasste Mails werden nachgeholt (25 pro Durchlauf).');
+    msZeige(st);
+  }));
+  q1('[data-msoff]')?.addEventListener('click', sicher('msmsg', async () => { const st = await db.mailsyncSetzen('', null); say('msmsg', 'Server-Abgleich ausgeschaltet, Passwort gelöscht.'); msZeige(st); }));
   const msg = t => el.querySelector('#gmsg').textContent = t;
   const guard = f => async () => { try { msg('Bitte warten …'); await f(); } catch (e) { msg('Fehler: ' + e.message); } };
   el.querySelector('[data-gsave]').onclick = async () => { await db.saveSettings({ ...db.settings(), googleClientId: el.querySelector('#gid').value.trim() }); toast('Client-ID gespeichert'); };
