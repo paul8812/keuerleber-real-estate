@@ -56,6 +56,12 @@
       thx: 'Gracias', thxP: 'Le llamaremos en un plazo de 24 horas en días laborables.'
     }
   };
+  /* Ereignisse für datenschutzfreundliche Statistik (Plausible/Umami), falls eingebunden */
+  function track(n) { try { if (window.plausible) window.plausible(n); else if (window.umami && window.umami.track) window.umami.track(n); } catch (e) {} }
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href^="tel:"],a[href*="wa.me"]');
+    if (a) track(a.href.indexOf('tel:') === 0 ? 'Anruf-Klick' : 'WhatsApp-Klick');
+  }, true);
   function L() { var l = (document.documentElement.lang || 'de').slice(0, 2); return T[l] || T.de; }
 
   function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) {} return null; }
@@ -173,7 +179,7 @@
       })
     }).then(function (r) { return r.json(); }).then(function (d) {
       if (!d || d.success === false) throw 0;
-      store('kp-ber-done', days(DONE_DAYS));
+      store('kp-ber-done', days(DONE_DAYS)); track('Popup gesendet');
       box.querySelector('.kpb-kb').innerHTML =
         '<button class="kpb-kx" type="button" aria-label="' + l.close + '">×</button>' +
         '<div class="kpb-ko"><i>✓</i><h2 id="kpBh">' + l.thx + (name ? ', ' + name.split(' ')[0].replace(/[<>&"]/g, '') : '') + '!</h2><p class="kpb-kp">' + l.thxP + '</p></div>';
@@ -202,7 +208,7 @@
     if (blocked()) { timer = setTimeout(open, 3000); return; }
     build(); render();
     lastFocus = document.activeElement; opened = true;
-    sess('kp-ber-shown', '1');
+    sess('kp-ber-shown', '1'); track('Popup angezeigt');
     requestAnimationFrame(function () {
       box.classList.add('on');
       var n = box.querySelector('#kpBn'); if (n) n.focus({ preventScroll: true });
