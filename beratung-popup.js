@@ -17,11 +17,11 @@
       eyebrow: 'Kostenfrei & unverbindlich',
       h: 'Kostenloses Beratungsgespräch vereinbaren',
       p: 'In 15 Minuten klären wir, ob eine Kapitalanlage in Hof zu Ihnen passt. Ohne Verkaufsdruck, ohne Käuferprovision.',
-      name: 'Ihr Name', tel: 'Telefonnummer', zeit: 'Wann passt es Ihnen?',
+      name: 'Ihr Name', mail: 'E-Mail (optional, für die Bestätigung)', tel: 'Telefonnummer', zeit: 'Wann passt es Ihnen?',
       z: ['Egal, melden Sie sich', 'Vormittags', 'Nachmittags', 'Abends'],
       ok: 'Ich bin mit der Verarbeitung meiner Angaben zur Bearbeitung meiner Anfrage einverstanden. Mehr in der <a href="/#datenschutz" target="_blank" rel="noopener">Datenschutzerklärung</a>.',
       btn: 'Rückruf anfordern', send: 'Wird gesendet…',
-      call: 'Lieber gleich sprechen?', cal: 'Termin im Kalender wählen →', close: 'Schließen', later: 'Nein danke',
+      call: 'Lieber gleich sprechen?', cal: 'Termin im Kalender wählen →', quiz: '2-Minuten-Check: Passt Kapitalanlage zu mir? →', close: 'Schließen', later: 'Nein danke',
       errTel: 'Bitte geben Sie Name und eine gültige Telefonnummer an.',
       errOk: 'Bitte bestätigen Sie die Einwilligung.',
       errNet: 'Das Senden hat nicht geklappt. Bitte rufen Sie uns an: ',
@@ -31,11 +31,11 @@
       eyebrow: 'Free & non-binding',
       h: 'Book a free consultation',
       p: 'In 15 minutes we clarify whether an investment property in Hof suits you. No sales pressure, no buyer commission.',
-      name: 'Your name', tel: 'Phone number', zeit: 'When suits you?',
+      name: 'Your name', mail: 'Email (optional, for confirmation)', tel: 'Phone number', zeit: 'When suits you?',
       z: ['Any time, call me', 'Morning', 'Afternoon', 'Evening'],
       ok: 'I agree to my details being processed to handle my request. See the <a href="/#datenschutz" target="_blank" rel="noopener">privacy policy</a>.',
       btn: 'Request a call back', send: 'Sending…',
-      call: 'Prefer to talk right away?', cal: 'Pick a time in the calendar →', close: 'Close', later: 'No thanks',
+      call: 'Prefer to talk right away?', cal: 'Pick a time in the calendar →', quiz: '', close: 'Close', later: 'No thanks',
       errTel: 'Please enter your name and a valid phone number.',
       errOk: 'Please confirm your consent.',
       errNet: 'Sending failed. Please call us: ',
@@ -45,11 +45,11 @@
       eyebrow: 'Gratuito y sin compromiso',
       h: 'Reserve una consulta gratuita',
       p: 'En 15 minutos aclaramos si una inversión inmobiliaria en Hof es adecuada para usted. Sin presión de venta, sin comisión para el comprador.',
-      name: 'Su nombre', tel: 'Teléfono', zeit: '¿Cuándo le viene bien?',
+      name: 'Su nombre', mail: 'Correo (opcional, para la confirmación)', tel: 'Teléfono', zeit: '¿Cuándo le viene bien?',
       z: ['Da igual, llámenme', 'Por la mañana', 'Por la tarde', 'Por la noche'],
       ok: 'Acepto el tratamiento de mis datos para gestionar mi solicitud. Más en la <a href="/#datenschutz" target="_blank" rel="noopener">política de privacidad</a>.',
       btn: 'Solicitar llamada', send: 'Enviando…',
-      call: '¿Prefiere hablar ahora?', cal: 'Elegir cita en el calendario →', close: 'Cerrar', later: 'No, gracias',
+      call: '¿Prefiere hablar ahora?', cal: 'Elegir cita en el calendario →', quiz: '', close: 'Cerrar', later: 'No, gracias',
       errTel: 'Indique su nombre y un teléfono válido.',
       errOk: 'Confirme su consentimiento.',
       errNet: 'No se pudo enviar. Llámenos: ',
@@ -62,6 +62,10 @@
     var a = e.target.closest && e.target.closest('a[href^="tel:"],a[href*="wa.me"]');
     if (a) track(a.href.indexOf('tel:') === 0 ? 'Anruf-Klick' : 'WhatsApp-Klick');
   }, true);
+  var PATH = location.pathname;
+  var THEMA = /restnutzungsdauer|afa|steuer/.test(PATH) ? { h: 'Steuervorteil kostenlos prüfen lassen', p: 'Wir rechnen in 15 Minuten durch, was die Abschreibung in Ihrem Fall bringen kann. Unverbindlich und ohne Käuferprovision.' }
+    : /rendite|finanzier|nebenkosten/.test(PATH) ? { h: 'Ihre Rechnung kostenlos gegenprüfen lassen', p: 'Schicken Sie uns Ihre Zahlen. Wir prüfen Rendite und Cashflow in 15 Minuten, unverbindlich und ohne Verkaufsdruck.' }
+    : /eigentumswohnung-kaufen|kapitalanlage-hof|ratgeber\/wohnung-kaufen|checkliste/.test(PATH) ? { h: 'Passende Wohnungen vorab besprechen', p: 'Wir klären in 15 Minuten, welche Objekte zu Ihrem Budget passen, und senden Ihnen Unterlagen und Kalkulation. Ohne Käuferprovision.' } : null;
   function L() { var l = (document.documentElement.lang || 'de').slice(0, 2); return T[l] || T.de; }
 
   function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) {} return null; }
@@ -69,7 +73,8 @@
   function fresh(k) { var t = parseInt(store(k) || '0', 10); return t && Date.now() < t; }
   function days(n) { return String(Date.now() + n * 864e5); }
 
-  if (fresh('kp-ber-done') || fresh('kp-ber-snooze') || sess('kp-ber-shown') === '1') return;
+  var TEST = /[?&]popup-test/.test(location.search);
+  if (!TEST && (fresh('kp-ber-done') || fresh('kp-ber-snooze') || sess('kp-ber-shown') === '1')) return;
 
   var CSS = '' +
     '#kpB{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.62);backdrop-filter:blur(3px);opacity:0;visibility:hidden;transition:opacity .35s,visibility .35s}' +
@@ -81,7 +86,7 @@
     '#kpB .kpb-ke{font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:#c9a96e;font-weight:500;margin:0 0 10px}' +
     '#kpB h2{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;font-size:clamp(27px,6.4vw,34px);line-height:1.12;color:#fff;margin:0 0 12px;padding-right:26px;letter-spacing:-.01em;text-wrap:balance}' +
     '#kpB .kpb-kp{font-size:15.5px;line-height:1.6;color:#b9b3a8;margin:0 0 20px}' +
-    '#kpB input[type=text],#kpB input[type=tel],#kpB select{width:100%;box-sizing:border-box;background:#0a0a09;border:1px solid rgba(201,169,110,.25);border-radius:12px;color:#ede8e0;font:inherit;font-size:16px;padding:13px 14px;margin:0 0 10px;outline:0;appearance:none;-webkit-appearance:none}' +
+    '#kpB input[type=text],#kpB input[type=tel],#kpB input[type=email],#kpB select{width:100%;box-sizing:border-box;background:#0a0a09;border:1px solid rgba(201,169,110,.25);border-radius:12px;color:#ede8e0;font:inherit;font-size:16px;padding:13px 14px;margin:0 0 10px;outline:0;appearance:none;-webkit-appearance:none}' +
     '#kpB select{background-image:linear-gradient(45deg,transparent 50%,#c9a96e 50%),linear-gradient(135deg,#c9a96e 50%,transparent 50%);background-position:calc(100% - 20px) 52%,calc(100% - 15px) 52%;background-size:5px 5px;background-repeat:no-repeat;padding-right:38px}' +
     '#kpB input:focus,#kpB select:focus{border-color:#c9a96e;box-shadow:0 0 0 3px rgba(201,169,110,.18)}' +
     '#kpB label.kl{display:block;font-size:12.5px;color:#a29d93;margin:2px 0 5px}' +
@@ -124,6 +129,7 @@
 
   function render() {
     var l = L();
+    if (THEMA && (document.documentElement.lang || 'de').slice(0, 2) === 'de') l = Object.assign({}, l, THEMA);
     var opts = l.z.map(function (z, i) { return '<option value="' + z + '"' + (i ? '' : ' selected') + '>' + z + '</option>'; }).join('');
     box.innerHTML =
       '<div class="kpb-kb">' +
@@ -134,6 +140,7 @@
       '<form novalidate>' +
       '<input type="text" id="kpBn" name="name" autocomplete="name" placeholder="' + l.name + '" aria-label="' + l.name + '" required>' +
       '<input type="tel" id="kpBt" name="tel" autocomplete="tel" inputmode="tel" placeholder="' + l.tel + '" aria-label="' + l.tel + '" required>' +
+      '<input type="email" id="kpBm" name="mail" autocomplete="email" inputmode="email" placeholder="' + l.mail + '" aria-label="' + l.mail + '">' +
       '<label class="kpb-kl" for="kpBz">' + l.zeit + '</label>' +
       '<select id="kpBz" name="zeit">' + opts + '</select>' +
       '<input class="hp" type="text" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true">' +
@@ -142,6 +149,7 @@
       '<p class="kpb-kh" role="status" aria-live="polite"></p>' +
       '</form>' +
       (typeof window.openBooking === 'function' ? '<button class="kpb-kn kpb-kcal" type="button" style="display:block;margin:12px auto 0;color:#d9c08a">' + l.cal + '</button>' : '') +
+      (l.quiz && PATH.indexOf('/kapitalanlage-check') !== 0 ? '<a class="kpb-n" href="/kapitalanlage-check/" style="display:block;text-align:center;margin:8px 0 0;color:#a29d93;font-size:13px">' + l.quiz + '</a>' : '') +
       '<div class="kpb-kt"><span>' + l.call + ' <a href="tel:' + TEL + '">' + TEL_TXT + '</a></span><button class="kpb-kn" type="button">' + l.later + '</button></div>' +
       '</div>';
     box.querySelector('.kpb-kx').onclick = function () { close(true); };
@@ -151,16 +159,28 @@
     box.querySelector('form').addEventListener('submit', submit);
   }
 
+  function done(l, name) {
+    if (!TEST) { store('kp-ber-done', days(DONE_DAYS)); track('Popup gesendet'); }
+    box.querySelector('.kpb-kb').innerHTML =
+      '<button class="kpb-kx" type="button" aria-label="' + l.close + '">×</button>' +
+      '<div class="kpb-ko"><i>✓</i><h2 id="kpBh">' + l.thx + (name ? ', ' + name.split(' ')[0].replace(/[<>&"]/g, '') : '') + '!</h2><p class="kpb-kp">' + l.thxP + '</p></div>';
+    box.querySelector('.kpb-kx').onclick = function () { close(false); };
+    box.querySelector('.kpb-kx').focus();
+    setTimeout(function () { close(false); }, 6000);
+  }
+
   function submit(e) {
     e.preventDefault();
     var l = L(), f = e.target, hint = f.querySelector('.kpb-kh'), btn = f.querySelector('.kpb-kg');
-    var name = f.name.value.trim(), tel = f.tel.value.trim();
+    var name = f.name.value.trim(), tel = f.tel.value.trim(), mail = (f.mail.value || '').trim();
     hint.style.color = '#e0a07a';
     if (!name || tel.replace(/\D/g, '').length < 6) { hint.textContent = l.errTel; return; }
     if (!f.querySelector('#kpBo').checked) { hint.textContent = l.errOk; return; }
+    if (mail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)) { hint.textContent = l.errTel; return; }
     if (f.botcheck.value) return;
     hint.textContent = ''; btn.disabled = true; btn.textContent = l.send;
     var zeit = f.zeit.value, seite = location.pathname;
+    if (TEST) { return setTimeout(function () { done(l, name); }, 400); }
     fetch(FORM_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -170,6 +190,7 @@
         from_name: 'Keuerleber Immobilien — Website',
         name: name,
         'Telefon': tel,
+        email: mail || undefined,
         'Wunschzeit': zeit,
         'Seite': seite,
         'Sprache': document.documentElement.lang || 'de',
@@ -179,13 +200,7 @@
       })
     }).then(function (r) { return r.json(); }).then(function (d) {
       if (!d || d.success === false) throw 0;
-      store('kp-ber-done', days(DONE_DAYS)); track('Popup gesendet');
-      box.querySelector('.kpb-kb').innerHTML =
-        '<button class="kpb-kx" type="button" aria-label="' + l.close + '">×</button>' +
-        '<div class="kpb-ko"><i>✓</i><h2 id="kpBh">' + l.thx + (name ? ', ' + name.split(' ')[0].replace(/[<>&"]/g, '') : '') + '!</h2><p class="kpb-kp">' + l.thxP + '</p></div>';
-      box.querySelector('.kpb-kx').onclick = function () { close(false); };
-      box.querySelector('.kpb-kx').focus();
-      setTimeout(function () { close(false); }, 6000);
+      done(l, name);
     }).catch(function () {
       btn.disabled = false; btn.textContent = l.btn;
       hint.innerHTML = l.errNet + '<a href="tel:' + TEL + '" style="color:#d9c08a">' + TEL_TXT + '</a>';
@@ -205,7 +220,7 @@
 
   function open() {
     if (opened) return;
-    if (blocked()) { timer = setTimeout(open, 3000); return; }
+    if (!TEST && blocked()) { timer = setTimeout(open, 3000); return; }
     build(); render();
     lastFocus = document.activeElement; opened = true;
     sess('kp-ber-shown', '1'); track('Popup angezeigt');
@@ -225,7 +240,7 @@
 
   function start() {
     var t0 = Date.now();
-    timer = setTimeout(open, DELAY);
+    timer = setTimeout(open, TEST ? 800 : DELAY);
     // Exit-Intent (nur Maus): Cursor verlässt das Fenster nach oben
     document.addEventListener('mouseout', function (e) {
       if (opened || sess('kp-ber-shown') === '1') return;

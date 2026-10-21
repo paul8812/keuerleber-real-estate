@@ -26,7 +26,17 @@ function webCard() {
       <ol class="steps"><li><a class="lnk" target="_blank" rel="noopener" href="${db.SQL_URL()}">SQL-Editor in Supabase öffnen</a></li><li><button type="button" class="btn" data-websql>SQL kopieren</button> und dort einfügen</li><li>Auf <b>Run</b> klicken, hier auf <button type="button" class="btn ghost" data-webcheck>Erneut prüfen</button></li></ol>`
     : st.ok === false ? html`<p class="bad">⚠️ ${st.fehler}</p><div class="actions"><button type="button" class="btn ghost" data-webcheck>Erneut prüfen</button></div>`
     : html`<p class="muted">Wird geprüft …</p><div class="actions"><button type="button" class="btn ghost" data-webcheck>Jetzt prüfen</button></div>`;
-  return html`${st1}<p class="muted small">Die Mail an dich bleibt zusätzlich als Sicherheit bestehen. Die Tabelle nimmt von der Website nur Einträge entgegen und kann nur von dir gelesen werden; abgeholte Einträge werden gelöscht.</p>`;
+  const sofort = html`<h3 style="margin:18px 0 6px">⚡ Sofort-Push aufs Handy &amp; Sofort-Antwort</h3>
+    <p class="muted small">Läuft in Supabase selbst: In dem Moment, in dem jemand ein Formular abschickt, bekommst du eine Telegram-Nachricht, und der Interessent (wenn er eine E-Mail angegeben hat) eine Bestätigung von dir. Funktioniert auch bei geschlossenem CRM und ausgeschaltetem Mac. Zugangsdaten werden nirgends gespeichert, nur in das SQL eingesetzt, das du in Supabase ausführst.</p>
+    <details open><summary><b>1. Telegram-Bot (Sofort-Push)</b></summary>
+      <ol class="steps"><li>In Telegram <b>@BotFather</b> öffnen → <code>/newbot</code> → Namen vergeben → den <b>Token</b> kopieren.</li><li>Deinen neuen Bot in Telegram öffnen und <b>/start</b> schicken.</li><li>Token hier einfügen, auf „Chat-ID finden“ klicken, dann „SQL kopieren“ und in Supabase ausführen.</li></ol>
+      <div class="grid"><label class="f"><span>Bot-Token</span><input id="tgtok" autocomplete="off" placeholder="123456789:AA…"></label><label class="f"><span>Chat-ID</span><input id="tgchat" autocomplete="off" placeholder="wird gefunden"></label></div>
+      <div class="actions"><button type="button" class="btn" data-tgfind>Chat-ID finden</button><button type="button" class="btn primary" data-tgsql>SQL kopieren</button><a class="btn" target="_blank" rel="noopener" href="${db.SQL_URL()}">SQL-Editor öffnen</a></div><p class="muted small" id="tgmsg"></p></details>
+    <details><summary><b>2. Sofort-Antwort per E-Mail (optional)</b></summary>
+      <ol class="steps"><li>Kostenloses Konto auf <a class="lnk" target="_blank" rel="noopener" href="https://resend.com">resend.com</a>, dort die Domain <b>keuerleber-immobilien.de</b> hinzufügen und die angezeigten DNS-Einträge bei Strato setzen (Mails von deiner Adresse sind sonst nicht erlaubt).</li><li>API-Key erstellen und unten einfügen.</li></ol>
+      <div class="grid"><label class="f"><span>Resend API-Key</span><input id="rskey" autocomplete="off" placeholder="re_…"></label><label class="f"><span>Absender</span><input id="rsfrom" value="Paul Keuerleber &lt;paul.keuerleber@keuerleber-immobilien.de&gt;"></label></div>
+      <div class="actions"><button type="button" class="btn primary" data-rssql>SQL kopieren</button></div></details>`;
+  return html`${st1}${sofort}<p class="muted small">Die Mail an dich bleibt zusätzlich als Sicherheit bestehen. Die Tabelle nimmt von der Website nur Einträge entgegen und kann nur von dir gelesen werden; abgeholte Einträge werden gelöscht.</p>`;
 }
 
 export function render(el) {
@@ -55,6 +65,14 @@ export function render(el) {
   el.querySelector('[data-websql]')?.addEventListener('click', async () => { await navigator.clipboard.writeText(db.ANFRAGEN_SQL); toast('SQL kopiert'); });
   el.querySelector('[data-webcheck]')?.addEventListener('click', async () => { await anfragen.pull({ manual: true }); render(el); });
   if (anfragen.status.ok === null) anfragen.pull().then(() => { if (el.isConnected) render(el); });
+  const val = id => (el.querySelector('#' + id)?.value || '').trim();
+  el.querySelector('[data-tgfind]')?.addEventListener('click', async () => {
+    const m = el.querySelector('#tgmsg'); if (!val('tgtok')) { m.textContent = 'Bitte zuerst den Token einfügen.'; return; }
+    try { const r = await (await fetch(`https://api.telegram.org/bot${val('tgtok')}/getUpdates`)).json(); const c = (r.result || []).map(u => u.message?.chat || u.my_chat_member?.chat).filter(Boolean).pop();
+      if (c) { el.querySelector('#tgchat').value = c.id; m.textContent = `Gefunden: ${c.first_name || c.title || c.id}`; } else m.textContent = r.ok ? 'Noch keine Nachricht gefunden. Schick deinem Bot in Telegram „/start“ und versuch es nochmal.' : 'Token ungültig.'; }
+    catch { m.textContent = 'Telegram nicht erreichbar.'; } });
+  el.querySelector('[data-tgsql]')?.addEventListener('click', async () => { if (!val('tgtok') || !val('tgchat')) return toast('Token und Chat-ID fehlen', 'err'); await navigator.clipboard.writeText(db.telegramSQL(val('tgtok'), val('tgchat'))); toast('SQL kopiert – jetzt im Supabase-SQL-Editor ausführen'); });
+  el.querySelector('[data-rssql]')?.addEventListener('click', async () => { if (!val('rskey')) return toast('API-Key fehlt', 'err'); await navigator.clipboard.writeText(db.antwortSQL(val('rskey'), val('rsfrom'))); toast('SQL kopiert – jetzt im Supabase-SQL-Editor ausführen'); });
   const msg = t => el.querySelector('#gmsg').textContent = t;
   const guard = f => async () => { try { msg('Bitte warten …'); await f(); } catch (e) { msg('Fehler: ' + e.message); } };
   el.querySelector('[data-gsave]').onclick = async () => { await db.saveSettings({ ...db.settings(), googleClientId: el.querySelector('#gid').value.trim() }); toast('Client-ID gespeichert'); };
