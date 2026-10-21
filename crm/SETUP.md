@@ -48,6 +48,7 @@ Läuft auf Pauls Mac im Ordner `~/crm-mailsync` (launchd, alle 3 Minuten, nur Py
 - Mail eines Kontakts → Verlauf + Aufgabe „Antworten“; gesendete Antwort → Verlauf, Antwort-Aufgaben werden erledigt.
 - Unbekannte Absender → Sammlung `mails` (Menü *Posteingang*). Status des Abgleichs → Sammlung `sync` (Datensatz `mailsync`).
 - Einrichten: im Ordner `crm-mailsync` doppelt auf „Einrichten.command“ klicken (Postfach- und CRM-Passwort eingeben; gespeichert wird nur das Postfach-Passwort und ein CRM-Token, in `~/.config/keuerleber-crm/zugang.json`, nur für Paul lesbar).
+- Der Abgleich hat eine eigene CRM-Anmeldung. „Abmelden“ im CRM (auch der Auto-Logout nach Inaktivität) meldet nur das jeweilige Gerät ab; „Auf allen Geräten abmelden“ und ein Passwortwechsel beenden auch die Anmeldung des Abgleichs → danach „Einrichten.command“ erneut starten. Die Karte unter *Automationen* warnt, wenn sich der Mac länger als 30 Minuten nicht gemeldet hat.
 - Keine Mail-Inhalte ins Repo: der Abgleich liegt bewusst außerhalb von `~/keuerleber-real-estate` (der Immo-Manager veröffentlicht diesen Ordner per `git add -A`).
 
 ## Website-Anfragen direkt ins CRM

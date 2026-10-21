@@ -132,15 +132,22 @@ const q = v => String(v || '').replace(/'/g, "''").trim();
 export const telegramSQL = (token, chat) => `create extension if not exists pg_net with schema extensions;
 create or replace function public.notify_anfrage() returns trigger language plpgsql security definer set search_path = public, extensions as $$
 declare d jsonb := new.daten; txt text;
+  -- Feldnamen je Formular: Renditerechner schickt Name/Email, Kontakt zusätzlich „Anfrage von“/„E-Mail“, leere Telefone als „—“
+  nm text := coalesce(nullif(trim(d->>'name'), ''), nullif(trim(d->>'Name'), ''), nullif(trim(d->>'Anfrage von'), ''), '');
+  tel text := coalesce(nullif(nullif(trim(d->>'Telefon'), '—'), ''), nullif(trim(d->>'tel'), ''), nullif(trim(d->>'phone'), ''), '');
+  mail text := coalesce(nullif(trim(d->>'email'), ''), nullif(trim(d->>'E-Mail'), ''), nullif(trim(d->>'Email'), ''), '');
+  obj text := coalesce(nullif(trim(d->>'objekt'), ''), nullif(trim(d->>'Objekt'), ''), '');
 begin
   if (select count(*) from public.website_anfragen where created_at > now() - interval '10 minutes') > 30 then return new; end if;
   txt := '🆕 Neue Website-Anfrage' || E'\n' || coalesce(new.betreff, '') || E'\n\n'
-    || case when coalesce(d->>'name', '') <> '' then '👤 ' || (d->>'name') || E'\n' else '' end
-    || case when coalesce(d->>'Telefon', d->>'tel', '') <> '' then '📞 ' || coalesce(d->>'Telefon', d->>'tel') || E'\n' else '' end
-    || case when coalesce(d->>'email', d->>'E-Mail', '') <> '' then '✉️ ' || coalesce(d->>'email', d->>'E-Mail') || E'\n' else '' end
+    || case when nm <> '' then '👤 ' || nm || E'\n' else '' end
+    || case when tel <> '' then '📞 ' || tel || E'\n' else '' end
+    || case when mail <> '' then '✉️ ' || mail || E'\n' else '' end
     || case when coalesce(d->>'Wunschzeit', '') <> '' then '🕒 ' || (d->>'Wunschzeit') || E'\n' else '' end
-    || case when coalesce(d->>'Ergebnis', '') <> '' then '📊 ' || (d->>'Ergebnis') || E'\n' else '' end
-    || coalesce('🔗 ' || new.quelle, '');
+    || case when obj <> '' then '🏠 ' || obj || E'\n' else '' end
+    || case when coalesce(trim(d->>'anschrift'), '') <> '' then '📍 ' || trim(d->>'anschrift') || E'\n' else '' end
+    || case when coalesce(d->>'Ergebnis', '') <> '' then '📊 ' || (d->>'Ergebnis') || coalesce(' (' || (d->>'Punkte') || ')', '') || E'\n' else '' end
+    || coalesce('🔗 ' || coalesce(nullif(d->>'Seite', ''), new.quelle), '');
   perform net.http_post(url := 'https://api.telegram.org/bot${q(token)}/sendMessage',
     body := jsonb_build_object('chat_id', '${q(chat)}', 'text', left(txt, 3500)),
     headers := '{"Content-Type":"application/json"}'::jsonb);
@@ -151,7 +158,10 @@ drop trigger if exists anfrage_telegram on public.website_anfragen;
 create trigger anfrage_telegram after insert on public.website_anfragen for each row execute function public.notify_anfrage();`;
 export const antwortSQL = (key, from) => `create extension if not exists pg_net with schema extensions;
 create or replace function public.antwort_anfrage() returns trigger language plpgsql security definer set search_path = public, extensions as $$
-declare d jsonb := new.daten; mail text := coalesce(d->>'email', d->>'E-Mail', ''); nm text := split_part(coalesce(d->>'name', ''), ' ', 1); leit boolean := coalesce(new.betreff, '') ilike 'Leitfaden%';
+declare d jsonb := new.daten;
+  mail text := trim(coalesce(nullif(trim(d->>'email'), ''), nullif(trim(d->>'E-Mail'), ''), nullif(trim(d->>'Email'), ''), ''));
+  nm text := split_part(coalesce(nullif(trim(d->>'name'), ''), nullif(trim(d->>'Name'), ''), ''), ' ', 1);
+  leit boolean := coalesce(new.betreff, '') ilike 'Leitfaden%';
 begin
   if mail !~ '^[^@[:space:]]+@[^@[:space:]]+[.][^@[:space:]]+$' or length(mail) > 120 or coalesce(new.betreff, '') ilike 'Vorab-Liste%' then return new; end if;
   if (select count(*) from public.website_anfragen where created_at > now() - interval '10 minutes') > 30 then return new; end if;
@@ -168,7 +178,9 @@ end $$;
 drop trigger if exists anfrage_antwort on public.website_anfragen;
 create trigger anfrage_antwort after insert on public.website_anfragen for each row execute function public.antwort_anfrage();`;
 export const SQL_URL = () => { const m = (cfg().url || '').match(/https:\/\/([^.]+)\.supabase\.co/); return m ? `https://supabase.com/dashboard/project/${m[1]}/sql/new` : 'https://supabase.com/dashboard'; };
-export async function logout() { if (sb) await sb.auth.signOut(); location.reload(); }
+// Nur dieses Gerät abmelden. Ohne scope meldet supabase-js *global* ab und macht damit auch den
+// Zugang des Mail-Abgleichs auf dem Mac ungültig (refresh_token_not_found) – das passierte bei jedem Auto-Logout.
+export async function logout() { if (sb) await sb.auth.signOut({ scope: 'local' }); location.reload(); }
 export const userEmail = async () => sb ? (await sb.auth.getUser()).data.user?.email : null;
 
 async function loadCloud() {

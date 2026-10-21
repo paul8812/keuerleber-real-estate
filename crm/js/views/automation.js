@@ -7,7 +7,11 @@ import * as anfragen from '../anfragen.js';
 function mailCard() {
   const st = db.get('sync', 'mailsync'), s = st?.stats || {};
   const neu = (db.all('mails') || []).filter(m => m.status === 'neu').length;
+  // Der Mac meldet sich bei jedem Lauf (alle 3 Min.). Bleibt die Meldung aus, ist der Mac aus/offline
+  // oder seine CRM-Anmeldung abgelaufen – das kann er selbst nicht mehr ins CRM schreiben.
+  const still = st && st.lastRun && Date.now() - new Date(st.lastRun).getTime() > 30 * 60000;
   const status = !st ? html`<p><b>Noch nicht eingerichtet.</b> Der Abgleich läuft auf deinem Mac: im Ordner <code>crm-mailsync</code> doppelt auf <b>„Einrichten“</b> klicken.</p>`
+    : still ? html`<p class="bad">⚠️ <b>Seit ${fmtDT(st.lastRun)} keine Meldung vom Mac.</b></p><p>Entweder ist der Mac aus bzw. offline – dann geht es von selbst weiter, sobald er wieder läuft. Oder die CRM-Anmeldung des Abgleichs ist abgelaufen (z. B. nach „Auf allen Geräten abmelden“ oder einem Passwortwechsel): dann im Ordner <code>crm-mailsync</code> doppelt auf <b>„Einrichten“</b> klicken. Verpasste Mails werden danach automatisch nachgeholt.</p>`
     : st.error ? html`<p class="bad">⚠️ ${st.error}</p><p class="muted small">Letzter erfolgreicher Abgleich: ${st.lastOk ? fmtDT(st.lastOk) : '–'}</p>`
     : html`<p>✓ Aktiv – zuletzt abgeglichen ${fmtDT(st.lastOk || st.lastRun)} (alle 3 Minuten, solange dein Mac an ist).</p>`;
   return html`${status}
