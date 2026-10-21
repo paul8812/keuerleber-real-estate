@@ -185,7 +185,8 @@ begin
     || coalesce('🔗 ' || coalesce(nullif(d->>'Seite', ''), new.quelle), '');
   perform net.http_post(url := 'https://api.telegram.org/bot' || c.tg_token || '/sendMessage',
     body := jsonb_build_object('chat_id', c.tg_chat, 'text', left(txt, 3500)),
-    headers := '{"Content-Type":"application/json"}'::jsonb);
+    headers := '{"Content-Type":"application/json"}'::jsonb,
+    timeout_milliseconds := 20000);
   return new;
 exception when others then return new;
 end $$;
@@ -208,7 +209,8 @@ begin
       'text', 'Guten Tag' || case when nm <> '' then ' ' || left(nm, 40) else '' end || E',\n\nvielen Dank für Ihre Anfrage. Ich melde mich werktags innerhalb von 24 Stunden persönlich bei Ihnen.\n\n'
         || case when leit then E'Ihren Leitfaden finden Sie hier: https://keuerleber-immobilien.de/leitfaden-kapitalanlage-hof.pdf\n\n' else '' end
         || E'Bis dahin können Sie Ihre Rendite selbst durchrechnen: https://keuerleber-immobilien.de/rendite/\nOder direkt einen Termin wählen: https://keuerleber-immobilien.de/#kontakt\n\nMit freundlichen Grüßen\nPaul Keuerleber\nKeuerleber Immobilien · Hauptstraße 12 · 95145 Oberkotzau\n+49 151 67692176'),
-    headers := jsonb_build_object('Content-Type', 'application/json', 'Authorization', 'Bearer ' || c.rs_key));
+    headers := jsonb_build_object('Content-Type', 'application/json', 'Authorization', 'Bearer ' || c.rs_key),
+    timeout_milliseconds := 20000);
   return new;
 exception when others then return new;
 end $$;
