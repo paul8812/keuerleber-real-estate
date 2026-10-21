@@ -107,6 +107,25 @@ alter table public.records enable row level security;
 drop policy if exists "eigene Daten" on public.records;
 create policy "eigene Daten" on public.records for all
   using (user_id = auth.uid()) with check (user_id = auth.uid());`;
+// Website-Anfragen: Formulare der Website schreiben (nur einfügen!) in diese Tabelle, das CRM holt sie ab und löscht sie danach.
+export const ANFRAGEN_SQL = `create table if not exists public.website_anfragen (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  quelle text,
+  betreff text,
+  daten jsonb not null
+);
+alter table public.website_anfragen enable row level security;
+drop policy if exists "Website darf senden" on public.website_anfragen;
+create policy "Website darf senden" on public.website_anfragen for insert to anon
+  with check (pg_column_size(daten) < 12000);
+drop policy if exists "Inhaber verwaltet" on public.website_anfragen;
+create policy "Inhaber verwaltet" on public.website_anfragen for all to authenticated
+  using (exists (select 1 from public.records r where r.user_id = auth.uid()))
+  with check (exists (select 1 from public.records r where r.user_id = auth.uid()));
+grant insert on public.website_anfragen to anon;
+grant select, insert, update, delete on public.website_anfragen to authenticated;`;
+export const client = () => sb;
 export const SQL_URL = () => { const m = (cfg().url || '').match(/https:\/\/([^.]+)\.supabase\.co/); return m ? `https://supabase.com/dashboard/project/${m[1]}/sql/new` : 'https://supabase.com/dashboard'; };
 export async function logout() { if (sb) await sb.auth.signOut(); location.reload(); }
 export const userEmail = async () => sb ? (await sb.auth.getUser()).data.user?.email : null;

@@ -2,6 +2,7 @@ import * as db from '../db.js';
 import { html, raw, toast, fmtDT, esc } from '../util.js';
 import { RULES, ruleCfg, run, enableNotify, notifyEnabled } from '../automation.js';
 import * as google from '../google.js';
+import * as anfragen from '../anfragen.js';
 
 function mailCard() {
   const st = db.get('sync', 'mailsync'), s = st?.stats || {};
@@ -18,6 +19,16 @@ function mailCard() {
       <li>Newsletter, Werbung und Abwesenheitsnotizen werden übersprungen. Mails bleiben in Outlook ungelesen; es wird nie etwas gesendet oder gelöscht.</li></ul>`;
 }
 
+function webCard() {
+  const st = anfragen.status;
+  const st1 = st.ok ? html`<p>✓ <b>Aktiv.</b> Anfragen aus allen Website-Formularen (Beratungs-Popup, Kontakt, Objekt, Termin, Vorab-Liste, Renditerechner) landen sofort als Kontakt, Vorgang und Aufgabe im CRM – auch wenn dein Mac aus ist. Geprüft wird alle 2 Minuten, solange das CRM offen ist; sonst beim nächsten Öffnen.</p><p class="muted small">${st.neu ? st.neu + ' Anfrage(n) in dieser Sitzung übernommen · ' : ''}zuletzt geprüft ${fmtDT(st.zuletzt)}</p>`
+    : st.ok === false && st.fehler === 'nicht eingerichtet' ? html`<p><b>Noch nicht eingerichtet</b> – einmalig (1 Minute):</p>
+      <ol class="steps"><li><a class="lnk" target="_blank" rel="noopener" href="${db.SQL_URL()}">SQL-Editor in Supabase öffnen</a></li><li><button type="button" class="btn" data-websql>SQL kopieren</button> und dort einfügen</li><li>Auf <b>Run</b> klicken, hier auf <button type="button" class="btn ghost" data-webcheck>Erneut prüfen</button></li></ol>`
+    : st.ok === false ? html`<p class="bad">⚠️ ${st.fehler}</p><div class="actions"><button type="button" class="btn ghost" data-webcheck>Erneut prüfen</button></div>`
+    : html`<p class="muted">Wird geprüft …</p><div class="actions"><button type="button" class="btn ghost" data-webcheck>Jetzt prüfen</button></div>`;
+  return html`${st1}<p class="muted small">Die Mail an dich bleibt zusätzlich als Sicherheit bestehen. Die Tabelle nimmt von der Website nur Einträge entgegen und kann nur von dir gelesen werden; abgeholte Einträge werden gelöscht.</p>`;
+}
+
 export function render(el) {
   const cfg = ruleCfg(), s = db.settings();
   const log = db.all('activities').filter(a => (a.text || '').startsWith('⚡')).sort((a, b) => b.datum.localeCompare(a.datum)).slice(0, 12);
@@ -29,6 +40,7 @@ export function render(el) {
     <section class="card"><h2>Benachrichtigungen</h2><p class="muted">Browser-Hinweis für Termine (1 Std. vorher) und fällige Aufgaben, solange das CRM offen ist.</p>
       <div class="actions"><button class="btn" data-notify>${notifyEnabled() ? '✓ Aktiv – neu anfragen' : 'Benachrichtigungen aktivieren'}</button></div></section>
     <section class="card"><h2>Letzte automatische Aktionen</h2>${log.length ? html`<ul class="list">${log.map(a => html`<li><div class="grow"><div class="ttl">${a.text.replace('⚡ Automatisch: ', '')}</div><div class="sub">${fmtDT(a.datum)}</div></div></li>`)}</ul>` : html`<p class="muted">Noch keine.</p>`}</section>
+    <section class="card" style="grid-column:1/-1"><h2>Website-Anfragen → CRM</h2>${webCard()}</section>
     <section class="card" style="grid-column:1/-1"><h2>E-Mail (Outlook / Strato)</h2>${mailCard()}</section>
     <section class="card" style="grid-column:1/-1"><h2>Google Kalender & Kontakte</h2>
       <p class="muted">Termine werden in beide Richtungen mit deinem Google-Hauptkalender abgeglichen (CRM-Termine → Google, Google-Termine → CRM). Nach dem ersten Klick auf „Kalender synchronisieren“ gleicht das CRM alle 10 Minuten automatisch ab, solange es geöffnet ist. <b>Damit die Termine in Outlook erscheinen:</b> in Outlook unter Einstellungen → Konten dein Google-Konto hinzufügen.</p>
@@ -40,6 +52,9 @@ export function render(el) {
   el.querySelectorAll('[data-on],[data-days]').forEach(i => i.onchange = async () => { await save(); toast('Gespeichert'); });
   el.querySelector('[data-run]').onclick = async () => { const n = await run({ manual: true }); toast(n ? `⚡ ${n} Aktion${n > 1 ? 'en' : ''} ausgeführt` : 'Nichts zu tun – alles aktuell'); };
   el.querySelector('[data-notify]').onclick = async () => toast((await enableNotify()) ? 'Benachrichtigungen aktiv' : 'Nicht erlaubt – im Browser freigeben');
+  el.querySelector('[data-websql]')?.addEventListener('click', async () => { await navigator.clipboard.writeText(db.ANFRAGEN_SQL); toast('SQL kopiert'); });
+  el.querySelector('[data-webcheck]')?.addEventListener('click', async () => { await anfragen.pull({ manual: true }); render(el); });
+  if (anfragen.status.ok === null) anfragen.pull().then(() => { if (el.isConnected) render(el); });
   const msg = t => el.querySelector('#gmsg').textContent = t;
   const guard = f => async () => { try { msg('Bitte warten …'); await f(); } catch (e) { msg('Fehler: ' + e.message); } };
   el.querySelector('[data-gsave]').onclick = async () => { await db.saveSettings({ ...db.settings(), googleClientId: el.querySelector('#gid').value.trim() }); toast('Client-ID gespeichert'); };

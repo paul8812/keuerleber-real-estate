@@ -16,6 +16,7 @@ import * as automation from './views/automation.js';
 import * as inbox from './views/inbox.js';
 import * as finanzen from './views/finanzen.js';
 import * as auto from './automation.js';
+import * as anfragen from './anfragen.js';
 import { schnellerfassung } from './schnellerfassung.js';
 import { initMobil } from './mobil.js';
 import { initAktionen } from './aktionen.js';
@@ -80,7 +81,7 @@ function shell() {
   db.onChange(rerender); db.onChange(navBadges);
   window.addEventListener('hashchange', route);
   window.addEventListener('focus', () => db.isCloud() && db.reload());
-  route(); auto.start(); idleWatch(); initMobil(); initAktionen(); initCrmPlus();
+  route(); auto.start(); anfragen.start(); idleWatch(); initMobil(); initAktionen(); initCrmPlus();
 }
 
 async function boot() {
