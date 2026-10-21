@@ -35,4 +35,52 @@
     <image:image><image:loc>https://keuerleber-immobilien.de/objektbilder/jahnstr-38-hof-01.webp</image:loc><image:title>Hochwertig sanierte 3-Zimmer-Wohnung mit Balkon</image:title></image:image>
     <!--OBJEKTBILDER_END-->
   </url>
+  <url>
+    <loc>https://keuerleber-immobilien.de/ratgeber/</loc>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://keuerleber-immobilien.de/ratgeber/afa-immobilien-kapitalanlage/</loc>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://keuerleber-immobilien.de/ratgeber/eigentumswohnung-kapitalanlage-checkliste/</loc>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://keuerleber-immobilien.de/ratgeber/immobilie-finanzieren-eigenkapital/</loc>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://keuerleber-immobilien.de/ratgeber/kernsanierung-oder-modernisierung/</loc>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://keuerleber-immobilien.de/ratgeber/nebenkosten-immobilienkauf-bayern/</loc>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://keuerleber-immobilien.de/ratgeber/rendite-berechnen/</loc>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://keuerleber-immobilien.de/ratgeber/vermietung-eigentumswohnung/</loc>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
 </urlset>
