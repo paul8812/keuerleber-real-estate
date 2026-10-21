@@ -50,6 +50,11 @@ Läuft auf Pauls Mac im Ordner `~/crm-mailsync` (launchd, alle 3 Minuten, nur Py
 - Einrichten: im Ordner `crm-mailsync` doppelt auf „Einrichten.command“ klicken (Postfach- und CRM-Passwort eingeben; gespeichert wird nur das Postfach-Passwort und ein CRM-Token, in `~/.config/keuerleber-crm/zugang.json`, nur für Paul lesbar).
 - Keine Mail-Inhalte ins Repo: der Abgleich liegt bewusst außerhalb von `~/keuerleber-real-estate` (der Immo-Manager veröffentlicht diesen Ordner per `git add -A`).
 
+## Website-Anfragen direkt ins CRM
+- Alle Formulare der Website (Beratungs-Popup, Kontakt, Objekt, Termin, Vorab-Liste, Renditerechner) spiegeln jede Anfrage zusätzlich per `lead-sync.js` in die Supabase-Tabelle `website_anfragen` (nur Einfügen für `anon`; lesen/löschen nur der CRM-Inhaber). Die Mail über Web3Forms bleibt als Sicherheit bestehen.
+- Das CRM holt neue Zeilen alle 2 Minuten (solange offen, sowie beim Öffnen/Fokus) ab → Kontakt (Quelle „Website“, Dubletten über E-Mail/Telefon), Vorgang „Anfrage“, Verlauf, Aufgabe „Rückruf“ bzw. „beantworten“ – danach wird die Zeile gelöscht. Unabhängig vom Mail-Abgleich auf dem Mac.
+- Einmalige Einrichtung: *Automationen → Website-Anfragen → CRM* → „SQL kopieren“ → im Supabase-SQL-Editor ausführen.
+
 ## Objekte & Website
 - Das CRM ist die Quelle für die Objekte auf der Website. „Website aktualisieren“ (Objekte) bzw. „Auf Website veröffentlichen / Von Website entfernen“ (Objektansicht) schreibt über die GitHub-API: `index.html` (Block zwischen `/*IMMO_START*/` und `/*IMMO_END*/`), die Karten auf `eigentumswohnung-kaufen-hof/` (zwischen `<!--OBJEKTE_START-->`/`<!--OBJEKTE_END-->`) und die Bild-Einträge der `sitemap.xml` (`<!--OBJEKTBILDER_START-->`). Die Ausgabe entspricht exakt dem früheren `tools/publish.rb` des Immo-Managers (Teaser-Logik, Kurzkalkulation).
 - Einmalig: Einstellungen → Website → Fine-grained GitHub-Token (nur dieses Repo, Contents: Read and write). Der Token wird nicht in Backups geschrieben.
