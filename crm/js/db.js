@@ -139,6 +139,7 @@ create table if not exists privat.sofort (
 );
 insert into privat.sofort (id) values (1) on conflict (id) do nothing;
 revoke all on privat.sofort from public, anon, authenticated;
+alter table privat.sofort enable row level security;
 
 create or replace function public.sofort_status() returns jsonb language sql stable security definer set search_path = public, privat as $$
   select case when auth.uid() is not null and exists (select 1 from public.records r where r.user_id = auth.uid()) then
