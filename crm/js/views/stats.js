@@ -19,6 +19,13 @@ export function render(el) {
   const avgDays = sold.length ? Math.round(sold.reduce((s, p) => s + daysBetween(p.eingestelltAm, (p.updated || '').slice(0, 10) || today()), 0) / sold.length) : null;
   const volWon = wonV.reduce((s, d) => s + (d.wert || 0), 0);
   const lostReasons = Object.entries(deals.filter(d => d.verlustGrund).reduce((a, d) => { a[d.verlustGrund] = (a[d.verlustGrund] || 0) + 1; return a; }, {})).sort((a, b) => b[1] - a[1]);
+  const t0 = today(), vor7 = new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10), tasks = db.all('tasks'), events = db.all('events');
+  const seiten = Object.entries(contacts.filter(c => c.quelle === 'Website' && c.quelleSeite).reduce((a, c) => { const k = c.quelleSeite === '/' ? 'Startseite' : c.quelleSeite; a[k] = (a[k] || 0) + 1; return a; }, {})).sort((a, b) => b[1] - a[1]);
+  const neuK = contacts.filter(c => (c.created || '') >= vor7), neuW = neuK.filter(c => c.quelle === 'Website').length;
+  const offen = tasks.filter(t => !t.done), ueber = offen.filter(t => t.faellig && t.faellig < t0).length;
+  const naechste = events.filter(e => e.datum >= t0 && e.datum <= new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10)).length;
+  const offenV = deals.filter(d => d.board === 'vertrieb' && ![PIPELINES.vertrieb.won, PIPELINES.vertrieb.lost].includes(d.stage)).length;
+  const bericht = `Wochenbericht Keuerleber Immobilien (bis ${t0.split('-').reverse().join('.')})\n\n• Neue Kontakte: ${neuK.length} (davon über die Website: ${neuW})\n• Offene Vertriebs-Vorgänge: ${offenV}\n• Offene Aufgaben: ${offen.length} (überfällig: ${ueber})\n• Termine in den nächsten 7 Tagen: ${naechste}\n• Abgeschlossen (gesamt): ${wonV.length}`;
   el.innerHTML = html`<div class="head"><h1>Statistik</h1></div>
     <div class="kpis"><div class="kpi"><b>${eur(rev.reduce((s, r) => s + r[1], 0))}</b><span>Vergütung ${year}</span></div><div class="kpi"><b>${eur(volWon)}</b><span>Verkaufsvolumen (gesamt)</span></div>
       <div class="kpi"><b>${won + lost ? pct(won / (won + lost) * 100, 0) : '–'}</b><span>Akquise-Erfolgsquote</span></div><div class="kpi"><b>${avgDays != null ? avgDays + ' Tage' : '–'}</b><span>Ø Vermarktungsdauer</span></div></div>
@@ -28,6 +35,9 @@ export function render(el) {
       <section class="card"><h2>Trichter Akquise</h2>${bars(funnel(aq, 'akquise'))}</section>
       <section class="card"><h2>Trichter Vertrieb</h2>${bars(funnel(PIPELINES.vertrieb, 'vertrieb'))}</section>
       <section class="card"><h2>Kontakte nach Quelle</h2>${bars(sources)}</section>
+      <section class="card"><h2>Website-Anfragen nach Seite</h2>${seiten.length ? bars(seiten) : html`<p class="muted">Sobald Anfragen über die Website eingehen, siehst du hier, welche Seite sie bringt.</p>`}</section>
+      <section class="card"><h2>Wochenbericht</h2><pre class="sqlbox" style="white-space:pre-wrap">${bericht}</pre><div class="actions"><button type="button" class="btn" data-rcopy>Kopieren</button><a class="btn primary" href="mailto:${encodeURIComponent(db.settings().email || '')}?subject=${encodeURIComponent('Wochenbericht')}&body=${encodeURIComponent(bericht)}">Als E-Mail öffnen</a></div></section>
       <section class="card"><h2>Verlustgründe</h2>${bars(lostReasons)}</section>
     </div>`.s;
+  el.querySelector('[data-rcopy]')?.addEventListener('click', async () => { await navigator.clipboard.writeText(bericht); });
 }

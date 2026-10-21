@@ -126,6 +126,47 @@ create policy "Inhaber verwaltet" on public.website_anfragen for all to authenti
 grant insert on public.website_anfragen to anon;
 grant select, insert, update, delete on public.website_anfragen to authenticated;`;
 export const client = () => sb;
+// Sofort-Benachrichtigung (Telegram) und Sofort-Antwort (E-Mail über Resend): laufen als Datenbank-Trigger in Supabase (pg_net),
+// ohne eigenen Server. Token/Schlüssel stehen nur in der Datenbank-Funktion, nie auf der Website.
+const q = v => String(v || '').replace(/'/g, "''").trim();
+export const telegramSQL = (token, chat) => `create extension if not exists pg_net with schema extensions;
+create or replace function public.notify_anfrage() returns trigger language plpgsql security definer set search_path = public, extensions as $$
+declare d jsonb := new.daten; txt text;
+begin
+  if (select count(*) from public.website_anfragen where created_at > now() - interval '10 minutes') > 30 then return new; end if;
+  txt := '🆕 Neue Website-Anfrage' || E'\n' || coalesce(new.betreff, '') || E'\n\n'
+    || case when coalesce(d->>'name', '') <> '' then '👤 ' || (d->>'name') || E'\n' else '' end
+    || case when coalesce(d->>'Telefon', d->>'tel', '') <> '' then '📞 ' || coalesce(d->>'Telefon', d->>'tel') || E'\n' else '' end
+    || case when coalesce(d->>'email', d->>'E-Mail', '') <> '' then '✉️ ' || coalesce(d->>'email', d->>'E-Mail') || E'\n' else '' end
+    || case when coalesce(d->>'Wunschzeit', '') <> '' then '🕒 ' || (d->>'Wunschzeit') || E'\n' else '' end
+    || case when coalesce(d->>'Ergebnis', '') <> '' then '📊 ' || (d->>'Ergebnis') || E'\n' else '' end
+    || coalesce('🔗 ' || new.quelle, '');
+  perform net.http_post(url := 'https://api.telegram.org/bot${q(token)}/sendMessage',
+    body := jsonb_build_object('chat_id', '${q(chat)}', 'text', left(txt, 3500)),
+    headers := '{"Content-Type":"application/json"}'::jsonb);
+  return new;
+exception when others then return new;
+end $$;
+drop trigger if exists anfrage_telegram on public.website_anfragen;
+create trigger anfrage_telegram after insert on public.website_anfragen for each row execute function public.notify_anfrage();`;
+export const antwortSQL = (key, from) => `create extension if not exists pg_net with schema extensions;
+create or replace function public.antwort_anfrage() returns trigger language plpgsql security definer set search_path = public, extensions as $$
+declare d jsonb := new.daten; mail text := coalesce(d->>'email', d->>'E-Mail', ''); nm text := split_part(coalesce(d->>'name', ''), ' ', 1); leit boolean := coalesce(new.betreff, '') ilike 'Leitfaden%';
+begin
+  if mail !~ '^[^@[:space:]]+@[^@[:space:]]+[.][^@[:space:]]+$' or length(mail) > 120 or coalesce(new.betreff, '') ilike 'Vorab-Liste%' then return new; end if;
+  if (select count(*) from public.website_anfragen where created_at > now() - interval '10 minutes') > 30 then return new; end if;
+  perform net.http_post(url := 'https://api.resend.com/emails',
+    body := jsonb_build_object('from', '${q(from)}', 'to', jsonb_build_array(mail), 'reply_to', 'paul.keuerleber@keuerleber-immobilien.de',
+      'subject', case when leit then 'Ihr Leitfaden Kapitalanlage' else 'Ihre Anfrage bei Keuerleber Immobilien' end,
+      'text', 'Guten Tag' || case when nm <> '' then ' ' || left(nm, 40) else '' end || E',\n\nvielen Dank für Ihre Anfrage. Ich melde mich werktags innerhalb von 24 Stunden persönlich bei Ihnen.\n\n'
+        || case when leit then E'Ihren Leitfaden finden Sie hier: https://keuerleber-immobilien.de/leitfaden-kapitalanlage-hof.pdf\n\n' else '' end
+        || E'Bis dahin können Sie Ihre Rendite selbst durchrechnen: https://keuerleber-immobilien.de/rendite/\nOder direkt einen Termin wählen: https://keuerleber-immobilien.de/#kontakt\n\nMit freundlichen Grüßen\nPaul Keuerleber\nKeuerleber Immobilien · Hauptstraße 12 · 95145 Oberkotzau\n+49 151 67692176'),
+    headers := jsonb_build_object('Content-Type', 'application/json', 'Authorization', 'Bearer ${q(key)}'));
+  return new;
+exception when others then return new;
+end $$;
+drop trigger if exists anfrage_antwort on public.website_anfragen;
+create trigger anfrage_antwort after insert on public.website_anfragen for each row execute function public.antwort_anfrage();`;
 export const SQL_URL = () => { const m = (cfg().url || '').match(/https:\/\/([^.]+)\.supabase\.co/); return m ? `https://supabase.com/dashboard/project/${m[1]}/sql/new` : 'https://supabase.com/dashboard'; };
 export async function logout() { if (sb) await sb.auth.signOut(); location.reload(); }
 export const userEmail = async () => sb ? (await sb.auth.getUser()).data.user?.email : null;

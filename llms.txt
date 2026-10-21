@@ -4,6 +4,8 @@
 
 ## Seiten
 - [Startseite](https://keuerleber-immobilien.de/): Konzept, aktuelle Objekte, Rendite-Rechner, FAQ, Kontakt
+- [Kapitalanlage-Check](https://keuerleber-immobilien.de/kapitalanlage-check/): 2-Minuten-Check, ob eine Kapitalanlage passt
+- [Gratis-Leitfaden](https://keuerleber-immobilien.de/leitfaden/): PDF zu Rendite, AfA, Nebenkosten, Finanzierung
 - [Ratgeber](https://keuerleber-immobilien.de/ratgeber/): AfA, Kaufnebenkosten, Rendite, Finanzierung, Kernsanierung, Vermietung
 - [Kapitalanlage in Hof](https://keuerleber-immobilien.de/kapitalanlage-hof/): Standort, Prüfung vor dem Kauf, Ablauf
 - [Erhöhte AfA & Restnutzungsdauer-Gutachten](https://keuerleber-immobilien.de/restnutzungsdauer-gutachten/): Prinzip, Ablauf, Voraussetzungen

@@ -17,8 +17,8 @@ function normalize(row) {
   const email = pick(d, 'email', 'E-Mail', 'Email').toLowerCase();
   const tel = pick(d, 'Telefon', 'tel', 'phone');
   const text = (pick(d, 'message', 'nachricht', 'Nachricht') || '').replace(/[═─]{3,}/g, '').replace(/\n{3,}/g, '\n\n').trim();
-  const art = /Vorab-Liste/i.test(betreff) ? 'vorab' : /Beratungsgespr|Rückruf/i.test(betreff + text) ? 'rueckruf' : /Termin/i.test(betreff) ? 'termin' : /Objekt|Exposé/i.test(betreff) ? 'objekt' : 'kontakt';
-  return { name, email, tel, text, betreff, art, wunsch: pick(d, 'Wunschzeit'), seite: pick(d, 'Seite') };
+  const art = /Vorab-Liste|Leitfaden/i.test(betreff) ? 'vorab' : /Beratungsgespr|Rückruf|Kapitalanlage-Check/i.test(betreff + text) ? 'rueckruf' : /Termin/i.test(betreff) ? 'termin' : /Objekt|Exposé/i.test(betreff) ? 'objekt' : 'kontakt';
+  return { name, email, tel, text, betreff, art, wunsch: pick(d, 'Wunschzeit'), seite: pick(d, 'Seite') || row.quelle || '' };
 }
 
 async function verarbeite(row) {
@@ -28,7 +28,7 @@ async function verarbeite(row) {
   const notiz = [`Website-Anfrage (${a.betreff || a.art})`, a.wunsch && `Wunschzeit: ${a.wunsch}`, a.seite && `Seite: ${a.seite}`, a.text].filter(Boolean).join('\n');
   let c = known;
   if (!c) {
-    c = await db.save('contacts', { ...nameParts(a.name || a.email), email: a.email, tel: a.tel, kategorie: 'Interessent (Kauf)', quelle: 'Website', status: 'Aktiv', notiz });
+    c = await db.save('contacts', { ...nameParts(a.name || a.email), email: a.email, tel: a.tel, kategorie: 'Interessent (Kauf)', quelle: 'Website', quelleSeite: a.seite, status: 'Aktiv', notiz });
     await db.log('system', `🌐 Neue Website-Anfrage: ${a.betreff || a.art}`, { contactId: c.id });
   }
   await db.log('notiz', `🌐 Website-Anfrage (${a.betreff || a.art})\n${notiz}`, { contactId: c.id });
