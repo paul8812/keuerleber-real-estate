@@ -168,7 +168,9 @@ end $$;
 drop trigger if exists anfrage_antwort on public.website_anfragen;
 create trigger anfrage_antwort after insert on public.website_anfragen for each row execute function public.antwort_anfrage();`;
 export const SQL_URL = () => { const m = (cfg().url || '').match(/https:\/\/([^.]+)\.supabase\.co/); return m ? `https://supabase.com/dashboard/project/${m[1]}/sql/new` : 'https://supabase.com/dashboard'; };
-export async function logout() { if (sb) await sb.auth.signOut(); location.reload(); }
+// Nur dieses Gerät abmelden. Ohne scope meldet supabase-js *global* ab und macht damit auch den
+// Zugang des Mail-Abgleichs auf dem Mac ungültig (refresh_token_not_found) – das passierte bei jedem Auto-Logout.
+export async function logout() { if (sb) await sb.auth.signOut({ scope: 'local' }); location.reload(); }
 export const userEmail = async () => sb ? (await sb.auth.getUser()).data.user?.email : null;
 
 async function loadCloud() {

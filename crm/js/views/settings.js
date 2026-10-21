@@ -96,7 +96,7 @@ export function render(el) {
   if (db.isCloud()) {
     db.userEmail().then(m => { const b = el.querySelector('#myemail'); if (b) b.textContent = m || '–'; });
     el.querySelector('#idle').onchange = async e => { await db.saveSettings({ ...db.settings(), autoLogoutMin: Number(e.target.value) }); toast('Gespeichert'); };
-    el.querySelector('[data-logoutall]').onclick = async () => { if (await confirmDlg('Auf allen Geräten (Handy, Mac, Browser) abmelden? Danach musst du dich überall neu anmelden.')) db.logoutAll(); };
+    el.querySelector('[data-logoutall]').onclick = async () => { if (await confirmDlg('Auf allen Geräten (Handy, Mac, Browser) abmelden? Danach musst du dich überall neu anmelden – auch der Mail-Abgleich auf dem Mac (dort im Ordner crm-mailsync „Einrichten“ starten).')) db.logoutAll(); };
     mfaBox(el);
     el.querySelector('#fpw').onsubmit = async e => {
       e.preventDefault(); const f = e.target;
