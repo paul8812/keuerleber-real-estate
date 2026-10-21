@@ -127,17 +127,52 @@ grant insert on public.website_anfragen to anon;
 grant select, insert, update, delete on public.website_anfragen to authenticated;`;
 export const client = () => sb;
 // Sofort-Benachrichtigung (Telegram) und Sofort-Antwort (E-Mail über Resend): laufen als Datenbank-Trigger in Supabase (pg_net),
-// ohne eigenen Server. Token/Schlüssel stehen nur in der Datenbank-Funktion, nie auf der Website.
-const q = v => String(v || '').replace(/'/g, "''").trim();
-export const telegramSQL = (token, chat) => `create extension if not exists pg_net with schema extensions;
-create or replace function public.notify_anfrage() returns trigger language plpgsql security definer set search_path = public, extensions as $$
-declare d jsonb := new.daten; txt text;
+// ohne eigenen Server. Zugangsdaten liegen in privat.sofort (nicht über die API erreichbar, keine Rechte für anon/authenticated).
+// Das CRM setzt sie nur über sofort_setzen(); sofort_status() verrät nie die Werte selbst. Dieses SQL enthält keine Geheimnisse.
+export const SOFORT_SQL = `create extension if not exists pg_net with schema extensions;
+create schema if not exists privat;
+revoke all on schema privat from public, anon, authenticated;
+create table if not exists privat.sofort (
+  id int primary key default 1 check (id = 1),
+  tg_token text, tg_chat text, rs_key text, rs_from text,
+  geaendert timestamptz not null default now()
+);
+insert into privat.sofort (id) values (1) on conflict (id) do nothing;
+revoke all on privat.sofort from public, anon, authenticated;
+alter table privat.sofort enable row level security;
+
+create or replace function public.sofort_status() returns jsonb language sql stable security definer set search_path = public, privat as $$
+  select case when auth.uid() is not null and exists (select 1 from public.records r where r.user_id = auth.uid()) then
+    (select jsonb_build_object('telegram', s.tg_token is not null and s.tg_chat is not null, 'antwort', s.rs_key is not null, 'absender', s.rs_from, 'geaendert', s.geaendert) from privat.sofort s where s.id = 1)
+  end
+$$;
+create or replace function public.sofort_setzen(p jsonb) returns jsonb language plpgsql security definer set search_path = public, privat as $$
+begin
+  if auth.uid() is null or not exists (select 1 from public.records r where r.user_id = auth.uid()) then raise exception 'nicht berechtigt'; end if;
+  update privat.sofort set
+    tg_token = case when p ? 'tg_token' then nullif(trim(p->>'tg_token'), '') else tg_token end,
+    tg_chat = case when p ? 'tg_chat' then nullif(trim(p->>'tg_chat'), '') else tg_chat end,
+    rs_key = case when p ? 'rs_key' then nullif(trim(p->>'rs_key'), '') else rs_key end,
+    rs_from = case when p ? 'rs_from' then nullif(trim(p->>'rs_from'), '') else rs_from end,
+    geaendert = now()
+  where id = 1;
+  return public.sofort_status();
+end $$;
+revoke all on function public.sofort_status() from public, anon;
+revoke all on function public.sofort_setzen(jsonb) from public, anon;
+grant execute on function public.sofort_status() to authenticated;
+grant execute on function public.sofort_setzen(jsonb) to authenticated;
+
+create or replace function public.notify_anfrage() returns trigger language plpgsql security definer set search_path = public, privat, extensions as $$
+declare d jsonb := new.daten; txt text; c privat.sofort;
   -- Feldnamen je Formular: Renditerechner schickt Name/Email, Kontakt zusätzlich „Anfrage von“/„E-Mail“, leere Telefone als „—“
   nm text := coalesce(nullif(trim(d->>'name'), ''), nullif(trim(d->>'Name'), ''), nullif(trim(d->>'Anfrage von'), ''), '');
   tel text := coalesce(nullif(nullif(trim(d->>'Telefon'), '—'), ''), nullif(trim(d->>'tel'), ''), nullif(trim(d->>'phone'), ''), '');
   mail text := coalesce(nullif(trim(d->>'email'), ''), nullif(trim(d->>'E-Mail'), ''), nullif(trim(d->>'Email'), ''), '');
   obj text := coalesce(nullif(trim(d->>'objekt'), ''), nullif(trim(d->>'Objekt'), ''), '');
 begin
+  select * into c from privat.sofort where id = 1;
+  if c.tg_token is null or c.tg_chat is null then return new; end if;
   if (select count(*) from public.website_anfragen where created_at > now() - interval '10 minutes') > 30 then return new; end if;
   txt := '🆕 Neue Website-Anfrage' || E'\n' || coalesce(new.betreff, '') || E'\n\n'
     || case when nm <> '' then '👤 ' || nm || E'\n' else '' end
@@ -148,35 +183,39 @@ begin
     || case when coalesce(trim(d->>'anschrift'), '') <> '' then '📍 ' || trim(d->>'anschrift') || E'\n' else '' end
     || case when coalesce(d->>'Ergebnis', '') <> '' then '📊 ' || (d->>'Ergebnis') || coalesce(' (' || (d->>'Punkte') || ')', '') || E'\n' else '' end
     || coalesce('🔗 ' || coalesce(nullif(d->>'Seite', ''), new.quelle), '');
-  perform net.http_post(url := 'https://api.telegram.org/bot${q(token)}/sendMessage',
-    body := jsonb_build_object('chat_id', '${q(chat)}', 'text', left(txt, 3500)),
+  perform net.http_post(url := 'https://api.telegram.org/bot' || c.tg_token || '/sendMessage',
+    body := jsonb_build_object('chat_id', c.tg_chat, 'text', left(txt, 3500)),
     headers := '{"Content-Type":"application/json"}'::jsonb);
   return new;
 exception when others then return new;
 end $$;
 drop trigger if exists anfrage_telegram on public.website_anfragen;
-create trigger anfrage_telegram after insert on public.website_anfragen for each row execute function public.notify_anfrage();`;
-export const antwortSQL = (key, from) => `create extension if not exists pg_net with schema extensions;
-create or replace function public.antwort_anfrage() returns trigger language plpgsql security definer set search_path = public, extensions as $$
-declare d jsonb := new.daten;
+create trigger anfrage_telegram after insert on public.website_anfragen for each row execute function public.notify_anfrage();
+
+create or replace function public.antwort_anfrage() returns trigger language plpgsql security definer set search_path = public, privat, extensions as $$
+declare d jsonb := new.daten; c privat.sofort;
   mail text := trim(coalesce(nullif(trim(d->>'email'), ''), nullif(trim(d->>'E-Mail'), ''), nullif(trim(d->>'Email'), ''), ''));
   nm text := split_part(coalesce(nullif(trim(d->>'name'), ''), nullif(trim(d->>'Name'), ''), ''), ' ', 1);
   leit boolean := coalesce(new.betreff, '') ilike 'Leitfaden%';
 begin
+  select * into c from privat.sofort where id = 1;
+  if c.rs_key is null then return new; end if;
   if mail !~ '^[^@[:space:]]+@[^@[:space:]]+[.][^@[:space:]]+$' or length(mail) > 120 or coalesce(new.betreff, '') ilike 'Vorab-Liste%' then return new; end if;
   if (select count(*) from public.website_anfragen where created_at > now() - interval '10 minutes') > 30 then return new; end if;
   perform net.http_post(url := 'https://api.resend.com/emails',
-    body := jsonb_build_object('from', '${q(from)}', 'to', jsonb_build_array(mail), 'reply_to', 'paul.keuerleber@keuerleber-immobilien.de',
+    body := jsonb_build_object('from', coalesce(c.rs_from, 'Paul Keuerleber <paul.keuerleber@keuerleber-immobilien.de>'), 'to', jsonb_build_array(mail), 'reply_to', 'paul.keuerleber@keuerleber-immobilien.de',
       'subject', case when leit then 'Ihr Leitfaden Kapitalanlage' else 'Ihre Anfrage bei Keuerleber Immobilien' end,
       'text', 'Guten Tag' || case when nm <> '' then ' ' || left(nm, 40) else '' end || E',\n\nvielen Dank für Ihre Anfrage. Ich melde mich werktags innerhalb von 24 Stunden persönlich bei Ihnen.\n\n'
         || case when leit then E'Ihren Leitfaden finden Sie hier: https://keuerleber-immobilien.de/leitfaden-kapitalanlage-hof.pdf\n\n' else '' end
         || E'Bis dahin können Sie Ihre Rendite selbst durchrechnen: https://keuerleber-immobilien.de/rendite/\nOder direkt einen Termin wählen: https://keuerleber-immobilien.de/#kontakt\n\nMit freundlichen Grüßen\nPaul Keuerleber\nKeuerleber Immobilien · Hauptstraße 12 · 95145 Oberkotzau\n+49 151 67692176'),
-    headers := jsonb_build_object('Content-Type', 'application/json', 'Authorization', 'Bearer ${q(key)}'));
+    headers := jsonb_build_object('Content-Type', 'application/json', 'Authorization', 'Bearer ' || c.rs_key));
   return new;
 exception when others then return new;
 end $$;
 drop trigger if exists anfrage_antwort on public.website_anfragen;
 create trigger anfrage_antwort after insert on public.website_anfragen for each row execute function public.antwort_anfrage();`;
+export async function sofortStatus() { if (!sb) throw new Error('Keine Cloud-Datenbank verbunden'); const { data, error } = await sb.rpc('sofort_status'); if (error) throw error; return data; }
+export async function sofortSetzen(p) { if (!sb) throw new Error('Keine Cloud-Datenbank verbunden'); const { data, error } = await sb.rpc('sofort_setzen', { p }); if (error) throw error; return data; }
 export const SQL_URL = () => { const m = (cfg().url || '').match(/https:\/\/([^.]+)\.supabase\.co/); return m ? `https://supabase.com/dashboard/project/${m[1]}/sql/new` : 'https://supabase.com/dashboard'; };
 // Nur dieses Gerät abmelden. Ohne scope meldet supabase-js *global* ab und macht damit auch den
 // Zugang des Mail-Abgleichs auf dem Mac ungültig (refresh_token_not_found) – das passierte bei jedem Auto-Logout.
