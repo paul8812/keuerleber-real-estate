@@ -42,7 +42,7 @@ function webCard() {
       <ol class="steps"><li>Kostenloses Konto auf <a class="lnk" target="_blank" rel="noopener" href="https://resend.com">resend.com</a>, Domain <b>keuerleber-immobilien.de</b> hinzufügen (Region EU) und die angezeigten DNS-Einträge bei Strato setzen.</li><li>Unter „API Keys“ einen Schlüssel mit „Sending access“ erstellen, hier einfügen → <b>Aktivieren</b>.</li></ol>
       <div class="grid"><label class="f"><span>Resend API-Key</span><input id="rskey" autocomplete="off" spellcheck="false" placeholder="re_…"></label><label class="f"><span>Absender</span><input id="rsfrom" value="Paul Keuerleber &lt;paul.keuerleber@keuerleber-immobilien.de&gt;"></label></div>
       <div class="actions"><button type="button" class="btn primary" data-rson>Aktivieren</button><button type="button" class="btn ghost" data-rsoff hidden>Ausschalten</button></div><p class="muted small" id="rsmsg"></p></details>`;
-  return html`${st1}${sofort}<p class="muted small">Die Mail an dich bleibt zusätzlich als Sicherheit bestehen. Die Tabelle nimmt von der Website nur Einträge entgegen und kann nur von dir gelesen werden; abgeholte Einträge werden gelöscht.</p>`;
+  return html`${st1}${sofort}<div class="actions"><button type="button" class="btn" data-selbsttest>🧪 Verbindung testen</button></div><div id="stres"></div><p class="muted small">Die Mail an dich bleibt zusätzlich als Sicherheit bestehen. Die Tabelle nimmt von der Website nur Einträge entgegen und kann nur von dir gelesen werden; abgeholte Einträge werden gelöscht.</p>`;
 }
 
 export function render(el) {
@@ -71,6 +71,10 @@ export function render(el) {
   el.querySelector('[data-websql]')?.addEventListener('click', async () => { await navigator.clipboard.writeText(db.ANFRAGEN_SQL); toast('SQL kopiert'); });
   el.querySelector('[data-webcheck]')?.addEventListener('click', async () => { await anfragen.pull({ manual: true }); render(el); });
   if (anfragen.status.ok === null) anfragen.pull().then(() => { if (el.isConnected) render(el); });
+  el.querySelector('[data-selbsttest]')?.addEventListener('click', async e => {
+    const b = e.currentTarget, box = el.querySelector('#stres'); b.disabled = true; box.innerHTML = '<p class="muted">Teste …</p>';
+    try { const r = await anfragen.selbsttest(); box.innerHTML = html`<ul class="steps">${r.map(x => html`<li>${x.ok === true ? '✓' : x.ok === false ? '✗' : 'ℹ️'} <b>${x.t}</b>${x.hint ? html`<br><span class="muted small">${x.hint}</span>` : ''}</li>`)}</ul>`.s; }
+    catch (x) { box.textContent = 'Fehler: ' + x.message; } b.disabled = false; });
   const val = id => (el.querySelector('#' + id)?.value || '').trim();
   const q1 = sel => el.querySelector(sel), say = (id, t) => { const m = q1('#' + id); if (m) m.textContent = t; };
   const zeige = st => {

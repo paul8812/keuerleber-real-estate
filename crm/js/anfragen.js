@@ -60,6 +60,30 @@ export async function pull({ manual = false } = {}) {
   return n;
 }
 
+// Selbsttest: prüft jeden Schritt einzeln und sagt, woran es hängt. Löst bei aktivem Telegram-Trigger eine Test-Nachricht aus.
+export async function selbsttest() {
+  const out = [], sb = db.client(), c = db.cfg(), tag = '/selbsttest-' + Date.now();
+  const ok = (t, hint = '') => out.push({ ok: true, t, hint }), no = (t, hint) => out.push({ ok: false, t, hint });
+  if (!sb || !db.isCloud()) { no('Cloud-Verbindung', 'Das CRM läuft im lokalen Modus. Öffne es mit ?cloud=1 und melde dich an.'); return out; }
+  ok('Angemeldet (Cloud-Modus)');
+  try {
+    const r = await fetch(c.url + '/rest/v1/website_anfragen', { method: 'POST', headers: { apikey: c.key, Authorization: 'Bearer ' + c.key, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ quelle: tag, betreff: 'Selbsttest', daten: { name: 'Test Tester', Telefon: '0170 0000000', Wunschzeit: 'Selbsttest' } }) });
+    if (r.status === 201 || r.status === 204) ok('Website darf Anfragen einfügen (anonym)');
+    else { const b = await r.text(); no(`Website kann nicht einfügen (HTTP ${r.status})`, /42P01|PGRST205|does not exist|schema cache/.test(b) ? 'Die Tabelle fehlt: SQL „Website-Anfragen“ in Supabase ausführen.' : /42501|row-level|permission|policy/i.test(b) ? 'Rechte fehlen: das Anfragen-SQL (Policy „Website darf senden“ und grant insert to anon) erneut ausführen.' : r.status === 401 ? 'Der öffentliche Schlüssel wird abgelehnt (Einstellungen → Cloud prüfen).' : b.slice(0, 160)); return out; }
+  } catch (e) { no('Supabase nicht erreichbar', 'Internetverbindung oder Adblocker? ' + e.message); return out; }
+  const { data, error } = await sb.from('website_anfragen').select('id').eq('quelle', tag);
+  if (error) no('Das CRM kann Anfragen nicht lesen', 'Policy „Inhaber verwaltet“ fehlt oder du bist nicht der Inhaber der Daten: Anfragen-SQL erneut ausführen. ' + error.message);
+  else if (!data.length) no('Das CRM sieht die Test-Anfrage nicht', 'Policy „Inhaber verwaltet“ greift nicht. Gibt es schon Datensätze in deinem Konto (Kontakte/Aufgaben)? Dann Anfragen-SQL erneut ausführen.');
+  else {
+    ok('CRM kann Anfragen lesen');
+    const d = await sb.from('website_anfragen').delete().eq('quelle', tag);
+    d.error ? no('CRM kann Anfragen nicht löschen', d.error.message) : ok('CRM kann Anfragen löschen');
+  }
+  out.push({ ok: null, t: 'Telegram', hint: 'Ist der Telegram-Trigger eingerichtet, kam jetzt eine Nachricht „Selbsttest / Test Tester“ aufs Handy. Falls nicht: Bot mit /start gestartet? Chat-ID richtig? Telegram-SQL ohne Fehler gelaufen?' });
+  return out;
+}
+
 export function start() {
   if (started) return; started = true;
   setTimeout(() => pull(), 2000); setInterval(() => pull(), 2 * 60000);
