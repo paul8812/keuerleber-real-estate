@@ -68,7 +68,9 @@ export function aufraeumen() {
       const del = alle ? db.all('tasks').slice() : sel.flatMap(n => gr[n]).filter(t => erl || !t.done);
       if (!del.length) { toast('Nichts ausgewählt'); return false; }
       if (!await confirmDlg(`${del.length} Aufgabe${del.length > 1 ? 'n' : ''} endgültig löschen?`)) return false;
-      for (const t of del) await db.del('tasks', t.id);
+      toast(`Lösche ${del.length} Aufgaben …`);
+      try { await db.delMany('tasks', del.map(t => t.id), (n, m) => { if (m > 100) toast(`${n} von ${m} gelöscht …`); }); }
+      catch (e) { toast('Löschen abgebrochen: ' + (e.message || e), 'err'); return false; }
       if (el.querySelector('[data-regeln]').checked) {
         const ids = alle ? ['neuerInteressent', 'suchprofil', 'dubletten'] : sel.flatMap(n => RULEMAP[n] || []);
         if (ids.length) { const auto = { ...(db.settings().auto || {}) }; ids.forEach(id => { auto[id] = { ...(auto[id] || {}), on: false }; }); await db.saveSettings({ ...db.settings(), auto }); }

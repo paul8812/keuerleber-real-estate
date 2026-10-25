@@ -265,6 +265,19 @@ export async function del(col, id) {
   data[col] = data[col].filter(r => r.id !== id);
   await unpersist(col, id); emit();
 }
+// Viele Datensätze auf einmal löschen (ein Request je 100 statt je Datensatz, ein Neuzeichnen am Ende)
+export async function delMany(col, ids, onProgress) {
+  const set = new Set(ids); let n = 0;
+  if (cloud) {
+    for (let i = 0; i < ids.length; i += 100) {
+      const part = ids.slice(i, i + 100);
+      const { error } = await sb.from('records').delete().in('id', part);
+      if (error) { toast('Löschen fehlgeschlagen: ' + error.message, 'err'); throw error; }
+      data[col] = data[col].filter(r => !part.includes(r.id)); n += part.length; onProgress && onProgress(n, ids.length);
+    }
+  } else { data[col] = data[col].filter(r => !set.has(r.id)); saveLocal(); n = ids.length; }
+  emit(); return n;
+}
 export function nextNr(prefix, col, field = 'nr') {
   const n = data[col].reduce((m, r) => Math.max(m, parseInt((r[field] || '').replace(/\D/g, '')) || 0), 0) + 1;
   return prefix + String(n).padStart(4, '0');
