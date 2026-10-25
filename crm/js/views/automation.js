@@ -3,6 +3,7 @@ import { html, raw, toast, fmtDT, esc } from '../util.js';
 import { RULES, ruleCfg, run, enableNotify, notifyEnabled } from '../automation.js';
 import * as google from '../google.js';
 import * as anfragen from '../anfragen.js';
+import { aufraeumen } from './tasks.js';
 
 function mailCard() {
   const st = db.get('sync', 'mailsync'), s = st?.stats || {};
@@ -49,7 +50,7 @@ export function render(el) {
   const cfg = ruleCfg(), s = db.settings();
   const log = db.all('activities').filter(a => (a.text || '').startsWith('⚡')).sort((a, b) => b.datum.localeCompare(a.datum)).slice(0, 12);
   el.innerHTML = html`<div class="head"><div><h1>Automationen</h1><p class="muted">Laufen automatisch, sobald das CRM geöffnet ist (beim Start, alle 5 Minuten und beim Zurückkehren in den Tab).</p><p class="sicherhinweis">🔒 Das CRM verschickt <b>nie selbst</b> E-Mails oder Nachrichten. Automationen legen nur Aufgaben an – bei Mail-Aufgaben liegt über ✉ ein fertiger Entwurf bereit, den du prüfst und selbst aus Outlook sendest.</p></div><div class="actions"><button class="btn primary" data-run>⚡ Jetzt ausführen</button></div></div>
-    <div class="cols"><section class="card" style="grid-column:1/-1"><h2>Regeln</h2>
+    <div class="cols"><section class="card" style="grid-column:1/-1"><h2>Regeln</h2><div class="actions" style="margin-bottom:10px"><button type="button" class="btn" data-aufr>🧹 Automatisch angelegte Aufgaben löschen …</button></div>
       ${RULES.map(r => html`<div class="rule"><label class="sw"><input type="checkbox" data-on="${r.id}" ${cfg[r.id].on ? raw('checked') : ''}><i></i></label><div class="grow"><div class="ttl">${r.name}</div><div class="sub">${r.desc}</div></div>
         ${r.days != null ? html`<label class="rd"><input type="number" min="0" data-days="${r.id}" value="${cfg[r.id].days}"><small>${r.unit}</small></label>` : ''}</div>`)}
     </section>
@@ -75,6 +76,7 @@ export function render(el) {
     const b = e.currentTarget, box = el.querySelector('#stres'); b.disabled = true; box.innerHTML = '<p class="muted">Teste …</p>';
     try { const r = await anfragen.selbsttest(); box.innerHTML = html`<ul class="steps">${r.map(x => html`<li>${x.ok === true ? '✓' : x.ok === false ? '✗' : 'ℹ️'} <b>${x.t}</b>${x.hint ? html`<br><span class="muted small">${x.hint}</span>` : ''}</li>`)}</ul>`.s; }
     catch (x) { box.textContent = 'Fehler: ' + x.message; } b.disabled = false; });
+  el.querySelector('[data-aufr]')?.addEventListener('click', aufraeumen);
   const val = id => (el.querySelector('#' + id)?.value || '').trim();
   const q1 = sel => el.querySelector(sel), say = (id, t) => { const m = q1('#' + id); if (m) m.textContent = t; };
   const zeige = st => {

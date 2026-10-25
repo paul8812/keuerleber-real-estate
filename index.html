@@ -3387,13 +3387,13 @@ footer{flex-wrap:wrap}
 
     <div class="agb-section">
       <h4>Speicherung im Browser</h4>
-      <p>Ihre gewählte Sprache sowie Ihre Entscheidung zur Reichweitenmessung werden lokal in Ihrem Browser gespeichert (localStorage) und nicht an uns übertragen. Werbe-Cookies setzen wir nicht.</p>
+      <p>Ihre gewählte Sprache, Ihre Auswahl im Cookie-Hinweis sowie Merker dafür, ob Sie ein Hinweisfenster bereits geschlossen haben, werden lokal in Ihrem Browser gespeichert (localStorage/sessionStorage) und nicht an uns übertragen. Diese Speicherungen sind für den Betrieb der Seite erforderlich (§ 25 Abs. 2 TDDDG). Werbe-Cookies setzen wir nicht.</p>
     </div>
 
     <div class="agb-section">
       <h4>Reichweitenmessung mit Google Analytics</h4>
       <p>Wir nutzen Google Analytics 4, einen Dienst der Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland. Damit werten wir aus, wie oft unsere Seiten aufgerufen werden, welche Inhalte gelesen werden und über welche Quelle Besucher zu uns gelangen. Das hilft uns, das Angebot zu verbessern.</p>
-      <p><strong style="color:var(--offwhite);">Das geschieht ausschließlich mit Ihrer Einwilligung.</strong> Vor Ihrer Zustimmung wird kein Skript von Google geladen und es werden keine Cookies gesetzt. Rechtsgrundlage sind Art. 6 Abs. 1 lit. a DSGVO und § 25 Abs. 1 TDDDG. Sie können Ihre Einwilligung jederzeit über den Punkt „Statistik-Einstellungen“ in der Fußzeile widerrufen; bereits gesetzte Google-Cookies löschen wir dabei. Der Widerruf gilt ab dem Zeitpunkt der Erklärung.</p>
+      <p><strong style="color:var(--offwhite);">Das geschieht ausschließlich mit Ihrer Einwilligung.</strong> Vor Ihrer Zustimmung wird kein Skript von Google geladen und es werden keine Cookies gesetzt. Rechtsgrundlage sind Art. 6 Abs. 1 lit. a DSGVO und § 25 Abs. 1 TDDDG. Sie können Ihre Einwilligung jederzeit über den Punkt „Cookie-Einstellungen“ in der Fußzeile widerrufen; bereits gesetzte Google-Cookies löschen wir dabei. Der Widerruf gilt ab dem Zeitpunkt der Erklärung.</p>
       <p>Verarbeitet werden dabei insbesondere: gekürzte IP-Adresse (IP-Anonymisierung ist aktiviert), Datum und Uhrzeit des Aufrufs, aufgerufene Seiten, verweisende Seite, Gerätetyp, Browser, Betriebssystem und ungefährer Standort auf Stadtebene. Wir können daraus keine einzelnen Personen identifizieren.</p>
       <p>Google verarbeitet Daten auch in den Vereinigten Staaten. Google LLC ist unter dem EU-US Data Privacy Framework zertifiziert; für Übermittlungen bestehen zusätzlich Standardvertragsklauseln. Ein dem europäischen Recht gleichwertiges Schutzniveau kann dennoch nicht in jedem Fall garantiert werden — insbesondere ist ein Zugriff durch US-Behörden nicht vollständig auszuschließen. Mit Ihrer Einwilligung willigen Sie auch in diese Übermittlung ein (Art. 49 Abs. 1 lit. a DSGVO).</p>
       <p>Die Daten werden nach 14 Monaten automatisch gelöscht. Weitere Informationen: <span style="color:var(--cu-light);">policies.google.com/privacy</span>. Ein Browser-Zusatz zur Deaktivierung steht unter <span style="color:var(--cu-light);">tools.google.com/dlpage/gaoptout</span> bereit.</p>
@@ -3569,7 +3569,7 @@ footer{flex-wrap:wrap}
     Hauptstraße 12 · 95145 Oberkotzau &nbsp;·&nbsp;
     <a href="#impressum" onclick="openLegal(event)" data-i18n="footer_impressum">Impressum</a> &nbsp;·&nbsp;
     <a href="#datenschutz" onclick="openLegal(event)" data-i18n="footer_datenschutz">Datenschutz</a> &nbsp;·&nbsp;
-    <a href="#" onclick="ckOeffnen();return false;" data-i18n="footer_cookies">Statistik-Einstellungen</a>
+    <a href="#" onclick="ckOeffnen();return false;" data-i18n="footer_cookies">Cookie-Einstellungen</a>
   </div>
   <div class="foot-nav" role="navigation" aria-label="Seitenübersicht">
     <div><b data-i18n="nav_immobilien">Objekte</b><a href="#immobilien" data-i18n="tab_kaufen">Kaufen</a><a href="#vermietung" data-i18n="tab_mieten">Mieten</a></div>
@@ -3628,7 +3628,7 @@ const I18N = {
     book_notice:'<strong>Hinweis zur Terminbestätigung:</strong> Ihr Wunschtermin wird nach Eingang Ihrer Anfrage von uns geprüft. Sie erhalten innerhalb von 24 Stunden eine Bestätigung oder einen alternativen Terminvorschlag per E-Mail oder Telefon.', book_success_h:'Anfrage eingegangen!', book_success_p:'Vielen Dank — Ihre Terminanfrage wurde übermittelt. Wir melden uns innerhalb von <strong style="color:var(--cu-light);">24 Stunden</strong> bei Ihnen, um den Termin zu bestätigen oder einen alternativen Vorschlag zu machen.', book_success_notice:'<strong>Bitte beachten:</strong> Der Termin gilt erst nach ausdrücklicher Bestätigung durch uns als verbindlich vereinbart.', book_close:'Fenster schließen', book_submit:'Terminanfrage senden →',
     book_uhr:'Uhr', book_slotlabel:'Uhrzeit wählen — ',
     agb_title:'Allgemeine Geschäftsbedingungen', agb_sub:'Keuerleber Immobilien · Stand: September 2026', agb_accept:'Gelesen & verstanden ✓',
-    footer_impressum:'Impressum', ck_titel:'Dürfen wir mitzählen?', ck_text:'Wir würden gern mit Google Analytics erfassen, wie unsere Seite genutzt wird. Dabei werden Cookies gesetzt und Daten an Google übertragen, auch in die USA. Ohne Ihre Zustimmung passiert das nicht — die Website funktioniert vollständig auch ohne. Einzelheiten in den <a href="#" onclick="closeCk();openLegal(event);return false;">Datenschutzhinweisen</a>.', ck_ja:'Einverstanden', ck_nein:'Ablehnen', ck_aus:'Es ist derzeit keine Statistik aktiv.', footer_cookies:'Statistik-Einstellungen', footer_datenschutz:'Datenschutz', legal_title:'Impressum & Datenschutz', legal_sub:'Keuerleber Immobilien · Angaben gemäß § 5 DDG', legal_close:'Schließen',
+    footer_impressum:'Impressum', ck_titel:'Dürfen wir mitzählen?', ck_text:'Wir würden gern mit Google Analytics erfassen, wie unsere Seite genutzt wird. Dabei werden Cookies gesetzt und Daten an Google übertragen, auch in die USA. Ohne Ihre Zustimmung passiert das nicht — die Website funktioniert vollständig auch ohne. Einzelheiten in den <a href="#" onclick="closeCk();openLegal(event);return false;">Datenschutzhinweisen</a>.', ck_ja:'Einverstanden', ck_nein:'Ablehnen', ck_aus:'Es ist derzeit keine Statistik aktiv.', footer_cookies:'Cookie-Einstellungen', footer_datenschutz:'Datenschutz', legal_title:'Impressum & Datenschutz', legal_sub:'Keuerleber Immobilien · Angaben gemäß § 5 DDG', legal_close:'Schließen',
     nores_empty:'Aktuell sind keine Objekte online.', nores_empty_sub:'Neue Einheiten kommen laufend dazu — melden Sie sich für eine Vorab-Information.'
   },
   en: {
@@ -3673,7 +3673,7 @@ const I18N = {
     book_notice:'<strong>Note on appointment confirmation:</strong> Your preferred appointment will be reviewed by us once your request is received. You will receive a confirmation or an alternative proposal within 24 hours by email or phone.', book_success_h:'Request received!', book_success_p:'Thank you — your appointment request has been submitted. We will get back to you within <strong style="color:var(--cu-light);">24 hours</strong> to confirm the appointment or suggest an alternative.', book_success_notice:'<strong>Please note:</strong> The appointment is only binding once we have expressly confirmed it.', book_close:'Close window', book_submit:'Send appointment request →',
     book_uhr:'', book_slotlabel:'Choose a time — ',
     agb_title:'Terms & Conditions', agb_sub:'Keuerleber Immobilien · As of June 2026', agb_accept:'Read & understood ✓',
-    footer_impressum:'Imprint', ck_titel:'May we count your visit?', ck_text:'We would like to use Google Analytics to see how our site is used. This sets cookies and transfers data to Google, including to the USA. None of it happens without your consent — the website works fully without it. Details in our <a href="#" onclick="closeCk();openLegal(event);return false;">privacy notice</a>.', ck_ja:'I agree', ck_nein:'Decline', ck_aus:'No statistics are currently active.', footer_cookies:'Statistics settings', footer_datenschutz:'Privacy', legal_title:'Imprint & Privacy', legal_sub:'Keuerleber Immobilien · Information pursuant to § 5 DDG', legal_close:'Close',
+    footer_impressum:'Imprint', ck_titel:'May we count your visit?', ck_text:'We would like to use Google Analytics to see how our site is used. This sets cookies and transfers data to Google, including to the USA. None of it happens without your consent — the website works fully without it. Details in our <a href="#" onclick="closeCk();openLegal(event);return false;">privacy notice</a>.', ck_ja:'I agree', ck_nein:'Decline', ck_aus:'No statistics are currently active.', footer_cookies:'Cookie settings', footer_datenschutz:'Privacy', legal_title:'Imprint & Privacy', legal_sub:'Keuerleber Immobilien · Information pursuant to § 5 DDG', legal_close:'Close',
     nores_empty:'No properties online at the moment.', nores_empty_sub:'New units are added regularly — get in touch for advance information.'
   },
   es: {
@@ -3718,7 +3718,7 @@ const I18N = {
     book_notice:'<strong>Aviso sobre la confirmación:</strong> Su cita preferida será revisada por nosotros al recibir su solicitud. Recibirá una confirmación o una propuesta alternativa en 24 horas por correo o teléfono.', book_success_h:'¡Solicitud recibida!', book_success_p:'Gracias — su solicitud de cita ha sido enviada. Le contactaremos en un plazo de <strong style="color:var(--cu-light);">24 horas</strong> para confirmar la cita o proponer una alternativa.', book_success_notice:'<strong>Tenga en cuenta:</strong> La cita solo es vinculante una vez que la hayamos confirmado expresamente.', book_close:'Cerrar ventana', book_submit:'Enviar solicitud de cita →',
     book_uhr:'h', book_slotlabel:'Elegir hora — ',
     agb_title:'Condiciones Generales', agb_sub:'Keuerleber Immobilien · A fecha de junio de 2026', agb_accept:'Leído y entendido ✓',
-    footer_impressum:'Aviso legal', ck_titel:'¿Podemos contar su visita?', ck_text:'Nos gustaría usar Google Analytics para ver cómo se utiliza nuestra web. Para ello se instalan cookies y se transfieren datos a Google, también a EE. UU. Nada de esto ocurre sin su consentimiento: la web funciona por completo sin ello. Detalles en nuestra <a href="#" onclick="closeCk();openLegal(event);return false;">política de privacidad</a>.', ck_ja:'De acuerdo', ck_nein:'Rechazar', ck_aus:'Actualmente no hay estadísticas activas.', footer_cookies:'Ajustes de estadísticas', footer_datenschutz:'Privacidad', legal_title:'Aviso legal y privacidad', legal_sub:'Keuerleber Immobilien · Información según § 5 DDG', legal_close:'Cerrar',
+    footer_impressum:'Aviso legal', ck_titel:'¿Podemos contar su visita?', ck_text:'Nos gustaría usar Google Analytics para ver cómo se utiliza nuestra web. Para ello se instalan cookies y se transfieren datos a Google, también a EE. UU. Nada de esto ocurre sin su consentimiento: la web funciona por completo sin ello. Detalles en nuestra <a href="#" onclick="closeCk();openLegal(event);return false;">política de privacidad</a>.', ck_ja:'De acuerdo', ck_nein:'Rechazar', ck_aus:'Actualmente no hay estadísticas activas.', footer_cookies:'Ajustes de cookies', footer_datenschutz:'Privacidad', legal_title:'Aviso legal y privacidad', legal_sub:'Keuerleber Immobilien · Información según § 5 DDG', legal_close:'Cerrar',
     nores_empty:'Actualmente no hay inmuebles publicados.', nores_empty_sub:'Se añaden nuevas unidades con regularidad — contáctenos para información previa.'
   }
 };
@@ -4641,10 +4641,7 @@ var KRE_GA_ID = '';
     if (box) box.hidden = false;
   };
 
-  if (!KRE_GA_ID) return;              /* ohne Messkennung kein Banner */
-  var w = gespeichert();
-  if (w === 'ja') { gtag('consent','update',{analytics_storage:'granted'}); ladeGA(); }
-  else if (w !== 'nein' && box) { box.hidden = false; }
+  /* Banner und Einwilligung laufen jetzt zentral über consent.js (alle Seiten) */
 })();
 
 /* ══════════ HERO-VIDEO ══════════ */
@@ -6120,6 +6117,7 @@ Object.assign(I18N.de,{"next_q1": "Wie funktioniert das Ganze?", "next_b1": "Zum
 })();
 </script>
 <script src="/beratung-popup.js" defer></script>
+<script src="/consent.js" defer></script>
 <script src="/lead-sync.js" defer></script>
 </body>
 </html>
