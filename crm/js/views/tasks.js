@@ -1,5 +1,5 @@
 import * as db from '../db.js';
-import { html, today, addDays, fmtDate, toast } from '../util.js';
+import { html, today, addDays, fmtDate, toast, modal, confirmDlg } from '../util.js';
 import { taskForm } from '../forms.js';
 import { cLink, pLink, empty, badge } from '../ui.js';
 import { PRIOS } from '../consts.js';
@@ -48,17 +48,45 @@ export function bindTasks(el) {
   });
 }
 
+// Aufräumen: automatisch angelegte Aufgaben (z. B. „Erstkontakt“ nach einem Kontakt-Import) gesammelt löschen
+const grundName = t => (t.titel || '').replace(/^⚡ /, '').split(':')[0].replace(/\s*\(.*$/, '').trim() || 'Sonstige';
+function aufraeumen() {
+  const autos = db.all('tasks').filter(t => /^⚡ /.test(t.titel || '') || t.auto);
+  if (!autos.length) { toast('Keine automatisch angelegten Aufgaben vorhanden'); return; }
+  const gr = {}; autos.forEach(t => { const g = grundName(t); (gr[g] ||= []).push(t); });
+  const namen = Object.keys(gr).sort((a, b) => gr[b].length - gr[a].length);
+  const RULEMAP = { 'Erstkontakt': ['neuerInteressent'], 'Suchprofil erfragen': ['suchprofil'] };
+  const { el } = modal('Automatische Aufgaben löschen', html`
+    <p class="full muted">Wähle, welche vom CRM automatisch angelegten Aufgaben gelöscht werden sollen (z. B. die „Erstkontakt“-Aufgaben nach dem Kontakt-Import). Selbst angelegte Aufgaben bleiben unberührt. Die Kontakte selbst werden nicht angetastet.</p>
+    ${namen.map((n, i) => html`<label class="f chk full"><input type="checkbox" data-g="${i}" ${gr[n].some(t => !t.done) ? html`checked` : ''}><span>${n} <span class="muted">(${gr[n].length}, davon ${gr[n].filter(t => !t.done).length} offen)</span></span></label>`)}
+    <label class="f chk full"><input type="checkbox" data-erl><span>Auch bereits erledigte dieser Art löschen</span></label>
+    <label class="f chk full"><input type="checkbox" data-regeln checked><span>Passende Automatik-Regeln danach ausschalten, damit sie nicht neu entstehen (Automationen → Regeln)</span></label>`,
+    { saveLabel: 'Löschen', onSave: async (v, close) => {
+      const erl = el.querySelector('[data-erl]').checked, sel = namen.filter((n, i) => el.querySelector(`[data-g="${i}"]`).checked);
+      const del = sel.flatMap(n => gr[n]).filter(t => erl || !t.done);
+      if (!del.length) { toast('Nichts ausgewählt'); return false; }
+      if (!await confirmDlg(`${del.length} Aufgabe${del.length > 1 ? 'n' : ''} endgültig löschen?`)) return false;
+      for (const t of del) await db.del('tasks', t.id);
+      if (el.querySelector('[data-regeln]').checked) {
+        const ids = sel.flatMap(n => RULEMAP[n] || []);
+        if (ids.length) { const auto = { ...(db.settings().auto || {}) }; ids.forEach(id => { auto[id] = { ...(auto[id] || {}), on: false }; }); await db.saveSettings({ ...db.settings(), auto }); }
+      }
+      toast(`${del.length} Aufgabe${del.length > 1 ? 'n' : ''} gelöscht`);
+    } });
+}
+
 export function render(el) {
   const t0 = today(), wEnd = addDays(t0, 7);
   let list = db.all('tasks').filter(t => !prio || t.prio === prio);
   list = list.filter(t => filter === 'erledigt' ? t.done : !t.done && (filter === 'offen' || (filter === 'heute' ? (t.faellig && t.faellig <= t0) : (t.faellig && t.faellig <= wEnd))));
   list.sort((a, b) => (a.faellig || '9999').localeCompare(b.faellig || '9999') || (a.prio === 'hoch' ? -1 : 1));
   const open = db.all('tasks').filter(t => !t.done);
-  el.innerHTML = html`<div class="head"><h1>Aufgaben</h1><button class="btn primary" data-new>+ Aufgabe</button></div>
+  el.innerHTML = html`<div class="head"><h1>Aufgaben</h1><div class="actions"><button class="btn ghost" data-aufr title="Automatisch angelegte Aufgaben gesammelt löschen">🧹 Aufräumen</button><button class="btn primary" data-new>+ Aufgabe</button></div></div>
     <div class="chips">${FILTERS.map(([k, l]) => html`<button class="chip ${k === filter ? 'on' : ''}" data-f="${k}">${l}${k === 'heute' ? html` <i>${open.filter(t => t.faellig && t.faellig <= t0).length}</i>` : ''}</button>`)}
       <select data-prio class="chipsel"><option value="">Alle Prioritäten</option>${PRIOS.map(([v, l]) => html`<option value="${v}" ${v === prio ? html`selected` : ''}>${l}</option>`)}</select></div>
     <div class="card">${list.length ? html`<ul class="tasks">${list.map(taskRow)}</ul>` : empty('Keine Aufgaben in dieser Ansicht 🎉')}</div>`.s;
   el.querySelector('[data-new]').onclick = () => taskForm();
+  el.querySelector('[data-aufr]').onclick = aufraeumen;
   el.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { filter = b.dataset.f; render(el); });
   el.querySelector('[data-prio]').onchange = e => { prio = e.target.value; render(el); };
   bindTasks(el);
