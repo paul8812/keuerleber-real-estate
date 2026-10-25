@@ -121,7 +121,7 @@ function loginScreen({ mfa = false } = {}) {
   const setMode = m => { signup = m; btn.textContent = m ? 'Konto erstellen' : 'Anmelden'; tog.textContent = m ? 'Schon ein Konto? Anmelden' : 'Erstes Mal? Konto erstellen'; err.textContent = ''; form.password.autocomplete = m ? 'new-password' : 'current-password'; };
   tog.onclick = e => { e.preventDefault(); setMode(!signup); };
   let mfaMode = false;
-  const mfaStufe = () => { mfaMode = true; for (const n of ['email', 'password']) { form[n].hidden = true; form[n].required = false; } form.code.hidden = false; form.code.required = true; box.querySelector('.mfahint').hidden = false; btn.textContent = 'Bestätigen'; tog.hidden = true; box.querySelector('[data-forgot]').hidden = true; box.querySelector('[data-linkfix]').hidden = true; setTimeout(() => form.code.focus(), 50); };
+  const mfaStufe = () => { mfaMode = true; for (const n of ['email', 'password']) { form[n].hidden = true; form[n].required = false; } form.code.hidden = false; form.code.required = true; box.querySelector('.mfahint').hidden = false; box.querySelector('.mfamerken').hidden = false; btn.textContent = 'Bestätigen'; tog.hidden = true; box.querySelector('[data-forgot]').hidden = true; box.querySelector('[data-linkfix]').hidden = true; setTimeout(() => form.code.focus(), 50); };
   if (mfa) mfaStufe();
   if (db.AUTH_ERROR) err.textContent = db.AUTH_ERROR === 'otp_expired' ? 'Der Link aus der E-Mail ist abgelaufen oder wurde schon benutzt – bitte unten „Passwort vergessen?“ erneut klicken.' : 'Anmeldung über den Link fehlgeschlagen (' + db.AUTH_ERROR + ').';
   const lf = box.querySelector('.linkfix');
@@ -147,7 +147,7 @@ function loginScreen({ mfa = false } = {}) {
   form.onsubmit = async e => {
     e.preventDefault(); err.textContent = ''; btn.disabled = true;
     try {
-      if (mfaMode) { await db.mfaLogin(form.code.value); aktiv(); box.hidden = true; document.getElementById('app').hidden = false; shell(); if (db.RECOVERY) newPassword(); return; }
+      if (mfaMode) { const r = await db.mfaLogin(form.code.value, form.merken.checked); if (r.fehler) toast('Gerät nicht gemerkt: ' + r.fehler, 'err'); else if (r.gemerkt) toast('✓ Dieses Gerät wird 90 Tage gemerkt'); aktiv(); box.hidden = true; document.getElementById('app').hidden = false; shell(); if (db.RECOVERY) newPassword(); return; }
       const email = form.email.value.trim(), pw = form.password.value;
       if (signup) {
         if (pw.length < 8) throw new Error('Passwort mindestens 8 Zeichen');

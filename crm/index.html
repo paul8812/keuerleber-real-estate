@@ -20,7 +20,7 @@
     <img class="logoimg" src="../logo/Logo_gestapelt_gold.svg" alt="Keuerleber Immobilien">
     <input name="email" type="email" placeholder="E-Mail" required autocomplete="username">
     <input name="password" type="password" placeholder="Passwort" required autocomplete="current-password">
-    <p class="mfahint" hidden>🔐 Bitte den 6-stelligen Code aus deiner Authenticator-App eingeben.</p><input name="code" type="text" inputmode="numeric" pattern="[0-9 ]*" maxlength="7" placeholder="123 456" autocomplete="one-time-code" hidden>
+    <p class="mfahint" hidden>🔐 Bitte den 6-stelligen Code aus deiner Authenticator-App eingeben.</p><input name="code" type="text" inputmode="numeric" pattern="[0-9 ]*" maxlength="7" placeholder="123 456" autocomplete="one-time-code" hidden><label class="mfamerken" hidden style="display:flex;gap:8px;align-items:center;font-size:13px;margin:8px 0"><input type="checkbox" name="merken" checked> <span>Dieses Gerät 90 Tage merken</span></label>
     <button class="btn primary">Anmelden</button><p class="err"></p><div class="setup" hidden></div>
     <a href="#" data-forgot class="muted small">Passwort vergessen?</a>
     <div class="linkfix" hidden><small class="muted">Der Link aus der Mail führt zu „localhost“? Kopiere die komplette Adresse aus der Adresszeile der Fehlerseite hier hinein:</small><input name="linkfix" type="text" placeholder="http://localhost:3000/#access_token=…" autocomplete="off"></div>
