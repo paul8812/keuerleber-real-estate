@@ -50,9 +50,9 @@ export function bindTasks(el) {
 
 // Aufräumen: automatisch angelegte Aufgaben (z. B. „Erstkontakt“ nach einem Kontakt-Import) gesammelt löschen
 const grundName = t => (t.titel || '').replace(/^⚡ /, '').split(':')[0].replace(/\s*\(.*$/, '').trim() || 'Sonstige';
-function aufraeumen() {
+export function aufraeumen() {
   const autos = db.all('tasks').filter(t => /^⚡ /.test(t.titel || '') || t.auto);
-  if (!autos.length) { toast('Keine automatisch angelegten Aufgaben vorhanden'); return; }
+  if (!db.all('tasks').length) { toast('Es gibt keine Aufgaben'); return; }
   const gr = {}; autos.forEach(t => { const g = grundName(t); (gr[g] ||= []).push(t); });
   const namen = Object.keys(gr).sort((a, b) => gr[b].length - gr[a].length);
   const RULEMAP = { 'Erstkontakt': ['neuerInteressent'], 'Suchprofil erfragen': ['suchprofil'] };
@@ -60,15 +60,17 @@ function aufraeumen() {
     <p class="full muted">Wähle, welche vom CRM automatisch angelegten Aufgaben gelöscht werden sollen (z. B. die „Erstkontakt“-Aufgaben nach dem Kontakt-Import). Selbst angelegte Aufgaben bleiben unberührt. Die Kontakte selbst werden nicht angetastet.</p>
     ${namen.map((n, i) => html`<label class="f chk full"><input type="checkbox" data-g="${i}" ${gr[n].some(t => !t.done) ? html`checked` : ''}><span>${n} <span class="muted">(${gr[n].length}, davon ${gr[n].filter(t => !t.done).length} offen)</span></span></label>`)}
     <label class="f chk full"><input type="checkbox" data-erl><span>Auch bereits erledigte dieser Art löschen</span></label>
+    <label class="f chk full" style="margin-top:6px"><input type="checkbox" data-alle><span><b>Wirklich ALLE ${db.all('tasks').length} Aufgaben löschen</b> (auch selbst angelegte; überschreibt die Auswahl oben)</span></label>
     <label class="f chk full"><input type="checkbox" data-regeln checked><span>Passende Automatik-Regeln danach ausschalten, damit sie nicht neu entstehen (Automationen → Regeln)</span></label>`,
     { saveLabel: 'Löschen', onSave: async (v, close) => {
       const erl = el.querySelector('[data-erl]').checked, sel = namen.filter((n, i) => el.querySelector(`[data-g="${i}"]`).checked);
-      const del = sel.flatMap(n => gr[n]).filter(t => erl || !t.done);
+      const alle = el.querySelector('[data-alle]').checked;
+      const del = alle ? db.all('tasks').slice() : sel.flatMap(n => gr[n]).filter(t => erl || !t.done);
       if (!del.length) { toast('Nichts ausgewählt'); return false; }
       if (!await confirmDlg(`${del.length} Aufgabe${del.length > 1 ? 'n' : ''} endgültig löschen?`)) return false;
       for (const t of del) await db.del('tasks', t.id);
       if (el.querySelector('[data-regeln]').checked) {
-        const ids = sel.flatMap(n => RULEMAP[n] || []);
+        const ids = alle ? ['neuerInteressent', 'suchprofil', 'dubletten'] : sel.flatMap(n => RULEMAP[n] || []);
         if (ids.length) { const auto = { ...(db.settings().auto || {}) }; ids.forEach(id => { auto[id] = { ...(auto[id] || {}), on: false }; }); await db.saveSettings({ ...db.settings(), auto }); }
       }
       toast(`${del.length} Aufgabe${del.length > 1 ? 'n' : ''} gelöscht`);

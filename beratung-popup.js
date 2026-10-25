@@ -209,6 +209,9 @@
 
   function blocked() {
     var b = document.body;
+    var ck = document.getElementById('kpC'); if (ck && ck.classList.contains('on')) return true;   /* Cookie-Hinweis zuerst */
+    var cs = null; try { cs = localStorage.getItem('kp-consent'); } catch (e) {}
+    if (!cs && !TEST && document.getElementById('kpC') !== null) return true;
     if (!b || document.documentElement.classList.contains('intro-lock')) return true;
     if (getComputedStyle(b).overflow === 'hidden') return true;            // anderes Modal offen
     var a = document.activeElement;
