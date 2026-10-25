@@ -44,7 +44,7 @@ export async function init() {
       const { data: s } = await sb.auth.getSession();
       cloud = true;
       if (!s.session) return { needsLogin: true };
-      if (await needsMfa()) return { needsLogin: true, needsMfa: true };
+      if (await needsMfa() && !(await geraetOk())) return { needsLogin: true, needsMfa: true };
       await loadCloud();
       return { ok: true };
     } catch (e) {
@@ -57,17 +57,24 @@ export async function init() {
 export async function login(email, password) {
   const { error } = await sb.auth.signInWithPassword({ email, password });
   if (error) throw error;
-  if (await needsMfa()) return 'mfa';
+  if (await needsMfa() && !(await geraetOk())) return 'mfa';
   await loadCloud(); return 'ok';
 }
 // ---------- Zwei-Faktor-Anmeldung (TOTP, Authenticator-App) ----------
 export async function needsMfa() { const { data } = await sb.auth.mfa.getAuthenticatorAssuranceLevel(); return !!data && data.nextLevel === 'aal2' && data.currentLevel !== 'aal2'; }
 export const mfaFactors = async () => ((await sb.auth.mfa.listFactors()).data?.totp || []).filter(f => f.status === 'verified');
-export async function mfaLogin(code) {
+export async function mfaLogin(code, merken = false) {
   const f = (await mfaFactors())[0]; if (!f) throw new Error('Keine Zwei-Faktor-App eingerichtet');
   const { error } = await sb.auth.mfa.challengeAndVerify({ factorId: f.id, code: String(code).replace(/\D/g, '') });
   if (error) throw new Error(/invalid|expired/i.test(error.message) ? 'Code falsch oder abgelaufen – bitte den aktuellen Code eingeben.' : error.message);
+  let gemerkt = false, fehler = '';
+  if (merken) {
+    const r = await sb.rpc('geraet_merken');
+    if (r.error || typeof r.data !== 'string') fehler = /geraet_merken|schema cache|not find|does not exist|PGRST202/i.test(r.error?.message || '') ? 'Der Server-Teil fehlt noch (Einstellungen → Sicherheit → „Gerät merken“ einrichten).' : (r.error?.message || 'Unbekannter Fehler');
+    else { try { localStorage.setItem(GERAET_KEY, r.data); gemerkt = true; } catch { fehler = 'Der Browser erlaubt kein Speichern.'; } }
+  }
   await loadCloud();
+  return { gemerkt, fehler };
 }
 export async function mfaEnroll() {
   for (const f of ((await sb.auth.mfa.listFactors()).data?.all || []).filter(f => f.status !== 'verified')) await sb.auth.mfa.unenroll({ factorId: f.id });
@@ -76,7 +83,85 @@ export async function mfaEnroll() {
 }
 export async function mfaConfirm(factorId, code) { const { error } = await sb.auth.mfa.challengeAndVerify({ factorId, code: String(code).replace(/\D/g, '') }); if (error) throw new Error(/invalid|expired/i.test(error.message) ? 'Code falsch – bitte den aktuellen 6-stelligen Code eingeben.' : error.message); }
 export async function mfaRemove(factorId) { const { error } = await sb.auth.mfa.unenroll({ factorId }); if (error) throw error; }
-export async function logoutAll() { if (sb) await sb.auth.signOut({ scope: 'global' }); location.reload(); }
+export async function logoutAll() { await geraeteVergessen().catch(() => {}); if (sb) await sb.auth.signOut({ scope: 'global' }); location.reload(); }
+// ---------- Gerät 90 Tage merken (2FA-Code entfällt auf diesem Gerät) ----------
+const GERAET_KEY = 'kre-crm-geraet';
+export const geraetGemerkt = () => { try { return !!localStorage.getItem(GERAET_KEY); } catch { return false; } };
+async function geraetOk() {
+  let t = null; try { t = localStorage.getItem(GERAET_KEY); } catch { /* egal */ }
+  if (!t) return false;
+  const { data, error } = await sb.rpc('geraet_pruefen', { t });
+  if (error) return false;                                  // Server-Teil fehlt oder Netzfehler: Code abfragen
+  if (data !== true) { try { localStorage.removeItem(GERAET_KEY); } catch { /* egal */ } return false; }   // abgelaufen/widerrufen
+  return true;
+}
+export async function geraeteVergessen() {
+  try { localStorage.removeItem(GERAET_KEY); } catch { /* egal */ }
+  const { error } = await sb.rpc('geraete_vergessen'); if (error) throw error;
+}
+export const GERAET_SQL = `create schema if not exists privat;
+revoke all on schema privat from public, anon, authenticated;
+create table if not exists privat.geraete (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  token_hash text not null unique,
+  bis timestamptz not null,
+  created_at timestamptz not null default now()
+);
+create table if not exists privat.vertraute_sitzungen (
+  session_id uuid primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  bis timestamptz not null
+);
+alter table privat.geraete enable row level security;
+alter table privat.vertraute_sitzungen enable row level security;
+revoke all on privat.geraete, privat.vertraute_sitzungen from public, anon, authenticated;
+
+-- Ist die Anfrage ausreichend abgesichert? 2FA-Code bestätigt (aal2) ODER diese Sitzung gehört zu einem gemerkten Gerät
+create or replace function public.mfa_ok() returns boolean language sql stable security definer set search_path = public, privat as $$
+  select coalesce((auth.jwt()->>'aal') = 'aal2', false)
+      or exists (select 1 from privat.vertraute_sitzungen s
+                 where s.user_id = auth.uid() and s.bis > now()
+                   and s.session_id = nullif(auth.jwt()->>'session_id', '')::uuid)
+$$;
+
+-- Nach bestätigtem 2FA-Code: dieses Gerät 90 Tage merken. Gibt den geheimen Geräte-Schlüssel zurück (nur sein Hash wird gespeichert).
+create or replace function public.geraet_merken() returns text language plpgsql security definer set search_path = public, privat as $$
+declare t text := replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', ''); sid uuid := nullif(auth.jwt()->>'session_id', '')::uuid;
+begin
+  if auth.uid() is null or coalesce(auth.jwt()->>'aal', '') <> 'aal2' then raise exception 'Zuerst den 2FA-Code bestätigen'; end if;
+  delete from privat.geraete where bis < now(); delete from privat.vertraute_sitzungen where bis < now();
+  insert into privat.geraete (user_id, token_hash, bis) values (auth.uid(), encode(sha256(convert_to(t, 'utf8')), 'hex'), now() + interval '90 days');
+  if sid is not null then insert into privat.vertraute_sitzungen (session_id, user_id, bis) values (sid, auth.uid(), now() + interval '90 days') on conflict (session_id) do update set bis = excluded.bis; end if;
+  return t;
+end $$;
+
+-- Beim Anmelden auf einem gemerkten Gerät: Schlüssel prüfen und die neue Sitzung als vertraut markieren
+create or replace function public.geraet_pruefen(t text) returns boolean language plpgsql security definer set search_path = public, privat as $$
+declare g privat.geraete; sid uuid := nullif(auth.jwt()->>'session_id', '')::uuid;
+begin
+  if auth.uid() is null or sid is null or coalesce(t, '') = '' then return false; end if;
+  select * into g from privat.geraete where user_id = auth.uid() and token_hash = encode(sha256(convert_to(t, 'utf8')), 'hex') and bis > now();
+  if not found then return false; end if;
+  insert into privat.vertraute_sitzungen (session_id, user_id, bis) values (sid, auth.uid(), g.bis) on conflict (session_id) do update set bis = excluded.bis;
+  return true;
+end $$;
+
+-- Alle gemerkten Geräte vergessen (setzt bei der nächsten Anmeldung wieder den Code voraus)
+create or replace function public.geraete_vergessen() returns void language plpgsql security definer set search_path = public, privat as $$
+begin
+  if auth.uid() is null or not public.mfa_ok() then raise exception 'Nicht angemeldet'; end if;
+  delete from privat.geraete where user_id = auth.uid(); delete from privat.vertraute_sitzungen where user_id = auth.uid();
+end $$;
+
+revoke all on function public.mfa_ok(), public.geraet_merken(), public.geraet_pruefen(text), public.geraete_vergessen() from public, anon;
+grant execute on function public.mfa_ok(), public.geraet_merken(), public.geraet_pruefen(text), public.geraete_vergessen() to authenticated;
+
+-- 2FA auf dem Server erzwingen (Code ODER gemerktes Gerät)
+drop policy if exists "eigene Daten" on public.records;
+create policy "eigene Daten" on public.records for all to authenticated
+  using (user_id = auth.uid() and (select public.mfa_ok()))
+  with check (user_id = auth.uid() and (select public.mfa_ok()));`;
 export async function resetPassword(email) {
   const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
   if (error) throw error;

@@ -128,12 +128,18 @@ async function mfaBox(el) {
   try { f = await db.mfaFactors(); } catch (e) { box.textContent = '2FA nicht verfügbar: ' + e.message; return; }
   if (f.length) {
     box.innerHTML = html`<p class="ok">✓ Aktiv – bei jeder Anmeldung wird zusätzlich der Code aus deiner Authenticator-App abgefragt.</p>
+      <details style="margin-top:10px"><summary>📱 Geräte 90 Tage merken ${db.geraetGemerkt() ? '(dieses Gerät ist gemerkt)' : ''}</summary>
+        <p class="muted small" style="margin:8px 0">Auf einem gemerkten Gerät entfällt der Code 90 Tage lang. Das Passwort wird weiter abgefragt. Der Server-Teil (einmalig im Supabase-SQL-Editor ausführen) ersetzt außerdem den Server-Schutz unten, du brauchst also nur dieses SQL:</p>
+        <pre class="sqlbox">${db.GERAET_SQL}</pre>
+        <div class="actions"><button type="button" class="btn" data-geraetsql>SQL kopieren</button><a class="btn" target="_blank" rel="noopener" href="${db.SQL_URL()}">SQL-Editor öffnen</a><button type="button" class="btn ghost" data-geraetweg>Alle gemerkten Geräte vergessen</button></div></details>
       <details style="margin-top:10px"><summary>🛡 Letzter Schritt: 2FA auch auf dem Server erzwingen (empfohlen)</summary>
         <p class="muted small" style="margin:8px 0">Dann gibt die Datenbank selbst ohne 2FA-Code keine einzige Zeile heraus – auch nicht, wenn jemand dein Passwort hätte und das CRM umgeht. Einmal im Supabase-SQL-Editor ausführen:</p>
         <pre class="sqlbox">${MFA_SQL}</pre>
         <div class="actions"><button type="button" class="btn" data-sqlcopy>SQL kopieren</button><a class="btn" target="_blank" rel="noopener" href="${db.SQL_URL()}">SQL-Editor öffnen</a></div>
         <p class="muted small" style="margin-top:6px">Läuft der Mail-Abgleich auf dem Mac: danach dort einmal „Einrichten“ starten (fragt den Code ab).</p></details>
       <div class="actions" style="margin-top:8px"><button type="button" class="btn ghost" data-mfaoff>2FA entfernen</button></div>`.s;
+    box.querySelector('[data-geraetsql]').onclick = async () => { await navigator.clipboard.writeText(db.GERAET_SQL); toast('SQL kopiert'); };
+    box.querySelector('[data-geraetweg]').onclick = async () => { try { await db.geraeteVergessen(); toast('Alle Geräte vergessen – nächste Anmeldung fragt wieder den Code'); } catch (e) { toast('Nicht möglich: ' + e.message, 'err'); } };
     box.querySelector('[data-sqlcopy]').onclick = async () => { await navigator.clipboard.writeText(MFA_SQL); toast('SQL kopiert'); };
     box.querySelector('[data-mfaoff]').onclick = async () => { if (!await confirmDlg('2FA wirklich entfernen? Dann reicht wieder allein das Passwort. Hast du den Server-Schutz aktiviert, musst du ihn vorher im SQL-Editor zurücknehmen – sonst sperrst du dich aus.')) return; try { await db.mfaRemove(f[0].id); toast('2FA entfernt'); mfaBox(el); } catch (x) { toast(x.message, 'err'); } };
     return;
