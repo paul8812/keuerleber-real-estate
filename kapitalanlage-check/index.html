@@ -85,7 +85,7 @@ function result(){
     if(!n||t.replace(/\D/g,'').length<6){h.textContent='Bitte Name und gültige Telefonnummer angeben.';return}
     if(!f.ok.checked){h.textContent='Bitte bestätigen Sie die Einwilligung.';return}
     if(f.bc.value)return;var b=f.querySelector('.b');b.disabled=true;b.textContent='Wird gesendet…';
-    send('Kapitalanlage-Check (Rückruf): '+n,{name:n,'Telefon':t,'E-Mail':m,'Ergebnis':tier,'Punkte':s+' von 14','Seite':location.pathname},'RÜCKRUF-WUNSCH — KAPITALANLAGE-CHECK\n\nName: '+n+'\nTelefon: '+t+'\nE-Mail: '+(m||'—')+'\nErgebnis: '+tier+' ('+s+' von 14 Punkten)\n\n'+sum,
+    send('Kapitalanlage-Check (Rückruf): '+n,{name:n,'Telefon':t,'E-Mail':m,'Ergebnis':tier,'Punkte':s+' von 12','Seite':location.pathname},'RÜCKRUF-WUNSCH — KAPITALANLAGE-CHECK\n\nName: '+n+'\nTelefon: '+t+'\nE-Mail: '+(m||'—')+'\nErgebnis: '+tier+' ('+s+' von 12 Punkten)\n\n'+sum,
      function(){el.innerHTML='<div class="kq-res"><b class="t">Vielen Dank, '+esc(n.split(' ')[0])+'!</b><p style="margin:0">Wir rufen Sie werktags innerhalb von 24 Stunden zurück.</p></div><p><a class="btn ghost" href="/ratgeber/">Bis dahin: Ratgeber lesen</a></p>'},
      function(){b.disabled=false;b.textContent='Rückruf anfordern';h.innerHTML='Das Senden hat nicht geklappt. Bitte rufen Sie uns an: <a href="tel:+4915167692176">+49 151 67692176</a>'})}
 }

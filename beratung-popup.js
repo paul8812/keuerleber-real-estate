@@ -23,6 +23,7 @@
       btn: 'Rückruf anfordern', send: 'Wird gesendet…',
       call: 'Lieber gleich sprechen?', cal: 'Termin im Kalender wählen →', quiz: '2-Minuten-Check: Passt Kapitalanlage zu mir? →', close: 'Schließen', later: 'Nein danke',
       errTel: 'Bitte geben Sie Name und eine gültige Telefonnummer an.',
+      errMail: 'Bitte geben Sie eine gültige E-Mail-Adresse an.',
       errOk: 'Bitte bestätigen Sie die Einwilligung.',
       errNet: 'Das Senden hat nicht geklappt. Bitte rufen Sie uns an: ',
       thx: 'Vielen Dank', thxP: 'Wir rufen Sie werktags innerhalb von 24 Stunden zurück.'
@@ -37,6 +38,7 @@
       btn: 'Request a call back', send: 'Sending…',
       call: 'Prefer to talk right away?', cal: 'Pick a time in the calendar →', quiz: '', close: 'Close', later: 'No thanks',
       errTel: 'Please enter your name and a valid phone number.',
+      errMail: 'Please enter a valid email address.',
       errOk: 'Please confirm your consent.',
       errNet: 'Sending failed. Please call us: ',
       thx: 'Thank you', thxP: 'We will call you back within 24 hours on working days.'
@@ -51,6 +53,7 @@
       btn: 'Solicitar llamada', send: 'Enviando…',
       call: '¿Prefiere hablar ahora?', cal: 'Elegir cita en el calendario →', quiz: '', close: 'Cerrar', later: 'No, gracias',
       errTel: 'Indique su nombre y un teléfono válido.',
+      errMail: 'Indique un correo electrónico válido.',
       errOk: 'Confirme su consentimiento.',
       errNet: 'No se pudo enviar. Llámenos: ',
       thx: 'Gracias', thxP: 'Le llamaremos en un plazo de 24 horas en días laborables.'
@@ -176,7 +179,7 @@
     hint.style.color = '#e0a07a';
     if (!name || tel.replace(/\D/g, '').length < 6) { hint.textContent = l.errTel; return; }
     if (!f.querySelector('#kpBo').checked) { hint.textContent = l.errOk; return; }
-    if (mail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)) { hint.textContent = l.errTel; return; }
+    if (mail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)) { hint.textContent = l.errMail; return; }
     if (f.botcheck.value) return;
     hint.textContent = ''; btn.disabled = true; btn.textContent = l.send;
     var zeit = f.zeit.value, seite = location.pathname;
