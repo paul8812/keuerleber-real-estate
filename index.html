@@ -89,11 +89,11 @@
 (function(){try{
   var r=document.documentElement;
   var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  /* Intro nur beim ersten Besuch einer Sitzung und nicht bei Direktlinks (#...) */
-  var seen=false; try{seen=sessionStorage.getItem('kp-intro')==='1';}catch(e){}
+  /* Intro höchstens alle 12 Stunden pro Gerät, nicht bei Direktlinks (#...) und nicht bei reduzierter Bewegung */
+  var seen=false; try{seen=sessionStorage.getItem('kp-intro')==='1'||(Date.now()-parseInt(localStorage.getItem('kp-intro-t')||'0',10))<12*3600e3;}catch(e){}
   var deep=location.hash.length>1;
   if(reduce||seen||deep){ r.className+=' no-intro'; }
-  else{ r.className+=' intro-lock'; try{sessionStorage.setItem('kp-intro','1');}catch(e){}
+  else{ r.className+=' intro-lock'; try{sessionStorage.setItem('kp-intro','1');localStorage.setItem('kp-intro-t',String(Date.now()));}catch(e){}
     setTimeout(function(){r.classList.remove('intro-lock');},2800); }  /* Notbremse */
 }catch(e){}})();
 </script>
@@ -6117,6 +6117,43 @@ Object.assign(I18N.de,{"next_q1": "Wie funktioniert das Ganze?", "next_b1": "Zum
 })();
 </script>
 <script src="/beratung-popup.js" defer></script>
+<script>
+/* Merkt Scrollposition und gewählte Reiter und stellt sie nach Neuladen, Zurück oder erneutem Öffnen wieder her.
+   (Safari am iPhone verwirft Tabs oft; ohne das landet man wieder ganz oben im Hero.) */
+(function(){
+  var KEY='kp-pos', root=document.documentElement, ready=false, moved=false, to;
+  try{history.scrollRestoration='manual';}catch(e){}
+  var type='navigate'; try{type=performance.getEntriesByType('navigation')[0].type;}catch(e){}
+  var intern=false; try{intern=!!document.referrer&&new URL(document.referrer).host===location.host&&type==='navigate';}catch(e){}
+  var saved=null; try{saved=JSON.parse(localStorage.getItem(KEY));}catch(e){}
+  var age=saved?Date.now()-saved.t:1e12, again=(type==='reload'||type==='back_forward');
+  var ok=!!saved&&saved.y>400&&(again?age<6*3600e3:(!intern&&!location.hash&&age<30*60e3));
+  ['wheel','touchstart','keydown','mousedown'].forEach(function(ev){addEventListener(ev,function(){moved=true;},{passive:true,once:true});});
+  function tabs(){var o={};[].forEach.call(document.querySelectorAll('.hub'),function(h){var b=h.querySelector('.hub-tab[aria-selected="true"]');if(b&&h.id)o[h.id]=b.dataset.target;});return o;}
+  function save(){
+    if(!ready||root.classList.contains('intro-lock'))return;
+    var y=Math.round(window.pageYOffset);
+    try{ if(y<400)localStorage.removeItem(KEY); else localStorage.setItem(KEY,JSON.stringify({y:y,t:Date.now(),tabs:tabs()})); }catch(e){}
+  }
+  addEventListener('scroll',function(){clearTimeout(to);to=setTimeout(save,400);},{passive:true});
+  addEventListener('pagehide',save);
+  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')save();});
+  function restore(){
+    var t=saved.tabs||{};
+    Object.keys(t).forEach(function(id){var h=document.getElementById(id);if(!h)return;var b=h.querySelector('.hub-tab[data-target="'+t[id]+'"]');if(b&&b.getAttribute('aria-selected')!=='true')b.click();});
+    [150,700,1400,2200,3000].forEach(function(d,i,a){setTimeout(function(){
+      if(!moved)window.scrollTo({top:saved.y,behavior:'auto'});
+      if(i===a.length-1)ready=true;
+    },d);});
+  }
+  function start(){
+    if(root.classList.contains('intro-lock')){setTimeout(start,200);return;}
+    if(ok)restore(); else ready=true;
+  }
+  if(document.readyState==='complete')start(); else addEventListener('load',function(){setTimeout(start,50);});
+  setTimeout(function(){ready=true;},9000);
+})();
+</script>
 <script src="/consent.js" defer></script>
 <script src="/lead-sync.js" defer></script>
 </body>
