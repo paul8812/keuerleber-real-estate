@@ -3,29 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="description" content="Tim Rammensee — Cinematic photography & film. Weddings, automotive, reels & social-media content with a feel for light, motion and emotion.">
+<title>Tim Rammensee — Wedding &amp; Car Photographer and Filmmaker, Hof</title>
+<meta name="description" content="Tim Rammensee, photographer and filmmaker from Hof in Bavaria. Weddings, cars and reels — photo and film from one person, across Germany and abroad.">
 <meta name="author" content="Tim Rammensee">
-<meta name="theme-color" content="#f8f5ef">
-<meta property="og:title" content="Tim Rammensee — Cinematic Photography & Film">
-<meta property="og:description" content="Weddings · Automotive · Reels · Social Media. Stories that move.">
+<meta name="theme-color" content="#ebe9e4">
+<meta property="og:title" content="Tim Rammensee — Weddings and cars, on film">
+<meta property="og:description" content="Photographer and filmmaker from Hof, Bavaria. Weddings, cars and reels across Germany and abroad.">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="en_US">
 <meta property="og:locale:alternate" content="de_DE">
 <meta property="og:url" content="https://tim-rammensee.de/">
 <meta property="og:image" content="https://tim-rammensee.de/assets/og.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Tim Rammensee — Cinematic Photography & Film">
-<meta name="twitter:description" content="Weddings · Automotive · Reels · Social Media. Stories that move.">
 <meta name="twitter:image" content="https://tim-rammensee.de/assets/og.jpg">
 <link rel="canonical" href="https://tim-rammensee.de/">
-<title>Tim Rammensee — Cinematic Photography &amp; Film</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/jakarta.woff2" crossorigin>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@graph": [
     {
       "@type": "ProfessionalService",
-      "name": "Tim Rammensee Photography & Film",
+      "name": "Tim Rammensee — Photo & Film",
       "image": "https://tim-rammensee.de/assets/og.jpg",
       "url": "https://tim-rammensee.de/",
       "email": "smmmtimrammensee@icloud.com",
@@ -34,1406 +37,749 @@
       "founder": { "@type": "Person", "name": "Tim Rammensee", "jobTitle": "Photographer & Filmmaker" },
       "sameAs": ["https://instagram.com/tim.rxme"],
       "address": { "@type": "PostalAddress", "streetAddress": "Jungholzweg 24", "postalCode": "95030", "addressLocality": "Hof", "addressRegion": "Bavaria", "addressCountry": "DE" }
-    },
-    {
-      "@type": "FAQPage",
-      "mainEntity": [
-        { "@type": "Question", "name": "How far in advance should I book?", "acceptedAnswer": { "@type": "Answer", "text": "For weddings, 6–12 months ahead is ideal as dates fill up quickly. Automotive and reel shoots are usually possible within a few weeks — just ask." } },
-        { "@type": "Question", "name": "Do you travel?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. I'm based in Bavaria but shoot all over Germany and internationally. Travel beyond the region is added at cost and always agreed upfront." } },
-        { "@type": "Question", "name": "When will I get my photos and videos?", "acceptedAnswer": { "@type": "Answer", "text": "You'll receive a small sneak peek within a few days. Full galleries land in 2–4 weeks, wedding films in 4–6 weeks, depending on the season." } },
-        { "@type": "Question", "name": "Do you also handle posting and social media?", "acceptedAnswer": { "@type": "Answer", "text": "Yes — with the social-media package I plan, cut and schedule your content, so your channels stay active and keep growing." } },
-        { "@type": "Question", "name": "What does a shoot cost?", "acceptedAnswer": { "@type": "Answer", "text": "After a short call I send a fixed, tailored quote — so there are no surprises." } }
-      ]
     }
   ]
 }
 </script>
-<link rel="preconnect" href="https://images.unsplash.com" crossorigin>
-<link rel="preload" as="image" fetchpriority="high" href="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80">
-<link rel="preload" as="font" type="font/woff2" href="assets/fonts/jakarta.woff2" crossorigin>
-<link rel="preload" as="font" type="font/woff2" href="assets/fonts/fraunces.woff2" crossorigin>
 <style>
-@font-face{font-family:'Fraunces';font-style:normal;font-weight:400 600;font-display:swap;src:url('assets/fonts/fraunces.woff2') format('woff2');}
-@font-face{font-family:'Fraunces';font-style:italic;font-weight:400 500;font-display:swap;src:url('assets/fonts/fraunces-italic.woff2') format('woff2');}
 @font-face{font-family:'Plus Jakarta Sans';font-style:normal;font-weight:300 700;font-display:swap;src:url('assets/fonts/jakarta.woff2') format('woff2');}
+
+:root{
+  --bg:#ebe9e4;
+  --surface:#e1ded8;
+  --ink:#15120f;
+  --muted:#554f48;
+  --field:#191613;
+  --field-2:#221e1a;
+  --field-ink:#ecebe7;
+  --field-muted:#b8b1a7;
+  --sans:'Plus Jakarta Sans',system-ui,-apple-system,'Helvetica Neue',sans-serif;
+  --s-small:0.875rem;
+  --s-body:clamp(1.0625rem,1rem + .25vw,1.1875rem);
+  --s-lead:clamp(1.25rem,1.1rem + .7vw,1.625rem);
+  --s-head:clamp(2rem,1.3rem + 3.2vw,4rem);
+  --s-display:clamp(2.75rem,1.2rem + 6vw,5.5rem);
+  --edge:12px;
+  --pad:clamp(20px,4.4vw,64px);
+  --bar:64px;
+  --ease:cubic-bezier(.16,.84,.28,1);
+  --ease-io:cubic-bezier(.76,0,.24,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-padding-top:calc(var(--bar) + 12px)}
+body{font-family:var(--sans);font-size:var(--s-body);line-height:1.5;letter-spacing:-.01em;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img,video{display:block;max-width:100%}
+a{color:inherit}
+button{font:inherit;color:inherit;cursor:pointer}
+::selection{background:var(--ink);color:var(--bg)}
+:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:8px;z-index:500;background:var(--ink);color:var(--bg);padding:12px 18px}
+.skip:focus{left:12px}
+h1,h2,h3{font-weight:500;letter-spacing:-.03em;line-height:1.05}
+h2{font-size:var(--s-head)}
+p{max-width:46ch}
+
+/* ---------- bar ---------- */
+.bar{position:fixed;inset:0 0 auto 0;height:var(--bar);z-index:100;background:var(--bg);display:flex;align-items:center;gap:28px;padding:0 calc(var(--edge) + var(--pad));transition:transform .5s var(--ease)}
+.bar.hide{transform:translateY(-100%)}
+.mark{display:flex;align-items:center;text-decoration:none;margin-right:auto}
+.mark svg{height:34px;width:auto}
+.mark .ln{stroke:var(--ink)}
+.links{display:flex;gap:26px;list-style:none}
+.links a,.lang button{font-size:var(--s-small);text-decoration:none;color:var(--muted);transition:color .2s;background:none;border:0;padding:6px 0}
+.links a:hover,.links a.on{color:var(--ink)}
+.lang{display:flex;gap:10px}
+.lang button[aria-pressed="true"]{color:var(--ink);font-weight:600}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:52px;padding:0 26px;background:var(--ink);color:var(--bg);border:0;text-decoration:none;font-size:var(--s-small);font-weight:600;letter-spacing:0;transition:background .25s,transform .2s var(--ease)}
+.btn:hover{background:#38322b}
+.btn:active{transform:scale(.97)}
+.btn .arr{display:inline-block;transition:transform .35s var(--ease)}
+.btn:hover .arr{transform:translateX(5px)}
+.bar .btn{min-height:42px;padding:0 18px}
+
+/* ---------- split stage ---------- */
+.split{display:grid;grid-template-columns:45fr 55fr;gap:var(--edge);padding:var(--bar) var(--edge) 0}
+.read{min-width:0}
+.stage{position:sticky;top:var(--bar);height:calc(100svh - var(--bar) - var(--edge));background:var(--field);overflow:hidden}
+.gate{position:absolute;inset:0;clip-path:inset(0 0 0 100%);transition:clip-path 1.2s var(--ease-io)}
+.loaded .gate{clip-path:var(--crop,inset(0 0 0 0))}
+.frame{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity 1.6s ease,visibility 0s linear 1.6s;overflow:hidden}
+.frame.on{opacity:1;visibility:visible;transition:opacity 1.6s ease,visibility 0s}
+.frame .media{position:absolute;inset:-4%;width:108%;height:108%;object-fit:cover;transform:scale(1.08);transition:transform 9s cubic-bezier(.2,.6,.3,1)}
+.frame.on .media{transform:scale(1)}
+.frame figcaption{position:absolute;left:24px;bottom:22px;z-index:3;color:var(--field-ink);font-size:var(--s-small)}
+.frame.has-media::after{content:'';position:absolute;inset:auto 0 0 0;height:30%;background:rgba(10,9,8,.42);z-index:2;pointer-events:none}
+
+/* drawn title card, shown until a real picture fills the slot */
+.card{position:absolute;inset:0;display:grid;place-items:center;background:var(--field);color:var(--field-ink);overflow:hidden}
+.card .gauge{position:absolute;inset:0 42px;background:#1f1b17}
+.card .word{position:relative;font-size:var(--s-display);font-weight:500;letter-spacing:-.04em;line-height:1;text-align:center;padding:0 12%}
+.card .perf{position:absolute;top:0;bottom:0;width:42px;display:flex;flex-direction:column;gap:22px;padding:14px 11px;animation:feed 14s linear infinite}
+.card .perf.l{left:0}.card .perf.r{right:0;animation-direction:reverse}
+.card .perf i{flex:0 0 26px;background:var(--field-2);border-radius:3px}
+@keyframes feed{to{transform:translateY(-48px)}}
+.has-media .card{display:none}
+
+.fmt{position:absolute;right:20px;top:18px;z-index:4;color:var(--field-ink);font-size:var(--s-small);opacity:0;transition:opacity .4s}
+.stage.cropped .fmt{opacity:1}
+
+/* ---------- reading column ---------- */
+.sec{padding:clamp(96px,14vh,170px) var(--pad)}
+.hero{min-height:calc(100svh - var(--bar) - var(--edge));display:flex;flex-direction:column;padding-top:0;padding-bottom:40px;background:var(--surface)}
+.strip{height:40px;overflow:hidden;margin:0 calc(-1 * var(--pad))}
+.strip .run{display:flex;width:max-content;animation:run 22s linear infinite}
+.strip .run i{width:28px;height:40px;background:var(--ink)}
+.strip .run i:nth-child(2n){background:var(--surface)}
+@keyframes run{to{transform:translateX(-56px)}}
+.hero-body{margin:auto 0;padding:56px 0 40px}
+.hero h1{font-size:var(--s-head);max-width:12ch}
+.hero .lead{font-size:var(--s-lead);line-height:1.35;margin-top:36px;max-width:30ch;color:var(--ink)}
+.hero .acts{display:flex;flex-wrap:wrap;align-items:center;gap:22px;margin-top:40px}
+.tlink{font-size:var(--s-small);font-weight:600;text-decoration:underline;text-underline-offset:5px;text-decoration-thickness:1px;transition:text-underline-offset .3s var(--ease)}
+.tlink:hover{text-underline-offset:9px}
+.switch{margin-top:56px}
+.switch .lbl{font-size:var(--s-small);color:var(--muted);margin-bottom:12px}
+.switch .opts{display:flex;flex-wrap:wrap;gap:6px}
+.switch button{min-height:44px;padding:0 16px;background:var(--bg);border:0;font-size:var(--s-small);color:var(--ink);transition:background .2s,color .2s,transform .2s var(--ease)}
+.switch button:hover{background:#d6d2cb}
+.switch button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.switch button:active{transform:scale(.96)}
+.hero-links{display:flex;gap:24px;font-size:var(--s-small)}
+.hero-links a{text-decoration:none;color:var(--muted)}
+.hero-links a:hover{color:var(--ink)}
+
+.chap h2{max-width:13ch}
+.chap .body{margin-top:40px}
+.chap .facts{list-style:none;margin-top:32px;display:flex;flex-wrap:wrap;gap:8px 26px;font-size:var(--s-small);color:var(--muted)}
+.cells{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:48px;max-width:520px}
+.cell{min-height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;text-decoration:none;font-size:var(--s-small);font-weight:600;background:var(--surface);border:0;text-align:left;transition:background .25s,transform .2s var(--ease)}
+.cell.ink{background:var(--ink);color:var(--bg)}
+.cell:hover{background:#d6d2cb}.cell.ink:hover{background:#38322b}
+.cell:active{transform:scale(.98)}
+.cell .arr{transition:transform .35s var(--ease)}
+.cell:hover .arr{transform:translateX(5px)}
+.inline{display:none}
+
+/* ledger */
+.ledger h2{font-size:var(--s-lead);letter-spacing:-.02em}
+.ledger p.intro{margin-top:16px;color:var(--muted)}
+.rows{list-style:none;margin-top:36px}
+.rows li{display:grid;grid-template-columns:1.3fr 1fr auto;gap:18px;align-items:baseline;padding:13px 0;transition:color .25s,transform .35s var(--ease)}
+.rows li span:nth-child(2){color:var(--muted);font-size:var(--s-small)}
+.rows li span:nth-child(3){font-size:var(--s-small);color:var(--muted);text-align:right}
+.rows:hover li{color:#8b847b}
+.rows:hover li:hover{color:var(--ink);transform:translateX(8px)}
+.rows li:nth-child(4),.rows li:nth-child(6){margin-top:22px}
+
+/* letter */
+.letter h2{font-size:var(--s-lead);letter-spacing:-.02em}
+.letter .badge{width:52px;height:52px;border-radius:50%;background:var(--ink);display:grid;place-items:center;margin-top:36px}
+.letter .badge svg{height:30px}
+.letter .badge .ln{stroke:var(--bg)}
+.letter .badge text{fill:var(--bg)}
+.letter .txt{margin-top:28px}
+.letter .txt p+p{margin-top:1.5em}
+.letter mark{background:#d9d3c8;color:inherit;padding:0 .15em}
+.sign{margin-top:40px}
+.sign b{display:block;font-size:var(--s-lead);font-weight:500}
+.sign span{font-size:var(--s-small);color:var(--muted)}
+
+/* slip */
+.proc{background:var(--surface)}
+.proc h2{max-width:10ch}
+.proc .intro{margin-top:24px}
+.slip{margin-top:48px;background:var(--bg);padding:34px 32px 56px;max-width:480px;clip-path:polygon(0 0,100% 0,100% calc(100% - 14px),95% 100%,90% calc(100% - 14px),85% 100%,80% calc(100% - 14px),75% 100%,70% calc(100% - 14px),65% 100%,60% calc(100% - 14px),55% 100%,50% calc(100% - 14px),45% 100%,40% calc(100% - 14px),35% 100%,30% calc(100% - 14px),25% 100%,20% calc(100% - 14px),15% 100%,10% calc(100% - 14px),5% 100%,0 calc(100% - 14px));font-variant-numeric:tabular-nums}
+.slip h3{font-size:var(--s-body);font-weight:700;letter-spacing:-.01em;margin-top:28px}
+.slip h3:first-child{margin-top:0}
+.slip .r{display:flex;align-items:baseline;gap:10px;margin-top:12px}
+.slip .r .d{flex:1;display:flex;gap:5px;overflow:hidden;align-self:center;height:4px}
+.slip .r .d::before{content:'';flex:1;height:4px;background:radial-gradient(circle,var(--muted) 1.4px,transparent 1.6px) 0 0/9px 4px repeat-x;opacity:.6}
+.slip .r .v{color:var(--muted)}
+.slip .total{margin:34px -32px 0;background:var(--ink);color:var(--bg);min-height:48px;padding:12px 32px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+/* ---------- full-width sections ---------- */
+.wide{padding:clamp(96px,12vh,150px) calc(var(--edge) + var(--pad))}
+.reel-head{display:flex;justify-content:space-between;align-items:baseline;gap:24px}
+.reel-head span{font-size:var(--s-small);color:var(--muted)}
+.row{display:flex;gap:12px;height:68svh;margin-top:36px;margin-right:calc(-1 * (var(--edge) + var(--pad)));overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none;cursor:grab;user-select:none;-webkit-user-select:none}
+.row::-webkit-scrollbar{display:none}
+.row.drag{cursor:grabbing;scroll-snap-type:none}
+.mod{flex:none;height:100%;display:flex;flex-direction:column;gap:12px;scroll-snap-align:start}
+.mod.tall{aspect-ratio:3/4}
+.mod.wideM{aspect-ratio:16/10}
+.mod.pair{aspect-ratio:4/6.15}
+.mod figure{position:relative;flex:1;overflow:hidden;background:var(--field);transition:transform .6s var(--ease)}
+.mod figure:hover{transform:scale(.985)}
+.mod figure .media{position:absolute;inset:0 -8%;width:116%;height:100%;object-fit:cover;transform:translateX(var(--px,0))}
+.mod .card .word{font-size:var(--s-small);letter-spacing:0;font-weight:600}
+.mod .card .perf{width:30px;padding:10px 7px;gap:16px}
+.mod .card .perf i{flex-basis:18px}
+.mod .card .gauge{inset:0 30px}
+
+.faq{display:grid;grid-template-columns:3fr 9fr;gap:24px}
+.faq h2{font-size:var(--s-lead);letter-spacing:-.02em}
+.faq .cols{columns:2;column-gap:56px}
+.faq .cols p{break-inside:avoid;margin-bottom:22px;max-width:none;line-height:1.55}
+.faq .cols b{font-weight:600}
+
+.contact{background:var(--field);color:var(--field-ink);padding:clamp(80px,11vh,130px) 0 0}
+.contact h2{font-size:var(--s-lead);letter-spacing:-.02em;padding:0 calc(var(--edge) + var(--pad));color:var(--field-muted);font-weight:400}
+.drows{list-style:none;margin-top:40px}
+.drows li{font-size:var(--s-display);line-height:1;letter-spacing:-.04em;font-weight:400}
+.drows li:nth-child(2n){background:var(--field-2)}
+.drows a,.drows span.row-t{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;min-height:clamp(96px,14vh,150px);padding:0 calc(var(--edge) + var(--pad)) .32em;text-decoration:none;transition:padding .45s var(--ease)}
+.drows a:hover{padding-left:calc(var(--edge) + var(--pad) + 18px)}
+.drows .go{flex:none;width:.9em;height:.9em;border-radius:50%;background:var(--field-ink);color:var(--field);display:grid;place-items:center;font-size:.5em;transition:transform .45s var(--ease)}
+.drows a:hover .go{transform:rotate(-45deg)}
+.formwrap{display:grid;grid-template-columns:3fr 6fr;gap:24px;padding:clamp(100px,14vh,160px) calc(var(--edge) + var(--pad))}
+.formwrap h3{font-size:var(--s-lead);font-weight:500;letter-spacing:-.02em}
+.formwrap .side p{margin-top:16px;color:var(--field-muted)}
+form{display:grid;grid-template-columns:1fr 1fr;gap:18px 14px}
+form .full{grid-column:1/-1}
+label{display:block;font-size:var(--s-small);color:var(--field-muted);margin-bottom:8px}
+input,select,textarea{width:100%;background:var(--field-2);border:0;border-bottom:1px solid #4a433c;color:var(--field-ink);font:inherit;font-size:16px;padding:14px;outline:none;transition:border-color .25s,background .25s;color-scheme:dark}
+input:focus,select:focus,textarea:focus{border-color:var(--field-ink);background:#2a2520}
+textarea{min-height:130px;resize:vertical}
+form .btn{background:var(--field-ink);color:var(--field);justify-self:start}
+form .btn:hover{background:#fff}
+#formNote{grid-column:1/-1;font-size:var(--s-small);color:var(--field-muted);min-height:1.4em}
+.hp{position:absolute;left:-9999px}
+
+footer{display:grid;grid-template-columns:1fr auto 1fr;gap:20px;align-items:baseline;padding:16vh calc(var(--edge) + var(--pad)) 30px;font-size:var(--s-small);color:var(--muted)}
+footer nav{display:flex;gap:24px;flex-wrap:wrap;justify-content:center}
+footer nav a{color:var(--ink);text-decoration:none}
+footer nav a:hover{text-decoration:underline}
+footer .r{text-align:right}
+
+/* cookie + mobile actions */
+.cookie{position:fixed;left:var(--edge);right:var(--edge);bottom:var(--edge);z-index:150;background:var(--ink);color:var(--bg);display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:16px 20px;font-size:var(--s-small);transform:translateY(130%);transition:transform .6s var(--ease)}
+.cookie.show{transform:none}
+.cookie p{flex:1 1 300px;max-width:none}
+.cookie a{color:var(--bg)}
+.cookie button{min-height:44px;padding:0 18px;border:0;background:#38322b;color:var(--bg);font-size:var(--s-small);font-weight:600}
+.cookie button.ok{background:var(--bg);color:var(--ink)}
+.mcta{display:none}
+
+/* ---------- entrances ---------- */
+@media (prefers-reduced-motion:no-preference){
+.rv{opacity:0;transform:translateY(26px);transition:opacity .9s var(--ease),transform .9s var(--ease);transition-delay:calc(var(--d,0) * 80ms)}
+.rv.in{opacity:1;transform:none}
+.hero .rv{transition-delay:calc(450ms + var(--d,0) * 90ms)}
+.no-js .rv{opacity:1;transform:none}
+}
+
+/* ---------- tablet / phone ---------- */
+@media (max-width:1100px){ .links{display:none} }
+@media (max-width:860px){
+  :root{--bar:56px}
+  .split{display:block;padding:var(--bar) 0 0}
+  .stage{position:relative;top:0;height:56svh;margin:0 var(--edge)}
+  .read{position:relative;z-index:2}
+  .hero{min-height:auto;margin:-24px var(--edge) 0;position:relative}
+  .hero-body{padding:40px 0 32px}
+  .inline{display:block;position:relative;aspect-ratio:16/10;margin-top:36px;overflow:hidden;background:var(--field)}
+  .inline .card .word{font-size:clamp(2rem,9vw,3rem)}
+  .cells{grid-template-columns:1fr}
+  .cell{min-height:60px}
+  .rows li{grid-template-columns:1fr auto;padding:15px 0}
+  .rows li span:nth-child(2){grid-column:1/-1;order:3;margin-top:-10px}
+  .faq,.formwrap{grid-template-columns:1fr}
+  .faq .cols{columns:1}
+  form{grid-template-columns:1fr}
+  .row{height:62svh;gap:8px}
+  .mod.tall{width:72vw;aspect-ratio:auto}
+  .mod.pair{width:64vw;aspect-ratio:auto}
+  .mod.wideM{width:88vw;aspect-ratio:auto;height:70%;align-self:center}
+  footer{grid-template-columns:1fr;padding:20vh calc(var(--edge) + var(--pad)) 100px;gap:8px}
+  footer nav{justify-content:flex-start}
+  footer .r{text-align:left}
+  .mcta{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:120;gap:6px;padding:8px var(--edge) calc(8px + env(safe-area-inset-bottom));background:var(--bg)}
+  .mcta a{flex:1;min-height:48px;display:flex;align-items:center;justify-content:center;font-size:var(--s-small);font-weight:600;text-decoration:none;background:var(--surface)}
+  .mcta a.ink{background:var(--ink);color:var(--bg);flex:1.4}
+  .cookie{bottom:calc(72px + env(safe-area-inset-bottom))}
+  .bar .btn{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none !important;transition-duration:.01ms !important;transition-delay:0s !important}
+  .rv{opacity:1;transform:none}
+  .gate{clip-path:var(--crop,inset(0)) !important}
+  .frame .media{transform:none !important}
+}
 </style>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 104'%3E%3Crect width='100' height='104' rx='20' fill='%23f4f0e7'/%3E%3Cline x1='14' y1='16' x2='14' y2='88' stroke='%23957d5c' stroke-width='3' stroke-linecap='round'/%3E%3Ctext x='58' y='46' text-anchor='middle' fill='%23241f19' font-family='Arial,Helvetica,sans-serif' font-size='46' font-weight='800'%3ET%3C/text%3E%3Ctext x='58' y='92' text-anchor='middle' fill='%23957d5c' font-family='Arial,Helvetica,sans-serif' font-size='46' font-weight='800'%3ER%3C/text%3E%3C/svg%3E">
-<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
-<link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png">
-<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-<link rel="manifest" href="manifest.webmanifest">
-<style>
-  :root{
-    --bg:#f8f5ef;
-    --bg-soft:#efe9df;
-    --ink:#241f19;
-    --muted:#8a8174;
-    --line:rgba(36,31,25,0.14);
-    --accent:#b09a7a;
-    --accent-deep:#957d5c;
-    --serif:'Fraunces',Georgia,'Times New Roman',serif;
-    --sans:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;
-  }
-  *{margin:0;padding:0;box-sizing:border-box;}
-  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;}
-  body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
-  img,video{display:block;max-width:100%;}
-  a{color:inherit;text-decoration:none;}
-  ::selection{background:var(--accent);color:#241f19;}
-  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
-
-  /* subtle film grain for cinematic feel */
-  body::after{
-    content:'';position:fixed;inset:0;z-index:300;pointer-events:none;opacity:.045;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-
-  .wrap{max-width:1240px;margin:0 auto;padding:0 28px;}
-  .eyebrow{font-size:11px;letter-spacing:0.35em;text-transform:uppercase;color:var(--accent);font-weight:500;margin-bottom:18px;}
-  h1,h2,h3{font-family:var(--serif);font-weight:500;line-height:1.06;letter-spacing:-0.01em;}
-  .section{padding:120px 0;}
-  em{font-style:italic;color:var(--accent);}
-
-  /* skip link */
-  .skip{position:absolute;left:-999px;top:8px;z-index:500;background:var(--accent);color:#241f19;padding:10px 16px;border-radius:6px;font-size:13px;}
-  .skip:focus{left:16px;}
-
-  /* ---------- NAV ---------- */
-  header{position:fixed;top:0;left:0;right:0;z-index:120;transition:background .4s,backdrop-filter .4s,border-color .4s,padding .4s;border-bottom:1px solid transparent;}
-  header{--ink:#f7f4ee;--muted:#d9d2c4;--line:rgba(255,255,255,.2);}
-  header.scrolled{--ink:#241f19;--muted:#8a8174;--line:rgba(36,31,25,.14);background:rgba(248,245,239,.9);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);}
-  .nav{display:flex;align-items:center;justify-content:space-between;padding:22px 28px;transition:padding .4s;}
-  header.scrolled .nav{padding:14px 28px;}
-  .brand{font-family:var(--serif);font-size:22px;letter-spacing:0.02em;display:flex;align-items:center;gap:11px;color:var(--ink);}
-  .brand b{font-weight:600;}
-  .brand .mark{height:30px;display:flex;align-items:center;justify-content:center;}
-  .brand .mark svg{height:30px;width:auto;display:block;}
-  .brand .mark .r{fill:var(--accent);}
-  .brand .mark .ln{stroke:var(--accent);}
-  .nav-links{display:flex;gap:26px;align-items:center;}
-  .nav-links a{font-size:12.5px;letter-spacing:0.08em;color:var(--muted);text-transform:uppercase;transition:color .25s;}
-  .nav-links a:hover{color:var(--ink);}
-  .nav-cta{border:1px solid var(--line);border-radius:40px;padding:10px 22px !important;color:var(--ink) !important;transition:all .25s;}
-  .nav-cta:hover{background:var(--accent);border-color:var(--accent);color:#241f19 !important;}
-  .lang-switch{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:40px;padding:5px 10px;}
-  .lang-switch button{background:none;border:none;color:var(--muted);font-family:var(--sans);font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;padding:3px 5px;transition:color .25s;border-radius:20px;}
-  .lang-switch button.active{color:var(--accent);font-weight:600;}
-  .lang-switch .sep{color:rgba(138,129,116,.55);font-size:11px;padding:0;}
-  .burger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:10px;margin:-10px;z-index:130;}
-  .burger span{width:24px;height:1.5px;background:var(--ink);transition:.3s;}
-
-  /* ---------- HERO ---------- */
-  .hero{position:relative;height:100vh;height:100svh;min-height:560px;display:flex;align-items:flex-end;overflow:hidden;background:#12100d;--ink:#f7f4ee;--muted:#d9d2c4;--line:rgba(255,255,255,.2);--accent:#d6c6ab;}
-  .hero video,.hero .poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
-  .hero .poster{background-size:cover;background-position:center;}
-  .hero::before{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(16,14,11,.5) 0%,rgba(16,14,11,.15) 30%,rgba(16,14,11,.55) 65%,rgba(16,14,11,.8) 100%);}
-  /* cinematic letterbox bars */
-  .hero .bar{position:absolute;left:0;right:0;height:7vh;max-height:64px;z-index:2;pointer-events:none;}
-  .hero .bar.top{top:0;background:linear-gradient(180deg,#f8f5ef 45%,transparent);}.hero .bar.bottom{bottom:0;background:linear-gradient(0deg,#f8f5ef 45%,transparent);}
-  .hero-inner{position:relative;z-index:3;width:100%;padding-bottom:13vh;}
-  .hero h1{font-size:clamp(46px,8.5vw,124px);color:#fff;font-weight:500;}
-  .hero .lead{max-width:560px;margin-top:22px;font-size:17px;color:#eae5da;font-weight:300;}
-  .hero-actions{display:flex;gap:18px;margin-top:38px;flex-wrap:wrap;align-items:center;}
-  .hero-trust{margin-top:26px;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#d9d2c4;}
-  .hero-trust b{color:var(--accent);font-weight:600;}
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:12px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;padding:15px 28px;border-radius:40px;transition:.3s;cursor:pointer;}
-  .btn-primary{background:var(--accent);color:#241f19;font-weight:600;}
-  .btn-primary:hover{background:var(--accent-deep);}
-  .btn-ghost{border:1px solid rgba(255,255,255,.3);color:#fff;}
-  .btn-ghost:hover{background:#fff;color:#241f19;border-color:#fff;}
-  .btn .play{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
-  .scroll-cue{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:3;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:10px;}
-  .scroll-cue .line{width:1px;height:42px;background:linear-gradient(var(--accent),transparent);}
-
-  /* ---------- MARQUEE ---------- */
-  .strip{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:20px 0;overflow:hidden;background:var(--bg-soft);}
-  .strip-track{display:flex;gap:46px;white-space:nowrap;animation:marquee 30s linear infinite;width:max-content;}
-  .strip-track span{font-family:var(--serif);font-size:25px;font-style:italic;color:var(--muted);display:inline-flex;align-items:center;gap:46px;}
-  .strip-track span::after{content:'✦';font-size:12px;color:var(--accent);font-style:normal;}
-  @keyframes marquee{to{transform:translateX(-50%);}}
-
-  /* ---------- SECTION HEAD ---------- */
-  .sec-head{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;margin-bottom:54px;flex-wrap:wrap;}
-  .sec-head h2{font-size:clamp(34px,5vw,62px);}
-  .sec-head p{color:var(--muted);max-width:400px;font-weight:300;}
-
-  /* ---------- FEATURE (Weddings) ---------- */
-  .feature{display:grid;grid-template-columns:1.15fr 0.85fr;gap:64px;align-items:center;}
-  .feature .media{position:relative;}
-  .feature .media img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:6px;}
-  .feature .media .stack{position:absolute;bottom:-34px;right:-26px;width:42%;border:5px solid var(--bg);border-radius:6px;box-shadow:0 20px 50px rgba(60,50,38,.22);}
-  .feature .media .stack img{aspect-ratio:3/4;}
-  .feature h2{font-size:clamp(36px,4.6vw,58px);margin-bottom:24px;}
-  .feature p{color:var(--muted);font-weight:300;margin-bottom:18px;font-size:16.5px;}
-  .feature ul{list-style:none;margin:26px 0 30px;display:flex;flex-direction:column;gap:13px;}
-  .feature li{display:flex;gap:13px;align-items:flex-start;color:var(--ink);font-size:15px;}
-  .feature li::before{content:'✦';color:var(--accent);font-size:12px;margin-top:4px;}
-
-  /* ---------- AUTOMOTIVE (cinematic dark band) ---------- */
-  .auto{position:relative;padding:130px 0;background:#12100d;overflow:hidden;--ink:#f7f4ee;--muted:#c9c2b4;--line:rgba(255,255,255,.16);--accent:#d6c6ab;--bg-soft:#1c1915;}
-  .auto-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.32;filter:grayscale(20%) contrast(1.05);}
-  .auto::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#12100d 0%,rgba(18,16,13,.55) 45%,rgba(18,16,13,.2) 100%);}
-  .auto .wrap{position:relative;z-index:2;}
-  .auto-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:50px;}
-  .auto-grid .cell{overflow:hidden;border-radius:6px;background:var(--bg-soft);}
-  .auto-grid .cell img{width:100%;height:100%;aspect-ratio:1;object-fit:cover;transition:transform .8s cubic-bezier(.2,.8,.2,1),filter .5s;filter:grayscale(15%);}
-  .auto-grid .cell:hover img{transform:scale(1.07);filter:grayscale(0);}
-  .auto-grid .cell.wide{grid-column:span 2;}
-  .auto h2{font-size:clamp(36px,5vw,64px);max-width:680px;}
-  .auto p{color:var(--muted);max-width:440px;font-weight:300;margin-top:20px;}
-
-  /* ---------- REELS ---------- */
-  .reels{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;}
-  .reel{position:relative;aspect-ratio:9/16;border-radius:6px;overflow:hidden;background:#000;cursor:pointer;box-shadow:0 14px 40px rgba(60,50,38,.22);border:none;padding:0;width:100%;text-align:left;color:inherit;font:inherit;}
-  .reel video,.reel img{width:100%;height:100%;object-fit:cover;}
-  .reel::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,.75));}
-  .reel .meta{position:absolute;left:14px;right:14px;bottom:14px;z-index:2;}
-  .reel .meta b{font-family:var(--serif);font-size:18px;display:block;color:#fff;}
-  .reel .meta small{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);}
-  .reel .ig{position:absolute;top:12px;right:12px;z-index:2;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#fff;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.2);padding:5px 10px;border-radius:40px;}
-  .reel .pp{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;width:54px;height:54px;border-radius:50%;border:1.5px solid rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;opacity:.85;transition:.3s;}
-  .reel:hover .pp{opacity:1;background:var(--accent);color:#241f19;border-color:var(--accent);}
-
-  /* ---------- PROCESS ---------- */
-  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;}
-  .step{border-top:1px solid var(--line);padding-top:26px;}
-  .step .n{font-family:var(--serif);font-style:italic;font-size:40px;color:var(--accent);line-height:1;}
-  .step h3{font-size:25px;margin:16px 0 12px;}
-  .step p{color:var(--muted);font-weight:300;font-size:15px;}
-
-  /* ---------- PORTFOLIO ---------- */
-  .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:40px;}
-  .filters button{font-family:var(--sans);font-size:12px;letter-spacing:.12em;text-transform:uppercase;background:none;border:1px solid var(--line);color:var(--muted);padding:9px 20px;border-radius:40px;cursor:pointer;transition:.25s;}
-  .filters button:hover{color:var(--ink);border-color:var(--muted);}
-  .filters button.active{background:var(--ink);color:#f8f5ef;border-color:var(--ink);}
-  .gallery{columns:3;column-gap:16px;}
-  .shot{position:relative;margin-bottom:16px;break-inside:avoid;overflow:hidden;border-radius:6px;cursor:pointer;background:var(--bg-soft);display:block;width:100%;border:none;padding:0;font:inherit;color:inherit;}
-  .shot img{width:100%;transition:transform .8s cubic-bezier(.2,.8,.2,1),filter .5s;filter:grayscale(8%);}
-  .shot:hover img{transform:scale(1.06);filter:grayscale(0);}
-  .shot .cap{position:absolute;inset:auto 0 0 0;padding:46px 18px 16px;color:#fff;text-align:left;background:linear-gradient(180deg,transparent,rgba(0,0,0,.78));opacity:0;transform:translateY(10px);transition:.4s;}
-  .shot:hover .cap,.shot:focus-visible .cap{opacity:1;transform:translateY(0);}
-  .shot .cap b{font-family:var(--serif);font-size:20px;font-weight:500;display:block;}
-  .shot .cap small{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);}
-
-  /* ---------- ABOUT ---------- */
-  .about-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:70px;align-items:center;}
-  .about-img{position:relative;}
-  .about-img img{width:100%;border-radius:6px;aspect-ratio:4/5;object-fit:cover;filter:grayscale(10%);}
-  .about-img .badge{position:absolute;bottom:-26px;left:-26px;background:var(--accent);color:#241f19;padding:22px 26px;border-radius:6px;font-family:var(--serif);}
-  .about-img .badge b{display:block;font-size:34px;line-height:1;font-weight:600;}
-  .about-img .badge small{font-family:var(--sans);font-size:11px;letter-spacing:.14em;text-transform:uppercase;}
-  .about h2{font-size:clamp(34px,4.5vw,52px);margin-bottom:26px;}
-  .about p{color:var(--muted);margin-bottom:18px;font-weight:300;font-size:16.5px;}
-  .about .stats{display:flex;gap:36px;margin-top:30px;flex-wrap:wrap;}
-  .about .stats div b{font-family:var(--serif);font-size:34px;color:var(--accent);font-weight:600;display:block;line-height:1;}
-  .about .stats div small{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
-  .about .sign{font-family:var(--serif);font-style:italic;font-size:30px;color:var(--ink);margin-top:28px;}
-
-  /* ---------- SERVICES ---------- */
-  #services{background:var(--bg-soft);}
-  .services{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden;}
-  .svc{background:var(--bg-soft);padding:44px 30px;transition:background .35s;display:flex;flex-direction:column;}
-  .svc:hover{background:#e9e2d3;}
-  .svc .num{font-family:var(--serif);font-style:italic;font-size:22px;color:var(--accent);}
-  .svc h3{font-size:25px;margin:16px 0 12px;}
-  .svc p{color:var(--muted);font-weight:300;font-size:14.5px;margin-bottom:20px;flex:1;}
-  .svc .price{font-size:13px;color:var(--ink);border-top:1px solid var(--line);padding-top:16px;}
-  .svc .price b{font-family:var(--serif);font-size:21px;color:var(--accent);font-weight:600;}
-  .svc.highlight{background:#ece2cf;border-top-color:var(--accent);}
-  .svc.highlight:hover{background:#e6dbc4;}
-
-  /* ---------- QUOTE ---------- */
-  .quote{text-align:center;}
-  .quote blockquote{font-family:var(--serif);font-size:clamp(28px,4.4vw,52px);line-height:1.25;max-width:920px;margin:0 auto;font-style:italic;color:var(--ink);}
-  .quote blockquote span{color:var(--accent);}
-  .quote cite{display:block;margin-top:30px;font-style:normal;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);}
-
-  /* ---------- FAQ ---------- */
-  .faq-grid{max-width:820px;margin:0 auto;}
-  .faq-item{border-bottom:1px solid var(--line);}
-  .faq-q{width:100%;background:none;border:none;color:var(--ink);font-family:var(--serif);font-size:clamp(20px,2.6vw,27px);text-align:left;padding:26px 40px 26px 0;cursor:pointer;position:relative;}
-  .faq-q::after{content:'+';position:absolute;right:4px;top:50%;transform:translateY(-50%);color:var(--accent);font-size:26px;font-family:var(--sans);transition:transform .3s;}
-  .faq-item.open .faq-q::after{transform:translateY(-50%) rotate(45deg);}
-  .faq-a{max-height:0;overflow:hidden;transition:max-height .4s ease;}
-  .faq-a p{color:var(--muted);font-weight:300;padding:0 40px 26px 0;font-size:15.5px;}
-
-  /* ---------- CONTACT ---------- */
-  #contact{background:radial-gradient(120% 80% at 30% 0%,#efe9df 0%,#f8f5ef 55%);}
-  .contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;}
-  .contact-left h2{font-size:clamp(38px,5.5vw,64px);margin-bottom:24px;}
-  .contact-left p{color:var(--muted);max-width:430px;font-weight:300;margin-bottom:40px;}
-  .contact-info{display:flex;flex-direction:column;gap:22px;}
-  .contact-info a,.contact-info div{display:flex;gap:16px;align-items:center;font-size:15px;}
-  .contact-info .ic{width:42px;height:42px;border:1px solid var(--line);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0;}
-  .contact-info small{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
-  form{display:flex;flex-direction:column;gap:16px;}
-  form .row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-  form label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:block;}
-  input,textarea,select{width:100%;background:#fffdf9;border:1px solid var(--line);border-radius:6px;padding:14px 16px;color:var(--ink);font-family:inherit;font-size:16px;outline:none;transition:border-color .25s;}
-  input:focus,textarea:focus,select:focus{border-color:var(--accent);}
-  textarea{resize:vertical;min-height:120px;}
-  button.submit{background:var(--accent);color:#241f19;border:none;border-radius:40px;padding:16px;font-family:var(--sans);font-size:14px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:background .25s,transform .25s,box-shadow .25s;margin-top:6px;box-shadow:0 10px 26px -12px rgba(120,98,70,.5);}
-  button.submit:hover{background:var(--accent-deep);transform:translateY(-2px);box-shadow:0 16px 32px -12px rgba(120,98,70,.6);}
-  button.submit:hover{background:var(--accent-deep);}
-  .form-note{font-size:12px;color:var(--muted);margin-top:6px;}
-
-  /* ---------- FOOTER ---------- */
-  footer{border-top:1px solid var(--line);padding:54px 0 40px;}
-  .foot-grid{display:flex;justify-content:space-between;align-items:flex-start;gap:30px;flex-wrap:wrap;}
-  .foot-brand{font-family:var(--serif);font-size:26px;}
-  .foot-soc{display:flex;gap:14px;}
-  .foot-soc a{width:42px;height:42px;border:1px solid var(--line);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:.25s;}
-  .foot-soc a:hover{color:#241f19;background:var(--accent);border-color:var(--accent);}
-  .foot-bottom{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:44px;padding-top:24px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);}
-  .foot-bottom a:hover{color:var(--ink);}
-
-  /* ---------- LIGHTBOX ---------- */
-  .lb{position:fixed;inset:0;z-index:400;background:rgba(6,6,7,.97);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:30px;}
-  .lb.open{display:flex;}
-  .lb img,.lb video{max-width:92vw;max-height:88vh;border-radius:6px;box-shadow:0 30px 80px rgba(0,0,0,.6);}
-  .lb video{max-width:min(92vw,420px);}
-  .lb-close{position:absolute;top:20px;right:20px;background:rgba(0,0,0,.4);border:none;color:#fff;font-size:30px;cursor:pointer;line-height:1;width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
-  .lb-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.4);border:1px solid var(--line);color:#fff;width:54px;height:54px;border-radius:50%;font-size:22px;cursor:pointer;transition:.25s;}
-  .lb-nav:hover{background:var(--accent);color:#241f19;border-color:var(--accent);}
-  .lb-prev{left:18px;}.lb-next{right:18px;}
-
-  /* ---------- REVEAL ---------- */
-  .reveal{opacity:0;transform:translateY(30px);transition:opacity .9s cubic-bezier(.2,.8,.2,1),transform .9s cubic-bezier(.2,.8,.2,1);}
-  .reveal.in{opacity:1;transform:none;}
-
-  /* ---------- RESPONSIVE ---------- */
-  @media(max-width:1080px){
-    .reels{grid-template-columns:repeat(2,1fr);}
-    .auto-grid{grid-template-columns:repeat(2,1fr);}
-  }
-  @media(max-width:980px){
-    .gallery{columns:2;}
-    .services{grid-template-columns:repeat(2,1fr);}
-    .steps{grid-template-columns:1fr;gap:0;}
-    .step{margin-top:24px;}
-    .feature,.about-grid,.contact-grid{grid-template-columns:1fr;gap:48px;}
-    .feature .media .stack{position:static;width:60%;margin:18px auto 0;border-width:0;box-shadow:none;}
-    .about-img{max-width:420px;}
-  }
-  @media(max-width:820px){
-    .section{padding:80px 0;}
-    .auto{padding:84px 0;}
-    .wrap{padding:0 22px;}
-    .nav{padding:18px 22px;}
-    header.scrolled .nav{padding:13px 22px;}
-    .nav-links{position:fixed;inset:0 0 0 auto;width:82%;max-width:340px;background:#f4f0e7;--ink:#241f19;--muted:#8a8174;--line:rgba(36,31,25,.14);flex-direction:column;justify-content:center;align-items:flex-start;padding:90px 34px 40px;gap:8px;transform:translateX(100%);visibility:hidden;transition:transform .4s,visibility .4s;border-left:1px solid var(--line);overflow-y:auto;}
-    .nav-links.open{transform:translateX(0);visibility:visible;}
-    .nav-links a{font-size:19px;padding:10px 0;width:100%;}
-    .nav-links .nav-cta{margin-top:8px;padding:13px 24px !important;}
-    .lang-switch{margin-top:20px;}
-    .lang-switch button{font-size:13px;padding:6px 10px;}
-    .burger{display:flex;}
-    .sec-head{margin-bottom:40px;}
-    .gallery{columns:1;}
-    .services{grid-template-columns:1fr;}
-    .reels{grid-template-columns:repeat(2,1fr);gap:12px;}
-    form .row{grid-template-columns:1fr;}
-    .hero{min-height:560px;}
-    .hero .bar{height:4vh;}
-    .hero h1{font-size:clamp(38px,10vw,68px);line-height:1.04;}
-    .hero .hero-inner{padding-bottom:calc(98px + env(safe-area-inset-bottom, 0px));}
-    .hero .lead{font-size:15.5px;margin-top:16px;}
-    .hero-trust{display:none;}
-    .hero-actions{gap:12px;}
-    .hero-actions .btn{flex:1 1 auto;}
-    .scroll-cue{display:none;}
-    .about-img .badge{left:0;}
-    .about .stats{gap:26px;}
-    .feature li{font-size:14.5px;}
-  }
-  @media(max-width:420px){
-    .wrap{padding:0 18px;}
-    .hero-actions{flex-direction:column;align-items:stretch;}
-    .hero-actions .btn{width:100%;}
-    .hero-trust{font-size:11px;letter-spacing:.12em;}
-    .about .stats{gap:20px;}
-    .about .stats div b{font-size:28px;}
-    .svc{padding:36px 26px;}
-  }
-
-  /* ---------- ENHANCEMENTS ---------- */
-  :where(section[id], #top){scroll-margin-top:84px;}
-  @media(max-width:820px){:where(section[id], #top){scroll-margin-top:64px;}}
-
-  .nav-links a:not(.nav-cta){position:relative;}
-  .nav-links a:not(.nav-cta)::after{content:'';position:absolute;left:0;right:100%;bottom:-5px;height:1px;background:var(--accent);transition:right .35s cubic-bezier(.2,.8,.2,1);}
-  .nav-links a:not(.nav-cta):hover::after,.nav-links a.current::after{right:0;}
-  .nav-links a.current{color:var(--ink);}
-
-  .eyebrow{display:inline-flex;align-items:center;}
-  .eyebrow::before{content:'';width:24px;height:1px;background:var(--accent);margin-right:12px;opacity:.85;flex-shrink:0;}
-
-  .btn{position:relative;overflow:hidden;transition:transform .3s cubic-bezier(.2,.8,.2,1),background .3s,box-shadow .3s,color .3s,border-color .3s;}
-  .btn-primary{box-shadow:0 10px 26px -10px rgba(120,98,70,.45);}
-  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 16px 34px -10px rgba(120,98,70,.55);}
-  .btn:active{transform:translateY(0) scale(.985);}
-  .btn-primary::after{content:'';position:absolute;inset:0;background:linear-gradient(120deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);transform:translateX(-130%);transition:transform .6s;pointer-events:none;}
-  .btn-primary:hover::after{transform:translateX(130%);}
-
-  .hero::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 90% at 50% 42%,transparent 55%,rgba(0,0,0,.5) 100%);}
-  .hero video,.hero .poster{animation:heroZoom 26s ease-out forwards;}
-  @keyframes heroZoom{from{transform:scale(1.08);}to{transform:scale(1);}}
-  .scroll-cue .line{width:1px;height:42px;background:rgba(255,255,255,.14);overflow:hidden;position:relative;}
-  .scroll-cue .line::after{content:'';position:absolute;inset:0;background:linear-gradient(var(--accent),transparent);animation:cue 2.1s ease-in-out infinite;}
-  @keyframes cue{0%{transform:translateY(-100%);}60%,100%{transform:translateY(100%);}}
-
-  .strip{-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);}
-  .strip-track{animation-duration:42s;}
-  .strip:hover .strip-track{animation-play-state:paused;}
-
-  .step{position:relative;transition:border-color .4s;}
-  .step::before{content:'';position:absolute;top:-1px;left:0;width:0;height:1px;background:var(--accent);transition:width .8s cubic-bezier(.2,.8,.2,1);}
-  .step.in::before{width:38px;}
-  .step:hover::before{width:100%;}
-  .step .n{font-size:48px;}
-
-  .svc{position:relative;border-top:2px solid transparent;transition:background .35s,border-color .35s,transform .35s;}
-  .svc:hover{border-top-color:var(--accent);transform:translateY(-5px);}
-  .svc .tag{position:absolute;top:16px;right:16px;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);border-radius:40px;padding:4px 9px;}
-
-  .quote{position:relative;}
-  .quote::before{content:'\201C';position:absolute;top:-.18em;left:50%;transform:translateX(-50%);font-family:var(--serif);font-size:clamp(140px,20vw,280px);line-height:1;color:var(--accent);opacity:.1;pointer-events:none;z-index:0;}
-  .quote .wrap{position:relative;z-index:1;}
-  .quote .stars{color:var(--accent);letter-spacing:.3em;font-size:14px;margin-bottom:24px;}
-  .quote blockquote,.quote cite{transition:opacity .42s ease,transform .42s cubic-bezier(.16,.84,.28,1);}
-  .quote .dots{display:flex;gap:9px;justify-content:center;margin-top:34px;}
-  .quote .dots button{width:7px;height:7px;border-radius:50%;padding:0;border:none;cursor:pointer;background:rgba(36,31,25,.18);transition:.3s;}
-  .quote .dots button.active{background:var(--accent);width:22px;border-radius:4px;}
-
-  .services .reveal,.steps .reveal,.gallery .reveal{transition-delay:calc(var(--i,0)*80ms);}
-
-  .feature .media img,.about-img img{clip-path:inset(0 0 0 0);transition:clip-path 1s cubic-bezier(.2,.8,.2,1);}
-  .feature .media.reveal:not(.in) img,.about-img.reveal:not(.in) img{clip-path:inset(0 0 100% 0);}
-
-  @media(hover:none){ .reel .pp{opacity:1;background:var(--accent);color:#241f19;border-color:var(--accent);width:60px;height:60px;} }
-
-  /* lightbox caption + touch arrows */
-  .lb figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:14px;}
-  .lb-cap{font-family:var(--serif);color:#fff;font-size:16px;}
-  .lb-cap small{color:var(--accent);text-transform:uppercase;letter-spacing:.16em;font-size:10px;margin-right:8px;font-family:var(--sans);}
-  @media(max-width:520px){
-    .lb{padding:16px;}
-    .lb-nav{width:44px;height:44px;top:auto;bottom:calc(16px + env(safe-area-inset-bottom));transform:none;}
-    .lb-close{top:calc(14px + env(safe-area-inset-top));}
-  }
-
-  /* mobile sticky contact bar */
-  .mobile-cta{display:none;}
-  .lang-mini{display:none;}
-  @media(max-width:820px){
-    .mobile-cta{display:flex;gap:8px;position:fixed;left:0;right:0;bottom:0;z-index:135;padding:9px 14px calc(9px + env(safe-area-inset-bottom));background:rgba(248,245,239,.95);backdrop-filter:blur(12px);border-top:1px solid var(--line);}
-    .mobile-cta a{flex:1;min-height:46px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:40px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);}
-    .mobile-cta a.primary{background:var(--accent);color:#241f19;font-weight:600;border-color:var(--accent);flex:1.35;}
-    body.menu-open .mobile-cta{display:none;}
-    footer{padding-bottom:calc(40px + 72px + env(safe-area-inset-bottom));}
-    .lang-mini{display:inline-flex;align-items:center;gap:2px;margin-left:auto;margin-right:8px;padding:4px 8px;}
-    .lang-mini button{font-size:11px;padding:5px 5px;min-height:34px;}
-    .nav-links .lang-switch{display:none;}
-    .nav{padding-left:max(22px,env(safe-area-inset-left));padding-right:max(22px,env(safe-area-inset-right));}
-  }
-
-  /* ---------- REDUCED MOTION ---------- */
-  @media(prefers-reduced-motion:reduce){
-    html{scroll-behavior:auto;}
-    *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;}
-    .reveal{opacity:1;transform:none;}
-    .hero-media,.hero-inner{transform:none !important;opacity:1 !important;}
-    .hero h1 .w>span{transform:none !important;transition:none !important;}
-    .sec-head h2{clip-path:none !important;transform:none !important;}
-    .sec-head p{opacity:1 !important;transform:none !important;}
-    .feature .media > img,.about-img img,.feature .media .stack{transform:none !important;}
-    #lbStage figure,#lbStage video{animation:none !important;}
-    .shot.pop{animation:none !important;}
-    .strip-track{animation:none;transform:none;}
-    .hero video,.hero .poster{animation:none !important;}
-    #intro{display:none !important;}
-    .hero .grain{display:none;}
-    .hero-inner .reveal{transition-delay:0s !important;filter:none !important;transform:none;}
-    .scroll-cue .line::after{animation:none;}
-    .feature .media img,.about-img img{clip-path:none !important;}
-    .btn-primary::after{display:none;}
-  }
-
-  /* cookie banner */
-  .cookie-bar{position:fixed;left:0;right:0;bottom:0;z-index:150;background:rgba(248,245,239,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:16px 22px calc(16px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:center;}
-  .cookie-bar[hidden]{display:none;}
-  .cookie-bar p{font-size:13px;color:var(--muted);margin:0;max-width:660px;flex:1 1 320px;line-height:1.55;}
-  .cookie-bar p a{color:var(--accent);text-decoration:underline;}
-  .cookie-actions{display:flex;gap:10px;flex-shrink:0;}
-  .cookie-actions button{font-family:var(--sans);font-size:12px;letter-spacing:.06em;text-transform:uppercase;border-radius:40px;padding:11px 20px;cursor:pointer;border:1px solid var(--line);background:none;color:var(--ink);transition:.25s;}
-  .cookie-actions button:hover{border-color:var(--muted);}
-  .cookie-actions button.primary{background:var(--accent);color:#241f19;border-color:var(--accent);font-weight:600;}
-  @media(max-width:820px){.cookie-bar{bottom:calc(64px + env(safe-area-inset-bottom));}}
-  @media(max-width:600px){.cookie-bar{gap:10px 14px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));}.cookie-bar p{font-size:12px;flex:1 1 100%;line-height:1.45;}.cookie-actions{width:100%;}.cookie-actions button{flex:1;padding:10px 12px;}}
-
-  /* ---------- cinematic intro + filmic hero ---------- */
-  #intro{position:fixed;inset:0;z-index:9999;pointer-events:none;}
-  #intro .panel{position:absolute;left:0;right:0;height:calc(50% + 1px);background:#f4f0e7;will-change:transform;}
-  #intro .panel.top{top:0;animation:introTop 1.75s cubic-bezier(.76,0,.24,1) forwards;}
-  #intro .panel.bottom{bottom:0;animation:introBottom 1.75s cubic-bezier(.76,0,.24,1) forwards;}
-  #intro .imark{position:fixed;top:50%;left:50%;width:108px;transform:translate(-50%,-50%);opacity:0;color:#241f19;animation:introMark 1.3s ease forwards;will-change:opacity,transform,filter;}
-  #intro .imark svg{width:100%;height:auto;display:block;}
-  #intro .imark .r{fill:#957d5c;}
-  #intro .imark .ln{stroke:#957d5c;stroke-dasharray:74;stroke-dashoffset:74;animation:introLine 1.3s cubic-bezier(.4,0,.2,1) forwards;}
-  @keyframes introTop{0%,40%{transform:translateY(0);}100%{transform:translateY(-101%);}}
-  @keyframes introBottom{0%,40%{transform:translateY(0);}100%{transform:translateY(101%);}}
-  @keyframes introMark{0%{opacity:0;transform:translate(-50%,-50%) scale(.82);filter:drop-shadow(0 0 0 rgba(255,255,255,0));}20%{opacity:1;}34%{transform:translate(-50%,-50%) scale(1.05);}48%{transform:translate(-50%,-50%) scale(1);}66%{opacity:1;filter:drop-shadow(0 0 20px rgba(176,154,122,.55));}80%{filter:drop-shadow(0 0 0 rgba(176,154,122,0));}100%{opacity:0;transform:translate(-50%,-50%) scale(1.08);}}
-  @keyframes introLine{0%,14%{stroke-dashoffset:74;}56%{stroke-dashoffset:0;}100%{stroke-dashoffset:0;}}
-
-  /* staggered, masked hero entrance timed to the curtain opening */
-  .hero-inner .reveal{transform:translateY(44px);filter:blur(5px);transition:opacity 1.05s cubic-bezier(.16,.84,.28,1),transform 1.05s cubic-bezier(.16,.84,.28,1),filter 1.05s ease;}
-  .hero-inner .reveal.in{filter:blur(0);transform:none;}
-  .hero-inner .reveal:nth-child(1){transition-delay:.72s;}
-  .hero-inner .reveal:nth-child(2){transition-delay:.85s;}
-  .hero-inner .reveal:nth-child(3){transition-delay:1.02s;}
-  .hero-inner .reveal:nth-child(4){transition-delay:1.16s;}
-  .hero-inner .reveal:nth-child(5){transition-delay:1.54s;}
-
-  /* subtle film grain over the hero */
-  .hero .grain{position:absolute;inset:-25%;z-index:2;pointer-events:none;opacity:.04;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:170px 170px;animation:grainShift 2.2s steps(4) infinite;}
-  @keyframes grainShift{0%{transform:translate(0,0);}33%{transform:translate(-3%,2%);}66%{transform:translate(2%,-3%);}100%{transform:translate(-2%,-2%);}}
-  /* right-side vertical detail rail (desktop) */
-  .hero-rail{position:absolute;right:30px;top:50%;transform:translateY(-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:18px;writing-mode:vertical-rl;font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--muted);}
-  .hero-rail .rail-dot{writing-mode:horizontal-tb;width:4px;height:4px;border-radius:50%;background:var(--accent);}
-  @media(max-width:1024px){.hero-rail{display:none;}}
-  /* ===== premium interactions ===== */
-  .hero-media{position:absolute;inset:0;z-index:0;overflow:hidden;will-change:transform;}
-  /* slide & swap animations */
-  #qText.q-out,#qCite.q-out{opacity:0;transform:translateX(calc(-44px * var(--qd,1)));}
-  #qText.q-in,#qCite.q-in{transition:none;opacity:0;transform:translateX(calc(44px * var(--qd,1)));}
-  #lbStage figure,#lbStage video{animation:lbZoom .5s cubic-bezier(.16,.84,.28,1);}
-  #lbStage figure.slide{animation:lbSlide .45s cubic-bezier(.16,.84,.28,1);}
-  @keyframes lbZoom{from{opacity:0;transform:scale(.93);}to{opacity:1;transform:none;}}
-  @keyframes lbSlide{from{opacity:0;transform:translateX(calc(70px * var(--lbd,1))) scale(.985);}to{opacity:1;transform:none;}}
-  @keyframes popIn{from{opacity:0;transform:translateY(16px) scale(.96);}to{opacity:1;transform:none;}}
-  .shot.pop{animation:popIn .55s cubic-bezier(.16,.84,.28,1) both;animation-delay:calc(var(--i,0)*45ms);}
-  .btn,.nav-cta,.brand{will-change:transform;}
-  .shot,.reel{will-change:transform;}
-
-  /* ===== scroll experience ===== */
-  .progress{position:fixed;top:0;left:0;width:100%;height:2px;z-index:220;pointer-events:none;background:linear-gradient(90deg,var(--accent),#241f19);transform:scaleX(0);transform-origin:0 50%;}
-  .hero h1 .w{display:inline-block;overflow:hidden;vertical-align:bottom;padding:.14em .02em .12em 0;margin:-.14em -.02em -.12em 0;}
-  .hero h1 .w>span{display:inline-block;transform:translateY(120%);transition:transform .95s cubic-bezier(.16,.84,.28,1);transition-delay:calc(var(--h1d,.85s) + var(--wi,0)*.09s);will-change:transform;}
-  .hero h1.in .w>span{transform:none;}
-  .hero-inner h1.reveal{opacity:1;transform:none;filter:none;}
-  .sec-head h2{clip-path:inset(-12% -2% 110% -2%);transform:translateY(36px);transition:clip-path 1.05s cubic-bezier(.16,.84,.28,1) .08s,transform 1.05s cubic-bezier(.16,.84,.28,1) .08s;}
-  .sec-head.in h2{clip-path:inset(-12% -2% -16% -2%);transform:none;}
-  .sec-head p{opacity:0;transform:translateY(16px);transition:opacity .8s ease .5s,transform .8s cubic-bezier(.16,.84,.28,1) .5s;}
-  .sec-head.in p{opacity:1;transform:none;}
-  .svc{overflow:hidden;}
-  .svc::after{content:'';position:absolute;inset:0;opacity:0;transition:opacity .45s;pointer-events:none;background:radial-gradient(320px circle at var(--mx,50%) var(--my,50%),rgba(176,154,122,.16),transparent 62%);}
-  .svc:hover::after{opacity:1;}
-  .gallery .shot.in{transition:none;}
-  .feature .media > img,.about-img img,.feature .media .stack{will-change:transform;}
-</style>
-<noscript><style>#intro{display:none!important}</style></noscript>
 </head>
-<body>
-<div id="intro" aria-hidden="true">
-  <div class="panel top"></div>
-  <div class="panel bottom"></div>
-  <div class="imark"><svg class="tr" viewBox="0 0 100 104" fill="none" aria-hidden="true"><line class="ln" x1="14" y1="16" x2="14" y2="88" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><text x="58" y="46" text-anchor="middle" fill="currentColor" font-family="Arial,Helvetica,sans-serif" font-size="46" font-weight="800">T</text><text class="r" x="58" y="92" text-anchor="middle" fill="currentColor" font-family="Arial,Helvetica,sans-serif" font-size="46" font-weight="800">R</text></svg></div>
-</div>
-<a href="#main" class="skip" data-i18n="skip">Skip to content</a>
+<body class="no-js">
+<a class="skip" href="#main" data-i18n="skip">Skip to content</a>
 
-<!-- ====== NAV ====== -->
-<header id="top">
-  <nav class="nav" aria-label="Primary">
-    <a href="#top" class="brand" aria-label="Tim Rammensee — home"><span class="mark"><svg viewBox="0 0 100 104" fill="none" aria-hidden="true"><line class="ln" x1="14" y1="16" x2="14" y2="88" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><text x="58" y="46" text-anchor="middle" fill="currentColor" font-family="Arial,Helvetica,sans-serif" font-size="46" font-weight="800">T</text><text class="r" x="58" y="92" text-anchor="middle" fill="currentColor" font-family="Arial,Helvetica,sans-serif" font-size="46" font-weight="800">R</text></svg></span></a>
-    <div class="nav-links" id="navLinks">
-      <a href="#weddings" data-i18n="nav.weddings">Weddings</a>
-      <a href="#automotive" data-i18n="nav.automotive">Automotive</a>
-      <a href="#reels" data-i18n="nav.reels">Reels</a>
-      <a href="#work" data-i18n="nav.work">Work</a>
-      <a href="#about" data-i18n="nav.about">About</a>
-      <a href="#services" data-i18n="nav.services">Services</a>
-      <a href="#contact" class="nav-cta" data-i18n="nav.contact">Get in touch</a>
-      <div class="lang-switch" role="group" aria-label="Language">
-        <button type="button" data-lang="de">DE</button><span class="sep">/</span><button type="button" data-lang="en">EN</button>
-      </div>
-    </div>
-    <button class="burger" id="burger" aria-label="Toggle menu" data-i18n-aria="aria.menu" aria-expanded="false" aria-controls="navLinks"><span></span><span></span><span></span></button>
-  </nav>
+<header class="bar" id="bar">
+  <a class="mark" href="#top" aria-label="Tim Rammensee — home">
+    <svg viewBox="0 0 100 104" fill="none" aria-hidden="true"><line class="ln" x1="14" y1="16" x2="14" y2="88" stroke-width="3" stroke-linecap="round"/><text x="58" y="46" text-anchor="middle" fill="currentColor" font-family="Arial,Helvetica,sans-serif" font-size="46" font-weight="800">T</text><text x="58" y="92" text-anchor="middle" fill="currentColor" font-family="Arial,Helvetica,sans-serif" font-size="46" font-weight="800">R</text></svg>
+  </a>
+  <ul class="links">
+    <li><a href="#weddings" data-i18n="nav.weddings">Weddings</a></li>
+    <li><a href="#cars" data-i18n="nav.cars">Cars</a></li>
+    <li><a href="#reels" data-i18n="nav.reels">Reels</a></li>
+    <li><a href="#about" data-i18n="nav.about">About</a></li>
+    <li><a href="#faq" data-i18n="nav.faq">FAQ</a></li>
+  </ul>
+  <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="de" aria-pressed="false">DE</button><button type="button" data-lang="en" aria-pressed="true">EN</button></div>
+  <a class="btn" href="#contact" data-i18n="nav.cta">Check your date</a>
 </header>
 
 <main id="main">
+<div class="split" id="top">
+  <div class="read">
 
-<!-- ====== HERO (Video) ====== -->
-<section class="hero" aria-label="Intro">
-  <div class="bar top"></div>
-  <div class="hero-media">
-    <div class="poster" style="background-image:url('https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80')"></div>
-    <video autoplay muted loop playsinline preload="none" poster="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80">
-      <source src="https://videos.pexels.com/video-files/2022395/2022395-hd_1920_1080_30fps.mp4" type="video/mp4">
-    </video>
+    <section class="sec hero" data-chapter="0" aria-labelledby="h1">
+      <div class="strip" aria-hidden="true"><div class="run" id="run"></div></div>
+      <div class="hero-body">
+        <h1 id="h1" class="rv" data-i18n="hero.h1">Weddings and cars, on film</h1>
+        <p class="lead rv" style="--d:1" data-i18n="hero.lead">I'm Tim Rammensee, a photographer and filmmaker from Hof in Bavaria. Photos and film of the same day, from one person, across Germany and abroad.</p>
+        <div class="acts rv" style="--d:2">
+          <a class="btn" href="#contact"><span data-i18n="hero.cta">Check your date</span> <span class="arr" aria-hidden="true">→</span></a>
+          <a class="tlink" href="#weddings" data-i18n="hero.more">See what I shoot</a>
+        </div>
+        <div class="switch rv" style="--d:3">
+          <p class="lbl" id="fmtLbl" data-i18n="fmt.lbl">See the frame as you'd get it</p>
+          <div class="opts" role="group" aria-labelledby="fmtLbl">
+            <button type="button" data-ar="0.8" aria-pressed="false" data-i18n="fmt.photo">Photo 4:5</button>
+            <button type="button" data-ar="2.39" aria-pressed="false" data-i18n="fmt.film">Film 2.39:1</button>
+            <button type="button" data-ar="0.5625" aria-pressed="false" data-i18n="fmt.reel">Reel 9:16</button>
+            <button type="button" data-ar="0" aria-pressed="true" data-i18n="fmt.full">Full frame</button>
+          </div>
+        </div>
+      </div>
+      <nav class="hero-links rv" style="--d:4" aria-label="Chapters">
+        <a href="#weddings" data-i18n="nav.weddings">Weddings</a><a href="#cars" data-i18n="nav.cars">Cars</a><a href="#reels" data-i18n="nav.reels">Reels</a>
+      </nav>
+    </section>
+
+    <section class="sec chap" id="weddings" data-chapter="1" aria-labelledby="h-w">
+      <h2 id="h-w" class="rv" data-i18n="w.h">Weddings, as they happen</h2>
+      <div class="inline" data-slot="wedding" aria-hidden="true"></div>
+      <p class="body rv" style="--d:1" data-i18n="w.p">From getting ready to the last dance I stay in the background and keep what actually happens: the nerves, the speeches, the dance floor. Photos and a film of the same day, by the same person, so nothing is staged twice.</p>
+      <ul class="facts rv" style="--d:2"><li data-i18n="w.f1">Full day or ceremony only</li><li data-i18n="w.f2">Photo and film</li><li data-i18n="w.f3">Sneak peek within a week</li></ul>
+      <div class="cells rv" style="--d:3">
+        <a class="cell ink" href="#contact" data-project="wedding"><span data-i18n="w.a1">Ask about your date</span><span class="arr" aria-hidden="true">→</span></a>
+        <a class="cell" href="#process"><span data-i18n="w.a2">How the day runs</span><span class="arr" aria-hidden="true">→</span></a>
+      </div>
+    </section>
+
+    <section class="sec chap" id="cars" data-chapter="2" aria-labelledby="h-c">
+      <h2 id="h-c" class="rv" data-i18n="c.h">Cars, with presence</h2>
+      <div class="inline" data-slot="cars" aria-hidden="true"></div>
+      <p class="body rv" style="--d:1" data-i18n="c.p">Static frames, details and rolling shots from a second car, for private owners, dealers and clubs. Planned around the light, the location and the car's best side.</p>
+      <ul class="facts rv" style="--d:2"><li data-i18n="c.f1">Photo set</li><li data-i18n="c.f2">Rolling shots</li><li data-i18n="c.f3">Short film for social</li></ul>
+      <div class="cells rv" style="--d:3">
+        <a class="cell ink" href="#contact" data-project="automotive"><span data-i18n="c.a1">Plan a car shoot</span><span class="arr" aria-hidden="true">→</span></a>
+        <a class="cell" href="#shoot"><span data-i18n="c.a2">What's included</span><span class="arr" aria-hidden="true">→</span></a>
+      </div>
+    </section>
+
+    <section class="sec chap" id="reels" data-chapter="3" aria-labelledby="h-r">
+      <h2 id="h-r" class="rv" data-i18n="r.h">Reels, cut for the feed</h2>
+      <div class="inline" data-slot="reels" aria-hidden="true"></div>
+      <p class="body rv" style="--d:1" data-i18n="r.p">Vertical clips filmed and edited for Instagram and TikTok: a hook in the first second, colour-graded, captioned. For couples after the wedding, and for businesses that want to post regularly.</p>
+      <ul class="facts rv" style="--d:2"><li>9:16</li><li data-i18n="r.f2">Edit and grade</li><li data-i18n="r.f3">Monthly content on request</li></ul>
+      <div class="cells rv" style="--d:3">
+        <a class="cell ink" href="#contact" data-project="reels"><span data-i18n="r.a1">Talk about reels</span><span class="arr" aria-hidden="true">→</span></a>
+        <a class="cell" href="https://instagram.com/tim.rxme" target="_blank" rel="noopener"><span>@tim.rxme</span><span class="arr" aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+
+    <section class="sec ledger" id="shoot" data-chapter="4" aria-labelledby="h-l">
+      <h2 id="h-l" class="rv" data-i18n="l.h">What I shoot</h2>
+      <p class="intro rv" style="--d:1" data-i18n="l.p">Every job gets a fixed quote after a short call. No packages off a shelf.</p>
+      <ul class="rows rv" style="--d:2">
+        <li><span data-i18n="l.1a">Wedding, full day</span><span data-i18n="l.pf">Photo and film</span><span data-i18n="l.1c">Gallery and film</span></li>
+        <li><span data-i18n="l.2a">Wedding, ceremony only</span><span data-i18n="l.p1">Photo</span><span data-i18n="l.gal">Online gallery</span></li>
+        <li><span data-i18n="l.3a">Couple session</span><span data-i18n="l.p1">Photo</span><span data-i18n="l.gal">Online gallery</span></li>
+        <li><span data-i18n="l.4a">Car, static and details</span><span data-i18n="l.p1">Photo</span><span data-i18n="l.set">Photo set</span></li>
+        <li><span data-i18n="l.5a">Car, rolling shots</span><span data-i18n="l.pf">Photo and film</span><span data-i18n="l.5c">Photo set and clip</span></li>
+        <li><span data-i18n="l.6a">Reels</span><span data-i18n="l.f">Film</span><span data-i18n="l.6c">Vertical clips</span></li>
+        <li><span data-i18n="l.7a">Social media care</span><span data-i18n="l.7b">Content</span><span data-i18n="l.7c">Monthly plan</span></li>
+        <li><span data-i18n="l.8a">Portrait and business</span><span data-i18n="l.p1">Photo</span><span data-i18n="l.gal">Online gallery</span></li>
+      </ul>
+    </section>
+
+    <section class="sec letter" id="about" data-chapter="5" aria-labelledby="h-a">
+      <h2 id="h-a" class="rv" data-i18n="a.h">About me</h2>
+      <div class="badge rv" style="--d:1" aria-hidden="true"><svg viewBox="0 0 100 104" fill="none"><line class="ln" x1="14" y1="16" x2="14" y2="88" stroke-width="4" stroke-linecap="round"/><text x="58" y="46" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="46" font-weight="800">T</text><text x="58" y="92" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="46" font-weight="800">R</text></svg></div>
+      <div class="txt">
+        <p class="rv" style="--d:2" data-i18n="a.p1">I've been shooting photo and film for about four years: weddings, cars, and the reels that come out of both.</p>
+        <p class="rv" style="--d:3" data-i18n="a.p2">What I care about is that it never feels like a shoot. <mark>The best frames happen the second you forget I'm there.</mark></p>
+        <p class="rv" style="--d:4" data-i18n="a.p3">I work alone, from the first call to the final edit, so the person you talk to is the one holding the camera and the one cutting your film.</p>
+        <p class="rv" style="--d:5" data-i18n="a.p4">I'm based in Hof and travel for most jobs, across Germany and further when it fits.</p>
+      </div>
+      <div class="sign rv" style="--d:6"><b>Tim Rammensee</b><span data-i18n="a.role">Photographer and filmmaker, Hof</span></div>
+    </section>
+
+    <section class="sec proc" id="process" data-chapter="6" aria-labelledby="h-p">
+      <h2 id="h-p" class="rv" data-i18n="p.h">How it runs</h2>
+      <p class="intro rv" style="--d:1" data-i18n="p.p">From your first message to the finished film, you talk to one person the whole way.</p>
+      <div class="slip rv" style="--d:2">
+        <h3 data-i18n="p.g1">Before</h3>
+        <div class="r"><span data-i18n="p.1">Your message</span><i class="d"></i><span class="v" data-i18n="p.1v">reply in 24 h</span></div>
+        <div class="r"><span data-i18n="p.2">Short call</span><i class="d"></i><span class="v" data-i18n="p.2v">about 20 min</span></div>
+        <div class="r"><span data-i18n="p.3">Fixed quote</span><i class="d"></i><span class="v" data-i18n="p.3v">in writing</span></div>
+        <h3 data-i18n="p.g2">On the day</h3>
+        <div class="r"><span data-i18n="p.4">Shoot</span><i class="d"></i><span class="v" data-i18n="p.4v">as long as it runs</span></div>
+        <h3 data-i18n="p.g3">After</h3>
+        <div class="r"><span data-i18n="p.5">Sneak peek</span><i class="d"></i><span class="v" data-i18n="p.5v">within a week</span></div>
+        <div class="r"><span data-i18n="p.6">Gallery and film</span><i class="d"></i><span class="v" data-i18n="p.6v">a few weeks</span></div>
+        <div class="total"><span data-i18n="p.t1">You get photos, film and reels</span><span data-i18n="p.t2">from one person</span></div>
+      </div>
+    </section>
+
   </div>
-  <div class="bar bottom"></div>
-  <div class="grain" aria-hidden="true"></div>
-  <div class="hero-inner wrap">
-    <p class="eyebrow reveal" data-i18n="hero.eyebrow">Cinematic Photography &amp; Film · Germany &amp; worldwide</p>
-    <h1 class="reveal" data-i18n="hero.h1">Stories that<br><em>move.</em></h1>
-    <p class="lead reveal" data-i18n="hero.lead">Photographer &amp; filmmaker from Bavaria, shooting across Germany and internationally. Weddings, cars, brands — turned into photos and films that actually land.</p>
-    <div class="hero-actions reveal">
-      <a href="#contact" class="btn btn-primary" data-i18n="hero.cta1">Start a project</a>
-      <a href="#reels" class="btn btn-ghost"><span class="play" aria-hidden="true">▶</span> <span data-i18n="hero.cta2">Watch the reels</span></a>
+
+  <aside class="stage" id="stage" aria-label="Picture">
+    <div class="gate" id="gate">
+      <figure class="frame on" data-slot="hero"><figcaption data-i18n="cap.0">Weddings · Cars · Reels</figcaption></figure>
+      <figure class="frame" data-slot="wedding"><figcaption data-i18n="cap.1">Weddings</figcaption></figure>
+      <figure class="frame" data-slot="cars"><figcaption data-i18n="cap.2">Cars</figcaption></figure>
+      <figure class="frame" data-slot="reels"><figcaption data-i18n="cap.3">Reels</figcaption></figure>
+      <figure class="frame" data-slot="shoot"><figcaption data-i18n="cap.4">What I shoot</figcaption></figure>
+      <figure class="frame" data-slot="about"><figcaption data-i18n="cap.5">About me</figcaption></figure>
+      <figure class="frame" data-slot="process"><figcaption data-i18n="cap.6">How it runs</figcaption></figure>
     </div>
-  </div>
-  <div class="hero-rail" aria-hidden="true"><span>Based in Bavaria</span><span class="rail-dot"></span><span>@tim.rxme</span></div>
-  <div class="scroll-cue" aria-hidden="true"><span>Scroll</span><span class="line"></span></div>
-</section>
-
-<!-- ====== MARQUEE ====== -->
-<div class="strip" aria-hidden="true">
-  <div class="strip-track">
-    <span>Weddings</span><span>Automotive</span><span>Reels</span><span>Social Media</span><span>Portrait</span><span>Events</span>
-    <span>Weddings</span><span>Automotive</span><span>Reels</span><span>Social Media</span><span>Portrait</span><span>Events</span>
-  </div>
+    <p class="fmt" id="fmtOut" aria-live="polite"></p>
+  </aside>
 </div>
 
-<!-- ====== WEDDINGS (Feature) ====== -->
-<section class="section" id="weddings">
-  <div class="wrap feature">
-    <div class="media reveal">
-      <img src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1100&q=80" alt="Bride and groom at sunset" loading="lazy">
-      <img class="stack" src="https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=600&q=80" alt="Wedding details" loading="lazy">
-    </div>
-    <div class="reveal">
-      <p class="eyebrow" data-i18n="w.eyebrow">Focus · Weddings</p>
-      <h2 data-i18n="w.h2">Real moments,<br>no posing.</h2>
-      <p data-i18n="w.p">Weddings are my thing. I stay in the background all day and grab the real stuff — the laughs, the happy tears, that first dance.</p>
-      <ul>
-        <li data-i18n="w.li1">Documentary coverage from getting ready to the party</li>
-        <li data-i18n="w.li2">Cinematic wedding film &amp; highlight reel for social media</li>
-        <li data-i18n="w.li3">Couple's session at your favourite location</li>
-        <li data-i18n="w.li4">Refined editing &amp; a fast preview gallery</li>
-      </ul>
-      <a href="#contact" class="btn btn-primary" data-i18n="w.cta">Check your date</a>
-    </div>
+<section class="wide" id="work" aria-labelledby="h-g">
+  <h2 id="h-g" class="rv" data-i18n="g.h">Selected frames</h2>
+  <div class="row" id="row" tabindex="0" aria-label="Selected frames, scroll sideways">
+    <div class="mod tall"><figure data-slot="g1"></figure></div>
+    <div class="mod pair"><figure data-slot="g2"></figure><figure data-slot="g3"></figure></div>
+    <div class="mod wideM"><figure data-slot="g4"></figure></div>
+    <div class="mod pair"><figure data-slot="g5"></figure><figure data-slot="g6"></figure></div>
+    <div class="mod tall"><figure data-slot="g7"></figure></div>
+    <div class="mod wideM"><figure data-slot="g8"></figure></div>
   </div>
 </section>
 
-<!-- ====== AUTOMOTIVE ====== -->
-<section class="auto" id="automotive">
-  <div class="auto-bg" style="background-image:url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1280&q=70')"></div>
-  <div class="wrap">
-    <div class="reveal">
-      <p class="eyebrow" data-i18n="a.eyebrow">Focus · Automotive</p>
-      <h2 data-i18n="a.h2">Cars with<br><em>presence.</em></h2>
-      <p data-i18n="a.p">From daily driver to dream build — I shoot your car so the paint, the lines and the attitude come through. Rolling shots, details, studio look.</p>
-      <a href="#contact" class="btn btn-primary" style="margin-top:30px" data-i18n="a.cta">Book a car shoot</a>
-    </div>
-    <div class="auto-grid reveal">
-      <div class="cell wide"><img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1000&q=80" alt="Sports car at night" loading="lazy"></div>
-      <div class="cell"><img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=700&q=80" alt="Muscle car" loading="lazy"></div>
-      <div class="cell"><img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=700&q=80" alt="Porsche" loading="lazy"></div>
-      <div class="cell"><img src="https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=700&q=80" alt="Sports car detail" loading="lazy"></div>
-      <div class="cell"><img src="https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=700&q=80" alt="Classic car" loading="lazy"></div>
-      <div class="cell wide"><img src="https://images.unsplash.com/photo-1542362567-b07e54358753?auto=format&fit=crop&w=1000&q=80" alt="Car rolling shot" loading="lazy"></div>
-    </div>
+<section class="wide faq" id="faq" aria-labelledby="h-f">
+  <h2 id="h-f" class="rv" data-i18n="f.h">Questions, answered</h2>
+  <div class="cols">
+    <p class="rv"><b data-i18n="f.q1">How far ahead should we book?</b> <span data-i18n="f.a1">For weddings, six to twelve months is ideal, because summer Saturdays go first. Car shoots and reels usually work within a few weeks.</span></p>
+    <p class="rv" style="--d:1"><b data-i18n="f.q2">Do you travel?</b> <span data-i18n="f.a2">Yes. I'm based in Hof and shoot across Germany and abroad. Travel is part of the quote and agreed upfront.</span></p>
+    <p class="rv" style="--d:2"><b data-i18n="f.q3">When do we get the pictures?</b> <span data-i18n="f.a3">A sneak peek within a week. The full gallery and the film follow within a few weeks, depending on the season.</span></p>
+    <p class="rv" style="--d:3"><b data-i18n="f.q4">Photo, film, or both?</b> <span data-i18n="f.a4">Either, or both from the same person. Both is where it gets interesting: the photos and the film tell the same day.</span></p>
+    <p class="rv" style="--d:4"><b data-i18n="f.q5">What does it cost?</b> <span data-i18n="f.a5">After a short call I send a fixed quote for exactly what you need, so there are no surprises later.</span></p>
+    <p class="rv" style="--d:5"><b data-i18n="f.q6">Do you handle social media too?</b> <span data-i18n="f.a6">Yes. I plan, film and cut reels and can look after a channel month by month.</span></p>
+    <p class="rv" style="--d:6"><b data-i18n="f.q7">What if the weather turns?</b> <span data-i18n="f.a7">We plan a second option for every outdoor part. Car shoots move to the next good day.</span></p>
+    <p class="rv" style="--d:7"><b data-i18n="f.q8">Do you edit every photo?</b> <span data-i18n="f.a8">Every photo you get is selected and colour-graded by me. Heavier retouching on request.</span></p>
   </div>
 </section>
 
-<!-- ====== REELS ====== -->
-<section class="section" id="reels">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <div>
-        <p class="eyebrow" data-i18n="r.eyebrow">Reels &amp; Video</p>
-        <h2 data-i18n="r.h2">Content that stops the scroll.</h2>
-      </div>
-      <p data-i18n="r.p">I cut your vertical clips for Instagram &amp; TikTok to the beat and build them for reach. Tap any reel for a preview.</p>
-    </div>
-    <div class="reels reveal" id="reelGrid">
-      <button class="reel" type="button" data-video="https://videos.pexels.com/video-files/4434150/4434150-uhd_1440_2560_25fps.mp4" aria-label="Play reel: First Dance">
-        <video muted loop playsinline preload="none" poster="https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=500&q=80"></video>
-        <span class="ig">Reel</span><span class="pp" aria-hidden="true">▶</span>
-        <span class="meta"><small data-i18n="cat.wedding">Wedding</small><b>First Dance</b></span>
-      </button>
-      <button class="reel" type="button" data-video="https://videos.pexels.com/video-files/3066464/3066464-uhd_1440_2560_24fps.mp4" aria-label="Play reel: Night Drive">
-        <video muted loop playsinline preload="none" poster="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=500&q=80"></video>
-        <span class="ig">Reel</span><span class="pp" aria-hidden="true">▶</span>
-        <span class="meta"><small data-i18n="cat.auto">Automotive</small><b>Night Drive</b></span>
-      </button>
-      <button class="reel" type="button" data-video="https://videos.pexels.com/video-files/4434242/4434242-uhd_1440_2560_25fps.mp4" aria-label="Play reel: Getting Ready">
-        <video muted loop playsinline preload="none" poster="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=500&q=80"></video>
-        <span class="ig">Reel</span><span class="pp" aria-hidden="true">▶</span>
-        <span class="meta"><small data-i18n="cat.wedding">Wedding</small><b>Getting Ready</b></span>
-      </button>
-      <button class="reel" type="button" data-video="https://videos.pexels.com/video-files/3066465/3066465-uhd_1440_2560_24fps.mp4" aria-label="Play reel: Roll Out">
-        <video muted loop playsinline preload="none" poster="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=500&q=80"></video>
-        <span class="ig">Reel</span><span class="pp" aria-hidden="true">▶</span>
-        <span class="meta"><small data-i18n="cat.auto">Automotive</small><b>Roll Out</b></span>
-      </button>
-    </div>
-    <div class="reveal" style="margin-top:40px"><a href="#contact" class="btn btn-primary" data-i18n="r.cta">Plan your reels</a></div>
-  </div>
-</section>
-
-<!-- ====== PROCESS ====== -->
-<section class="section" id="process">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <div>
-        <p class="eyebrow" data-i18n="p.eyebrow">How it works</p>
-        <h2 data-i18n="p.h2">From first hello to final cut.</h2>
-      </div>
-      <p data-i18n="p.p">A simple, relaxed process — so you always know what happens next.</p>
-    </div>
-    <div class="steps">
-      <div class="step reveal">
-        <span class="n">01</span>
-        <h3 data-i18n="p.s1h">Discovery call</h3>
-        <p data-i18n="p.s1p">We talk through your vision, dates and locations, and I put together a tailored quote — no pressure, no templates.</p>
-      </div>
-      <div class="step reveal">
-        <span class="n">02</span>
-        <h3 data-i18n="p.s2h">The shoot</h3>
-        <p data-i18n="p.s2p">On the day I keep it calm and natural. You enjoy the moment, I take care of light, angles and timing.</p>
-      </div>
-      <div class="step reveal">
-        <span class="n">03</span>
-        <h3 data-i18n="p.s3h">Edit &amp; deliver</h3>
-        <p data-i18n="p.s3p">You get a fast sneak peek, then the full gallery and cinematic reels — ready to relive and to share.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ====== ABOUT ====== -->
-<section class="section" id="about">
-  <div class="wrap about-grid about">
-    <div class="about-img reveal">
-      <img src="https://images.unsplash.com/photo-1554048612-b6a482bc67e5?auto=format&fit=crop&w=900&q=80" alt="Portrait of Tim Rammensee, photographer" loading="lazy">
-      <div class="badge"><b>4</b><small data-i18n="ab.badge">years behind<br>the camera</small></div>
-    </div>
-    <div class="reveal">
-      <p class="eyebrow" data-i18n="ab.eyebrow">About me</p>
-      <h2 data-i18n="ab.h2">Just me, the camera,<br>and good light.</h2>
-      <p data-i18n="ab.p1">I'm Tim. For the past four years I've mixed photography and film into one thing: calm, cinematic shots that actually tell a story — couple or sports car, doesn't matter.</p>
-      <p data-i18n="ab.p2">I work close, plan tight and deliver fast. From a single reel to a full wedding — it's all me, start to finish.</p>
-      <p data-i18n="ab.p3">Main thing: you feel relaxed. The best shots happen the second you forget I'm there.</p>
-      <div class="stats">
-        <div><b>4</b><small data-i18n="ab.stat1">Years shooting</small></div>
-        <div><b>Hof</b><small data-i18n="ab.stat2">Based in Bavaria</small></div>
-        <div><b>1:1</b><small data-i18n="ab.stat3">Personal service</small></div>
-      </div>
-      <div class="sign">— Tim</div>
-    </div>
-  </div>
-</section>
-
-<!-- ====== PORTFOLIO ====== -->
-<section class="section" id="work">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <div>
-        <p class="eyebrow" data-i18n="wk.eyebrow">Selected work</p>
-        <h2 data-i18n="wk.h2">Portfolio</h2>
-      </div>
-      <p data-i18n="wk.p">A selection of my favourite frames. Click any image for the full view.</p>
-    </div>
-    <div class="filters reveal" id="filters">
-      <button class="active" data-filter="all" data-i18n="filter.all">All</button>
-      <button data-filter="wedding" data-i18n="filter.wedding">Weddings</button>
-      <button data-filter="auto" data-i18n="filter.auto">Automotive</button>
-      <button data-filter="portrait" data-i18n="filter.portrait">Portrait</button>
-      <button data-filter="event" data-i18n="filter.event">Events</button>
-    </div>
-    <div class="gallery" id="gallery">
-      <button class="shot" type="button" data-cat="wedding"><img src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=700&q=80" alt="Bride and groom" loading="lazy"><span class="cap"><small data-i18n="cat.wedding">Wedding</small><b>Yes, forever</b></span></button>
-      <button class="shot" type="button" data-cat="auto"><img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=700&q=80" alt="Porsche" loading="lazy"><span class="cap"><small data-i18n="cat.auto">Automotive</small><b>Silhouette</b></span></button>
-      <button class="shot" type="button" data-cat="portrait"><img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=700&q=80" alt="Backlit portrait" loading="lazy"><span class="cap"><small data-i18n="cat.portrait">Portrait</small><b>Golden hour</b></span></button>
-      <button class="shot" type="button" data-cat="auto"><img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=700&q=80" alt="Muscle car" loading="lazy"><span class="cap"><small data-i18n="cat.auto">Automotive</small><b>V8</b></span></button>
-      <button class="shot" type="button" data-cat="wedding"><img src="https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=700&q=80" alt="Wedding details" loading="lazy"><span class="cap"><small data-i18n="cat.wedding">Wedding</small><b>The little things</b></span></button>
-      <button class="shot" type="button" data-cat="event"><img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=700&q=80" alt="Event photography" loading="lazy"><span class="cap"><small data-i18n="cat.event">Event</small><b>Celebrate</b></span></button>
-      <button class="shot" type="button" data-cat="auto"><img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=700&q=80" alt="Sports car" loading="lazy"><span class="cap"><small data-i18n="cat.auto">Automotive</small><b>Open road</b></span></button>
-      <button class="shot" type="button" data-cat="portrait"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=700&q=80" alt="Portrait of a man" loading="lazy"><span class="cap"><small data-i18n="cat.portrait">Portrait</small><b>Character</b></span></button>
-      <button class="shot" type="button" data-cat="wedding"><img src="https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=700&q=80" alt="Couple kissing" loading="lazy"><span class="cap"><small data-i18n="cat.wedding">Wedding</small><b>The moment</b></span></button>
-    </div>
-  </div>
-</section>
-
-<!-- ====== TESTIMONIALS ====== -->
-<section class="section quote" id="testimonials">
-  <div class="wrap reveal">
-    <div class="stars" aria-hidden="true">★★★★★</div>
-    <blockquote id="qText"></blockquote>
-    <cite id="qCite"></cite>
-    <div class="dots" id="qDots"></div>
-  </div>
-</section>
-
-<!-- ====== SERVICES ====== -->
-<section class="section" id="services">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <div>
-        <p class="eyebrow" data-i18n="s.eyebrow">Services</p>
-        <h2 data-i18n="s.h2">What I do</h2>
-      </div>
-      <p data-i18n="s.p">Every project's different — tell me what you need and I'll put together a fair offer.</p>
-    </div>
-    <div class="services">
-      <div class="svc reveal">
-        <span class="num">01</span>
-        <h3 data-i18n="s1.h">Weddings</h3>
-        <p data-i18n="s1.p">Photo &amp; film of your full day, including a cinematic highlight reel and online gallery.</p>
-      </div>
-      <div class="svc reveal">
-        <span class="num">02</span>
-        <h3 data-i18n="s2.h">Automotive</h3>
-        <p data-i18n="s2.p">Photo &amp; video shoot for your vehicle — static shots, detail shots and rolling shots.</p>
-      </div>
-      <div class="svc reveal">
-        <span class="num">03</span>
-        <h3 data-i18n="s3.h">Reels &amp; Video</h3>
-        <p data-i18n="s3.p">Vertical clips for social media, edited and colour-graded — from idea to upload.</p>
-      </div>
-      <div class="svc highlight reveal">
-        <span class="tag" data-i18n="s.badge">Most booked</span>
-        <span class="num">04</span>
-        <h3 data-i18n="s4.h">Social-Media Marketing</h3>
-        <p data-i18n="s4.p">More than images: content planning, regular reels &amp; ongoing channel management for real growth.</p>
-      </div>
-    </div>
-    <div class="reveal" style="margin-top:40px;text-align:center"><a href="#contact" class="btn btn-primary" data-i18n="s.cta">Request a quote</a></div>
-  </div>
-</section>
-
-<!-- ====== FAQ ====== -->
-<section class="section" id="faq">
-  <div class="wrap">
-    <div class="sec-head reveal" style="justify-content:center;text-align:center;">
-      <div>
-        <p class="eyebrow" data-i18n="f.eyebrow">Good to know</p>
-        <h2 data-i18n="f.h2">Frequently asked</h2>
-      </div>
-    </div>
-    <div class="faq-grid reveal">
-      <div class="faq-item">
-        <button class="faq-q" type="button" aria-expanded="false" data-i18n="f.q1">How far in advance should I book?</button>
-        <div class="faq-a"><p data-i18n="f.a1">For weddings, 6–12 months ahead is ideal as dates fill up quickly. Automotive and reel shoots are usually possible within a few weeks — just ask.</p></div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q" type="button" aria-expanded="false" data-i18n="f.q2">Do you travel?</button>
-        <div class="faq-a"><p data-i18n="f.a2">Absolutely. I'm based in Bavaria but shoot all over Germany and internationally. Travel beyond the region is added at cost and always agreed upfront.</p></div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q" type="button" aria-expanded="false" data-i18n="f.q3">When will I get my photos and videos?</button>
-        <div class="faq-a"><p data-i18n="f.a3">You'll receive a small sneak peek within a few days. Full galleries land in 2–4 weeks, wedding films in 4–6 weeks, depending on the season.</p></div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q" type="button" aria-expanded="false" data-i18n="f.q4">Do you also handle posting and social media?</button>
-        <div class="faq-a"><p data-i18n="f.a4">Yes — with the social-media package I plan, cut and schedule your content, so your channels stay active and keep growing without you lifting a finger.</p></div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q" type="button" aria-expanded="false" data-i18n="f.q5">What does a shoot cost?</button>
-        <div class="faq-a"><p data-i18n="f.a5">After a short call I send a fixed, tailored quote — so there are no surprises.</p></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ====== CONTACT ====== -->
-<section class="section" id="contact">
-  <div class="wrap contact-grid">
-    <div class="contact-left reveal">
-      <p class="eyebrow" data-i18n="c.eyebrow">Contact</p>
-      <h2 data-i18n="c.h2">Let's shoot your<br><em>story.</em></h2>
-      <p data-i18n="c.p">Tell me what you've got in mind — I usually get back within 24 hours.</p>
-      <div class="contact-info">
-        <a href="mailto:smmmtimrammensee@icloud.com"><span class="ic" aria-hidden="true">✉</span><span><small data-i18n="c.email">Email</small>smmmtimrammensee@icloud.com</span></a>
-        <a href="tel:+4915753118177"><span class="ic" aria-hidden="true">☎</span><span><small data-i18n="c.phone">Phone</small>+49 157 5311 8177</span></a>
-        <a href="https://instagram.com/tim.rxme" target="_blank" rel="noopener"><span class="ic" aria-hidden="true">◎</span><span><small data-i18n="c.ig">Instagram</small>@tim.rxme</span></a>
-        <div><span class="ic" aria-hidden="true">⌖</span><span><small data-i18n="c.loc">Based in</small><span data-i18n="c.locval">Bavaria, Germany</span></span></div>
-      </div>
-    </div>
-    <form class="reveal" id="contactForm" name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+<section class="contact" id="contact" aria-labelledby="h-k">
+  <h2 id="h-k" class="rv" data-i18n="k.h">Get in touch</h2>
+  <ul class="drows">
+    <li class="rv"><span class="row-t">Tim Rammensee</span></li>
+    <li class="rv" style="--d:1"><a href="https://maps.google.com/?q=Jungholzweg+24,+95030+Hof" target="_blank" rel="noopener">Jungholzweg 24</a></li>
+    <li class="rv" style="--d:2"><span class="row-t">95030 Hof</span></li>
+    <li class="rv" style="--d:3"><a href="tel:+4915753118177">+49 157 5311 8177</a></li>
+    <li class="rv" style="--d:4"><a href="mailto:smmmtimrammensee@icloud.com?subject=Anfrage%20%C3%BCber%20die%20Website"><span data-i18n="k.hi">Say hello</span><span class="go" aria-hidden="true">→</span></a></li>
+  </ul>
+  <div class="formwrap">
+    <div class="side rv"><h3 data-i18n="k.fh">Or send the details</h3><p data-i18n="k.fp">Date, place, what you have in mind. I reply within 24 hours.</p></div>
+    <form id="contactForm" name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="rv" style="--d:1">
       <input type="hidden" name="form-name" value="contact">
-      <p hidden><label>Don’t fill this out if you’re human: <input name="bot-field"></label></p>
-      <div class="row">
-        <div><label for="name" data-i18n="form.name">Name</label><input id="name" name="name" type="text" placeholder="Your name" data-i18n-ph="form.namePh" required></div>
-        <div><label for="email" data-i18n="form.email">Email</label><input id="email" name="email" type="email" placeholder="you@example.com" data-i18n-ph="form.emailPh" required></div>
-      </div>
-      <div>
-        <label for="art" data-i18n="form.project">Project</label>
-        <select id="art" name="project">
+      <p class="hp"><label>Leave empty <input name="bot-field"></label></p>
+      <div><label for="name" data-i18n="k.name">Name</label><input id="name" name="name" autocomplete="name" required></div>
+      <div><label for="email" data-i18n="k.email">Email</label><input id="email" name="email" type="email" autocomplete="email" required></div>
+      <div><label for="project" data-i18n="k.project">What for</label>
+        <select id="project" name="project">
           <option value="wedding" data-i18n="opt.wedding">Wedding</option>
-          <option value="automotive" data-i18n="opt.auto">Automotive</option>
-          <option value="reels" data-i18n="opt.reels">Reels / Video</option>
-          <option value="social-media" data-i18n="opt.smm">Social-Media Marketing</option>
-          <option value="portrait" data-i18n="opt.portrait">Portrait</option>
-          <option value="other" data-i18n="opt.other">Other</option>
-        </select>
-      </div>
-      <div>
-        <label for="msg" data-i18n="form.message">Message</label>
-        <textarea id="msg" name="message" placeholder="Tell me about your plans, date and location …" data-i18n-ph="form.messagePh"></textarea>
-      </div>
-      <button class="submit" type="submit" data-i18n="form.send">Send enquiry</button>
-      <p class="form-note" id="formNote" role="status" aria-live="polite" tabindex="-1" data-i18n="form.note">I usually reply within 24 hours. You can also write directly to smmmtimrammensee@icloud.com.</p>
+          <option value="automotive" data-i18n="opt.auto">Car shoot</option>
+          <option value="reels" data-i18n="opt.reels">Reels</option>
+          <option value="social-media" data-i18n="opt.smm">Social media care</option>
+          <option value="portrait" data-i18n="opt.portrait">Portrait or business</option>
+          <option value="other" data-i18n="opt.other">Something else</option>
+        </select></div>
+      <div><label for="date" data-i18n="k.date">Date, if known</label><input id="date" name="date" type="date"></div>
+      <div class="full"><label for="msg" data-i18n="k.msg">Message</label><textarea id="msg" name="message"></textarea></div>
+      <button class="btn full" type="submit"><span data-i18n="k.send">Send enquiry</span> <span class="arr" aria-hidden="true">→</span></button>
+      <p id="formNote" role="status" aria-live="polite" tabindex="-1"></p>
     </form>
   </div>
 </section>
-
 </main>
 
-<!-- ====== FOOTER ====== -->
 <footer>
-  <div class="wrap">
-    <div class="foot-grid">
-      <div>
-        <div class="foot-brand">Tim Rammensee</div>
-        <p style="color:var(--muted);font-weight:300;margin-top:8px;max-width:340px;" data-i18n="foot.tagline">Cinematic photography &amp; film — weddings, automotive, reels &amp; social media.</p>
-      </div>
-      <div class="foot-soc">
-        <a href="https://instagram.com/tim.rxme" target="_blank" rel="noopener" aria-label="Instagram">◎</a>
-        <a href="mailto:smmmtimrammensee@icloud.com" aria-label="Email">✉</a>
-        <a href="tel:+4915753118177" aria-label="Phone">☎</a>
-      </div>
-    </div>
-    <div class="foot-bottom">
-      <span>© <span id="year"></span> <span data-i18n="foot.rights">Tim Rammensee — All rights reserved.</span></span>
-      <span><a href="imprint.html" data-i18n="foot.imprint">Imprint</a> &nbsp;·&nbsp; <a href="privacy.html" data-i18n="foot.privacy">Privacy</a> &nbsp;·&nbsp; <a href="agb.html" data-i18n="foot.agb">Terms</a> &nbsp;·&nbsp; <a href="cookies.html" data-i18n="foot.cookies">Cookies</a></span>
-    </div>
-  </div>
+  <span data-i18n="ft.what">Tim Rammensee — photo and film, Hof</span>
+  <nav aria-label="Legal">
+    <a href="https://instagram.com/tim.rxme" target="_blank" rel="noopener">Instagram</a>
+    <a href="imprint.html" data-i18n="ft.imprint">Imprint</a>
+    <a href="privacy.html" data-i18n="ft.privacy">Privacy</a>
+    <a href="agb.html" data-i18n="ft.terms">Terms</a>
+    <a href="cookies.html" data-i18n="ft.cookies">Cookies</a>
+  </nav>
+  <span class="r">© <span id="year">2026</span></span>
 </footer>
 
-<!-- ====== LIGHTBOX ====== -->
-<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Media viewer">
-  <button class="lb-close" id="lbClose" aria-label="Close" data-i18n-aria="lb.close">×</button>
-  <button class="lb-nav lb-prev" id="lbPrev" aria-label="Previous" data-i18n-aria="lb.prev">‹</button>
-  <div id="lbStage"></div>
-  <button class="lb-nav lb-next" id="lbNext" aria-label="Next" data-i18n-aria="lb.next">›</button>
-</div>
-
-<div class="mobile-cta" aria-label="Quick contact">
+<div class="mcta" aria-label="Quick contact">
   <a href="https://wa.me/4915753118177" target="_blank" rel="noopener">WhatsApp</a>
-  <a href="tel:+4915753118177" data-i18n="mcta.call">Call</a>
-  <a href="#contact" class="primary" data-i18n="nav.contact">Get in touch</a>
+  <a href="tel:+4915753118177" data-i18n="m.call">Call</a>
+  <a class="ink" href="#contact" data-i18n="nav.cta">Check your date</a>
 </div>
 
-<div class="cookie-bar" id="cookieBar" role="dialog" aria-live="polite" aria-label="Cookie notice" hidden>
-  <p><span data-i18n="cookie.text">This site uses only technically necessary storage. Embedded media (video/images) may transmit your IP address.</span> <a href="cookies.html" data-i18n="cookie.more">Cookie policy</a></p>
-  <div class="cookie-actions">
-    <button type="button" id="ckNec" data-i18n="cookie.nec">Necessary only</button>
-    <button type="button" id="ckAll" class="primary" data-i18n="cookie.acc">Accept</button>
-  </div>
+<div class="cookie" id="cookie" role="dialog" aria-label="Cookie notice" hidden>
+  <p><span data-i18n="ck.t">This site only stores your language and this choice. No tracking.</span> <a href="cookies.html" data-i18n="ck.more">Details</a></p>
+  <button type="button" id="ckNec" data-i18n="ck.nec">Necessary only</button>
+  <button type="button" class="ok" id="ckAll" data-i18n="ck.ok">Okay</button>
 </div>
 
 <script>
+/* Picture slots: put a file named after the slot into assets/media/ (wedding.jpg, hero.mp4 …) and it replaces the drawn card. */
+const MEDIA = {
+  hero:{video:'assets/media/hero.mp4', img:'assets/media/hero.jpg'},
+  wedding:{video:'assets/media/wedding.mp4', img:'assets/media/wedding.jpg'},
+  cars:{video:'assets/media/cars.mp4', img:'assets/media/cars.jpg'},
+  reels:{video:'assets/media/reels.mp4', img:'assets/media/reels.jpg'},
+  shoot:{img:'assets/media/shoot.jpg'}, about:{img:'assets/media/about.jpg'}, process:{img:'assets/media/process.jpg'},
+  g1:{img:'assets/media/g1.jpg'},g2:{img:'assets/media/g2.jpg'},g3:{img:'assets/media/g3.jpg'},g4:{img:'assets/media/g4.jpg'},
+  g5:{img:'assets/media/g5.jpg'},g6:{img:'assets/media/g6.jpg'},g7:{img:'assets/media/g7.jpg'},g8:{img:'assets/media/g8.jpg'}
+};
+
 const I18N = {
   en: {
-    "title": "Tim Rammensee — Cinematic Photography & Film",
-    "skip": "Skip to content",
-    "nav.weddings": "Weddings", "nav.automotive": "Automotive", "nav.reels": "Reels", "nav.work": "Work", "nav.about": "About", "nav.services": "Services", "nav.contact": "Get in touch",
-    "hero.eyebrow": "Cinematic Photography &amp; Film · Germany &amp; worldwide",
-    "hero.h1": "Stories that<br><em>move.</em>",
-    "hero.lead": "Photographer &amp; filmmaker from Bavaria, shooting across Germany and internationally. Weddings, cars, brands — turned into photos and films that actually land.",
-    "hero.cta1": "Start a project", "hero.cta2": "Watch the reels",
-    "hero.trust": "Cinematic weddings, cars &amp; reels — Germany &amp; <b>worldwide</b>",
-    "w.eyebrow": "Focus · Weddings", "w.h2": "Real moments,<br>no posing.",
-    "w.p": "Weddings are my thing. I stay in the background all day and grab the real stuff — the laughs, the happy tears, that first dance.",
-    "w.li1": "Documentary coverage from getting ready to the party", "w.li2": "Cinematic wedding film &amp; highlight reel for social media", "w.li3": "Couple's session at your favourite location", "w.li4": "Refined editing &amp; a fast preview gallery", "w.cta": "Check your date",
-    "a.eyebrow": "Focus · Automotive", "a.h2": "Cars with<br><em>presence.</em>",
-    "a.p": "From daily driver to dream build — I shoot your car so the paint, the lines and the attitude come through. Rolling shots, details, studio look.", "a.cta": "Book a car shoot",
-    "r.eyebrow": "Reels &amp; Video", "r.h2": "Content that stops the scroll.",
-    "r.p": "I cut your vertical clips for Instagram &amp; TikTok to the beat and build them for reach. Tap any reel for a preview.", "r.cta": "Plan your reels",
-    "cat.wedding": "Wedding", "cat.auto": "Automotive", "cat.portrait": "Portrait", "cat.event": "Event",
-    "p.eyebrow": "How it works", "p.h2": "From first hello to final cut.", "p.p": "A simple, relaxed process — so you always know what happens next.",
-    "p.s1h": "Discovery call", "p.s1p": "We talk through your vision, dates and locations, and I put together a tailored quote — no pressure, no templates.",
-    "p.s2h": "The shoot", "p.s2p": "On the day I keep it calm and natural. You enjoy the moment, I take care of light, angles and timing.",
-    "p.s3h": "Edit &amp; deliver", "p.s3p": "You get a fast sneak peek, then the full gallery and cinematic reels — ready to relive and to share.",
-    "ab.badge": "years behind<br>the camera", "ab.eyebrow": "About me", "ab.h2": "Just me, the camera,<br>and good light.",
-    "ab.p1": "I'm Tim. For the past four years I've mixed photography and film into one thing: calm, cinematic shots that actually tell a story — couple or sports car, doesn't matter.",
-    "ab.p2": "I work close, plan tight and deliver fast. From a single reel to a full wedding — it's all me, start to finish.",
-    "ab.p3": "Main thing: you feel relaxed. The best shots happen the second you forget I'm there.",
-    "ab.stat1": "Years shooting", "ab.stat2": "Based in Bavaria", "ab.stat3": "Personal service",
-    "wk.eyebrow": "Selected work", "wk.h2": "Portfolio", "wk.p": "A selection of my favourite frames. Click any image for the full view.",
-    "filter.all": "All", "filter.wedding": "Weddings", "filter.auto": "Automotive", "filter.portrait": "Portrait", "filter.event": "Events",
-    "s.eyebrow": "Services", "s.h2": "What I do", "s.p": "Every project's different — tell me what you need and I'll put together a fair offer.",
-    "s1.h": "Weddings", "s1.p": "Photo &amp; film of your full day, including a cinematic highlight reel and online gallery.",
-    "s2.h": "Automotive", "s2.p": "Photo &amp; video shoot for your vehicle — static shots, detail shots and rolling shots.",
-    "s3.h": "Reels &amp; Video", "s3.p": "Vertical clips for social media, edited and colour-graded — from idea to upload.",
-    "s4.h": "Social-Media Marketing", "s4.p": "More than images: content planning, regular reels &amp; ongoing channel management for real growth.", "s.cta": "Request a quote",
-    "f.eyebrow": "Good to know", "f.h2": "Frequently asked",
-    "f.q1": "How far in advance should I book?", "f.a1": "For weddings, 6–12 months ahead is ideal as dates fill up quickly. Automotive and reel shoots are usually possible within a few weeks — just ask.",
-    "f.q2": "Do you travel?", "f.a2": "Absolutely. I'm based in Bavaria but shoot all over Germany and internationally. Travel beyond the region is added at cost and always agreed upfront.",
-    "f.q3": "When will I get my photos and videos?", "f.a3": "You'll receive a small sneak peek within a few days. Full galleries land in 2–4 weeks, wedding films in 4–6 weeks, depending on the season.",
-    "f.q4": "Do you also handle posting and social media?", "f.a4": "Yes — with the social-media package I plan, cut and schedule your content, so your channels stay active and keep growing without you lifting a finger.",
-    "f.q5": "What does a shoot cost?", "f.a5": "After a short call I send a fixed, tailored quote — so there are no surprises.",
-    "c.eyebrow": "Contact", "c.h2": "Let's shoot your<br><em>story.</em>", "c.p": "Tell me what you've got in mind — I usually get back within 24 hours.",
-    "c.email": "Email", "c.phone": "Phone", "c.ig": "Instagram", "c.loc": "Based in", "c.locval": "Hof, Germany",
-    "form.name": "Name", "form.namePh": "Your name", "form.email": "Email", "form.emailPh": "you@example.com", "form.project": "Project", "form.message": "Message", "form.messagePh": "Tell me about your plans, date and location …", "form.send": "Send enquiry",
-    "form.note": "I usually reply within 24 hours. You can also write directly to smmmtimrammensee@icloud.com.",
-    "form.sending": "Sending…", "form.sent": "Sent ✓", "form.thanks": "Thanks! Your enquiry is on its way — I’ll be in touch within 24 hours.", "form.error": "Something went wrong — please email smmmtimrammensee@icloud.com directly.", "form.noendpoint": "Couldn’t submit the form right now — please email smmmtimrammensee@icloud.com directly.",
-    "opt.wedding": "Wedding", "opt.auto": "Automotive", "opt.reels": "Reels / Video", "opt.smm": "Social-Media Marketing", "opt.portrait": "Portrait", "opt.other": "Other",
-    "foot.tagline": "Cinematic photography &amp; film — weddings, automotive, reels &amp; social media.", "foot.rights": "Tim Rammensee — All rights reserved.", "foot.imprint": "Imprint", "foot.privacy": "Privacy",
-    "aria.menu": "Toggle menu", "lb.close": "Close", "lb.prev": "Previous", "lb.next": "Next", "s.badge": "Most booked", "mcta.call": "Call", "meta.desc": "Tim Rammensee — cinematic photographer & filmmaker in Bavaria. Weddings, automotive, reels & social-media content.",
-    "foot.agb": "Terms", "foot.cookies": "Cookies", "cookie.text": "This site uses only technically necessary storage. Embedded media (video/images) may transmit your IP address.", "cookie.more": "Cookie policy", "cookie.nec": "Necessary only", "cookie.acc": "Accept"
+    "title":"Tim Rammensee — Wedding & Car Photographer and Filmmaker, Hof",
+    "meta":"Tim Rammensee, photographer and filmmaker from Hof in Bavaria. Weddings, cars and reels — photo and film from one person, across Germany and abroad.",
+    "skip":"Skip to content",
+    "nav.weddings":"Weddings","nav.cars":"Cars","nav.reels":"Reels","nav.about":"About","nav.faq":"FAQ","nav.cta":"Check your date",
+    "hero.h1":"Weddings and cars, on film",
+    "hero.lead":"I'm Tim Rammensee, a photographer and filmmaker from Hof in Bavaria. Photos and film of the same day, from one person, across Germany and abroad.",
+    "hero.cta":"Check your date","hero.more":"See what I shoot",
+    "fmt.lbl":"See the frame as you'd get it","fmt.photo":"Photo 4:5","fmt.film":"Film 2.39:1","fmt.reel":"Reel 9:16","fmt.full":"Full frame",
+    "fmt.out.photo":"Photo · 4:5","fmt.out.film":"Film · 2.39:1","fmt.out.reel":"Reel · 9:16",
+    "w.h":"Weddings, as they happen",
+    "w.p":"From getting ready to the last dance I stay in the background and keep what actually happens: the nerves, the speeches, the dance floor. Photos and a film of the same day, by the same person, so nothing is staged twice.",
+    "w.f1":"Full day or ceremony only","w.f2":"Photo and film","w.f3":"Sneak peek within a week","w.a1":"Ask about your date","w.a2":"How the day runs",
+    "c.h":"Cars, with presence",
+    "c.p":"Static frames, details and rolling shots from a second car, for private owners, dealers and clubs. Planned around the light, the location and the car's best side.",
+    "c.f1":"Photo set","c.f2":"Rolling shots","c.f3":"Short film for social","c.a1":"Plan a car shoot","c.a2":"What's included",
+    "r.h":"Reels, cut for the feed",
+    "r.p":"Vertical clips filmed and edited for Instagram and TikTok: a hook in the first second, colour-graded, captioned. For couples after the wedding, and for businesses that want to post regularly.",
+    "r.f2":"Edit and grade","r.f3":"Monthly content on request","r.a1":"Talk about reels",
+    "l.h":"What I shoot","l.p":"Every job gets a fixed quote after a short call. No packages off a shelf.",
+    "l.1a":"Wedding, full day","l.pf":"Photo and film","l.1c":"Gallery and film","l.2a":"Wedding, ceremony only","l.p1":"Photo","l.gal":"Online gallery",
+    "l.3a":"Couple session","l.4a":"Car, static and details","l.set":"Photo set","l.5a":"Car, rolling shots","l.5c":"Photo set and clip",
+    "l.6a":"Reels","l.f":"Film","l.6c":"Vertical clips","l.7a":"Social media care","l.7b":"Content","l.7c":"Monthly plan","l.8a":"Portrait and business",
+    "a.h":"About me",
+    "a.p1":"I've been shooting photo and film for about four years: weddings, cars, and the reels that come out of both.",
+    "a.p2":"What I care about is that it never feels like a shoot. <mark>The best frames happen the second you forget I'm there.</mark>",
+    "a.p3":"I work alone, from the first call to the final edit, so the person you talk to is the one holding the camera and the one cutting your film.",
+    "a.p4":"I'm based in Hof and travel for most jobs, across Germany and further when it fits.",
+    "a.role":"Photographer and filmmaker, Hof",
+    "p.h":"How it runs","p.p":"From your first message to the finished film, you talk to one person the whole way.",
+    "p.g1":"Before","p.1":"Your message","p.1v":"reply in 24 h","p.2":"Short call","p.2v":"about 20 min","p.3":"Fixed quote","p.3v":"in writing",
+    "p.g2":"On the day","p.4":"Shoot","p.4v":"as long as it runs","p.g3":"After","p.5":"Sneak peek","p.5v":"within a week","p.6":"Gallery and film","p.6v":"a few weeks",
+    "p.t1":"You get photos, film and reels","p.t2":"from one person",
+    "cap.0":"Weddings · Cars · Reels","cap.1":"Weddings","cap.2":"Cars","cap.3":"Reels","cap.4":"What I shoot","cap.5":"About me","cap.6":"How it runs",
+    "card.hero":"On film","card.wedding":"Weddings","card.cars":"Cars","card.reels":"Reels","card.shoot":"Photo and film","card.about":"Tim Rammensee","card.process":"One person",
+    "g.h":"Selected frames","g.count":"frames",
+    "f.h":"Questions, answered",
+    "f.q1":"How far ahead should we book?","f.a1":"For weddings, six to twelve months is ideal, because summer Saturdays go first. Car shoots and reels usually work within a few weeks.",
+    "f.q2":"Do you travel?","f.a2":"Yes. I'm based in Hof and shoot across Germany and abroad. Travel is part of the quote and agreed upfront.",
+    "f.q3":"When do we get the pictures?","f.a3":"A sneak peek within a week. The full gallery and the film follow within a few weeks, depending on the season.",
+    "f.q4":"Photo, film, or both?","f.a4":"Either, or both from the same person. Both is where it gets interesting: the photos and the film tell the same day.",
+    "f.q5":"What does it cost?","f.a5":"After a short call I send a fixed quote for exactly what you need, so there are no surprises later.",
+    "f.q6":"Do you handle social media too?","f.a6":"Yes. I plan, film and cut reels and can look after a channel month by month.",
+    "f.q7":"What if the weather turns?","f.a7":"We plan a second option for every outdoor part. Car shoots move to the next good day.",
+    "f.q8":"Do you edit every photo?","f.a8":"Every photo you get is selected and colour-graded by me. Heavier retouching on request.",
+    "k.h":"Get in touch","k.hi":"Say hello","k.fh":"Or send the details","k.fp":"Date, place, what you have in mind. I reply within 24 hours.",
+    "k.name":"Name","k.email":"Email","k.project":"What for","k.date":"Date, if known","k.msg":"Message","k.send":"Send enquiry",
+    "opt.wedding":"Wedding","opt.auto":"Car shoot","opt.reels":"Reels","opt.smm":"Social media care","opt.portrait":"Portrait or business","opt.other":"Something else",
+    "k.sending":"Sending…","k.thanks":"Thank you. Your enquiry is on its way, I'll reply within 24 hours.","k.error":"That didn't go through. Please email smmmtimrammensee@icloud.com directly.",
+    "ft.what":"Tim Rammensee — photo and film, Hof","ft.imprint":"Imprint","ft.privacy":"Privacy","ft.terms":"Terms","ft.cookies":"Cookies",
+    "m.call":"Call","ck.t":"This site only stores your language and this choice. No tracking.","ck.more":"Details","ck.nec":"Necessary only","ck.ok":"Okay"
   },
   de: {
-    "title": "Tim Rammensee — Cinematic Fotografie & Film",
-    "skip": "Zum Inhalt springen",
-    "nav.weddings": "Hochzeit", "nav.automotive": "Automotive", "nav.reels": "Reels", "nav.work": "Portfolio", "nav.about": "Über mich", "nav.services": "Leistungen", "nav.contact": "Kontakt",
-    "hero.eyebrow": "Cinematic Fotografie &amp; Film · deutschlandweit &amp; international",
-    "hero.h1": "Bilder, die <em>hängenbleiben.</em>",
-    "hero.lead": "Fotograf &amp; Filmemacher aus Bayern — unterwegs in ganz Deutschland und international. Hochzeiten, Autos, Marken: in Fotos und Filme verpackt, die wirklich sitzen.",
-    "hero.cta1": "Projekt anfragen", "hero.cta2": "Reels ansehen",
-    "hero.trust": "Cinematische Hochzeiten, Autos &amp; Reels — deutschlandweit &amp; <b>international</b>",
-    "w.eyebrow": "Schwerpunkt · Hochzeit", "w.h2": "Echte Momente,<br>kein Posing.",
-    "w.p": "Hochzeiten sind mein Ding. Ich halte mich den ganzen Tag im Hintergrund und fange das Echte ein — das Lachen, die Freudentränen, den ersten Tanz.",
-    "w.li1": "Foto-Reportage vom Getting-Ready bis zur Party", "w.li2": "Cinematischer Hochzeitsfilm &amp; Highlight-Reel für Social Media", "w.li3": "Paar-Shooting an eurem Lieblingsort", "w.li4": "Edle Bildbearbeitung &amp; schnelle Vorschau-Galerie", "w.cta": "Termin anfragen",
-    "a.eyebrow": "Schwerpunkt · Automotive", "a.h2": "Autos mit<br><em>Präsenz.</em>",
-    "a.p": "Vom Daily bis zum Traumauto — ich setze deinen Wagen so in Szene, dass Lack, Linien und Attitude rüberkommen. Rolling Shots, Details, Studio-Look.", "a.cta": "Auto-Shooting anfragen",
-    "r.eyebrow": "Reels &amp; Video", "r.h2": "Content, der den Scroll stoppt.",
-    "r.p": "Ich schneide deine Hochformat-Clips für Instagram &amp; TikTok auf den Beat — gemacht für Reichweite. Tippe ein Reel für die Vorschau an.", "r.cta": "Reels planen",
-    "cat.wedding": "Hochzeit", "cat.auto": "Automotive", "cat.portrait": "Porträt", "cat.event": "Event",
-    "p.eyebrow": "Ablauf", "p.h2": "Vom ersten Hallo bis zum fertigen Film.", "p.p": "Ein einfacher, entspannter Ablauf — du weißt immer, was als Nächstes kommt.",
-    "p.s1h": "Kennenlernen", "p.s1p": "Wir sprechen über deine Vision, Termine und Orte, und ich stelle dir ein individuelles Angebot zusammen — ohne Druck, ohne Vorlagen.",
-    "p.s2h": "Das Shooting", "p.s2p": "Am Tag selbst bleibt alles ruhig und natürlich. Du genießt den Moment, ich kümmere mich um Licht, Perspektive und Timing.",
-    "p.s3h": "Bearbeitung &amp; Übergabe", "p.s3p": "Du bekommst eine schnelle Vorschau, dann die komplette Galerie und cinematische Reels — zum Wiedererleben und Teilen.",
-    "ab.badge": "Jahre hinter<br>der Kamera", "ab.eyebrow": "Über mich", "ab.h2": "Nur ich, die Kamera<br>und gutes Licht.",
-    "ab.p1": "Ich bin Tim. Seit rund vier Jahren mische ich Fotografie und Film zu einer Sache: ruhige, cinematische Aufnahmen, die wirklich was erzählen — ob Brautpaar oder Sportwagen, egal.",
-    "ab.p2": "Ich arbeite nah dran, plane sauber und liefere schnell. Vom einzelnen Reel bis zur ganzen Hochzeit — alles aus einer Hand.",
-    "ab.p3": "Wichtig ist mir nur, dass du entspannt bist. Die besten Bilder entstehen genau dann, wenn du die Kamera vergisst.",
-    "ab.stat1": "Jahre aktiv", "ab.stat2": "aus Bayern", "ab.stat3": "Persönlich, 1:1",
-    "wk.eyebrow": "Ausgewählte Arbeiten", "wk.h2": "Portfolio", "wk.p": "Eine Auswahl meiner liebsten Frames. Klick auf ein Bild für die große Ansicht.",
-    "filter.all": "Alle", "filter.wedding": "Hochzeit", "filter.auto": "Automotive", "filter.portrait": "Porträt", "filter.event": "Events",
-    "s.eyebrow": "Leistungen", "s.h2": "Was ich mache", "s.p": "Jedes Projekt ist anders — sag mir, was du brauchst, und ich schnür dir ein faires Angebot.",
-    "s1.h": "Hochzeit", "s1.p": "Foto &amp; Film vom ganzen Tag, inkl. cinematischem Highlight-Reel und Online-Galerie.",
-    "s2.h": "Automotive", "s2.p": "Foto- &amp; Video-Shooting für dein Fahrzeug — Standaufnahmen, Details und Rolling Shots.",
-    "s3.h": "Reels &amp; Video", "s3.p": "Hochformat-Clips für Social Media, geschnitten und farboptimiert — von der Idee bis zum Upload.",
-    "s4.h": "Social-Media-Marketing", "s4.p": "Mehr als Bilder: Content-Planung, regelmäßige Reels &amp; laufende Betreuung deiner Kanäle für echtes Wachstum.", "s.cta": "Angebot anfragen",
-    "f.eyebrow": "Gut zu wissen", "f.h2": "Häufige Fragen",
-    "f.q1": "Wie früh sollte ich buchen?", "f.a1": "Für Hochzeiten sind 6–12 Monate Vorlauf ideal, da Termine schnell vergeben sind. Automotive- und Reel-Shootings gehen meist innerhalb weniger Wochen — frag einfach.",
-    "f.q2": "Reist du auch an?", "f.a2": "Klar. Ich bin in Bayern zu Hause, fotografiere aber in ganz Deutschland und international. Anfahrt über die Region hinaus wird nach Aufwand berechnet und immer vorab abgesprochen.",
-    "f.q3": "Wann bekomme ich meine Fotos und Videos?", "f.a3": "Eine kleine Vorschau gibt's innerhalb weniger Tage. Komplette Galerien in 2–4 Wochen, Hochzeitsfilme in 4–6 Wochen — je nach Saison.",
-    "f.q4": "Übernimmst du auch das Posten und Social Media?", "f.a4": "Ja — mit dem Social-Media-Paket plane, schneide und terminiere ich deine Inhalte, damit deine Kanäle aktiv bleiben und wachsen, ganz ohne deinen Aufwand.",
-    "f.q5": "Was kostet ein Shooting?", "f.a5": "Nach einem kurzen Gespräch bekommst du ein fixes, individuelles Angebot — ohne spätere Überraschungen.",
-    "c.eyebrow": "Kontakt", "c.h2": "Lass uns deine<br><em>Geschichte</em> drehen.", "c.p": "Erzähl mir kurz, was du vorhast — ich melde mich meist innerhalb von 24 Stunden.",
-    "c.email": "E-Mail", "c.phone": "Telefon", "c.ig": "Instagram", "c.loc": "Standort", "c.locval": "Hof, Oberfranken",
-    "form.name": "Name", "form.namePh": "Dein Name", "form.email": "E-Mail", "form.emailPh": "du@beispiel.de", "form.project": "Projekt", "form.message": "Nachricht", "form.messagePh": "Erzähl mir von deinem Vorhaben, Datum und Ort …", "form.send": "Anfrage senden",
-    "form.note": "Ich melde mich meist innerhalb von 24 Stunden. Du kannst auch direkt an smmmtimrammensee@icloud.com schreiben.",
-    "form.sending": "Senden…", "form.sent": "Gesendet ✓", "form.thanks": "Danke! Deine Anfrage ist unterwegs — ich melde mich innerhalb von 24 Stunden.", "form.error": "Etwas ist schiefgelaufen — bitte schreib direkt an smmmtimrammensee@icloud.com.", "form.noendpoint": "Absenden gerade nicht möglich — bitte schreib direkt an smmmtimrammensee@icloud.com.",
-    "opt.wedding": "Hochzeit", "opt.auto": "Automotive", "opt.reels": "Reels / Video", "opt.smm": "Social-Media-Marketing", "opt.portrait": "Porträt", "opt.other": "Sonstiges",
-    "foot.tagline": "Cinematic Fotografie &amp; Film — Hochzeit, Automotive, Reels &amp; Social Media.", "foot.rights": "Tim Rammensee — Alle Rechte vorbehalten.", "foot.imprint": "Impressum", "foot.privacy": "Datenschutz",
-    "aria.menu": "Menü öffnen", "lb.close": "Schließen", "lb.prev": "Zurück", "lb.next": "Weiter", "s.badge": "Beliebteste", "mcta.call": "Anrufen", "meta.desc": "Tim Rammensee — cinematischer Fotograf & Filmemacher aus Bayern. Hochzeiten, Automotive, Reels & Social-Media-Content.",
-    "foot.agb": "AGB", "foot.cookies": "Cookies", "cookie.text": "Diese Seite nutzt nur technisch notwendige Speicherung. Eingebundene Medien (Video/Bilder) können deine IP-Adresse übertragen.", "cookie.more": "Cookie-Richtlinie", "cookie.nec": "Nur notwendige", "cookie.acc": "Akzeptieren"
+    "title":"Tim Rammensee — Hochzeits- und Autofotograf und Filmemacher, Hof",
+    "meta":"Tim Rammensee, Fotograf und Filmemacher aus Hof in Bayern. Hochzeiten, Autos und Reels — Foto und Film von einer Person, deutschlandweit und international.",
+    "skip":"Zum Inhalt springen",
+    "nav.weddings":"Hochzeiten","nav.cars":"Autos","nav.reels":"Reels","nav.about":"Über mich","nav.faq":"Fragen","nav.cta":"Termin anfragen",
+    "hero.h1":"Hochzeiten und Autos, auf Film",
+    "hero.lead":"Ich bin Tim Rammensee, Fotograf und Filmemacher aus Hof in Bayern. Fotos und Film vom selben Tag, von einer Person, deutschlandweit und international.",
+    "hero.cta":"Termin anfragen","hero.more":"Was ich fotografiere",
+    "fmt.lbl":"Sieh das Bild so, wie du es bekommst","fmt.photo":"Foto 4:5","fmt.film":"Film 2,39:1","fmt.reel":"Reel 9:16","fmt.full":"Volles Bild",
+    "fmt.out.photo":"Foto · 4:5","fmt.out.film":"Film · 2,39:1","fmt.out.reel":"Reel · 9:16",
+    "w.h":"Hochzeiten, wie sie passieren",
+    "w.p":"Vom Getting Ready bis zum letzten Tanz bleibe ich im Hintergrund und halte fest, was wirklich passiert: die Aufregung, die Reden, die Tanzfläche. Fotos und Film vom selben Tag, von derselben Person — nichts wird doppelt gestellt.",
+    "w.f1":"Ganzer Tag oder nur Trauung","w.f2":"Foto und Film","w.f3":"Vorschau innerhalb einer Woche","w.a1":"Euren Termin anfragen","w.a2":"So läuft der Tag",
+    "c.h":"Autos mit Präsenz",
+    "c.p":"Standbilder, Details und Rolling Shots aus dem Begleitfahrzeug, für Privatleute, Autohäuser und Clubs. Geplant nach Licht, Location und der besten Seite des Autos.",
+    "c.f1":"Fotoset","c.f2":"Rolling Shots","c.f3":"Kurzfilm für Social Media","c.a1":"Autoshooting planen","c.a2":"Was dabei ist",
+    "r.h":"Reels, geschnitten für den Feed",
+    "r.p":"Hochkant gedreht und geschnitten für Instagram und TikTok: Hook in der ersten Sekunde, farbkorrigiert, mit Untertiteln. Für Paare nach der Hochzeit und für Unternehmen, die regelmäßig posten wollen.",
+    "r.f2":"Schnitt und Grading","r.f3":"Monatlicher Content auf Anfrage","r.a1":"Über Reels sprechen",
+    "l.h":"Was ich fotografiere","l.p":"Jeder Auftrag bekommt nach einem kurzen Gespräch ein festes Angebot. Keine Pakete von der Stange.",
+    "l.1a":"Hochzeit, ganzer Tag","l.pf":"Foto und Film","l.1c":"Galerie und Film","l.2a":"Hochzeit, nur Trauung","l.p1":"Foto","l.gal":"Online-Galerie",
+    "l.3a":"Paarshooting","l.4a":"Auto, Standbilder und Details","l.set":"Fotoset","l.5a":"Auto, Rolling Shots","l.5c":"Fotoset und Clip",
+    "l.6a":"Reels","l.f":"Film","l.6c":"Hochkant-Clips","l.7a":"Social-Media-Betreuung","l.7b":"Content","l.7c":"Monatsplan","l.8a":"Porträt und Business",
+    "a.h":"Über mich",
+    "a.p1":"Ich fotografiere und filme seit etwa vier Jahren: Hochzeiten, Autos und die Reels, die aus beidem entstehen.",
+    "a.p2":"Mir ist wichtig, dass es sich nie nach Shooting anfühlt. <mark>Die besten Bilder entstehen in dem Moment, in dem du vergisst, dass ich da bin.</mark>",
+    "a.p3":"Ich arbeite allein, vom ersten Gespräch bis zum letzten Schnitt. Wer mit dir redet, hält auch die Kamera und schneidet deinen Film.",
+    "a.p4":"Ich sitze in Hof und reise für die meisten Aufträge, quer durch Deutschland und weiter, wenn es passt.",
+    "a.role":"Fotograf und Filmemacher, Hof",
+    "p.h":"So läuft's","p.p":"Von deiner ersten Nachricht bis zum fertigen Film sprichst du die ganze Zeit mit einer Person.",
+    "p.g1":"Vorher","p.1":"Deine Nachricht","p.1v":"Antwort in 24 h","p.2":"Kurzes Gespräch","p.2v":"ca. 20 Min.","p.3":"Festes Angebot","p.3v":"schriftlich",
+    "p.g2":"Am Tag","p.4":"Shooting","p.4v":"so lange es läuft","p.g3":"Danach","p.5":"Vorschau","p.5v":"innerhalb einer Woche","p.6":"Galerie und Film","p.6v":"wenige Wochen",
+    "p.t1":"Du bekommst Fotos, Film und Reels","p.t2":"von einer Person",
+    "cap.0":"Hochzeiten · Autos · Reels","cap.1":"Hochzeiten","cap.2":"Autos","cap.3":"Reels","cap.4":"Was ich fotografiere","cap.5":"Über mich","cap.6":"So läuft's",
+    "card.hero":"Auf Film","card.wedding":"Hochzeiten","card.cars":"Autos","card.reels":"Reels","card.shoot":"Foto und Film","card.about":"Tim Rammensee","card.process":"Eine Person",
+    "g.h":"Ausgewählte Bilder","g.count":"Bilder",
+    "f.h":"Fragen, beantwortet",
+    "f.q1":"Wie früh sollten wir buchen?","f.a1":"Für Hochzeiten sind sechs bis zwölf Monate ideal, weil die Sommersamstage zuerst weg sind. Autoshootings und Reels gehen meist innerhalb weniger Wochen.",
+    "f.q2":"Reist du auch?","f.a2":"Ja. Ich sitze in Hof und fotografiere deutschlandweit und im Ausland. Die Anfahrt ist Teil des Angebots und vorher abgesprochen.",
+    "f.q3":"Wann bekommen wir die Bilder?","f.a3":"Eine Vorschau innerhalb einer Woche. Die volle Galerie und der Film folgen nach wenigen Wochen, je nach Saison.",
+    "f.q4":"Foto, Film oder beides?","f.a4":"Eins von beiden oder beides von derselben Person. Beides ist das Spannende: Fotos und Film erzählen denselben Tag.",
+    "f.q5":"Was kostet das?","f.a5":"Nach einem kurzen Gespräch schicke ich ein festes Angebot für genau das, was du brauchst. Keine Überraschungen.",
+    "f.q6":"Machst du auch Social Media?","f.a6":"Ja. Ich plane, drehe und schneide Reels und kann einen Kanal Monat für Monat betreuen.",
+    "f.q7":"Was, wenn das Wetter kippt?","f.a7":"Für jeden Teil draußen planen wir eine zweite Option. Autoshootings verschieben wir auf den nächsten guten Tag.",
+    "f.q8":"Bearbeitest du jedes Foto?","f.a8":"Jedes Foto, das du bekommst, ist von mir ausgewählt und farbkorrigiert. Stärkere Retusche auf Anfrage.",
+    "k.h":"Kontakt","k.hi":"Schreib mir","k.fh":"Oder schick die Details","k.fp":"Datum, Ort, was du vorhast. Ich antworte innerhalb von 24 Stunden.",
+    "k.name":"Name","k.email":"E-Mail","k.project":"Wofür","k.date":"Datum, falls bekannt","k.msg":"Nachricht","k.send":"Anfrage senden",
+    "opt.wedding":"Hochzeit","opt.auto":"Autoshooting","opt.reels":"Reels","opt.smm":"Social-Media-Betreuung","opt.portrait":"Porträt oder Business","opt.other":"Etwas anderes",
+    "k.sending":"Wird gesendet…","k.thanks":"Danke. Deine Anfrage ist unterwegs, ich melde mich innerhalb von 24 Stunden.","k.error":"Das hat nicht geklappt. Bitte schreib direkt an smmmtimrammensee@icloud.com.",
+    "ft.what":"Tim Rammensee — Foto und Film, Hof","ft.imprint":"Impressum","ft.privacy":"Datenschutz","ft.terms":"AGB","ft.cookies":"Cookies",
+    "m.call":"Anrufen","ck.t":"Diese Seite speichert nur deine Sprache und diese Auswahl. Kein Tracking.","ck.more":"Details","ck.nec":"Nur notwendige","ck.ok":"Okay"
   }
 };
 
 (function(){
+  document.body.classList.remove('no-js');
+  const rm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let lang = 'en';
+  const t = k => (I18N[lang] && I18N[lang][k]) || I18N.en[k] || '';
   document.getElementById('year').textContent = new Date().getFullYear();
 
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const introEl = document.getElementById('intro');
-  if(introEl){ if(reduceMotion){ introEl.remove(); } else { setTimeout(() => introEl.remove(), 2100); } }
-  const smallScreen = window.matchMedia('(max-width: 760px)').matches;
-  const saveData = navigator.connection && navigator.connection.saveData;
+  /* film strip across the hero card */
+  document.getElementById('run').innerHTML = '<i></i>'.repeat(120);
 
-  // Hero video: play everywhere incl. mobile. Only skip for reduced-motion or data-saver.
-  const hv = document.querySelector('.hero video');
-  if(hv){
-    if(reduceMotion || saveData){
-      hv.removeAttribute('autoplay'); hv.setAttribute('preload','none'); hv.pause();
-    } else {
-      hv.muted = true; hv.setAttribute('muted','');
-      const tryPlay = () => { const p = hv.play(); if(p && p.catch) p.catch(()=>{}); };
-      tryPlay();
-      hv.addEventListener('canplay', tryPlay, {once:true});
-      hv.addEventListener('error', () => { hv.style.display = 'none'; }, {once:true});
-      // some mobile browsers only allow playback after the first interaction
-      const kick = () => { tryPlay(); window.removeEventListener('touchstart', kick); window.removeEventListener('scroll', kick); };
-      window.addEventListener('touchstart', kick, {passive:true, once:true});
-      window.addEventListener('scroll', kick, {passive:true, once:true});
+  /* picture slots: drawn title card until a real file exists */
+  const gWords = ['wedding','cars','reels','wedding','cars','reels','hero','shoot'];
+  let gi = 0;
+  document.querySelectorAll('[data-slot]').forEach(el => {
+    const slot = el.dataset.slot, m = MEDIA[slot] || {};
+    const word = slot.startsWith('g') ? gWords[gi++ % gWords.length] : slot;
+    const c = document.createElement('div'); c.className = 'card'; c.setAttribute('aria-hidden','true');
+    c.innerHTML = '<span class="gauge"></span><span class="perf l">' + '<i></i>'.repeat(40) + '</span><span class="perf r">' + '<i></i>'.repeat(40) + '</span><span class="word" data-card="' + word + '"></span>';
+    el.prepend(c);
+    const set = node => { if(el.querySelector('.media')) return; node.classList.add('media'); el.prepend(node); el.classList.add('has-media'); };
+    if(m.video && !(navigator.connection && navigator.connection.saveData) && !rm){
+      const v = document.createElement('video');
+      v.muted = true; v.loop = true; v.playsInline = true; v.autoplay = true; v.preload = 'metadata';
+      v.setAttribute('muted',''); v.setAttribute('aria-hidden','true');
+      if(m.img) v.poster = m.img;
+      v.addEventListener('loadeddata', () => set(v), {once:true});
+      v.addEventListener('error', () => {}, {once:true});
+      v.src = m.video;
     }
-  }
-
-  /* ---------- testimonials ---------- */
-  const TESTI = {
-    en: [
-      {t:'"Tim captured our whole day without us ever noticing him. When we watched the reel, we had <span>goosebumps</span> from start to finish."', c:'Lena &amp; Jakob · Wedding'},
-      {t:'"He shot my car like a <span>movie poster</span>. The rolling shots are unreal — exactly the vibe I wanted."', c:'Marco · Automotive'},
-      {t:'"Our reels finally look professional — and the <span>enquiries</span> started coming in within weeks."', c:'Café Nord · Social media'}
-    ],
-    de: [
-      {t:'„Tim hat unseren ganzen Tag eingefangen, ohne dass wir ihn je bemerkt haben. Beim Reel hatten wir <span>Gänsehaut</span> von Anfang bis Ende.“', c:'Lena &amp; Jakob · Hochzeit'},
-      {t:'„Er hat mein Auto wie ein <span>Filmplakat</span> in Szene gesetzt. Die Rolling Shots sind der Wahnsinn — genau der Vibe, den ich wollte.“', c:'Marco · Automotive'},
-      {t:'„Unsere Reels sehen endlich professionell aus — kurz nach dem Posten kamen spürbar mehr <span>Anfragen</span>.“', c:'Café Nord · Social Media'}
-    ]
-  };
-  let tIdx = 0, tTimer = null;
-  function renderTesti(lang){
-    const list = TESTI[lang] || TESTI.en;
-    const qt = document.getElementById('qText'), qc = document.getElementById('qCite'), dots = document.getElementById('qDots');
-    if(!qt) return;
-    if(tIdx >= list.length) tIdx = 0;
-    const paint = i => { tIdx = i; qt.innerHTML = list[i].t; qc.innerHTML = list[i].c;
-      dots.querySelectorAll('button').forEach((b,j)=>b.classList.toggle('active', j===i)); };
-    const show = (i, dir = 1) => {
-      if(reduceMotion || !qt.innerHTML){ paint(i); return; }
-      [qt, qc].forEach(el => { el.style.setProperty('--qd', dir); el.classList.add('q-out'); });
-      setTimeout(() => {
-        paint(i);
-        [qt, qc].forEach(el => { el.classList.remove('q-out'); el.classList.add('q-in'); });
-        requestAnimationFrame(() => requestAnimationFrame(() => [qt, qc].forEach(el => el.classList.remove('q-in'))));
-      }, 430);
-    };
-    dots.innerHTML = list.map((_,i)=>`<button type="button" aria-label="Testimonial ${i+1}"></button>`).join('');
-    dots.querySelectorAll('button').forEach((b,i)=>b.onclick = ()=>{ show(i, i >= tIdx ? 1 : -1); restart(); });
-    show(tIdx);
-    function restart(){ if(tTimer) clearInterval(tTimer); if(reduceMotion || list.length<2) return;
-      tTimer = setInterval(()=>show((tIdx+1)%list.length, 1), 6000); }
-    restart();
-  }
-
-  /* ---------- i18n ---------- */
-  let currentLang = 'en';
-  const t = (k) => (I18N[currentLang] && I18N[currentLang][k]) || (I18N.en[k] || '');
-  function applyI18n(lang){
-    if(!I18N[lang]) lang = 'en';
-    currentLang = lang;
-    document.documentElement.lang = lang;
-    const d = I18N[lang];
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-      const k = el.getAttribute('data-i18n');
-      if(d[k] != null) el.innerHTML = d[k];
-    });
-    document.querySelectorAll('[data-i18n-ph]').forEach(el => {
-      const k = el.getAttribute('data-i18n-ph');
-      if(d[k] != null) el.setAttribute('placeholder', d[k]);
-    });
-    if(d['title']) document.title = d['title'];
-    document.querySelectorAll('.lang-switch button').forEach(b => {
-      const on = b.dataset.lang === lang;
-      b.classList.toggle('active', on);
-      b.setAttribute('aria-pressed', on ? 'true' : 'false');
-    });
-    try{ localStorage.setItem('lang', lang); }catch(e){}
-    document.querySelectorAll('[data-i18n-aria]').forEach(el => { const k=el.getAttribute('data-i18n-aria'); if(d[k]!=null) el.setAttribute('aria-label', d[k]); });
-    const _md = document.querySelector('meta[name="description"]'); if(_md && d['meta.desc']) _md.setAttribute('content', d['meta.desc']);
-    renderTesti(lang);
-    // recompute any open FAQ heights after text length changes
-    document.querySelectorAll('.faq-item.open .faq-a').forEach(a => { a.style.maxHeight = a.scrollHeight + 'px'; });
-    splitHeroH1();
-  }
-  let saved = null; try{ saved = localStorage.getItem('lang'); }catch(e){}
-  const initial = saved || ((navigator.language || 'en').toLowerCase().startsWith('de') ? 'de' : 'en');
-  // compact language switch in the top bar (mobile)
-  document.getElementById('burger').insertAdjacentHTML('beforebegin', '<div class="lang-switch lang-mini" role="group" aria-label="Language"><button type="button" data-lang="de">DE</button><span class="sep">/</span><button type="button" data-lang="en">EN</button></div>');
-  document.querySelectorAll('.lang-switch button').forEach(b => b.addEventListener('click', () => applyI18n(b.dataset.lang)));
-  applyI18n(initial);
-
-  // sticky nav
-  const header = document.getElementById('top');
-  const onScroll = () => header.classList.toggle('scrolled', window.scrollY > 40);
-  onScroll(); window.addEventListener('scroll', onScroll, {passive:true});
-
-  // mobile menu
-  const burger = document.getElementById('burger');
-  const links = document.getElementById('navLinks');
-  const setMenu = (open, restoreFocus = true) => {
-    links.classList.toggle('open', open);
-    document.body.classList.toggle('menu-open', open);
-    burger.setAttribute('aria-expanded', open ? 'true' : 'false');
-    document.body.style.overflow = open ? 'hidden' : '';
-    if(open){ setTimeout(() => { const first = links.querySelector('a, button'); if(first) first.focus(); }, 90); }
-    else if(restoreFocus){ burger.focus(); }
-  };
-  burger.addEventListener('click', () => setMenu(!links.classList.contains('open')));
-  links.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setMenu(false, false)));
-  document.addEventListener('keydown', e => {
-    if(!links.classList.contains('open')) return;
-    if(e.key === 'Escape'){ setMenu(false); return; }
-    if(e.key === 'Tab'){
-      const f = links.querySelectorAll('a, button');
-      if(!f.length) return;
-      const first = f[0], last = f[f.length - 1];
-      if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
-      else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
-      else if(![...f].includes(document.activeElement)){ e.preventDefault(); first.focus(); }
+    if(m.img){
+      const im = new Image(); im.alt = ''; im.decoding = 'async';
+      if(slot.startsWith('g')) im.loading = 'lazy';
+      im.onload = () => setTimeout(() => set(im), m.video ? 400 : 0);
+      im.src = m.img;
     }
   });
-  document.addEventListener('click', e => { if(links.classList.contains('open') && !links.contains(e.target) && e.target!==burger && !burger.contains(e.target) && !e.target.closest('.lang-mini')) setMenu(false); });
+  const paintCards = () => document.querySelectorAll('[data-card]').forEach(w => { w.textContent = t('card.' + w.dataset.card); });
 
-  // reveal on scroll
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
-  }, {threshold:0.12});
-  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
-
-  // reels: preview on hover/focus, click/tap/Enter opens lightbox video
-  document.querySelectorAll('.reel').forEach(reel => {
-    const v = reel.querySelector('video');
-    const src = reel.dataset.video;
-    const preview = () => { if(reduceMotion) return; if(!v.src){ v.src = src; } v.play().catch(()=>{}); };
-    const stop = () => { v.pause(); };
-    reel.addEventListener('mouseenter', preview);
-    reel.addEventListener('mouseleave', stop);
-    reel.addEventListener('focus', preview);
-    reel.addEventListener('blur', stop);
-    reel.addEventListener('click', () => { v.pause(); openVideo(src); });
-  });
-
-  // gallery filter
-  const shots = Array.from(document.querySelectorAll('.shot'));
-  document.getElementById('filters').addEventListener('click', (e) => {
-    const btn = e.target.closest('button'); if(!btn) return;
-    document.querySelectorAll('#filters button').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
-    btn.classList.add('active'); btn.setAttribute('aria-pressed','true');
-    const f = btn.dataset.filter;
-    shots.forEach(s => { const on = (f==='all' || s.dataset.cat===f); s.style.display = on ? '' : 'none';
-      if(on && !reduceMotion){ s.classList.remove('pop'); void s.offsetWidth; s.classList.add('pop'); } });
-  });
-
-  // FAQ accordion
-  document.querySelectorAll('.faq-q').forEach((q, i) => {
-    const item = q.parentElement, ans = q.nextElementSibling;
-    const aid = 'faq-a-' + (i + 1);
-    ans.id = aid; ans.setAttribute('role', 'region');
-    q.setAttribute('aria-controls', aid);
-    q.addEventListener('click', () => {
-      const open = item.classList.toggle('open');
-      q.setAttribute('aria-expanded', open ? 'true' : 'false');
-      ans.style.maxHeight = open ? ans.scrollHeight + 'px' : null;
-    });
-  });
-  window.addEventListener('resize', () => {
-    document.querySelectorAll('.faq-item.open .faq-a').forEach(a => { a.style.maxHeight = a.scrollHeight + 'px'; });
-  });
-
-  // contact form: submit via fetch (Formspree) with inline feedback, no page reload
-  const cf = document.getElementById('contactForm');
-  if(cf){
-    cf.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = cf.querySelector('button[type=submit]');
-      const note = document.getElementById('formNote');
-      btn.disabled = true; btn.textContent = t('form.sending');
-      try{
-        // Netlify Forms: POST url-encoded data (incl. form-name) to the current page
-        const body = new URLSearchParams(new FormData(cf)).toString();
-        const res = await fetch('/', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body });
-        if(!res.ok) throw new Error('bad response');
-        cf.reset();
-        btn.textContent = t('form.sent');
-        note.textContent = t('form.thanks'); note.style.color = 'var(--accent)';
-        note.focus();
-        setTimeout(() => { btn.disabled = false; btn.textContent = t('form.send'); }, 4000);
-      }catch(err){
-        btn.disabled = false; btn.textContent = t('form.send');
-        note.textContent = t('form.error'); note.style.color = '#cf9b9b';
-      }
-    });
+  /* format switch: recrop the stage into the format Tim delivers */
+  const stage = document.getElementById('stage'), gate = document.getElementById('gate'), out = document.getElementById('fmtOut');
+  let ar = 0;
+  function crop(){
+    if(!ar){ gate.style.setProperty('--crop','inset(0 0 0 0)'); stage.classList.remove('cropped'); return; }
+    const w = stage.clientWidth, h = stage.clientHeight, pad = 28;
+    let fw = w - pad*2, fh = fw / ar;
+    if(fh > h - pad*2){ fh = h - pad*2; fw = fh * ar; }
+    const x = ((w - fw)/2).toFixed(1), y = ((h - fh)/2).toFixed(1);
+    gate.style.setProperty('--crop', 'inset(' + y + 'px ' + x + 'px ' + y + 'px ' + x + 'px)');
+    stage.classList.add('cropped');
   }
-
-  // lightbox (images + video)
-  const lb = document.getElementById('lb'), stage = document.getElementById('lbStage');
-  const prevBtn = document.getElementById('lbPrev'), nextBtn = document.getElementById('lbNext');
-  let visible = [], idx = 0, lastFocus = null;
-  const hiRes = (src) => src.replace(/w=\d+/, 'w=1600');
-  const preload = (i) => { const im = visible[i] && visible[i].querySelector('img'); if(im){ const pi = new Image(); pi.src = hiRes(im.src); } };
-  const showImg = (dir) => {
-    const shot = visible[idx];
-    const img = shot.querySelector('img');
-    const cap = shot.querySelector('.cap');
-    stage.replaceChildren();
-    const fig = document.createElement('figure');
-    if(dir){ fig.classList.add('slide'); fig.style.setProperty('--lbd', dir); }
-    const el = document.createElement('img');
-    el.src = hiRes(img.src); el.alt = img.alt;
-    fig.appendChild(el);
-    if(cap){ const fc = document.createElement('figcaption'); fc.className = 'lb-cap'; fc.innerHTML = cap.innerHTML; fig.appendChild(fc); lb.setAttribute('aria-label', cap.textContent.trim()); }
-    stage.appendChild(fig);
-    const multi = visible.length > 1;
-    prevBtn.style.display = nextBtn.style.display = multi ? '' : 'none';
-    if(multi){ preload((idx+1)%visible.length); preload((idx-1+visible.length)%visible.length); }
-  };
-  const openLb = () => { lastFocus = document.activeElement; lb.classList.add('open'); document.body.style.overflow = 'hidden'; document.getElementById('lbClose').focus(); };
-  shots.forEach(s => s.addEventListener('click', () => {
-    visible = shots.filter(x => x.style.display !== 'none');
-    idx = visible.indexOf(s); showImg(); openLb();
+  const paintFmt = () => { const k = {0.8:'photo',2.39:'film',0.5625:'reel'}[ar]; out.textContent = k ? t('fmt.out.' + k) : ''; };
+  document.querySelectorAll('.switch button').forEach(b => b.addEventListener('click', () => {
+    ar = parseFloat(b.dataset.ar);
+    document.querySelectorAll('.switch button').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+    crop(); paintFmt();
   }));
-  function openVideo(src){
-    stage.replaceChildren();
-    const v = document.createElement('video');
-    v.src = src; v.autoplay = v.loop = v.controls = v.playsInline = true;
-    stage.appendChild(v);
-    visible = []; prevBtn.style.display = nextBtn.style.display = 'none';
-    openLb();
+  addEventListener('resize', crop, {passive:true});
+
+  /* i18n */
+  function apply(l){
+    lang = I18N[l] ? l : 'en';
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-i18n]').forEach(el => { const v = t(el.dataset.i18n); if(v) el.innerHTML = v; });
+    document.title = t('title');
+    document.querySelector('meta[name=description]').setAttribute('content', t('meta'));
+    document.querySelectorAll('.lang button').forEach(b => b.setAttribute('aria-pressed', b.dataset.lang === lang ? 'true' : 'false'));
+    paintCards(); paintFmt();
+    try{ localStorage.setItem('lang', lang); }catch(e){}
   }
-  const close = () => { lb.classList.remove('open'); stage.replaceChildren(); document.body.style.overflow = ''; if(lastFocus) lastFocus.focus(); };
-  document.getElementById('lbClose').onclick = close;
-  lb.addEventListener('click', e => { if(e.target === lb) close(); });
-  nextBtn.onclick = () => { if(!visible.length) return; idx = (idx+1)%visible.length; showImg(1); };
-  prevBtn.onclick = () => { if(!visible.length) return; idx = (idx-1+visible.length)%visible.length; showImg(-1); };
-  document.addEventListener('keydown', e => {
-    if(!lb.classList.contains('open')) return;
-    if(e.key==='Escape'){ close(); return; }
-    if(e.key==='ArrowRight' && visible.length) nextBtn.click();
-    if(e.key==='ArrowLeft' && visible.length) prevBtn.click();
-    if(e.key==='Tab'){
-      const f = [document.getElementById('lbClose'), prevBtn, nextBtn].filter(b => b.style.display !== 'none' && b.offsetParent !== null);
-      if(!f.length) return;
-      const first = f[0], last = f[f.length-1];
-      if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
-      else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
-      else if(!f.includes(document.activeElement)){ e.preventDefault(); first.focus(); }
-    }
+  document.querySelectorAll('.lang button').forEach(b => b.addEventListener('click', () => apply(b.dataset.lang)));
+
+  /* chapters change the picture on the stage */
+  const frames = [...document.querySelectorAll('.frame')];
+  let cur = 0;
+  const show = i => { if(i === cur || !frames[i]) return; frames[cur].classList.remove('on'); frames[i].classList.add('on'); cur = i;
+    const v = frames[i].querySelector('video'); if(v) v.play().catch(()=>{}); };
+  const chIO = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting) show(+e.target.dataset.chapter); }), {rootMargin:'-45% 0px -45% 0px'});
+  document.querySelectorAll('[data-chapter]').forEach(s => chIO.observe(s));
+
+  /* nav: current chapter, hide while scrolling down */
+  const navA = [...document.querySelectorAll('.links a')];
+  const spy = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting) navA.forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + e.target.id)); }), {rootMargin:'-45% 0px -50% 0px'});
+  document.querySelectorAll('section[id]').forEach(s => spy.observe(s));
+  const bar = document.getElementById('bar'); let lastY = 0;
+  addEventListener('scroll', () => { const y = scrollY; bar.classList.toggle('hide', y > lastY + 2 && y > 600); if(y < lastY - 2) bar.classList.remove('hide'); lastY = y; }, {passive:true});
+
+  /* entrances */
+  const io = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } }), {threshold:.15});
+  document.querySelectorAll('.rv').forEach(el => io.observe(el));
+
+  /* gallery: drag to scroll with a glide; pictures drift inside their frames */
+  const row = document.getElementById('row');
+  let down = false, sx = 0, sl = 0, vel = 0, lastX = 0, raf = 0;
+  row.addEventListener('pointerdown', e => { if(e.pointerType !== 'mouse') return; down = true; sx = lastX = e.clientX; sl = row.scrollLeft; vel = 0; cancelAnimationFrame(raf); row.classList.add('drag'); row.setPointerCapture(e.pointerId); });
+  row.addEventListener('pointermove', e => { if(!down) return; vel = e.clientX - lastX; lastX = e.clientX; row.scrollLeft = sl - (e.clientX - sx); });
+  const end = () => { if(!down) return; down = false; row.classList.remove('drag');
+    const glide = () => { vel *= .93; row.scrollLeft -= vel; if(Math.abs(vel) > .4) raf = requestAnimationFrame(glide); };
+    if(!rm) raf = requestAnimationFrame(glide); };
+  row.addEventListener('pointerup', end); row.addEventListener('pointercancel', end);
+  const drift = () => { const rw = innerWidth; row.querySelectorAll('figure').forEach(f => { const r = f.getBoundingClientRect(); const m = f.querySelector('.media'); if(m) m.style.setProperty('--px', (((r.left + r.width/2) / rw - .5) * -40).toFixed(1) + 'px'); }); };
+  if(!rm) row.addEventListener('scroll', () => requestAnimationFrame(drift), {passive:true});
+
+  /* chapter actions prefill the form */
+  document.querySelectorAll('[data-project]').forEach(a => a.addEventListener('click', () => { document.getElementById('project').value = a.dataset.project; }));
+
+  /* Netlify form */
+  const f = document.getElementById('contactForm'), note = document.getElementById('formNote');
+  f.addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = f.querySelector('button[type=submit]'); btn.disabled = true; note.textContent = t('k.sending');
+    try{
+      const res = await fetch('/', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:new URLSearchParams(new FormData(f)).toString()});
+      if(!res.ok) throw new Error('bad');
+      f.reset(); note.textContent = t('k.thanks');
+    }catch(err){ note.textContent = t('k.error'); }
+    btn.disabled = false; note.focus();
   });
 
-  // lightbox: swipe on touch
-  let sx = 0;
-  stage.addEventListener('touchstart', e => { sx = e.changedTouches[0].clientX; }, {passive:true});
-  stage.addEventListener('touchend', e => { if(!visible.length) return; const dx = e.changedTouches[0].clientX - sx; if(Math.abs(dx) > 45){ dx < 0 ? nextBtn.click() : prevBtn.click(); } }, {passive:true});
+  /* cookie notice */
+  const ck = document.getElementById('cookie');
+  let cc = null; try{ cc = localStorage.getItem('cookie-consent'); }catch(e){}
+  if(!cc){ ck.hidden = false; setTimeout(() => ck.classList.add('show'), rm ? 0 : 1800); }
+  const setC = v => { try{ localStorage.setItem('cookie-consent', v); }catch(e){} ck.classList.remove('show'); setTimeout(() => { ck.hidden = true; }, 600); };
+  document.getElementById('ckAll').onclick = () => setC('all');
+  document.getElementById('ckNec').onclick = () => setC('necessary');
 
-  // scroll-spy: highlight current nav link
-  const navMap = {}; document.querySelectorAll('.nav-links a[href^="#"]').forEach(a => navMap[a.getAttribute('href').slice(1)] = a);
-  const spy = new IntersectionObserver(es => { es.forEach(e => { if(e.isIntersecting){ const a = navMap[e.target.id]; if(a){ document.querySelectorAll('.nav-links a.current').forEach(x => { x.classList.remove('current'); x.removeAttribute('aria-current'); }); a.classList.add('current'); a.setAttribute('aria-current','true'); } } }); }, {rootMargin:'-45% 0px -50% 0px'});
-  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
-
-  // staggered reveals for grids
-  ['.services','.steps'].forEach(sel => document.querySelectorAll(sel+' .reveal').forEach((el,i) => el.style.setProperty('--i', i%4)));
-
-  // count-up numbers on scroll
-  const countUp = el => { if(reduceMotion) return; const raw = el.textContent.trim(); const m = raw.match(/([\d.]+)(.*)/); if(!m) return; const target = parseFloat(m[1]), suffix = m[2], dec = (m[1].split('.')[1]||'').length; let start = null; const step = ts => { start = start || ts; const pr = Math.min((ts-start)/1300,1); const e = 1-Math.pow(1-pr,3); el.textContent = (target*e).toFixed(dec)+suffix; if(pr<1) requestAnimationFrame(step); else el.textContent = raw; }; requestAnimationFrame(step); };
-  const cIO = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ countUp(e.target); cIO.unobserve(e.target); } }), {threshold:.6});
-  document.querySelectorAll('.about .stats div b, .hero-trust b').forEach(el => cIO.observe(el));
-
-  // cookie consent banner
-  const cbar = document.getElementById('cookieBar');
-  if(cbar){
-    let cc=null; try{ cc=localStorage.getItem('cookie-consent'); }catch(e){}
-    if(!cc){ setTimeout(() => { cbar.hidden = false; }, reduceMotion ? 400 : 2600); }
-    const setC = v => { try{ localStorage.setItem('cookie-consent', v); }catch(e){} cbar.hidden = true; };
-    document.getElementById('ckAll').addEventListener('click', () => setC('all'));
-    document.getElementById('ckNec').addEventListener('click', () => setC('necessary'));
-  }
-
-  // ===== premium interactions (desktop, motion-safe) =====
-  const finePointer = window.matchMedia('(hover:hover) and (pointer:fine)').matches;
-  const heroSec = document.querySelector('.hero');
-  const heroInner = document.querySelector('.hero-inner');
-  const heroMedia = document.querySelector('.hero-media');
-  const cueEl = document.querySelector('.scroll-cue');
-  const driftEls = [];
-  document.querySelectorAll('.feature .media > img, .about-img img').forEach(el => driftEls.push({el, f: -30}));
-  document.querySelectorAll('.feature .media .stack').forEach(el => driftEls.push({el, f: 44}));
-  const applyDrift = () => {
-    driftEls.forEach(o => {
-      const r = o.el.getBoundingClientRect();
-      if(r.bottom < -120 || r.top > vhP + 120) return;
-      const pr = ((r.top + r.height / 2) - vhP / 2) / vhP;
-      o.el.style.transform = 'translateY(' + (pr * o.f).toFixed(1) + 'px)';
-    });
-  };
-  let vhP = window.innerHeight;
-  window.addEventListener('resize', () => { vhP = window.innerHeight; }, {passive:true});
-  let scY = 0, cx = 0, cy = 0, tcx = 0, tcy = 0;
-
-  const applyHero = () => {
-    if(heroMedia){
-      const p = Math.min(scY / (vhP || 1), 1.2);
-      heroMedia.style.transform = 'scale(' + (1 + p * 0.14) + ') translate3d(' + (cx * 22) + 'px,' + (cy * 22) + 'px,0)';
-    }
-    if(heroInner){
-      heroInner.style.transform = 'translateY(' + (scY * 0.22) + 'px) translate(' + (cx * -14) + 'px,' + (cy * -10) + 'px)';
-      heroInner.style.opacity = Math.max(0, 1 - scY / (vhP * 0.72));
-    }
-    if(cueEl) cueEl.style.opacity = Math.max(0, 1 - scY / (vhP * 0.35));
-  };
-
-  if(!reduceMotion){
-    let ticking = false;
-    window.addEventListener('scroll', () => {
-      scY = window.scrollY || 0;
-      if(!ticking){ requestAnimationFrame(() => { applyHero(); applyDrift(); ticking = false; }); ticking = true; }
-    }, {passive:true});
-    applyDrift();
-    setTimeout(() => { const h = document.querySelector('.hero h1'); if(h) h.style.setProperty('--h1d', '.05s'); }, 2700);
-
-    // scroll-velocity marquee skew
-    const strip = document.querySelector('.strip');
-    if(strip){
-      let last = window.scrollY, sk = 0, decaying = false;
-      const decay = () => { sk *= 0.86; strip.style.transform = 'skewX(' + sk.toFixed(2) + 'deg)'; if(Math.abs(sk) > 0.08){ requestAnimationFrame(decay); } else { strip.style.transform = ''; decaying = false; } };
-      window.addEventListener('scroll', () => {
-        const now = window.scrollY; sk = Math.max(-5, Math.min(5, (now - last) * 0.35)); last = now;
-        if(!decaying){ decaying = true; requestAnimationFrame(decay); }
-      }, {passive:true});
-    }
-  }
-
-  if(finePointer && !reduceMotion){
-    // magnetic elements
-    document.querySelectorAll('.btn, .nav-cta, .brand').forEach(el => {
-      el.addEventListener('mousemove', e => { const r = el.getBoundingClientRect(); el.style.transform = 'translate(' + ((e.clientX - (r.left + r.width/2)) * 0.22) + 'px,' + ((e.clientY - (r.top + r.height/2)) * 0.3) + 'px)'; });
-      el.addEventListener('mouseleave', () => { el.style.transform = ''; });
-    });
-    // spotlight that follows the cursor on service cards
-    document.querySelectorAll('.svc').forEach(c => {
-      c.addEventListener('mousemove', e => { const r = c.getBoundingClientRect(); c.style.setProperty('--mx', (e.clientX - r.left) + 'px'); c.style.setProperty('--my', (e.clientY - r.top) + 'px'); }, {passive:true});
-    });
-    // 3D tilt on gallery + reel cards
-    document.querySelectorAll('.shot, .reel').forEach(card => {
-      card.addEventListener('mousemove', e => { const r = card.getBoundingClientRect(); const px = (e.clientX - r.left)/r.width - .5, py = (e.clientY - r.top)/r.height - .5; card.style.transform = 'perspective(760px) rotateY(' + (px * 5.5) + 'deg) rotateX(' + (-py * 5.5) + 'deg)'; });
-      card.addEventListener('mouseleave', () => { card.style.transform = ''; });
-    });
-    // hero cursor-parallax
-    if(heroSec){
-      heroSec.addEventListener('mousemove', e => { tcx = (e.clientX/innerWidth) - .5; tcy = (e.clientY/vhP) - .5; }, {passive:true});
-      heroSec.addEventListener('mouseleave', () => { tcx = 0; tcy = 0; });
-    }
-    const loop = () => {
-      cx += (tcx - cx) * 0.06; cy += (tcy - cy) * 0.06;
-      applyHero();
-      requestAnimationFrame(loop);
-    };
-    requestAnimationFrame(loop);
-  }
-
-  // scroll progress bar
-  const prog = document.createElement('div'); prog.className = 'progress'; prog.setAttribute('aria-hidden', 'true');
-  document.body.appendChild(prog);
-  let pTick = false;
-  const updProg = () => { const max = document.documentElement.scrollHeight - vhP; prog.style.transform = 'scaleX(' + (max > 0 ? Math.min(1, (window.scrollY || 0) / max) : 0) + ')'; pTick = false; };
-  window.addEventListener('scroll', () => { if(!pTick){ pTick = true; requestAnimationFrame(updProg); } }, {passive:true});
-  updProg();
-
-  // staggered gallery entrance
-  document.querySelectorAll('.gallery .shot').forEach((el, i) => { el.classList.add('reveal'); el.style.setProperty('--i', i % 6); io.observe(el); });
-
-  // split the hero headline into masked words (re-run on every language switch)
-  function splitHeroH1(){
-    if(reduceMotion) return;
-    const h1 = document.querySelector('.hero h1');
-    if(!h1) return;
-    let wi = 0;
-    const process = (el) => {
-      Array.from(el.childNodes).forEach(node => {
-        if(node.nodeType === 3){
-          const frag = document.createDocumentFragment();
-          node.textContent.split(/(\s+)/).forEach(tok => {
-            if(!tok) return;
-            if(/^\s+$/.test(tok)){ frag.appendChild(document.createTextNode(tok)); return; }
-            const w = document.createElement('span'); w.className = 'w';
-            const inner = document.createElement('span'); inner.textContent = tok; inner.style.setProperty('--wi', wi++);
-            w.appendChild(inner); frag.appendChild(w);
-          });
-          el.replaceChild(frag, node);
-        } else if(node.nodeType === 1 && node.tagName !== 'BR' && !node.classList.contains('w')){
-          process(node);
-        }
-      });
-    };
-    process(h1);
-  }
+  /* start */
+  let saved = null; try{ saved = localStorage.getItem('lang'); }catch(e){}
+  apply(saved || ((navigator.language || 'en').toLowerCase().startsWith('de') ? 'de' : 'en'));
+  requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.add('loaded')));
+  document.addEventListener('visibilitychange', () => document.querySelectorAll('video').forEach(v => { if(document.hidden) v.pause(); else v.play().catch(()=>{}); }));
 })();
 </script>
 </body>
