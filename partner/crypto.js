@@ -50,18 +50,36 @@ export async function openSlot(code, slot, iter = ITER) {
   }
 }
 
-/** Baut die komplette Datei {pkg, k, a}: öffentliche Daten, Admin-Daten und Slots für alle Zugänge. */
-export async function buildPackage({ data, partners, masters }) {
-  const k = newKeyB64();
+/** Baut die komplette Datei {pkg, k, a}.
+ *  Jedes Objekt hat einen eigenen Schlüssel. Ein Partner-Slot enthält nur die Schlüssel seiner freigegebenen Objekte,
+ *  ein Master-Slot alle Schlüssel plus den Admin-Schlüssel. Alle Schlüssel werden bei jedem Veröffentlichen neu erzeugt. */
+export async function buildPackage({ stand, objekte, partners, masters }) {
   const a = newKeyB64();
+  const blobs = [];
+  const keyOf = {}; // interne Objekt-ID -> Schlüssel
+  const bidOf = {}; // interne Objekt-ID -> zufällige Blob-ID
+  for (const o of objekte) {
+    const key = newKeyB64();
+    const bid = randomId() + randomId();
+    keyOf[o.id] = key;
+    bidOf[o.id] = bid;
+    blobs.push({ b: bid, ...(await sealJson(key, o)) });
+  }
+  const keysFor = (ids) => Object.fromEntries(ids.filter((id) => keyOf[id]).map((id) => [bidOf[id], keyOf[id]]));
   const slots = [];
-  for (const m of masters) slots.push(await makeSlot(m.id, m.code, { k, a, r: 'admin', n: m.name }));
-  for (const p of partners) slots.push(await makeSlot(p.id, p.code, { k, r: 'partner', n: p.name }));
-  return {
-    k,
-    a,
-    pkg: { v: 1, iter: ITER, slots, data: await sealJson(k, data), admin: await sealJson(a, { partners, masters }) },
-  };
+  for (const m of masters) slots.push(await makeSlot(m.id, m.code, { r: 'admin', n: m.name, a, stand, keys: keysFor(objekte.map((o) => o.id)) }));
+  for (const p of partners) slots.push(await makeSlot(p.id, p.code, { r: 'partner', n: p.name, stand, keys: keysFor(p.objekte ?? []) }));
+  return { a, pkg: { v: 2, iter: ITER, slots, objekte: blobs, admin: await sealJson(a, { partners, masters }) } };
+}
+
+/** Entschlüsselt alle Objekte, für die der Slot einen Schlüssel hat (Reihenfolge wie veröffentlicht). */
+export async function openObjects(payload, pkg) {
+  const out = [];
+  for (const blob of pkg.objekte) {
+    const key = payload.keys?.[blob.b];
+    if (key) out.push(await openJson(key, blob));
+  }
+  return { stand: payload.stand, objekte: out };
 }
 
 export function randomCode(len = 24) {
