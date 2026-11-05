@@ -4,7 +4,7 @@ import { openObjects, openSlot } from './crypto.js';
 const app = document.getElementById('app');
 const KONTAKT = { firma: 'Norderfranken Haus und Grund GmbH', adresse: 'Am Gewerbegebiet 5 · 95185 Gattendorf', tel: '09281 979 9759', telHref: '+4992819799759', mail: 'info@norderfranken.de', web: 'www.norderfranken.de' };
 const SESSION = 'nf-partner-session';
-const ANSP = { name: 'Paul', tel: '0151 67692176' }; // Standard-Ansprechpartner, pro Objekt im Admin überschreibbar
+const ANSP = { name: 'Sebastian Sultanow', tel: '0151 67692176' }; // Standard-Ansprechpartner, pro Objekt im Admin überschreibbar
 const VSTATUS = { frei: 'Frei', reserviert: 'Reserviert', notar: 'Notartermin', verkauft: 'Verkauft' };
 export const waNr = (t) => { const d = String(t ?? '').replace(/[^\d+]/g, ''); return d.startsWith('+') ? d.slice(1) : d.startsWith('00') ? d.slice(2) : d.startsWith('0') ? '49' + d.slice(1) : d; };
 const ansp = (o) => ({ name: o.ansp?.name || ANSP.name, tel: o.ansp?.tel || ANSP.tel, mail: o.ansp?.mail || '' });
