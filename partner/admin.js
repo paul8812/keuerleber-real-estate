@@ -215,6 +215,13 @@ export async function mount({ app, ctx, render, logout, header }) {
       <h2>Sanierung &amp; Status</h2><div class="grid">${f('fortschritt', 'Sanierungsstand (0–100 %)', o.fortschritt, 'number')}${f('statusLabel', 'Statusbezeichnung am Foto (leer = automatisch)', o.status.label)}
         <label class="f wide"><span>Beschreibung der Sanierung</span><textarea name="sanierung" rows="3">${esc(o.sanierung)}</textarea></label>${f('hinweis', 'Hinweis fett (z. B. Unvermietet · Erstvermietung möglich)', o.hinweis, 'text', true)}</div>
       <h3 class="sub-h">Zeitplan</h3><div class="steps-ed">${o.schritte.map((s, i) => `<div><b>${esc(s.label)}</b><select name="ss${i}">${[['done', 'erledigt'], ['current', 'aktuell'], ['todo', 'offen']].map(([v, l]) => `<option value="${v}"${s.state === v ? ' selected' : ''}>${l}</option>`).join('')}</select><input name="sd${i}" placeholder="Datum, z. B. 07/2026" value="${esc(s.datum ?? '')}"></div>`).join('')}</div>
+      <h2>Verfügbarkeit &amp; Ansprechpartner</h2><div class="grid">
+        <label class="f"><span>Status</span><select name="vs">${[['frei', 'Frei'], ['reserviert', 'Reserviert'], ['notar', 'Notartermin'], ['verkauft', 'Verkauft']].map(([v, l]) => `<option value="${v}"${(o.vs || 'frei') === v ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
+        ${f('an', 'Ansprechpartner (leer = Standard: Paul)', o.ansp?.name ?? '')}${f('at', 'Handynummer (leer = Standard)', o.ansp?.tel ?? '', 'tel')}${f('am', 'E-Mail (optional, für Anfragen per Mail)', o.ansp?.mail ?? '', 'email')}</div>
+      <h2>Unterlagen</h2>
+      <ul class="rows" id="docRows"></ul>
+      <label class="f wide"><span>Unterlagen hinzufügen · PDF, JPG oder PNG, je max. 2 MB (Exposé, Grundriss, Energieausweis …)</span><input type="file" name="docs" multiple accept="application/pdf,image/jpeg,image/png"></label>
+      <p class="hint">Unterlagen liegen verschlüsselt in der Datei, die jeder Partner beim Öffnen lädt – deshalb sparsam und klein halten (PDFs komprimieren).</p>
       <h2>Foto</h2><label class="f wide"><span>${o.bild ? 'Neues Foto hochladen (ersetzt das aktuelle)' : 'Foto hochladen'} · JPG, PNG oder WebP</span><input type="file" name="foto" accept="image/jpeg,image/png,image/webp"></label>
       ${o.bild ? `<img src="${esc(o.bild)}" alt="" class="prev" id="prev">` : '<img alt="" class="prev hidden" id="prev">'}
       <p class="lg-err hidden" id="formErr" role="alert"></p>
@@ -222,6 +229,19 @@ export async function mount({ app, ctx, render, logout, header }) {
     sheet.showModal();
     let photo = o.bild;
     sheet.querySelector('#cancel').onclick = () => sheet.close();
+    let docs = clone(o.docs ?? []);
+    const drawDocs = () => { sheet.querySelector('#docRows').innerHTML = docs.map((d, i) => `<li><div><b>${esc(d.n)}</b><small>${Math.max(1, Math.round((d.d.length * 0.75) / 1024))} KB</small></div><div class="acts"><button type="button" class="btn ghost sm danger" data-rmdoc="${i}">Entfernen</button></div></li>`).join('') || '<li><small>Noch keine Unterlagen.</small></li>'; };
+    drawDocs();
+    sheet.querySelector('#docRows').onclick = (e) => { const b = e.target.closest('[data-rmdoc]'); if (b) { docs.splice(+b.dataset.rmdoc, 1); drawDocs(); } };
+    sheet.querySelector('input[name=docs]').onchange = async (e) => {
+      const er = sheet.querySelector('#formErr'); er.classList.add('hidden');
+      for (const file of e.target.files) {
+        if (file.size > 2 * 1024 * 1024) { er.textContent = `„${file.name}“ ist größer als 2 MB und wurde nicht übernommen.`; er.classList.remove('hidden'); continue; }
+        const d = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); });
+        docs.push({ n: file.name, d });
+      }
+      e.target.value = ''; drawDocs();
+    };
     sheet.querySelector('input[name=foto]').onchange = async (e) => {
       const file = e.target.files[0]; if (!file) return;
       try { photo = await resizeImage(file); const p = sheet.querySelector('#prev'); p.src = photo; p.classList.remove('hidden'); }
@@ -245,6 +265,22 @@ export async function mount({ app, ctx, render, logout, header }) {
         preis: n('preis') || 1, preisHinweis: g('preisHinweis') || 'provisionsfrei für Käufer', fortschritt: fort, sanierung: g('sanierung'), hinweis: g('hinweis'),
         schritte: STEPS.map((label, i) => ({ label, state: ['done', 'current', 'todo'].includes(g('ss' + i)) ? g('ss' + i) : 'todo', datum: g('sd' + i) || undefined })),
       };
+      const vs = ['frei', 'reserviert', 'notar', 'verkauft'].includes(g('vs')) ? g('vs') : 'frei';
+      if (vs !== 'frei') neu.vs = vs;
+      if (g('an') || g('at') || g('am')) neu.ansp = { name: g('an'), tel: g('at'), mail: g('am') };
+      if (docs.length) neu.docs = docs;
+      // Änderungsvermerk für die „Neu“-Markierung bei den Partnern
+      const was = isNew ? null : S.data.objekte.find((x) => x.id === o.id);
+      const ch = [];
+      if (!was) ch.push('Neu');
+      else {
+        if (was.preis !== neu.preis) ch.push('Preis geändert');
+        if ((was.vs || 'frei') !== vs) ch.push({ frei: 'Wieder frei', reserviert: 'Reserviert', notar: 'Notartermin', verkauft: 'Verkauft' }[vs]);
+        if (was.fortschritt !== neu.fortschritt) ch.push('Sanierungsstand aktualisiert');
+        if ((was.docs?.length ?? 0) !== docs.length) ch.push('Unterlagen aktualisiert');
+        if (was.miete !== neu.miete) ch.push('Miete geändert');
+      }
+      if (ch.length) { neu.t = Date.now(); neu.aend = ch.join(' · '); } else if (was?.t) { neu.t = was.t; neu.aend = was.aend; }
       const i = S.data.objekte.findIndex((x) => x.id === o.id);
       if (i >= 0) S.data.objekte[i] = neu; else S.data.objekte.push(neu);
       sheet.close();
