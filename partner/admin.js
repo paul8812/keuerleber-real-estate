@@ -217,7 +217,7 @@ export async function mount({ app, ctx, render, logout, header }) {
       <h3 class="sub-h">Zeitplan</h3><div class="steps-ed">${o.schritte.map((s, i) => `<div><b>${esc(s.label)}</b><select name="ss${i}">${[['done', 'erledigt'], ['current', 'aktuell'], ['todo', 'offen']].map(([v, l]) => `<option value="${v}"${s.state === v ? ' selected' : ''}>${l}</option>`).join('')}</select><input name="sd${i}" placeholder="Datum, z. B. 07/2026" value="${esc(s.datum ?? '')}"></div>`).join('')}</div>
       <h2>Verfügbarkeit &amp; Ansprechpartner</h2><div class="grid">
         <label class="f"><span>Status</span><select name="vs">${[['frei', 'Frei'], ['reserviert', 'Reserviert'], ['notar', 'Notartermin'], ['verkauft', 'Verkauft']].map(([v, l]) => `<option value="${v}"${(o.vs || 'frei') === v ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
-        ${f('an', 'Ansprechpartner (leer = Standard: Sebastian Sultanow)', o.ansp?.name ?? '')}${f('at', 'Handynummer (leer = Standard)', o.ansp?.tel ?? '', 'tel')}${f('am', 'E-Mail (optional, für Anfragen per Mail)', o.ansp?.mail ?? '', 'email')}</div>
+        ${f('an', 'Ansprechpartner (leer = Standard: Sebastian Sultanow)', o.ansp?.name ?? '')}${f('at', 'Telefon/Handy (leer = Standard; WhatsApp nur bei Handynummer)', o.ansp?.tel ?? '', 'tel')}${f('am', 'E-Mail (optional, für Anfragen per Mail)', o.ansp?.mail ?? '', 'email')}</div>
       <h2>Unterlagen</h2>
       <ul class="rows" id="docRows"></ul>
       <label class="f wide"><span>Unterlagen hinzufügen · PDF, JPG oder PNG, je max. 2 MB (Exposé, Grundriss, Energieausweis …)</span><input type="file" name="docs" multiple accept="application/pdf,image/jpeg,image/png"></label>
