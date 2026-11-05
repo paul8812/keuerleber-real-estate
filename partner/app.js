@@ -4,10 +4,11 @@ import { openObjects, openSlot } from './crypto.js';
 const app = document.getElementById('app');
 const KONTAKT = { firma: 'Norderfranken Haus und Grund GmbH', adresse: 'Am Gewerbegebiet 5 · 95185 Gattendorf', tel: '09281 979 9759', telHref: '+4992819799759', mail: 'info@norderfranken.de', web: 'www.norderfranken.de' };
 const SESSION = 'nf-partner-session';
-const ANSP = { name: 'Sebastian Sultanow', tel: '0151 67692176' }; // Standard-Ansprechpartner, pro Objekt im Admin überschreibbar
+const ANSP = { name: 'Sebastian Sultanow', tel: '09281 979 9759', mail: 'info@norderfranken.de' }; // Standard-Ansprechpartner, pro Objekt im Admin überschreibbar
 const VSTATUS = { frei: 'Frei', reserviert: 'Reserviert', notar: 'Notartermin', verkauft: 'Verkauft' };
 export const waNr = (t) => { const d = String(t ?? '').replace(/[^\d+]/g, ''); return d.startsWith('+') ? d.slice(1) : d.startsWith('00') ? d.slice(2) : d.startsWith('0') ? '49' + d.slice(1) : d; };
-const ansp = (o) => ({ name: o.ansp?.name || ANSP.name, tel: o.ansp?.tel || ANSP.tel, mail: o.ansp?.mail || '' });
+const ansp = (o) => ({ name: o.ansp?.name || ANSP.name, tel: o.ansp?.tel || ANSP.tel, mail: o.ansp?.mail || (o.ansp?.tel ? '' : ANSP.mail) });
+const isMobil = (t) => /^(\+49|0049|0)\s*1[5-7]/.test(String(t).replace(/[\s()\-\/]/g, ''));
 const lsGet = (k) => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* privater Modus */ } };
 const datum = (t) => new Date(t).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -128,7 +129,7 @@ function karte(o) {
         <button class="btn fill sm" data-mel="${esc(o.id)}" ${sold ? 'disabled' : ''}>Interessent melden</button>
         <button class="btn dark sm" data-ex="${esc(o.id)}">Kunden-Exposé</button>
         <a class="btn ghost sm" href="tel:+${waNr(a.tel)}">Anrufen</a>
-        <a class="btn ghost sm" href="https://wa.me/${waNr(a.tel)}" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+        ${isMobil(a.tel) ? `<a class="btn ghost sm" href="https://wa.me/${waNr(a.tel)}" target="_blank" rel="noopener noreferrer">WhatsApp</a>` : a.mail ? `<a class="btn ghost sm" href="mailto:${esc(a.mail)}">E-Mail</a>` : ''}
         <span class="who">Ansprechpartner: <b>${esc(a.name)}</b> · ${esc(a.tel)}</span>
       </div>
       ${docs.length ? `<details class="dd"><summary>Unterlagen (${docs.length})</summary><div class="doclist">${docs.map((d, i) => `<button class="doc" data-doc="${esc(o.id)}:${i}"><span>${esc(d.n)}</span><small>${Math.max(1, Math.round((d.d.length * 0.75) / 1024))} KB · herunterladen</small></button>`).join('')}</div></details>` : ''}
@@ -267,9 +268,9 @@ function melden(o) {
     <p class="hint">Sie melden einen Interessenten. Die Nachricht geht direkt an ${esc(a.name)} – wer zuerst meldet, wird zuerst berücksichtigt.</p>
     <label class="f"><span>Interessent (Name)</span><input name="k" required maxlength="80" autocomplete="off"></label>
     <label class="f"><span>Nachricht (optional)</span><textarea name="n" rows="3" maxlength="400" placeholder="z. B. Finanzierung steht, Besichtigung gewünscht …"></textarea></label>
-    <div class="acts"><button class="btn fill" data-w>Per WhatsApp senden</button>${a.mail ? '<button type="button" class="btn dark" data-m>Per E-Mail</button>' : ''}<a class="btn ghost" href="tel:+${waNr(a.tel)}">Anrufen</a></div></form>`);
+    <div class="acts">${isMobil(a.tel) ? '<button class="btn fill" data-w>Per WhatsApp senden</button>' : ''}${a.mail ? `<button type="button" class="btn ${isMobil(a.tel) ? 'dark' : 'fill'}" data-m>Per E-Mail senden</button>` : ''}<a class="btn ghost" href="tel:+${waNr(a.tel)}">Anrufen</a></div></form>`);
   const text = () => { const f = new FormData(d.querySelector('#melF')); return `Reservierungsanfrage\nObjekt: ${o.strasse}, ${o.lage}\nInteressent: ${String(f.get('k')).trim()}\nVertrieb: ${me}${String(f.get('n')).trim() ? '\n' + String(f.get('n')).trim() : ''}\n(${datum(Date.now())})`; };
-  d.querySelector('#melF').addEventListener('submit', (e) => { e.preventDefault(); window.open(`https://wa.me/${waNr(a.tel)}?text=${encodeURIComponent(text())}`, '_blank', 'noopener'); });
+  d.querySelector('#melF').addEventListener('submit', (e) => { e.preventDefault(); if (!isMobil(a.tel)) return; window.open(`https://wa.me/${waNr(a.tel)}?text=${encodeURIComponent(text())}`, '_blank', 'noopener'); });
   d.querySelector('[data-m]')?.addEventListener('click', () => { const f = d.querySelector('#melF'); if (!f.reportValidity()) return; location.href = `mailto:${a.mail}?subject=${encodeURIComponent('Reservierungsanfrage ' + o.strasse)}&body=${encodeURIComponent(text())}`; });
 }
 
