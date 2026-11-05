@@ -27,3 +27,6 @@ Die Startseite (`index.html`) ist in vier Bereiche mit Tabs gegliedert; jeder Ta
 
 Dazu: Themenseiten unter `kapitalanlage-hof/`, `restnutzungsdauer-gutachten/`, `eigentumswohnung-kaufen-hof/` (gemeinsames Stylesheet `lp.css`), CRM unter `crm/`, Rendite-Rechner unter `rendite/`, Schriften unter `fonts/` (selbst gehostet), Logos unter `logo/`, `404.html`, `sitemap.xml`, `llms.txt`.
 Der Intro-Film läuft nur beim ersten Besuch einer Sitzung und nicht bei Direktlinks.
+
+## Partnerbereich (`/partner/`)
+Passwortgeschützte Vertriebsübersicht im Norderfranken-Design. Die Daten liegen **verschlüsselt** in `partner/data.enc.json` (AES-256-GCM, Schlüssel aus Zugangscode via PBKDF2); entschlüsselt wird nur im Browser. Zugänge (Master/Partner) und Objekte werden in der Seite selbst unter „Verwaltung“ gepflegt und per GitHub-API veröffentlicht. Nicht im Sitemap, `noindex`, in `robots.txt` gesperrt.

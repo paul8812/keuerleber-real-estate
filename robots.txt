@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /crm/
+Disallow: /partner/
 Disallow: /signatur/
 Disallow: /visitenkarte/
 
