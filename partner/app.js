@@ -82,7 +82,6 @@ const FILTER = [
 
 function karte(o) {
   const k = kennzahlen(o);
-  const subject = encodeURIComponent(`Anfrage ${o.strasse}, ${o.lage}`);
   const steps = o.schritte.map((s) => `
     <li class="${esc(s.state)}"><span class="dot">${s.state === 'done' ? '✓' : ''}</span><b>${esc(s.label)}</b>
     <em>${s.state === 'current' && s.label === 'Sanierung' ? o.fortschritt + ' %' : esc(s.datum ?? '')}</em></li>`).join('');
@@ -108,7 +107,6 @@ function karte(o) {
         </div>
         <ol class="steps">${steps}</ol>
       </div>
-      <a class="ask" href="mailto:${KONTAKT.mail}?subject=${subject}">Objekt anfragen →</a>
     </div>
   </article>`;
 }
