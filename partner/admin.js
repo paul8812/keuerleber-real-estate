@@ -54,6 +54,7 @@ export async function mount({ app, ctx, render, logout, header }) {
           <div class="checks">${all.map((o) => `<label><input type="checkbox" data-pobj="${esc(p.id)}" value="${esc(o.id)}" ${p.objekte.includes(o.id) ? 'checked' : ''}> ${esc(o.strasse)} · ${esc(o.lage)}</label>`).join('') || '<em>Noch keine Objekte angelegt.</em>'}</div>
           <div class="acts"><button class="btn ghost sm" data-all="${esc(p.id)}">Alle</button><button class="btn ghost sm" data-none="${esc(p.id)}">Keine</button></div></details>
         <div class="acts" style="margin-top:8px"><button class="btn ghost sm" data-copy="${esc(p.id)}">Link kopieren</button>
+        <button class="btn ghost sm" data-rename="p:${esc(p.id)}">Umbenennen</button>
         <button class="btn ghost sm" data-ppw="${esc(p.id)}">Passwort ändern</button>
         <button class="btn ghost sm danger" data-delpartner="${esc(p.id)}">Entfernen</button></div></div></li>`).join('')}</ul></section>`;
   }
@@ -62,7 +63,7 @@ export async function mount({ app, ctx, render, logout, header }) {
     return `<section class="panel"><h2>Master-Zugänge</h2>
       <p class="hint">Master dürfen alles verwalten. Anmeldung mit dem Passwort (mind. 12 Zeichen).</p>
       <ul class="rows">${S.masters.map((m) => `<li><div><b>${esc(m.name)}</b></div>
-        <div class="acts"><button class="btn ghost sm" data-pw="${esc(m.id)}">Passwort ändern</button>
+        <div class="acts"><button class="btn ghost sm" data-rename="m:${esc(m.id)}">Umbenennen</button><button class="btn ghost sm" data-pw="${esc(m.id)}">Passwort ändern</button>
         ${S.masters.length > 1 && m.id !== ctx.sess.id ? `<button class="btn ghost sm danger" data-delmaster="${esc(m.id)}">Entfernen</button>` : ''}</div></li>`).join('')}</ul>
       <form class="inline" id="addMaster"><input name="name" placeholder="Name" required maxlength="60"><input name="code" type="password" placeholder="Passwort (mind. 12 Zeichen)" required minlength="12" maxlength="100"><button class="btn ghost sm">Master hinzufügen</button></form></section>`;
   }
@@ -120,10 +121,18 @@ export async function mount({ app, ctx, render, logout, header }) {
       document.querySelector(`details.sel input[data-pobj="${p.id}"][value="${c.value}"]`)?.closest('details')?.setAttribute('open', '');
     };
     document.body.onclick = async (e) => {
-      const b = e.target.closest('button[data-copy],button[data-ppw],button[data-all],button[data-none],button[data-delpartner],button[data-pw],button[data-delmaster],button[data-edit],button[data-up],button[data-down],button[data-del]');
+      const b = e.target.closest('button[data-rename],button[data-copy],button[data-ppw],button[data-all],button[data-none],button[data-delpartner],button[data-pw],button[data-delmaster],button[data-edit],button[data-up],button[data-down],button[data-del]');
       if (!b) return;
       const d = b.dataset;
-      if (d.copy) {
+      if (d.rename) {
+        const [kind, id] = d.rename.split(':');
+        const item = (kind === 'm' ? S.masters : S.partners).find((x) => x.id === id);
+        const n = prompt('Neuer Name:', item.name)?.trim();
+        if (!n || n === item.name) return;
+        item.name = n.slice(0, 80);
+        if (kind === 'm' && id === ctx.sess.id) ctx.sess.n = item.name;
+        markDirty();
+      } else if (d.copy) {
         await navigator.clipboard.writeText(linkFor(S.partners.find((p) => p.id === d.copy)));
         b.textContent = 'Kopiert ✓'; setTimeout(() => (b.textContent = 'Link kopieren'), 1800);
       } else if (d.ppw) {
