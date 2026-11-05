@@ -1,5 +1,5 @@
 // Partnerbereich: lädt die verschlüsselte Datei, entschlüsselt sie im Browser und zeigt die Übersicht.
-import { openJson, openSlot } from './crypto.js';
+import { openObjects, openSlot } from './crypto.js';
 
 const app = document.getElementById('app');
 const KONTAKT = { firma: 'Norderfranken Haus und Grund GmbH', adresse: 'Am Gewerbegebiet 5 · 95185 Gattendorf', tel: '09281 979 9759', telHref: '+4992819799759', mail: 'info@norderfranken.de', web: 'www.norderfranken.de' };
@@ -24,7 +24,7 @@ async function loadPackage() {
 
 async function enter(payload, code, id) {
   ctx.sess = { ...payload, code, id };
-  ctx.data = await openJson(payload.k, ctx.pkg.data);
+  ctx.data = await openObjects(payload, ctx.pkg);
   try { sessionStorage.setItem(SESSION, JSON.stringify(ctx.sess)); } catch { /* privater Modus */ }
   if (location.hash) history.replaceState(null, '', location.pathname);
   ctx.view = 'start';
@@ -120,6 +120,7 @@ function listeHtml() {
   if (ctx.sort === 'preis') l.sort((a, b) => a.preis - b.preis);
   if (ctx.sort === 'rendite') l.sort((a, b) => kennzahlen(b).rendite - kennzahlen(a).rendite);
   if (ctx.sort === 'flaeche') l.sort((a, b) => b.flaeche - a.flaeche);
+  if (!ctx.data.objekte.length) return '<p class="empty">Für Sie sind aktuell keine Objekte freigegeben. Bitte sprechen Sie uns an: ' + KONTAKT.tel + '</p>';
   return l.length ? l.map(karte).join('') : '<p class="empty">Keine Objekte für diese Auswahl.</p>';
 }
 
@@ -142,7 +143,7 @@ function render() {
     <dl class="stats"><div><dt>Wohnungen</dt><dd>${stats.n}</dd></div><div><dt>Wohnfläche</dt><dd>${stats.min}–${stats.max} m²</dd></div><div><dt>Abgabepreis ab</dt><dd>${eur(stats.ab)}</dd></div></dl></div></section>
   <main class="wrap list-wrap">
     <div class="bar"><div class="chips" id="chips">${FILTER.map((f) => `<button class="chip${ctx.filter === f[0] ? ' on' : ''}" data-f="${f[0]}">${f[1]}</button>`).join('')}</div>
-      <div class="tools"><input type="search" id="q" placeholder="Suchen, z. B. Jahnstraße, Garage …" value="${esc(ctx.q)}" aria-label="Suchen">
+      <div class="tools"><input type="search" id="q" placeholder="Suchen, z. B. Straße, Garage …" value="${esc(ctx.q)}" aria-label="Suchen">
       <select id="sort" aria-label="Sortieren">${[['standard', 'Sortierung: Standard'], ['preis', 'Preis aufsteigend'], ['rendite', 'Rendite absteigend'], ['flaeche', 'Wohnfläche absteigend']].map(([v, l]) => `<option value="${v}"${ctx.sort === v ? ' selected' : ''}>${l}</option>`).join('')}</select></div></div>
     <div class="cards" id="cards">${listeHtml()}</div>
     <p class="legend">Kaltmiete: <b>IST</b> = laut Mietvertrag · <b>SOLL</b> = kalkulierte Marktmiete (unvermietet) · <b>PLAN</b> = Planwert vor Sanierung. Rendite = Jahreskaltmiete inkl. Garage/Stellplatz ÷ Abgabepreis. Alle Angaben laut Exposés und Objektunterlagen, ohne Gewähr. Vollständige Unterlagen im Datenraum.</p>
@@ -187,8 +188,8 @@ function render() {
   // 2) laufende Sitzung in diesem Tab
   try {
     const s = JSON.parse(sessionStorage.getItem(SESSION) || 'null');
-    if (s?.k) {
-      ctx.data = await openJson(s.k, ctx.pkg.data);
+    if (s?.keys) {
+      ctx.data = await openObjects(s, ctx.pkg);
       ctx.sess = s;
       return render();
     }

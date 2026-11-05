@@ -1,5 +1,5 @@
 // Verwaltung (nur Master): Partner, Master und Objekte pflegen und verschlüsselt veröffentlichen.
-import { buildPackage, openJson, randomCode, randomId, toB64 } from './crypto.js';
+import { buildPackage, openJson, openObjects, openSlot, randomCode, randomId, toB64 } from './crypto.js';
 import { esc, eur } from './app.js';
 
 const REPO = 'paul8812/keuerleber-real-estate';
@@ -12,12 +12,13 @@ let msg = null;
 
 const clone = (x) => JSON.parse(JSON.stringify(x));
 const token = () => { try { return localStorage.getItem(TOKEN_KEY) || ''; } catch { return ''; } };
-const linkFor = (p) => `${location.origin}${location.pathname}#${p.id}.${p.code}`;
+const linkFor = (p) => `${location.origin}${location.pathname}#${p.id}.${encodeURIComponent(p.code)}`;
+const MIN_PW = 12;
 
 export async function mount({ app, ctx, render, logout, header }) {
   if (!S) {
     const a = await openJson(ctx.sess.a, ctx.pkg.admin);
-    S = { partners: a.partners, masters: a.masters, data: clone(ctx.data), dirty: false };
+    S = { partners: a.partners.map((p) => ({ ...p, objekte: p.objekte ?? [] })), masters: a.masters, data: { objekte: clone(ctx.data.objekte) }, dirty: false };
   }
   const draw = () => {
     app.innerHTML = `${header().replace('<button class="btn dark sm" id="toAdmin">Verwaltung</button>', '<button class="btn ghost sm" id="back">Zur Übersicht</button>').replace('<button class="btn ghost sm" id="print">Drucken / PDF</button>', '')}
@@ -37,16 +38,24 @@ export async function mount({ app, ctx, render, logout, header }) {
     wire();
   };
   const markDirty = () => { S.dirty = true; msg = null; draw(); };
+  const codeTaken = (code, exceptId) => [...S.partners, ...S.masters].some((x) => x.code === code && x.id !== exceptId);
+  const pwError = (code, exceptId) => (code.length < MIN_PW ? `Das Passwort braucht mindestens ${MIN_PW} Zeichen.` : codeTaken(code, exceptId) ? 'Dieses Passwort wird schon verwendet – bitte ein anderes wählen.' : '');
 
   function partnerPanel() {
-    return `<section class="panel"><h2>Vertriebspartner &amp; Einladungslinks</h2>
-      <p class="hint">Jeder Partner bekommt einen eigenen Link. „Entfernen“ sperrt ihn nach dem Veröffentlichen.</p>
-      <form class="inline" id="addPartner"><input name="name" placeholder="Name des Partners / der Firma" required maxlength="80"><button class="btn fill sm">Partner anlegen</button></form>
+    const all = S.data.objekte;
+    return `<section class="panel"><h2>Vertriebspartner</h2>
+      <p class="hint">Jeder Partner hat ein eigenes Passwort bzw. einen Einladungslink und sieht <b>nur die Objekte, die Sie ihm freigeben</b>. Neue Partner sehen zunächst keins.</p>
+      <form class="inline" id="addPartner"><input name="name" placeholder="Name des Partners / der Firma" required maxlength="80">
+        <input name="code" type="text" placeholder="Passwort (leer = automatisch)" minlength="${MIN_PW}" maxlength="100" autocomplete="off"><button class="btn fill sm">Partner anlegen</button></form>
       ${S.partners.length ? '' : '<p class="empty">Noch keine Partner angelegt.</p>'}
-      <ul class="rows">${S.partners.map((p) => `<li><div><b>${esc(p.name)}</b><span class="codebox">${esc(linkFor(p))}</span></div>
-        <div class="acts"><button class="btn ghost sm" data-copy="${esc(p.id)}">Link kopieren</button>
-        <button class="btn ghost sm" data-newcode="${esc(p.id)}" title="Alter Link wird ungültig">Neuer Link</button>
-        <button class="btn ghost sm danger" data-delpartner="${esc(p.id)}">Entfernen</button></div></li>`).join('')}</ul></section>`;
+      <ul class="rows">${S.partners.map((p) => `<li class="prow"><div style="width:100%"><b>${esc(p.name)}</b>
+        <span class="codebox">Passwort: <b>${esc(p.code)}</b></span><span class="codebox">${esc(linkFor(p))}</span>
+        <details class="sel"${p.objekte.length ? '' : ' open'}><summary>Freigegebene Objekte: ${p.objekte.filter((id) => all.some((o) => o.id === id)).length} von ${all.length}</summary>
+          <div class="checks">${all.map((o) => `<label><input type="checkbox" data-pobj="${esc(p.id)}" value="${esc(o.id)}" ${p.objekte.includes(o.id) ? 'checked' : ''}> ${esc(o.strasse)} · ${esc(o.lage)}</label>`).join('') || '<em>Noch keine Objekte angelegt.</em>'}</div>
+          <div class="acts"><button class="btn ghost sm" data-all="${esc(p.id)}">Alle</button><button class="btn ghost sm" data-none="${esc(p.id)}">Keine</button></div></details>
+        <div class="acts" style="margin-top:8px"><button class="btn ghost sm" data-copy="${esc(p.id)}">Link kopieren</button>
+        <button class="btn ghost sm" data-ppw="${esc(p.id)}">Passwort ändern</button>
+        <button class="btn ghost sm danger" data-delpartner="${esc(p.id)}">Entfernen</button></div></div></li>`).join('')}</ul></section>`;
   }
 
   function masterPanel() {
@@ -81,35 +90,57 @@ export async function mount({ app, ctx, render, logout, header }) {
 
   function wire() {
     const $ = (s) => document.querySelector(s);
-    $('#back').onclick = () => { document.body.onclick = null; render(); };
-    $('#logout').onclick = () => { document.body.onclick = null; S = null; logout(); };
+    $('#back').onclick = () => { document.body.onclick = document.body.onchange = null; render(); };
+    $('#logout').onclick = () => { document.body.onclick = document.body.onchange = null; S = null; logout(); };
     $('#addPartner').onsubmit = (e) => {
       e.preventDefault();
-      S.partners.push({ id: randomId(), name: new FormData(e.target).get('name').trim(), code: randomCode(24) });
+      const f = new FormData(e.target);
+      const typed = String(f.get('code') ?? '').trim();
+      const code = typed || randomCode(16);
+      const err = typed ? pwError(code, '') : '';
+      if (err) { msg = { ok: false, text: err }; return draw(); }
+      S.partners.push({ id: randomId(), name: String(f.get('name')).trim(), code, objekte: [] });
       markDirty();
     };
     $('#addMaster').onsubmit = (e) => {
       e.preventDefault();
       const f = new FormData(e.target);
-      S.masters.push({ id: 'm' + randomId().slice(0, 4), name: f.get('name').trim(), code: String(f.get('code')) });
+      const code = String(f.get('code'));
+      const err = pwError(code, '');
+      if (err) { msg = { ok: false, text: err }; return draw(); }
+      S.masters.push({ id: 'm' + randomId().slice(0, 4), name: f.get('name').trim(), code });
       markDirty();
     };
+    document.body.onchange = (e) => {
+      const c = e.target.closest('input[data-pobj]'); if (!c) return;
+      const p = S.partners.find((x) => x.id === c.dataset.pobj);
+      p.objekte = c.checked ? [...new Set([...p.objekte, c.value])] : p.objekte.filter((id) => id !== c.value);
+      S.dirty = true; msg = null;
+      const open = document.activeElement; draw();
+      document.querySelector(`details.sel input[data-pobj="${p.id}"][value="${c.value}"]`)?.closest('details')?.setAttribute('open', '');
+    };
     document.body.onclick = async (e) => {
-      const b = e.target.closest('button[data-copy],button[data-newcode],button[data-delpartner],button[data-pw],button[data-delmaster],button[data-edit],button[data-up],button[data-down],button[data-del]');
+      const b = e.target.closest('button[data-copy],button[data-ppw],button[data-all],button[data-none],button[data-delpartner],button[data-pw],button[data-delmaster],button[data-edit],button[data-up],button[data-down],button[data-del]');
       if (!b) return;
       const d = b.dataset;
       if (d.copy) {
         await navigator.clipboard.writeText(linkFor(S.partners.find((p) => p.id === d.copy)));
         b.textContent = 'Kopiert ✓'; setTimeout(() => (b.textContent = 'Link kopieren'), 1800);
-      } else if (d.newcode) { S.partners.find((p) => p.id === d.newcode).code = randomCode(24); markDirty(); }
+      } else if (d.ppw) {
+        const n = prompt(`Neues Passwort für diesen Partner (mind. ${MIN_PW} Zeichen, leer = automatisch):`);
+        if (n === null) return;
+        const code = n.trim() || randomCode(16), err = n.trim() ? pwError(code, d.ppw) : '';
+        if (err) alert(err); else { S.partners.find((p) => p.id === d.ppw).code = code; markDirty(); }
+      } else if (d.all) { S.partners.find((p) => p.id === d.all).objekte = S.data.objekte.map((o) => o.id); markDirty(); }
+      else if (d.none) { S.partners.find((p) => p.id === d.none).objekte = []; markDirty(); }
       else if (d.delpartner) { if (confirm('Partner wirklich entfernen? Der Zugang ist nach dem Veröffentlichen gesperrt.')) { S.partners = S.partners.filter((p) => p.id !== d.delpartner); markDirty(); } }
-      else if (d.pw) { const n = prompt('Neues Passwort (mind. 12 Zeichen):'); if (n && n.length >= 12) { S.masters.find((m) => m.id === d.pw).code = n; markDirty(); } else if (n) alert('Zu kurz – mindestens 12 Zeichen.'); }
+      else if (d.pw) { const n = prompt('Neues Passwort (mind. 12 Zeichen):'); if (n) { const err = pwError(n, d.pw); if (err) alert(err); else { S.masters.find((m) => m.id === d.pw).code = n; if (d.pw === ctx.sess.id) ctx.sess.code = n; markDirty(); } } }
       else if (d.delmaster) { if (confirm('Master-Zugang entfernen?')) { S.masters = S.masters.filter((m) => m.id !== d.delmaster); markDirty(); } }
       else if (d.edit) openEditor(d.edit);
       else if (d.up || d.down) {
         const id = d.up || d.down, l = S.data.objekte, i = l.findIndex((o) => o.id === id), j = i + (d.up ? -1 : 1);
         if (j >= 0 && j < l.length) { [l[i], l[j]] = [l[j], l[i]]; markDirty(); }
-      } else if (d.del) { if (confirm('Objekt wirklich löschen?')) { S.data.objekte = S.data.objekte.filter((o) => o.id !== d.del); markDirty(); } }
+      } else if (d.del) { if (confirm('Objekt wirklich löschen?')) { S.data.objekte = S.data.objekte.filter((o) => o.id !== d.del); S.partners.forEach((p) => (p.objekte = p.objekte.filter((id) => id !== d.del))); markDirty(); } }
     };
     $('#download').onclick = async () => {
       const { pkg } = await buildNext();
@@ -121,8 +152,8 @@ export async function mount({ app, ctx, render, logout, header }) {
   }
 
   async function buildNext() {
-    const data = { stand: new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }), objekte: S.data.objekte };
-    return buildPackage({ data, partners: S.partners, masters: S.masters });
+    const stand = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return buildPackage({ stand, objekte: S.data.objekte, partners: S.partners, masters: S.masters });
   }
 
   async function publish() {
@@ -141,9 +172,10 @@ export async function mount({ app, ctx, render, logout, header }) {
       if (!r.ok) throw new Error(r.status === 409 ? 'Zwischenzeitlich wurde etwas anderes veröffentlicht – bitte Seite neu laden.' : 'GitHub meldet Fehler ' + r.status);
       try { localStorage.setItem(TOKEN_KEY, tk); } catch { /* egal */ }
       // eigene Sitzung auf die neuen Schlüssel umstellen
-      ctx.pkg = built.pkg; ctx.sess = { ...ctx.sess, k: built.k, a: built.a };
-      ctx.data = { stand: undefined, objekte: clone(S.data.objekte) };
-      ctx.data = await openJson(built.k, built.pkg.data);
+      ctx.pkg = built.pkg;
+      const payload = await openSlot(ctx.sess.code, built.pkg.slots.find((x) => x.id === ctx.sess.id), built.pkg.iter);
+      ctx.sess = { ...payload, code: ctx.sess.code, id: ctx.sess.id };
+      ctx.data = await openObjects(ctx.sess, built.pkg);
       try { sessionStorage.setItem('nf-partner-session', JSON.stringify(ctx.sess)); } catch { /* egal */ }
       S.dirty = false;
       msg = { ok: true, text: 'Veröffentlicht. Die Partner sehen die Änderungen in ca. 1–2 Minuten.' };
