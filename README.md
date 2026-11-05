@@ -30,3 +30,4 @@ Der Intro-Film läuft nur beim ersten Besuch einer Sitzung und nicht bei Direktl
 
 ## Partnerbereich (`/partner/`)
 Passwortgeschützte Vertriebsübersicht im Norderfranken-Design. Die Daten liegen **verschlüsselt** in `partner/data.enc.json` (AES-256-GCM, Schlüssel aus Zugangscode via PBKDF2); entschlüsselt wird nur im Browser. Zugänge (Master/Partner) und Objekte werden in der Seite selbst unter „Verwaltung“ gepflegt und per GitHub-API veröffentlicht. Nicht im Sitemap, `noindex`, in `robots.txt` gesperrt.
+Funktionen für Vertriebe: Status (frei/reserviert/Notartermin/verkauft), „Neu/geändert“-Markierung seit dem letzten Besuch, Filter (Budget, Rendite, Zimmer), Unterlagen-Download pro Objekt, Finanzierungsrechner, Kunden-Exposé mit eigenem Aufschlag des Vertriebs (nur im Browser, Druck/PDF), „Interessent melden“ per WhatsApp/Mail (ohne Server) und Installation als App auf dem Homescreen.
