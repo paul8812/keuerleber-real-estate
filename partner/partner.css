@@ -148,7 +148,7 @@ h1,h2{font-family:Heebo,sans-serif;font-weight:600;letter-spacing:-.025em;line-h
   .kpis>div:nth-child(-n+2){border-top:0}
   .kpis>div:nth-child(even){border-left:1px solid var(--line)}
   .kpis>div:last-child{grid-column:1/-1;border-left:0}
-  .top-user,.top-r .ghost{display:none}
+  .top-user,#print{display:none}
   .top-logo{width:108px}
   .tools,.tools input{width:100%}
   .tools select{flex:1}
@@ -299,11 +299,13 @@ input,select,textarea,button{touch-action:manipulation}
 .calc-in .hint{grid-column:1/-1}
 .f{display:grid;gap:6px}.f>span{font-family:Heebo,sans-serif;font-size:12px;letter-spacing:.06em;color:var(--blue-mid)}
 .ov .f input,.ov .f textarea{padding:12px 16px;border:1.5px solid var(--line);border-radius:14px;background:var(--cream);font-size:16px;width:100%;font-family:inherit}
-.ov{position:fixed;inset:0;z-index:200;background:rgba(29,43,57,.6);display:grid;place-items:center;padding:16px;overflow:auto}
+.ov{position:fixed;inset:0;z-index:200;background:rgba(29,43,57,.6);display:flex;padding:16px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.ov>*{margin:auto}
 .ov-box{position:relative;background:#fff;border-radius:var(--r);padding:28px;width:min(520px,100%);display:grid;gap:14px;box-shadow:0 40px 90px -30px rgba(29,43,57,.6)}
 .ov-box h2{font-size:24px}.ov-box .x{position:absolute;right:14px;top:10px;width:44px;height:44px;border:0;background:none;font-size:30px;cursor:pointer;color:var(--navy)}
 .ov-box .btn{text-decoration:none}
-.ov-ex{place-items:start center;background:#fff;padding:0}
+.ov-ex{background:#fff;padding:0}
+.ov-ex>*{margin:0 auto}
 .ex-wrap{width:min(900px,100%);padding:16px 16px calc(40px + env(safe-area-inset-bottom))}
 .ex-bar{display:grid;gap:12px;margin-bottom:22px;padding:16px;border:1px dashed var(--line);border-radius:var(--r-s);background:var(--cream)}
 .ex-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
@@ -336,3 +338,18 @@ body.ovopen{overflow:hidden}
   body.pe .ex-wrap{padding:0;width:100%}
   body.pe{background:#fff}
 }
+
+/* Scrollen / Wischen */
+dialog.sheet .panel{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+@media (max-width:760px){
+  dialog.sheet{height:100dvh;max-height:100dvh}
+  .ov{padding:12px}
+}
+.admin-bar .wrap>div,.admin-bar .acts{min-width:0}
+.linkbtn{padding:11px 8px;margin:-11px 0;min-height:44px}
+.foot a,.lg-foot a{display:inline-block;padding:11px 4px;margin:-11px 0}
+@media (max-width:760px){.foot-in span{line-height:1.2}.foot-in a{padding:13px 6px}}
+
+.ex-x{position:fixed;right:12px;top:calc(10px + env(safe-area-inset-top));z-index:5;width:46px;height:46px;border-radius:50%;border:1.5px solid var(--line);background:#fff;color:var(--navy);font-size:30px;line-height:1;cursor:pointer;box-shadow:0 8px 20px -10px rgba(0,0,0,.4)}
+.ov-ex>.ex-x{margin:0}
+@media print{.ex-x{display:none}}
