@@ -2,7 +2,7 @@
 import { openObjects, openSlot } from './crypto.js';
 
 const app = document.getElementById('app');
-const KONTAKT = { firma: 'Norderfranken Haus und Grund GmbH', adresse: 'Am Gewerbegebiet 5 · 95185 Gattendorf', tel: '09281 979 9759', telHref: '+4992819799759', mail: 'info@norderfranken.de', web: 'www.norderfranken.de' };
+const KONTAKT = { firma: 'Norderfranken Haus und Grund GmbH', adresse: 'Am Gewerbegebiet 5 · 95185 Gattendorf', tel: '+49 160 3636997', telHref: '+491603636997', mail: 'info@norderfranken.de', web: 'www.norderfranken.de' };
 const SESSION = 'nf-partner-session';
 const ANSP = { name: 'Sebastian Sultanow', tel: '+49 160 3636997', mail: 'info@norderfranken.de' }; // Standard-Ansprechpartner, pro Objekt im Admin überschreibbar
 const VSTATUS = { frei: 'Frei', reserviert: 'Reserviert', notar: 'Notartermin', verkauft: 'Verkauft' };
@@ -64,7 +64,7 @@ function showLogin(msg = '', busy = false) {
       ${msg ? `<p class="lg-err" role="alert">${esc(msg)}</p>` : ''}
       <button class="btn fill" ${busy ? 'disabled' : ''}>${busy ? 'Prüfe …' : 'Anmelden'}</button>
     </form>
-    <p class="lg-foot">Kein Zugang? Rufen Sie uns an: ${KONTAKT.tel}</p>
+    <p class="lg-foot">Kein Zugang? Rufen Sie Sebastian Sultanow an: ${KONTAKT.tel}</p>
   </div></main>`;
   const f = document.getElementById('loginForm');
   document.getElementById('pw').focus();
@@ -180,7 +180,7 @@ function listeHtml() {
   if (ctx.sort === 'preis') l.sort((a, b) => a.preis - b.preis);
   if (ctx.sort === 'rendite') l.sort((a, b) => kennzahlen(b).rendite - kennzahlen(a).rendite);
   if (ctx.sort === 'flaeche') l.sort((a, b) => b.flaeche - a.flaeche);
-  if (!ctx.data.objekte.length) return '<p class="empty">Für Sie sind aktuell keine Objekte freigegeben. Bitte sprechen Sie uns an: ' + KONTAKT.tel + '</p>';
+  if (!ctx.data.objekte.length) return '<p class="empty">Für Sie sind aktuell keine Objekte freigegeben. Bitte sprechen Sie Sebastian Sultanow an: ' + KONTAKT.tel + '</p>';
   return l.length ? l.map(karte).join('') : '<p class="empty">Keine Objekte für diese Auswahl.</p>';
 }
 
