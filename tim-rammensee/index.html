@@ -239,6 +239,11 @@ footer{background:var(--field);color:var(--field-ink);padding:clamp(100px,14vh,1
 /* tablet / phone */
 @media (max-width:1000px){ .nav{display:none} }
 @media (max-width:760px){
+  .hero-bg::before{height:75%;background:rgba(0,0,0,.55)}
+  .svc .pv{display:none}
+  .wall .row{flex-wrap:wrap}
+  .wall .row .tile:first-child{flex-basis:100%}
+  .lb .pv-btn,.lb .nx-btn{top:auto;bottom:60px;translate:none}
   .hud .r span:nth-child(n+2){display:none}
   .hero-text{bottom:calc(36vw + 30px);flex-direction:column;align-items:flex-start}
   .hero-text .side{align-items:flex-start}
@@ -266,6 +271,55 @@ footer{background:var(--field);color:var(--field-ink);padding:clamp(100px,14vh,1
   .cookie{bottom:calc(76px + env(safe-area-inset-bottom))}
   .top .btn{display:none}
 }
+
+/* hero footage behind the viewfinder */
+.hero-bg{position:absolute;inset:0;z-index:0;overflow:hidden}
+.hero-bg img,.hero-bg video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity 1.4s ease}
+.hero-bg video{opacity:0}
+.hero-bg video.on{opacity:1}
+.hero-bg::after{content:'';position:absolute;inset:0;background:rgba(0,0,0,.38)}
+.hero-bg::before{content:'';position:absolute;inset:auto 0 0 0;height:55%;background:rgba(0,0,0,.35);z-index:1}
+.hero .vf,.hero .hud,.hero .af,.hero-text,.name,.shots{z-index:3}
+@media (prefers-reduced-motion:no-preference){ .hero-bg img{animation:kb 18s ease-out forwards} }
+@keyframes kb{from{transform:scale(1.12)}to{transform:scale(1)}}
+
+/* service rows show a picture */
+.svc .pv{position:absolute;right:110px;top:50%;width:170px;aspect-ratio:4/5;object-fit:cover;translate:0 -50%;clip-path:inset(50% 0 50% 0);rotate:-4deg;transition:clip-path .55s var(--snap),rotate .55s var(--ease);pointer-events:none;z-index:2}
+.svc a:hover .pv,.svc a:focus-visible .pv{clip-path:inset(0 0 0 0);rotate:3deg}
+
+/* selected work: an uneven wall */
+.work{background:var(--field);color:var(--field-ink)}
+.work-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+.work-head h2{font-size:clamp(3rem,1rem + 8vw,8.5rem);line-height:.88;letter-spacing:-.06em}
+.work-head p{color:var(--field-muted)}
+.wall{display:flex;flex-direction:column;gap:8px;margin-top:40px}
+.wall .row{display:flex;gap:8px}
+.tile{position:relative;flex:var(--r) 1 0;aspect-ratio:var(--r);overflow:hidden;background:#1c1b19;border:0;padding:0;cursor:zoom-in;color:inherit;text-align:left}
+.tile img{width:100%;height:100%;object-fit:cover;transition:transform 1.1s var(--ease),filter .5s,opacity .5s}
+.tile figcaption,.tile .cap{position:absolute;left:12px;bottom:10px;font-size:var(--s-small);font-weight:600;color:#fff;opacity:0;transform:translateY(8px);transition:opacity .35s,transform .45s var(--ease);z-index:2}
+.tile::after{content:'';position:absolute;inset:auto 0 0 0;height:40%;background:rgba(0,0,0,.35);opacity:0;transition:opacity .35s}
+.wall:hover .tile img{opacity:.45;filter:grayscale(.6)}
+.wall .tile:hover img,.wall .tile:focus-visible img{opacity:1;filter:none;transform:scale(1.06)}
+.tile:hover .cap,.tile:focus-visible .cap{opacity:1;transform:none}
+.tile:hover::after,.tile:focus-visible::after{opacity:1}
+@media (prefers-reduced-motion:no-preference){
+  .tile.rv{opacity:1;transform:none}
+  .tile.rv img{clip-path:inset(100% 0 0 0);transition:clip-path 1.1s var(--snap) calc(var(--d,0) * 90ms),transform 1.1s var(--ease),filter .5s,opacity .5s}
+  .tile.rv.in img{clip-path:inset(0 0 0 0)}
+}
+
+/* lightbox */
+.lb{position:fixed;inset:0;z-index:300;background:rgba(8,8,8,.96);display:grid;place-items:center;opacity:0;visibility:hidden;transition:opacity .35s,visibility 0s .35s}
+.lb.open{opacity:1;visibility:visible;transition:opacity .35s}
+.lb img{max-width:min(92vw,1600px);max-height:84vh;object-fit:contain;animation:lbIn .5s var(--ease)}
+.lb img.l{animation:lbL .45s var(--ease)}.lb img.r{animation:lbR .45s var(--ease)}
+@keyframes lbIn{from{opacity:0;scale:.92}}
+@keyframes lbL{from{opacity:0;translate:-60px 0}}
+@keyframes lbR{from{opacity:0;translate:60px 0}}
+.lb button{position:absolute;min-width:52px;min-height:52px;color:#fff;font-size:1.4rem;background:#262422;transition:background .2s}
+.lb button:hover{background:var(--accent)}
+.lb .x{top:16px;right:16px}.lb .pv-btn{left:16px;top:50%;translate:0 -50%}.lb .nx-btn{right:16px;top:50%;translate:0 -50%}
+.lb .lbcap{position:absolute;left:0;right:0;bottom:18px;text-align:center;color:var(--field-muted);font-size:var(--s-small)}
 </style>
 </head>
 <body>
@@ -286,6 +340,7 @@ footer{background:var(--field);color:var(--field-ink);padding:clamp(100px,14vh,1
 
 <main id="main">
 <section class="hero" id="top" aria-labelledby="h1">
+  <div class="hero-bg" id="heroBg" aria-hidden="true"><img src="assets/media/wedding.jpg" alt="" fetchpriority="high"></div>
   <div class="vf" id="vf" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   <div class="hud" aria-hidden="true">
     <span class="rec"><span class="dot"></span>REC <span id="tc">00:00:00:00</span></span>
@@ -314,13 +369,41 @@ footer{background:var(--field);color:var(--field-ink);padding:clamp(100px,14vh,1
 <section class="sec" id="work" aria-labelledby="h-w">
   <h2 class="sec-title rv" id="h-w" data-i18n="w.h">What I shoot</h2>
   <ul class="svc">
-    <li class="rv"><a href="#contact" data-project="wedding"><h3 data-i18n="s1.h">Weddings</h3><p data-i18n="s1.p">The whole day or just the ceremony. Photos and film, unposed, by the same person.</p><span class="go" aria-hidden="true">→</span><svg class="mo" viewBox="0 0 200 200" aria-hidden="true"><circle cx="78" cy="112" r="46"/><circle cx="122" cy="112" r="46"/></svg></a></li>
-    <li class="rv" style="--d:1"><a href="#contact" data-project="automotive"><h3 data-i18n="s2.h">Cars</h3><p data-i18n="s2.p">Static frames, details and rolling shots from a second car. For owners, dealers and clubs.</p><span class="go" aria-hidden="true">→</span><svg class="mo" viewBox="0 0 240 160" aria-hidden="true"><path class="f" d="M28 98 q4-22 34-26 l26-22 q8-6 20-6 h40 q12 0 22 8 l26 20 q30 4 34 26 v12 h-182 z"/><circle cx="72" cy="112" r="18" fill="#e2231a"/><circle cx="174" cy="112" r="18" fill="#e2231a"/></svg></a></li>
-    <li class="rv" style="--d:2"><a href="#contact" data-project="reels"><h3 data-i18n="s3.h">Reels</h3><p data-i18n="s3.p">Vertical clips for Instagram and TikTok: hook in the first second, graded, captioned.</p><span class="go" aria-hidden="true">→</span><svg class="mo" viewBox="0 0 120 200" aria-hidden="true"><rect x="6" y="6" width="108" height="188" rx="16"/><path class="f" d="M50 82 l26 18 l-26 18 z"/></svg></a></li>
-    <li class="rv" style="--d:3"><a href="#contact" data-project="social-media"><h3 data-i18n="s4.h">Social media</h3><p data-i18n="s4.p">Planning, filming and cutting, month after month, so your channel keeps moving.</p><span class="go" aria-hidden="true">→</span><svg class="mo" viewBox="0 0 200 200" aria-hidden="true"><path d="M40 72 V40 H72 M128 40 H160 V72 M160 128 V160 H128 M72 160 H40 V128"/><circle class="f" cx="100" cy="100" r="9"/></svg></a></li>
-    <li class="rv" style="--d:4"><a href="#contact" data-project="portrait"><h3 data-i18n="s5.h">Portrait &amp; business</h3><p data-i18n="s5.p">People and companies, with the same eye as the rest: honest light, no stiff poses.</p><span class="go" aria-hidden="true">→</span><svg class="mo" viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="76" r="34"/><path d="M40 168 q60-80 120 0"/></svg></a></li>
+    <li class="rv"><a href="#contact" data-project="wedding"><h3 data-i18n="s1.h">Weddings</h3><p data-i18n="s1.p">The whole day or just the ceremony. Photos and film, unposed, by the same person.</p><span class="go" aria-hidden="true">→</span><img class="pv" src="assets/media/wedding-rings.jpg" alt="" loading="lazy"></a></li>
+    <li class="rv" style="--d:1"><a href="#contact" data-project="automotive"><h3 data-i18n="s2.h">Cars</h3><p data-i18n="s2.p">Static frames, details and rolling shots from a second car. For owners, dealers and clubs.</p><span class="go" aria-hidden="true">→</span><img class="pv" src="assets/media/car-detail.jpg" alt="" loading="lazy"></a></li>
+    <li class="rv" style="--d:2"><a href="#contact" data-project="reels"><h3 data-i18n="s3.h">Reels</h3><p data-i18n="s3.p">Vertical clips for Instagram and TikTok: hook in the first second, graded, captioned.</p><span class="go" aria-hidden="true">→</span><img class="pv" src="assets/media/reel-sparklers.jpg" alt="" loading="lazy"></a></li>
+    <li class="rv" style="--d:3"><a href="#contact" data-project="social-media"><h3 data-i18n="s4.h">Social media</h3><p data-i18n="s4.p">Planning, filming and cutting, month after month, so your channel keeps moving.</p><span class="go" aria-hidden="true">→</span><img class="pv" src="assets/media/dancefloor.jpg" alt="" loading="lazy"></a></li>
+    <li class="rv" style="--d:4"><a href="#contact" data-project="portrait"><h3 data-i18n="s5.h">Portrait &amp; business</h3><p data-i18n="s5.p">People and companies, with the same eye as the rest: honest light, no stiff poses.</p><span class="go" aria-hidden="true">→</span><img class="pv" src="assets/media/portrait.jpg" alt="" loading="lazy"></a></li>
   </ul>
 </section>
+
+<section class="sec work" id="gallery" aria-labelledby="h-g">
+  <div class="work-head"><h2 class="rv" id="h-g" data-i18n="g.h">Selected work</h2><p class="rv" style="--d:1" data-i18n="g.p">Tap a picture to see it large.</p></div>
+  <div class="wall" id="wall">
+    <div class="row">
+      <button class="tile rv" style="--r:1.778" data-cat="cat.w"><img src="assets/media/wedding.jpg" alt="Couple walking through a meadow at golden hour" loading="lazy"><span class="cap" data-i18n="cat.w">Wedding</span></button>
+      <button class="tile rv" style="--r:.8;--d:1" data-cat="cat.w"><img src="assets/media/wedding-rings.jpg" alt="Hands with wedding rings and a wildflower bouquet" loading="lazy"><span class="cap" data-i18n="cat.w">Wedding</span></button>
+    </div>
+    <div class="row">
+      <button class="tile rv" style="--r:.8" data-cat="cat.c"><img src="assets/media/car-detail.jpg" alt="Headlight of a red classic car at dusk" loading="lazy"><span class="cap" data-i18n="cat.c">Car</span></button>
+      <button class="tile rv" style="--r:.5625;--d:1" data-cat="cat.r"><img src="assets/media/reel-sparklers.jpg" alt="Couple dancing between sparklers at night" loading="lazy"><span class="cap" data-i18n="cat.r">Reel</span></button>
+      <button class="tile rv" style="--r:1.49;--d:2" data-cat="cat.w"><img src="assets/media/dancefloor.jpg" alt="Bride dancing with guests on a crowded dance floor" loading="lazy"><span class="cap" data-i18n="cat.w">Wedding</span></button>
+    </div>
+    <div class="row">
+      <button class="tile rv" style="--r:1.778" data-cat="cat.c"><img src="assets/media/car-rolling.jpg" alt="Grey sports coupe on a winding road at blue hour" loading="lazy"><span class="cap" data-i18n="cat.c">Car</span></button>
+      <button class="tile rv" style="--r:.8;--d:1" data-cat="cat.p"><img src="assets/media/portrait.jpg" alt="Portrait of a founder in her workshop" loading="lazy"><span class="cap" data-i18n="cat.p">Portrait</span></button>
+      <button class="tile rv" style="--r:1.49;--d:2" data-cat="cat.c"><img src="assets/media/car-garage.jpg" alt="Black sports car in an empty parking garage at night" loading="lazy"><span class="cap" data-i18n="cat.c">Car</span></button>
+    </div>
+  </div>
+</section>
+
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Picture">
+  <img alt="" id="lbImg">
+  <p class="lbcap" id="lbCap"></p>
+  <button class="x" id="lbX" aria-label="Close">×</button>
+  <button class="pv-btn" id="lbP" aria-label="Previous">←</button>
+  <button class="nx-btn" id="lbN" aria-label="Next">→</button>
+</div>
 
 <section class="sec about" id="about" aria-labelledby="h-a">
   <ul class="facts rv">
@@ -418,7 +501,7 @@ const I18N = {
     "hero.lead":"Photographer and filmmaker from Hof, Bavaria. Weddings, cars and reels, photo and film from one person, across Germany and abroad.",
     "hero.cta":"Check your date","fmt.full":"Full","shots":"frames","shot1":"frame",
     "marq":["Weddings","Cars","Reels","Photo and film","Hof · Germany · abroad"],
-    "w.h":"What I shoot",
+    "w.h":"What I shoot","g.h":"Selected work","g.p":"Tap a picture to see it large.","cat.w":"Wedding","cat.c":"Car","cat.r":"Reel","cat.p":"Portrait",
     "s1.h":"Weddings","s1.p":"The whole day or just the ceremony. Photos and film, unposed, by the same person.",
     "s2.h":"Cars","s2.p":"Static frames, details and rolling shots from a second car. For owners, dealers and clubs.",
     "s3.h":"Reels","s3.p":"Vertical clips for Instagram and TikTok: hook in the first second, graded, captioned.",
@@ -453,7 +536,7 @@ const I18N = {
     "hero.lead":"Fotograf und Filmemacher aus Hof in Bayern. Hochzeiten, Autos und Reels, Foto und Film von einer Person, deutschlandweit und international.",
     "hero.cta":"Termin anfragen","fmt.full":"Voll","shots":"Bilder","shot1":"Bild",
     "marq":["Hochzeiten","Autos","Reels","Foto und Film","Hof · Deutschland · international"],
-    "w.h":"Was ich mache",
+    "w.h":"Was ich mache","g.h":"Ausgewählte Arbeiten","g.p":"Tipp ein Bild an, um es groß zu sehen.","cat.w":"Hochzeit","cat.c":"Auto","cat.r":"Reel","cat.p":"Porträt",
     "s1.h":"Hochzeiten","s1.p":"Der ganze Tag oder nur die Trauung. Fotos und Film, ungestellt, von derselben Person.",
     "s2.h":"Autos","s2.p":"Standbilder, Details und Rolling Shots aus dem Begleitfahrzeug. Für Besitzer, Autohäuser und Clubs.",
     "s3.h":"Reels","s3.p":"Hochkant-Clips für Instagram und TikTok: Hook in der ersten Sekunde, gegradet, mit Untertiteln.",
@@ -648,6 +731,51 @@ const I18N = {
   if(!cc){ ck.hidden = false; setTimeout(() => ck.classList.add('show'), rm ? 0 : 2200); }
   const setC = v => { try{ localStorage.setItem('cookie-consent', v); }catch(e){} ck.classList.remove('show'); setTimeout(() => { ck.hidden = true; }, 600); };
   $('#ckAll').onclick = () => setC('all'); $('#ckNec').onclick = () => setC('necessary');
+
+  /* lightbox with slide between pictures */
+  const tiles = [...document.querySelectorAll('#wall .tile')], lb = $('#lb'), lbImg = $('#lbImg'), lbCap = $('#lbCap');
+  let li = 0, lastFocus = null;
+  function lbShow(i, dir){
+    li = (i + tiles.length) % tiles.length;
+    const im = tiles[li].querySelector('img');
+    lbImg.className = dir ? (dir > 0 ? 'r' : 'l') : '';
+    void lbImg.offsetWidth;
+    lbImg.src = im.src; lbImg.alt = im.alt;
+    lbCap.textContent = t(tiles[li].dataset.cat) + ' — ' + im.alt;
+  }
+  const lbOpen = i => { lastFocus = document.activeElement; lbShow(i, 0); lb.classList.add('open'); document.body.style.overflow = 'hidden'; $('#lbX').focus(); };
+  const lbClose = () => { lb.classList.remove('open'); document.body.style.overflow = ''; if(lastFocus) lastFocus.focus(); };
+  tiles.forEach((tl, i) => tl.addEventListener('click', () => lbOpen(i)));
+  $('#lbX').onclick = lbClose; $('#lbP').onclick = () => lbShow(li - 1, -1); $('#lbN').onclick = () => lbShow(li + 1, 1);
+  lb.addEventListener('click', e => { if(e.target === lb) lbClose(); });
+  document.addEventListener('keydown', e => {
+    if(!lb.classList.contains('open')) return;
+    if(e.key === 'Escape') lbClose();
+    if(e.key === 'ArrowRight') lbShow(li + 1, 1);
+    if(e.key === 'ArrowLeft') lbShow(li - 1, -1);
+    if(e.key === 'Tab'){ const f = [$('#lbX'), $('#lbP'), $('#lbN')]; const k = f.indexOf(document.activeElement); e.preventDefault(); f[(k + (e.shiftKey ? 2 : 1)) % 3].focus(); }
+  });
+  let tx = 0; lb.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, {passive:true});
+  lb.addEventListener('touchend', e => { const d = e.changedTouches[0].clientX - tx; if(Math.abs(d) > 50) lbShow(li + (d < 0 ? 1 : -1), d < 0 ? 1 : -1); });
+
+  /* hero footage: alternate the wedding and car clips behind the viewfinder */
+  const CLIPS = ['assets/media/hero-wedding.mp4', 'assets/media/hero-car.mp4'];
+  if(!rm && !(navigator.connection && navigator.connection.saveData)){
+    const bg = $('#heroBg'); const vids = [];
+    let cur = 0;
+    CLIPS.forEach((src, i) => {
+      const v = document.createElement('video');
+      v.muted = true; v.playsInline = true; v.preload = i ? 'none' : 'auto'; v.setAttribute('muted', '');
+      v.src = src; bg.appendChild(v); vids.push(v);
+      v.addEventListener('ended', () => {
+        const n = vids[(i + 1) % vids.length];
+        if(n.readyState < 2){ v.currentTime = 0; v.play().catch(()=>{}); return; }
+        n.currentTime = 0; n.play().catch(()=>{}); n.classList.add('on'); v.classList.remove('on'); cur = (i + 1) % vids.length;
+      });
+    });
+    vids[0].addEventListener('canplay', () => { vids[0].classList.add('on'); vids[0].play().catch(()=>{}); vids[1].preload = 'auto'; vids[1].load(); }, {once:true});
+    document.addEventListener('visibilitychange', () => { const v = vids[cur]; if(document.hidden) v.pause(); else v.play().catch(()=>{}); });
+  }
 
   /* start */
   let saved = null; try{ saved = localStorage.getItem('lang'); }catch(e){}
