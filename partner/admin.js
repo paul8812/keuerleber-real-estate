@@ -1,5 +1,7 @@
 // Verwaltung (nur Master): Objekte, Partner und Team pflegen und verschlüsselt veröffentlichen.
-import { buildPackage, openJson, openObjects, openSlot, randomCode, randomId, toB64 } from './crypto.js';
+import { buildPackage, newFeedbackKeys, openFeedback, openJson, openObjects, openSlot, randomCode, randomId, toB64 } from './crypto.js';
+import { dashHtml } from './dash.js';
+import { STAGES } from './fb.js';
 import { esc, eur } from './app.js';
 
 const REPO = 'paul8812/keuerleber-real-estate';
@@ -12,12 +14,13 @@ const NOTE_VS = { frei: 'Wieder frei', reserviert: 'Reserviert', notar: 'Notarte
 
 let S = null; // Arbeitsstand (bleibt erhalten, solange der Tab offen ist)
 let B = null; // zuletzt veröffentlichter Stand – Vergleichsbasis für „Änderungen“
-let tab = 'objekte';
+let tab = 'dash';
+const EV = { list: [], at: 0, err: '', loading: false }; // entschlüsselte Rückmeldungen vom Server
 
 const clone = (x) => JSON.parse(JSON.stringify(x));
 const token = () => { try { return localStorage.getItem(TOKEN_KEY) || ''; } catch { return ''; } };
 const linkFor = (p) => `${location.origin}${location.pathname}#${p.id}.${encodeURIComponent(p.code)}`;
-const snapshot = () => clone({ partners: S.partners, masters: S.masters, objekte: S.data.objekte });
+const snapshot = () => clone({ partners: S.partners, masters: S.masters, objekte: S.data.objekte, fb: S.fb, ev: S.ev });
 const byId = (a) => new Map(a.map((x) => [x.id, x]));
 const titel = (o) => `${o.strasse}${o.lage ? ' · ' + o.lage : ''}`;
 const nObj = (p) => p.objekte.filter((i) => S.data.objekte.some((o) => o.id === i)).length;
@@ -52,6 +55,8 @@ function changes() {
     else if (JSON.stringify(b) !== JSON.stringify(o)) out.push(`Objekt „${titel(o)}“ geändert${o.aend && o.t !== b.t ? ' (' + o.aend + ')' : ''}`);
   }
   for (const b of B.objekte) if (!so.has(b.id)) out.push(`Objekt „${titel(b)}“ gelöscht`);
+  if (JSON.stringify(B.fb) !== JSON.stringify(S.fb)) out.push(!B.fb ? 'Rückmeldekanal für Partner eingerichtet' : 'Token für Rückmeldungen geändert');
+  if ((B.ev?.length ?? 0) !== S.ev.length) out.push(`${S.ev.length > (B.ev?.length ?? 0) ? 'Rückmeldung erfasst' : 'Rückmeldung entfernt'} (manuell)`);
   const kept = B.objekte.filter((o) => so.has(o.id)).map((o) => o.id), now = S.data.objekte.filter((o) => bo.has(o.id)).map((o) => o.id);
   if (kept.join() !== now.join()) out.push('Reihenfolge der Objekte geändert');
   return out;
@@ -129,7 +134,7 @@ async function copyText(text, fallbackTitle) {
 export async function mount({ app, ctx, render, logout, header }) {
   if (!S) {
     const a = await openJson(ctx.sess.a, ctx.pkg.admin);
-    S = { partners: a.partners.map((p) => ({ ...p, objekte: p.objekte ?? [] })), masters: a.masters, data: { objekte: clone(ctx.data.objekte) } };
+    S = { partners: a.partners.map((p) => ({ ...p, objekte: p.objekte ?? [] })), masters: a.masters, fb: a.fb ?? null, ev: a.ev ?? [], data: { objekte: clone(ctx.data.objekte) } };
     B = snapshot();
   }
   const codeTaken = (code, exceptId) => [...S.partners, ...S.masters].some((x) => x.code === code && x.id !== exceptId);
@@ -148,16 +153,45 @@ export async function mount({ app, ctx, render, logout, header }) {
     app.innerHTML = `${header().replace('<button class="btn dark sm" id="toAdmin">Verwaltung</button>', '<button class="btn ghost sm" id="back" data-a="back">Zur Übersicht</button>').replace('<button class="btn ghost sm" id="print">Drucken / PDF</button>', '').replace('id="logout"', 'id="logout" data-a="logout"')}
     <main class="wrap adm">
       <h1>Verwaltung</h1>
-      <nav class="tabs" role="tablist" aria-label="Bereiche">${[['objekte', 'Objekte', S.data.objekte.length], ['partner', 'Partner', S.partners.length], ['team', 'Team', S.masters.length]]
-        .map(([k, l, c]) => `<button role="tab" class="tab" aria-selected="${tab === k}" data-a="tab" data-id="${k}">${l}<span>${c}</span></button>`).join('')}</nav>
-      ${tab === 'objekte' ? objektPanel() : tab === 'partner' ? partnerPanel() : teamPanel()}
+      <nav class="tabs" role="tablist" aria-label="Bereiche">${[['dash', 'Dashboard', ''], ['objekte', 'Objekte', S.data.objekte.length], ['partner', 'Partner', S.partners.length], ['team', 'Team', S.masters.length]]
+        .map(([k, l, c]) => `<button role="tab" class="tab" aria-selected="${tab === k}" data-a="tab" data-id="${k}">${l}${c === '' ? '' : `<span>${c}</span>`}</button>`).join('')}</nav>
+      ${tab === 'dash' ? dashPanel() : tab === 'objekte' ? objektPanel() : tab === 'partner' ? partnerPanel() : teamPanel()}
     </main>
     <div class="admin-bar"><div class="wrap">
       <span class="hint">${n ? `<b>● ${n} ${n === 1 ? 'Änderung' : 'Änderungen'}</b> – Partner sehen sie erst nach „Veröffentlichen“.` : '✓ Alles veröffentlicht.'}</span>
       <div class="acts">${n ? '<button class="btn ghost sm" data-a="discard">Verwerfen</button>' : ''}<button class="btn fill sm" data-a="publish" ${n ? '' : 'disabled'}>Veröffentlichen${n ? ' (' + n + ')' : ''}</button></div>
     </div></div>`;
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
+    if (tab === 'dash' && S.fb && !EV.loading && Date.now() - EV.at > 120000) loadEvents();
   };
+
+  const allEvents = () => [...EV.list, ...S.ev];
+  function dashPanel() { return dashHtml({ objekte: S.data.objekte, partners: S.partners, events: allEvents(), fb: S.fb, state: EV }); }
+
+  async function loadEvents() {
+    EV.loading = true; EV.err = ''; draw();
+    try {
+      const out = [];
+      for (let page = 1; page <= 5; page++) {
+        const r = await fetch(`https://api.github.com/repos/${REPO}/issues?state=all&per_page=100&page=${page}&sort=created&direction=asc`, { headers: { Authorization: 'Bearer ' + S.fb.token, Accept: 'application/vnd.github+json' } });
+        if (!r.ok) throw new Error(r.status === 401 || r.status === 403 ? 'Token ungültig oder ohne Recht „Issues“.' : r.status === 404 ? 'Repository nicht erreichbar (sind „Issues“ aktiviert?).' : 'GitHub meldet Fehler ' + r.status);
+        const list = await r.json();
+        for (const is of list) {
+          if (is.pull_request) continue;
+          try { const ev = await openFeedback(S.fb.priv, is.body); out.push({ ...ev, id: 'i' + is.number, t: Date.parse(is.created_at) }); } catch { /* fremder Eintrag */ }
+        }
+        if (list.length < 100) break;
+      }
+      EV.list = out; EV.at = Date.now();
+    } catch (e) { EV.err = e.message || String(e); EV.at = Date.now() - 60000; }
+    EV.loading = false; draw();
+  }
+
+  async function checkToken(tk) {
+    const r = await fetch(`https://api.github.com/repos/${REPO}/issues?per_page=1`, { headers: { Authorization: 'Bearer ' + tk, Accept: 'application/vnd.github+json' } }).catch(() => null);
+    if (!r) return 'Keine Verbindung zu GitHub.';
+    return r.ok ? '' : r.status === 401 || r.status === 403 ? 'Token ungültig oder ohne Recht „Issues: Read and write“.' : r.status === 404 ? 'Repository nicht gefunden oder Issues nicht aktiviert.' : 'GitHub meldet Fehler ' + r.status;
+  }
 
   function objektPanel() {
     const l = S.data.objekte;
@@ -237,9 +271,19 @@ export async function mount({ app, ctx, render, logout, header }) {
     } else if (a === 'mdel') {
       const m = S.masters.find((x) => x.id === id);
       if (await confirmBox({ title: 'Master entfernen?', text: `Der Zugang von „${m.name}“ wird nach dem Veröffentlichen gesperrt.`, ok: 'Entfernen', danger: true })) { S.masters = S.masters.filter((x) => x.id !== id); draw(); }
-    } else if (a === 'discard') {
+    } else if (a === 'fbreload') { EV.at = 0; loadEvents(); }
+    else if (a === 'fbtoken') {
+      const n = await askBox({ title: 'Token für Rückmeldungen ändern', label: 'Neuer Token', ok: 'Prüfen & speichern', hint: 'Gilt für Partner erst nach dem Veröffentlichen.', check: (v) => (v ? '' : 'Bitte Token einfügen.') });
+      if (n) { const er = await checkToken(n); if (er) return toast(er, false); S.fb.token = n; draw(); toast('Token geändert – bitte veröffentlichen.'); }
+    } else if (a === 'mark-res') {
+      const i = S.data.objekte.findIndex((o) => o.id === id), was = S.data.objekte[i], neu = clone(was);
+      neu.vs = 'reserviert'; neu.vbis = new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10);
+      S.data.objekte[i] = stamp(neu, was); draw(); toast(`${titel(was)} reserviert (14 Tage) – bitte veröffentlichen.`);
+    } else if (a === 'ev-del') { S.ev = S.ev.filter((x) => x.id !== id); draw(); }
+    else if (a === 'ev-add') openEvent();
+    else if (a === 'discard') {
       if (await confirmBox({ title: 'Änderungen verwerfen?', text: 'Alles seit der letzten Veröffentlichung wird zurückgesetzt.', ok: 'Verwerfen', danger: true })) {
-        S.partners = clone(B.partners); S.masters = clone(B.masters); S.data.objekte = clone(B.objekte);
+        S.partners = clone(B.partners); S.masters = clone(B.masters); S.data.objekte = clone(B.objekte); S.fb = clone(B.fb); S.ev = clone(B.ev);
         const me = S.masters.find((m) => m.id === ctx.sess.id); if (me) ctx.sess.n = me.name;
         draw(); toast('Änderungen verworfen.');
       }
@@ -250,6 +294,7 @@ export async function mount({ app, ctx, render, logout, header }) {
     const s = e.target.closest('select[data-vs]'); if (!s) return;
     const i = S.data.objekte.findIndex((o) => o.id === s.dataset.vs), was = S.data.objekte[i], neu = clone(was);
     if (s.value === 'frei') delete neu.vs; else neu.vs = s.value;
+    if (s.value !== 'reserviert') delete neu.vbis;
     S.data.objekte[i] = stamp(neu, was);
     draw(); toast(`${titel(was)}: ${VS[s.value]}`);
   };
@@ -263,7 +308,13 @@ export async function mount({ app, ctx, render, logout, header }) {
   app.onsubmit = (e) => {
     e.preventDefault();
     const f = new FormData(e.target);
-    if (e.target.id === 'addPartner') {
+    if (e.target.id === 'fbSetup') {
+      const tk = String(f.get('tk')).trim(), btn = e.target.querySelector('button'); btn.disabled = true; btn.textContent = 'Prüfe …';
+      checkToken(tk).then(async (er) => {
+        if (er) { btn.disabled = false; btn.textContent = 'Einrichten'; return toast(er, false); }
+        S.fb = { token: tk, ...(await newFeedbackKeys()) }; EV.at = 0; draw(); toast('Eingerichtet – jetzt „Veröffentlichen“, damit Partner melden können.');
+      });
+    } else if (e.target.id === 'addPartner') {
       const p = { id: randomId(), name: String(f.get('name')).trim(), code: randomCode(16), objekte: [] };
       S.partners.push(p); draw(); openPartner(p.id);
     } else if (e.target.id === 'addMaster') {
@@ -358,10 +409,32 @@ export async function mount({ app, ctx, render, logout, header }) {
     sheet.showModal();
   }
 
+  /* ---------- Rückmeldung manuell erfassen (z. B. per WhatsApp erhalten) ---------- */
+  function openEvent() {
+    const sheet = dlg('sheet', 'sheet');
+    sheet.innerHTML = `<form class="panel form" id="evForm"><div class="sh-h"><h2>Rückmeldung erfassen</h2><button type="button" class="btn ghost sm" data-a="close">Abbrechen</button></div>
+      <p class="hint">Für Rückmeldungen, die Sie per WhatsApp, Mail oder Telefon erhalten haben.</p><div class="grid">
+      <label class="f"><span>Objekt</span><select name="oid" required>${S.data.objekte.map((o) => `<option value="${esc(o.id)}">${esc(titel(o))}</option>`).join('')}</select></label>
+      <label class="f"><span>Partner</span><select name="pid">${S.partners.map((p) => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('')}<option value="">Anderer / extern</option></select></label>
+      <label class="f"><span>Stand</span><select name="st">${STAGES.map((s) => `<option value="${s.id}">${esc(s.label)}</option>`).join('')}</select></label>
+      <label class="f"><span>Interessent (Name/Kürzel)</span><input name="k" maxlength="60" autocomplete="off"></label>
+      <label class="f wide"><span>Notiz</span><textarea name="n" rows="2" maxlength="400"></textarea></label></div>
+      <div class="acts sticky-save"><button class="btn fill">Erfassen</button></div></form>`;
+    sheet.onclose = () => draw(); sheet.onchange = null;
+    sheet.onclick = (e) => { if (e.target.closest('[data-a=close]')) sheet.close(); };
+    sheet.querySelector('#evForm').onsubmit = (e) => {
+      e.preventDefault();
+      const f = new FormData(e.target), o = S.data.objekte.find((x) => x.id === f.get('oid')), p = S.partners.find((x) => x.id === f.get('pid'));
+      S.ev.push({ id: 'm' + Date.now().toString(36) + randomId(), t: Date.now(), pid: p?.id ?? 'extern', pn: p?.name ?? 'Extern', oid: o.id, on: titel(o), st: String(f.get('st')), k: String(f.get('k')).trim(), n: String(f.get('n')).trim(), man: true });
+      sheet.close(); toast('Rückmeldung erfasst.');
+    };
+    sheet.showModal();
+  }
+
   /* ---------- Veröffentlichen ---------- */
   async function buildNext() {
     const stand = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    return buildPackage({ stand, objekte: S.data.objekte, partners: S.partners, masters: S.masters });
+    return buildPackage({ stand, objekte: S.data.objekte, partners: S.partners, masters: S.masters, fb: S.fb, ev: S.ev });
   }
 
   function openPublish() {
@@ -397,7 +470,7 @@ export async function mount({ app, ctx, render, logout, header }) {
       const tk = sheet.querySelector('#gh').value.trim();
       if (!tk) { sheet.querySelector('#tkWrap').classList.remove('hidden'); return err('Bitte zuerst den GitHub-Token eintragen (Anleitung oben).'); }
       const go = sheet.querySelector('#pubGo'); go.disabled = true; go.textContent = 'Veröffentliche …';
-      try { await publish(tk); sheet.close(); toast('Veröffentlicht ✓ – Partner sehen es in ca. 1–2 Minuten.'); }
+      try { await publish(tk); sheet.close(); draw(); toast('Veröffentlicht ✓ – Partner sehen es in ca. 1–2 Minuten.'); }
       catch (x) { err(x.message || String(x)); go.disabled = false; go.textContent = 'Jetzt veröffentlichen'; }
     };
     sheet.showModal();
@@ -446,6 +519,7 @@ export async function mount({ app, ctx, render, logout, header }) {
       <h3 class="sub-h">Zeitplan</h3><div class="steps-ed">${o.schritte.map((s, i) => `<div><b>${esc(s.label)}</b><select name="ss${i}">${[['done', 'erledigt'], ['current', 'aktuell'], ['todo', 'offen']].map(([v, l]) => `<option value="${v}"${s.state === v ? ' selected' : ''}>${l}</option>`).join('')}</select><input name="sd${i}" placeholder="Datum, z. B. 07/2026" value="${esc(s.datum ?? '')}"></div>`).join('')}</div>
       <h2>Verfügbarkeit &amp; Ansprechpartner</h2><div class="grid">
         <label class="f"><span>Status</span><select name="vs">${Object.entries(VS).map(([v, l]) => `<option value="${v}"${(o.vs || 'frei') === v ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
+        ${f('vbis', 'Reserviert bis (nur bei „Reserviert“, danach Hinweis „abgelaufen“)', o.vbis ?? '', 'date')}
         ${f('an', 'Ansprechpartner (leer = Standard: Sebastian Sultanow)', o.ansp?.name ?? '')}${f('at', 'Telefon/Handy (leer = Standard; WhatsApp nur bei Handynummer)', o.ansp?.tel ?? '', 'tel')}${f('am', 'E-Mail (optional, für Anfragen per Mail)', o.ansp?.mail ?? '', 'email')}</div>
       <h2>Unterlagen</h2>
       <ul class="rows" id="docRows"></ul>
@@ -497,6 +571,7 @@ export async function mount({ app, ctx, render, logout, header }) {
       };
       const vs = Object.keys(VS).includes(g('vs')) ? g('vs') : 'frei';
       if (vs !== 'frei') neu.vs = vs;
+      if (vs === 'reserviert' && /^\d{4}-\d{2}-\d{2}$/.test(g('vbis'))) neu.vbis = g('vbis');
       if (g('an') || g('at') || g('am')) neu.ansp = { name: g('an'), tel: g('at'), mail: g('am') };
       if (docs.length) neu.docs = docs;
       const was = isNew ? null : S.data.objekte.find((x) => x.id === o.id);

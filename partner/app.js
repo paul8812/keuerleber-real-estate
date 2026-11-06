@@ -1,10 +1,12 @@
 // Partnerbereich: lädt die verschlüsselte Datei, entschlüsselt sie im Browser und zeigt die Übersicht.
-import { openObjects, openSlot } from './crypto.js';
+import { openObjects, openSlot, sealFeedback, randomId } from './crypto.js';
+import { STAGES, stageOf, chains } from './fb.js';
 
 const app = document.getElementById('app');
 const KONTAKT = { firma: 'Norderfranken Haus und Grund GmbH', adresse: 'Am Gewerbegebiet 5 · 95185 Gattendorf', tel: '+49 160 3636997', telHref: '+491603636997', mail: 'info@norderfranken.de', web: 'www.norderfranken.de' };
 const SESSION = 'nf-partner-session';
 const ANSP = { name: 'Sebastian Sultanow', tel: '+49 160 3636997', mail: 'info@norderfranken.de' }; // Standard-Ansprechpartner, pro Objekt im Admin überschreibbar
+const REPO = 'paul8812/keuerleber-real-estate';
 const VSTATUS = { frei: 'Frei', reserviert: 'Reserviert', notar: 'Notartermin', verkauft: 'Verkauft' };
 export const waNr = (t) => { const d = String(t ?? '').replace(/[^\d+]/g, ''); return d.startsWith('+') ? d.slice(1) : d.startsWith('00') ? d.slice(2) : d.startsWith('0') ? '49' + d.slice(1) : d; };
 const ansp = (o) => ({ name: o.ansp?.name || ANSP.name, tel: o.ansp?.tel || ANSP.tel, mail: o.ansp?.mail || (o.ansp?.tel ? '' : ANSP.mail) });
@@ -133,10 +135,21 @@ const FILTER = [
   ['alle', 'Alle', () => true],
   ['frei', 'Frei', (o) => !o.vs || o.vs === 'frei'],
   ['neu', 'Neu / geändert', (o) => isNeu(o)],
+  ['fav', '★ Favoriten', (o) => favs().includes(o.id)],
   ['fertig', 'Saniert', (o) => o.fortschritt === 100],
   ['arbeit', 'In Sanierung', (o) => o.fortschritt > 0 && o.fortschritt < 100],
   ['vorbereitung', 'In Vorbereitung', (o) => o.fortschritt === 0],
 ];
+
+const favs = () => lsGet('nf-fav-' + ctx.sess.id) ?? [];
+const fbKey = () => 'nf-fb-' + ctx.sess.id;
+const fbMine = () => lsGet(fbKey()) ?? [];
+
+function fbBlock(o) {
+  const mine = chains(fbMine().filter((e) => e.oid === o.id));
+  if (!mine.length) return '';
+  return `<div class="fbl"><small>Ihre Rückmeldungen</small>${mine.map((e) => { const s = stageOf(e.st); return `<span class="fbc" style="--c:${s.color}"><i></i><b>${esc(e.k || 'Interessent')}</b> ${esc(s.short)} <em>${datum(e.t)}${e.sent === false ? ' · nur lokal' : ''}</em></span>`; }).join('')}</div>`;
+}
 
 const isNeu = (o) => o.t && o.t > (ctx.seen ?? Infinity);
 
@@ -149,7 +162,7 @@ function karte(o) {
   const sold = vs === 'verkauft';
   return `
   <article class="card${sold ? ' sold' : ''}" data-oid="${esc(o.id)}">
-    <div class="photo"><img src="${esc(o.bild)}" alt="${esc(o.strasse + ', ' + o.lage)}" loading="lazy"><span class="pill ${esc(o.status.tone)}"><i></i>${esc(o.status.label)}</span>${vBadge(o)}${isNeu(o) ? `<span class="neu">${esc(o.aend || 'Aktualisiert')}</span>` : ''}</div>
+    <div class="photo"><img src="${esc(o.bild)}" alt="${esc(o.strasse + ', ' + o.lage)}" loading="lazy"><button class="fav${favs().includes(o.id) ? ' on' : ''}" data-fav="${esc(o.id)}" aria-pressed="${favs().includes(o.id)}" aria-label="Als Favorit merken">★</button><span class="pill ${esc(o.status.tone)}"><i></i>${esc(o.status.label)}</span>${vBadge(o)}${isNeu(o) ? `<span class="neu">${esc(o.aend || 'Aktualisiert')}</span>` : ''}</div>
     <div class="body">
       <div class="head"><h2>${esc(o.strasse)} <span>· ${esc(o.lage)}</span></h2><span class="meta">Bj. ${esc(o.baujahr)} · Energie ${esc(o.energie)} · Hausgeld ${eur(o.hausgeld)}</span></div>
       <p class="ort">${esc(o.ort)}</p>
@@ -170,12 +183,13 @@ function karte(o) {
         <ol class="steps">${steps}</ol>
       </div>
       <div class="cact">
-        <button class="btn fill sm" data-mel="${esc(o.id)}" ${sold ? 'disabled' : ''}>Interessent melden</button>
+        <button class="btn fill sm" data-fb="${esc(o.id)}" ${sold ? 'disabled' : ''}>Rückmeldung geben</button>
         <button class="btn dark sm" data-ex="${esc(o.id)}">Kunden-Exposé</button>
         <a class="btn ghost sm" href="tel:+${waNr(a.tel)}">Anrufen</a>
         ${isMobil(a.tel) ? `<a class="btn ghost sm" href="https://wa.me/${waNr(a.tel)}" target="_blank" rel="noopener noreferrer">WhatsApp</a>` : a.mail ? `<a class="btn ghost sm" href="mailto:${esc(a.mail)}">E-Mail</a>` : ''}
         <span class="who">Ansprechpartner: <b>${esc(a.name)}</b> · ${esc(a.tel)}</span>
       </div>
+      ${fbBlock(o)}
       ${docs.length ? `<details class="dd"><summary>Unterlagen (${docs.length})</summary><div class="doclist">${docs.map((d, i) => `<button class="doc" data-doc="${esc(o.id)}:${i}"><span>${esc(d.n)}</span><small>${Math.max(1, Math.round((d.d.length * 0.75) / 1024))} KB · herunterladen</small></button>`).join('')}</div></details>` : ''}
       <details class="dd calc"><summary>Rechner: Finanzierung &amp; Cashflow</summary>${calcHtml(o)}</details>
     </div>
@@ -184,7 +198,10 @@ function karte(o) {
 
 function vBadge(o) {
   const v = o.vs || 'frei';
-  return v === 'frei' ? '' : `<span class="vs ${esc(v)}">${esc(VSTATUS[v] ?? v)}</span>`;
+  if (v === 'frei') return '';
+  const bis = v === 'reserviert' && o.vbis ? ` · bis ${new Date(o.vbis).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}` : '';
+  const abgelaufen = v === 'reserviert' && o.vbis && Date.parse(o.vbis) + 86400000 < Date.now();
+  return `<span class="vs ${esc(v)}">${abgelaufen ? 'Reservierung abgelaufen – bitte anfragen' : esc(VSTATUS[v] ?? v) + bis}</span>`;
 }
 
 /* ---------- Rechner ---------- */
@@ -276,11 +293,18 @@ function render() {
   cards.addEventListener('click', (e) => {
     const go = e.target.closest('[data-go]');
     if (go) { ctx.mode = 'karten'; render(); document.querySelector(`[data-oid="${CSS.escape(go.dataset.go)}"]`)?.scrollIntoView({ block: 'start' }); return; }
-    const b = e.target.closest('[data-doc],[data-ex],[data-mel],[data-reset]'); if (!b) return;
+    const b = e.target.closest('[data-doc],[data-ex],[data-fb],[data-fav],[data-reset]'); if (!b) return;
+    if (b.dataset.fav) {
+      const l = favs(), id = b.dataset.fav, on = !l.includes(id);
+      lsSet('nf-fav-' + ctx.sess.id, on ? [...l, id] : l.filter((x) => x !== id));
+      b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on));
+      if (ctx.filter === 'fav') refresh();
+      return;
+    }
     if (b.dataset.reset !== undefined) { Object.assign(ctx, { filter: 'alle', q: '', budget: 0, rend: 0, zi: 0 }); return render(); }
     if (b.dataset.doc) return download(b.dataset.doc);
-    const o = ctx.data.objekte.find((x) => x.id === (b.dataset.ex || b.dataset.mel));
-    if (b.dataset.ex) exposeOpen(o); else melden(o);
+    const o = ctx.data.objekte.find((x) => x.id === (b.dataset.ex || b.dataset.fb));
+    if (b.dataset.ex) exposeOpen(o); else feedbackOpen(o);
   });
   document.getElementById('chips').addEventListener('click', (e) => {
     const b = e.target.closest('[data-f]'); if (!b) return;
@@ -328,18 +352,44 @@ function overlay(html, cls = '') {
   return { d, close };
 }
 
-/* ---------- Interessent melden (WhatsApp / Anruf, ohne Server) ---------- */
-function melden(o) {
-  const a = ansp(o), me = ctx.sess.n || 'Partner';
-  const { d } = overlay(`<form class="ov-box" id="melF"><button type="button" class="x" data-close aria-label="Schließen">×</button>
-    <span class="eyebrow">Reservierungsanfrage</span><h2>${esc(o.strasse)} · ${esc(o.lage)}</h2>
-    <p class="hint">Sie melden einen Interessenten. Die Nachricht geht direkt an ${esc(a.name)} – wer zuerst meldet, wird zuerst berücksichtigt.</p>
-    <label class="f"><span>Interessent (Name)</span><input name="k" required maxlength="80" autocomplete="off"></label>
-    <label class="f"><span>Nachricht (optional)</span><textarea name="n" rows="3" maxlength="400" placeholder="z. B. Finanzierung steht, Besichtigung gewünscht …"></textarea></label>
-    <div class="acts">${isMobil(a.tel) ? '<button class="btn fill" data-w>Per WhatsApp senden</button>' : ''}${a.mail ? `<button type="button" class="btn ${isMobil(a.tel) ? 'dark' : 'fill'}" data-m>Per E-Mail senden</button>` : ''}<a class="btn ghost" href="tel:+${waNr(a.tel)}">Anrufen</a></div></form>`);
-  const text = () => { const f = new FormData(d.querySelector('#melF')); return `Reservierungsanfrage\nObjekt: ${o.strasse}, ${o.lage}\nInteressent: ${String(f.get('k')).trim()}\nVertrieb: ${me}${String(f.get('n')).trim() ? '\n' + String(f.get('n')).trim() : ''}\n(${datum(Date.now())})`; };
-  d.querySelector('#melF').addEventListener('submit', (e) => { e.preventDefault(); if (!isMobil(a.tel)) return; window.open(`https://wa.me/${waNr(a.tel)}?text=${encodeURIComponent(text())}`, '_blank', 'noopener'); });
-  d.querySelector('[data-m]')?.addEventListener('click', () => { const f = d.querySelector('#melF'); if (!f.reportValidity()) return; location.href = `mailto:${a.mail}?subject=${encodeURIComponent('Reservierungsanfrage ' + o.strasse)}&body=${encodeURIComponent(text())}`; });
+/* ---------- Rückmeldung zum Objekt (Prüfung / Finanzierung / Reservierung) ---------- */
+async function fbSend(ev) {
+  const body = await sealFeedback(ctx.sess.fb.pub, ev);
+  const r = await fetch(`https://api.github.com/repos/${REPO}/issues`, { method: 'POST', headers: { Authorization: 'Bearer ' + ctx.sess.fb.token, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: JSON.stringify({ title: 'Rückmeldung', body }) });
+  if (!r.ok) throw new Error(`Die Rückmeldung konnte nicht übermittelt werden (Fehler ${r.status}).`);
+}
+
+function feedbackOpen(o) {
+  const a = ansp(o), direct = !!ctx.sess.fb?.token;
+  const mine = chains(fbMine().filter((e) => e.oid === o.id));
+  const { d, close } = overlay(`<form class="ov-box" id="fbF"><button type="button" class="x" data-close aria-label="Schließen">×</button>
+    <span class="eyebrow">Rückmeldung</span><h2>${esc(o.strasse)} · ${esc(o.lage)}</h2>
+    <p class="hint">Teilen Sie uns den Stand Ihres Interessenten mit – ${esc(a.name)} sieht das sofort im Überblick.</p>
+    <fieldset class="stg">${STAGES.map((s, i) => `<label class="stgo" style="--c:${s.color}"><input type="radio" name="st" value="${s.id}"${i === 0 ? ' checked' : ''}><span><b>${esc(s.label)}</b><small>${esc(s.hint)}</small></span></label>`).join('')}</fieldset>
+    ${mine.length ? `<div class="fbq"><small>Bestehenden Interessenten aktualisieren:</small>${mine.map((e) => `<button type="button" class="chip" data-k="${esc(e.k)}">${esc(e.k || 'Interessent')}</button>`).join('')}</div>` : ''}
+    <label class="f"><span>Interessent (Name oder Kürzel, z. B. „Fam. M.“)</span><input name="k" maxlength="60" autocomplete="off"></label>
+    <label class="f"><span>Notiz (optional)</span><textarea name="n" rows="3" maxlength="400" placeholder="z. B. Finanzierungszusage bis Freitag, Besichtigung am 14.11. …"></textarea></label>
+    <p class="lg-err hidden" id="fbErr" role="alert"></p>
+    <div class="acts"><button class="btn fill" id="fbGo">${direct ? 'Rückmeldung senden' : 'Rückmeldung speichern'}</button></div></form>`);
+  const form = d.querySelector('#fbF'), err = (t) => { const p = d.querySelector('#fbErr'); p.textContent = t; p.classList.toggle('hidden', !t); };
+  d.querySelectorAll('[data-k]').forEach((b) => b.addEventListener('click', () => { form.k.value = b.dataset.k; }));
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault(); err('');
+    const st = form.st.value, k = form.k.value.trim(), n = form.n.value.trim();
+    if (st === 'reserviert' && !k) return err('Bitte Namen oder Kürzel des Kunden angeben, der zugesagt hat.');
+    const ev = { id: Date.now().toString(36) + randomId(), t: Date.now(), pid: ctx.sess.id, pn: ctx.sess.n || 'Partner', oid: o.id, on: `${o.strasse} · ${o.lage}`, st, k, n };
+    const go = d.querySelector('#fbGo'); go.disabled = true; go.textContent = 'Sende …';
+    let sent = false, problem = '';
+    if (direct) { try { await fbSend(ev); sent = true; } catch (x) { problem = x.message; } }
+    lsSet(fbKey(), [...fbMine(), { ...ev, sent }]);
+    const text = `Rückmeldung zum Objekt ${ev.on}\nStand: ${stageOf(st).label}${k ? '\nInteressent: ' + k : ''}\nVertrieb: ${ev.pn}${n ? '\n' + n : ''}\n(${datum(ev.t)})`;
+    const wa = isMobil(a.tel) ? `<a class="btn ${sent ? 'ghost' : 'fill'}" target="_blank" rel="noopener noreferrer" href="https://wa.me/${waNr(a.tel)}?text=${encodeURIComponent(text)}">${sent ? 'Zusätzlich per WhatsApp an ' + esc(a.name.split(' ')[0]) : 'Per WhatsApp senden'}</a>` : '';
+    const mail = a.mail ? `<a class="btn ${sent || wa ? 'ghost' : 'fill'}" href="mailto:${esc(a.mail)}?subject=${encodeURIComponent('Rückmeldung ' + o.strasse)}&body=${encodeURIComponent(text)}">Per E-Mail senden</a>` : '';
+    form.outerHTML = `<div class="ov-box"><button type="button" class="x" data-close aria-label="Schließen">×</button><span class="eyebrow">${sent ? 'Gesendet' : 'Gespeichert'}</span><h2>${sent ? '✓ Danke – ist angekommen' : 'Bitte noch abschicken'}</h2>
+      <p class="hint">${sent ? `Ihre Rückmeldung „${esc(stageOf(st).short)}“ ist bei ${esc(a.name)} im Überblick. Für eilige Fälle (z. B. Reservierung) können Sie zusätzlich direkt schreiben.` : esc(problem || 'Die Direktübermittlung ist noch nicht eingerichtet.') + ' Damit die Rückmeldung ankommt, schicken Sie sie bitte jetzt direkt:'}</p>
+      <div class="acts">${wa}${mail}<a class="btn ghost" href="tel:+${waNr(a.tel)}">Anrufen</a><button class="btn dark" data-close>Fertig</button></div></div>`;
+    if (document.getElementById('cards')) { const y = window.scrollY; render(); window.scrollTo(0, y); }
+  });
 }
 
 /* ---------- Kunden-Exposé mit eigenem Aufschlag ---------- */
