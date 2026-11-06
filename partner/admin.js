@@ -20,7 +20,9 @@ export async function mount({ app, ctx, render, logout, header }) {
     const a = await openJson(ctx.sess.a, ctx.pkg.admin);
     S = { partners: a.partners.map((p) => ({ ...p, objekte: p.objekte ?? [] })), masters: a.masters, data: { objekte: clone(ctx.data.objekte) }, dirty: false };
   }
+  let tkTyped = '';
   const draw = () => {
+    const y = window.scrollY;
     app.innerHTML = `${header().replace('<button class="btn dark sm" id="toAdmin">Verwaltung</button>', '<button class="btn ghost sm" id="back">Zur Übersicht</button>').replace('<button class="btn ghost sm" id="print">Drucken / PDF</button>', '')}
     <main class="wrap adm">
       <h1>Verwaltung</h1>
@@ -30,12 +32,13 @@ export async function mount({ app, ctx, render, logout, header }) {
     <div class="admin-bar"><div class="wrap">
       <span class="hint">${S.dirty ? '● Ungespeicherte Änderungen – erst nach „Veröffentlichen“ sehen die Partner sie.' : 'Alles veröffentlicht.'}</span>
       <div class="acts">
-        <input type="password" id="gh" placeholder="GitHub-Token (einmalig)" value="${esc(token())}" autocomplete="off" aria-label="GitHub-Token">
+        <input type="password" id="gh" placeholder="GitHub-Token (einmalig)" value="${esc(tkTyped || token())}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="GitHub-Token">
         <button class="btn ghost sm" id="download">Datei sichern</button>
         <button class="btn fill sm" id="publish" ${S.dirty ? '' : 'disabled'}>Veröffentlichen</button>
       </div></div></div>
     <dialog class="sheet" id="sheet"></dialog>`;
     wire();
+    window.scrollTo(0, y);
   };
   const markDirty = () => { S.dirty = true; msg = null; draw(); };
   const codeTaken = (code, exceptId) => [...S.partners, ...S.masters].some((x) => x.code === code && x.id !== exceptId);
@@ -133,8 +136,9 @@ export async function mount({ app, ctx, render, logout, header }) {
         if (kind === 'm' && id === ctx.sess.id) ctx.sess.n = item.name;
         markDirty();
       } else if (d.copy) {
-        await navigator.clipboard.writeText(linkFor(S.partners.find((p) => p.id === d.copy)));
-        b.textContent = 'Kopiert ✓'; setTimeout(() => (b.textContent = 'Link kopieren'), 1800);
+        const link = linkFor(S.partners.find((p) => p.id === d.copy));
+        try { await navigator.clipboard.writeText(link); b.textContent = 'Kopiert ✓'; setTimeout(() => (b.textContent = 'Link kopieren'), 1800); }
+        catch { prompt('Link zum Kopieren:', link); }
       } else if (d.ppw) {
         const n = prompt(`Neues Passwort für diesen Partner (mind. ${MIN_PW} Zeichen, leer = automatisch):`);
         if (n === null) return;
@@ -157,6 +161,7 @@ export async function mount({ app, ctx, render, logout, header }) {
       a.href = URL.createObjectURL(new Blob([JSON.stringify(pkg)], { type: 'application/json' }));
       a.download = 'data.enc.json'; a.click();
     };
+    $('#gh').oninput = (e) => { tkTyped = e.target.value; };
     $('#publish').onclick = publish;
   }
 

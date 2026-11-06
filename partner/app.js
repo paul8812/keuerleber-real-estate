@@ -75,8 +75,11 @@ function showLogin(msg = '', busy = false) {
     const dot = code.indexOf('.');
     if (dot > 0 && ctx.pkg.slots.some((s) => s.id === code.slice(0, dot))) { only = code.slice(0, dot); code = code.slice(dot + 1); }
     showLogin('', true);
-    for (const slot of ctx.pkg.slots) {
-      if (only && slot.id !== only) continue;
+    const todo = ctx.pkg.slots.filter((s) => !only || s.id === only);
+    let n = 0;
+    for (const slot of todo) {
+      const b = document.querySelector('.lg-form .btn'); if (b) b.textContent = todo.length > 1 ? `Prüfe … ${++n}/${todo.length}` : 'Prüfe …';
+      await new Promise((r) => setTimeout(r, 30)); // Anzeige aktualisieren, bevor die Berechnung startet
       const payload = await openSlot(code, slot, ctx.pkg.iter);
       if (payload) return enter(payload, code, slot.id);
     }
@@ -254,9 +257,10 @@ function overlay(html, cls = '') {
   const d = document.createElement('div');
   d.id = 'ov'; d.className = 'ov ' + cls; d.innerHTML = html;
   document.body.appendChild(d); document.body.classList.add('ovopen');
-  const close = () => { d.remove(); document.body.classList.remove('ovopen', 'pe'); };
+  const esc2 = (e) => { if (e.key === 'Escape') close(); };
+  const close = () => { d.remove(); document.body.classList.remove('ovopen', 'pe'); document.removeEventListener('keydown', esc2); };
   d.addEventListener('click', (e) => { if (e.target === d || e.target.closest('[data-close]')) close(); });
-  document.addEventListener('keydown', function k(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', k); } });
+  document.addEventListener('keydown', esc2);
   return { d, close };
 }
 
@@ -277,7 +281,7 @@ function melden(o) {
 /* ---------- Kunden-Exposé mit eigenem Aufschlag ---------- */
 function exposeOpen(o) {
   const prof = lsGet('nf-expose-prof') ?? { firma: ctx.sess.r === 'partner' ? ctx.sess.n : '', tel: '', mail: '', pct: 3.57 };
-  const { d } = overlay(`<div class="ex-wrap"><div class="ex-bar"><div class="ex-form">
+  const { d } = overlay(`<button class="ex-x" data-close aria-label="Schließen">×</button><div class="ex-wrap"><div class="ex-bar"><div class="ex-form">
       <label class="f"><span>Ihre Firma / Name</span><input data-p="firma" value="${esc(prof.firma)}"></label>
       <label class="f"><span>Telefon</span><input data-p="tel" value="${esc(prof.tel)}" inputmode="tel"></label>
       <label class="f"><span>E-Mail</span><input data-p="mail" value="${esc(prof.mail)}" inputmode="email"></label>
