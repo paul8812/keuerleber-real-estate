@@ -353,3 +353,47 @@ dialog.sheet .panel{overscroll-behavior:contain;-webkit-overflow-scrolling:touch
 .ex-x{position:fixed;right:12px;top:calc(10px + env(safe-area-inset-top));z-index:5;width:46px;height:46px;border-radius:50%;border:1.5px solid var(--line);background:#fff;color:var(--navy);font-size:30px;line-height:1;cursor:pointer;box-shadow:0 8px 20px -10px rgba(0,0,0,.4)}
 .ov-ex>.ex-x{margin:0}
 @media print{.ex-x{display:none}}
+
+/* ===== Verwaltung (Master) – Reiter, Karten, Dialoge ===== */
+.tabs{display:flex;gap:6px;background:var(--cream);border:1px solid var(--line);border-radius:100px;padding:5px}
+.tab{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:46px;border:0;background:transparent;border-radius:100px;font-family:Heebo,sans-serif;font-size:15px;font-weight:500;color:var(--navy);cursor:pointer}
+.tab span{font-size:12px;background:rgba(44,62,80,.12);border-radius:100px;padding:2px 8px}
+.tab[aria-selected=true]{background:var(--navy);color:#fff}.tab[aria-selected=true] span{background:rgba(255,255,255,.22)}
+.ph{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.oc{display:grid!important;grid-template-columns:96px 1fr;gap:12px 14px;align-items:start!important}
+.oc>img{width:96px;height:72px;object-fit:cover;border-radius:12px}
+.oc-b{display:grid;gap:6px;min-width:0}.oc-b b{overflow-wrap:anywhere}
+.oc>.acts{grid-column:1/-1}
+.oc-r{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.vsel{display:flex;align-items:center;gap:8px}.vsel span{font-size:12px;color:var(--muted)}
+.vsel select{padding:8px 12px;border:1.5px solid var(--line);border-radius:100px;background:#fff;font-size:14px;min-height:40px}
+.chip{border:1.5px solid var(--line);background:#fff;border-radius:100px;padding:8px 14px;font-size:13.5px;cursor:pointer;color:var(--navy);min-height:40px}
+.chip:hover{border-color:var(--navy)}
+.warn{color:#b3541e;font-weight:500}
+.psearch{padding:11px 18px;border:1.5px solid var(--line);border-radius:100px;background:var(--cream);width:100%}
+.note{background:#fff4e5;color:#7a4a12;border-radius:var(--r-s);padding:12px 16px;font-size:14px}
+.sh-h{display:flex;justify-content:space-between;align-items:center;gap:12px;position:sticky;top:-1px;background:#fff;z-index:3;padding:6px 0 10px;margin-top:-6px}
+.share .btn{text-decoration:none}
+.cnt{font-size:12px;background:var(--coral-soft);color:var(--navy);border-radius:100px;padding:2px 10px;margin-left:6px;font-weight:500}
+.kv{display:flex;align-items:center;gap:12px;flex-wrap:wrap;border:1px solid var(--line);border-radius:var(--r-s);padding:10px 14px;background:var(--cream)}
+.kv>span{font-size:12px;color:var(--muted);min-width:64px}.kv>b{flex:1;min-width:0;overflow-wrap:anywhere}
+.mono{font-family:ui-monospace,Menlo,monospace;font-size:13.5px}
+.dz{border-top:1px solid var(--line);padding-top:14px}
+.chg{list-style:none;display:grid;gap:6px}.chg li{padding:9px 14px;background:var(--cream);border-radius:12px;font-size:14px}
+.steps{padding-left:20px;display:grid;gap:4px}
+.sticky-save{position:sticky;bottom:0;background:#fff;padding:12px 0;border-top:1px solid var(--line);z-index:3}
+dialog.mini{border:0;border-radius:var(--r);padding:0;width:min(440px,100% - 32px);box-shadow:0 40px 90px -30px rgba(29,43,57,.6)}
+dialog.mini::backdrop{background:rgba(29,43,57,.55)}
+.mini-b{padding:24px;display:grid;gap:14px}.mini-b h3{font-size:19px}.mini-b p{font-size:15px;color:var(--muted)}
+.mini-b .acts .btn{flex:1}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom));z-index:9999;max-width:min(520px,calc(100% - 32px));padding:13px 20px;border-radius:100px;font-size:14.5px;color:#fff;background:var(--navy);box-shadow:0 14px 30px -12px rgba(0,0,0,.45)}
+.toast.err{background:#9c2f1f}
+@media (max-width:760px){
+  .oc{grid-template-columns:80px 1fr}.oc>img{width:80px;height:60px}
+  .oc>.acts .btn{flex:1 1 auto}
+  .vsel,.chip{flex:1 1 100%}.vsel select{flex:1}
+  .chip{text-align:left}
+  .pc .acts,.pc .acts .btn{width:100%}
+  .mini-b{padding:20px}
+  .tab{font-size:14px;min-height:44px}
+}
