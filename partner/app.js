@@ -304,7 +304,7 @@ function render() {
     <div class="leit"><p class="eyebrow slogan">Gemeinsam mehr erreichen.</p>
       <label class="suche">${ICON.lupe}<input type="search" id="q" placeholder="Objekt suchen, z. B. Straße, Garage …" value="${esc(ctx.q)}" aria-label="Suchen" autocomplete="off"><kbd>/</kbd></label></div>
   </section>
-  <img class="kopfbild" src="kopfbild.webp" alt="Bürogebäude Norderfranken im Abendlicht">
+  <div class="kopfbild" role="img" aria-label="Bürogebäude Norderfranken im Abendlicht"><img src="kopfbild.webp" alt=""><i class="k-glanz"></i><i class="k-licht"></i></div>
   <section class="lage">
     <div class="zeile blau"><div class="z-titel"><span class="z-ic">${ICON.haus}</span><span class="z-txt"><b>Bestand</b><small>Eigentumswohnungen in Hof</small></span></div>
       <div class="z-inhalt"><div class="spalten">
@@ -341,6 +341,8 @@ function render() {
   const refresh = () => { document.getElementById('cards').innerHTML = listeHtml(); document.querySelectorAll('.calc-in').forEach(calcUpdate); };
   refresh();
   for (const [id, key, conv] of [['fb', 'budget', Number], ['fr', 'rend', Number], ['fz', 'zi', Number]]) document.getElementById(id).addEventListener('change', (e) => { ctx[key] = conv(e.target.value); refresh(); });
+  const kb = document.querySelector('.kopfbild img');
+  if (kb && !matchMedia('(prefers-reduced-motion: reduce)').matches) { let t = 0; const par = () => { t = 0; kb.style.setProperty('--py', Math.min(40, window.scrollY * 0.08) + 'px'); }; window.addEventListener('scroll', () => { if (!t) t = requestAnimationFrame(par); }, { passive: true }); }
   document.getElementById('showNeu')?.addEventListener('click', () => { ctx.filter = 'neu'; render(); });
   document.querySelector('.lage').addEventListener('click', (e) => {
     const b = e.target.closest('[data-f]'); if (!b) return;
