@@ -22,7 +22,7 @@ export function kennzahlen(o) {
   return { preisQm: o.preis / o.flaeche, mieteQm: o.miete / o.flaeche, rendite: (jahresmiete / o.preis) * 100, faktor: o.preis / jahresmiete };
 }
 
-const ctx = { mode: lsGet('nf-mode') === 'tabelle' ? 'tabelle' : 'karten', pkg: null, sess: null, data: null, view: 'start', filter: 'alle', sort: 'standard', q: '', budget: 0, rend: 0, zi: 0 };
+const ctx = { mode: 'karten', pkg: null, sess: null, data: null, view: 'start', filter: 'alle', sort: 'standard', q: '', budget: 0, rend: 0, zi: 0 };
 
 async function loadPackage() {
   const r = await fetch('data.enc.json?t=' + Date.now(), { cache: 'no-store' });
@@ -290,7 +290,7 @@ function render() {
   });
   document.getElementById('mode').addEventListener('click', (e) => {
     const b = e.target.closest('[data-m]'); if (!b || ctx.mode === b.dataset.m) return;
-    ctx.mode = b.dataset.m; lsSet('nf-mode', ctx.mode);
+    ctx.mode = b.dataset.m;
     document.querySelectorAll('#mode button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
     refresh();
   });
