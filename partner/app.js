@@ -24,6 +24,24 @@ export function kennzahlen(o) {
   return { preisQm: o.preis / o.flaeche, mieteQm: o.miete / o.flaeche, rendite: (jahresmiete / o.preis) * 100, faktor: o.preis / jahresmiete };
 }
 
+const logo = (cls) => `<img src="logo-weiss.svg" alt="Norderfranken Haus & Grund" class="${cls} logo-w"><img src="logo.svg" alt="Norderfranken Haus & Grund" class="${cls} logo-d">`;
+const ICON = {
+  haus: '<svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>',
+  chart: '<svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>',
+  lupe: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
+};
+const grussZeit = () => { const h = new Date().getHours(); return h < 11 ? 'Guten Morgen' : h < 18 ? 'Guten Tag' : 'Guten Abend'; };
+const tageLang = () => new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+function themaWechseln() {
+  const h = document.documentElement, hell = h.getAttribute('data-theme') !== 'light';
+  if (hell) h.setAttribute('data-theme', 'light'); else h.removeAttribute('data-theme');
+  try { localStorage.setItem('cockpit-thema', hell ? 'light' : 'dark'); } catch { /* privater Modus */ }
+  document.querySelector('meta[name=theme-color]')?.setAttribute('content', hell ? '#F1F1F2' : '#0E0E0F');
+  document.querySelectorAll('.thema').forEach((b) => b.setAttribute('aria-checked', String(hell)));
+}
+document.addEventListener('click', (e) => { if (e.target.closest('.thema')) themaWechseln(); });
+document.addEventListener('keydown', (e) => { if (e.key === '/' && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) && document.getElementById('q')) { e.preventDefault(); document.getElementById('q').focus(); } });
+
 const ctx = { mode: 'karten', pkg: null, sess: null, data: null, view: 'start', filter: 'alle', sort: 'standard', q: '', budget: 0, rend: 0, zi: 0 };
 
 async function loadPackage() {
@@ -97,7 +115,7 @@ function logout() {
 function showLogin(msg = '', busy = false) {
   app.innerHTML = `
   <main class="lg"><div class="lg-card">
-    <img src="logo.svg" alt="Norderfranken Haus & Grund" class="lg-logo">
+    ${logo('lg-logo')}
     <span class="eyebrow">Partnerbereich</span>
     <h1>Vertriebsübersicht</h1>
     <p class="lg-sub">Vertraulicher Zugang für unsere Vertriebspartner. Bitte Zugangscode oder Passwort eingeben.</p>
@@ -260,10 +278,14 @@ function listeHtml() {
 }
 
 function header() {
-  return `<header class="top"><div class="wrap top-in"><img src="logo.svg" alt="Norderfranken Haus & Grund" class="top-logo">
-    <div class="top-r"><span class="top-user">Angemeldet: ${esc(ctx.sess.n || (ctx.sess.r === 'admin' ? 'Master' : 'Partner'))}</span>
+  const hell = document.documentElement.getAttribute('data-theme') === 'light';
+  const name = ctx.sess.n || (ctx.sess.r === 'admin' ? 'Master' : 'Partner');
+  return `<header class="p-kopf"><div class="wrap p-in"><div class="brand">${logo('top-logo')}
+    <div><h1>Partnerbereich</h1><small><b></b>Vertriebsübersicht · Stand <span class="num">${esc(ctx.data.stand || '')}</span></small></div></div>
+    <div class="top-r"><span class="top-user">Angemeldet: <b>${esc(name)}</b></span>
     ${ctx.sess.r === 'admin' ? '<button class="btn dark sm" id="toAdmin">Verwaltung</button>' : ''}
-    <button class="btn dark sm" id="logout">Abmelden</button></div></div></header>`;
+    <button class="btn dark sm" id="logout">Abmelden</button>
+    <button class="thema" type="button" role="switch" aria-checked="${hell}" aria-label="Helle Darstellung"></button></div></div></header>`;
 }
 
 function render() {
@@ -271,15 +293,40 @@ function render() {
   const objs = ctx.data.objekte;
   const fl = objs.map((o) => o.flaeche);
   const stats = objs.length ? { n: objs.length, min: Math.round(Math.min(...fl)), max: Math.round(Math.max(...fl)), ab: Math.min(...objs.map((o) => o.preis)) } : { n: 0, min: 0, max: 0, ab: 0 };
+  const sp = (t, w, u, q = '', o = {}) => `<${o.f ? 'button type="button" data-f="' + o.f + '"' : 'div'} class="sp${o.summe ? ' summe' : ''}"><div class="sp-t">${t}</div><div class="sp-w${o.null ? ' null' : ''}">${w}</div><div class="sp-u">${u}</div><div class="sp-q">${q || '&nbsp;'}</div></${o.f ? 'button' : 'div'}>`;
+  const cnt = (f) => objs.filter(FILTER.find((x) => x[0] === f)[2]).length;
+  const rend = objs.length ? objs.reduce((a, o) => a + kennzahlen(o).rendite, 0) / objs.length : 0;
+  const nNeu = cnt('neu'), nFrei = cnt('frei'), nRes = objs.filter((o) => ['reserviert', 'notar'].includes(o.vs)).length, nFav = cnt('fav');
   app.innerHTML = `${header()}
-  <section class="hero"><div class="wrap"><span class="eyebrow">Vertriebsübersicht · Stand ${esc(ctx.data.stand)}</span>
-    <h1>Eigentumswohnungen in Hof</h1>
-    <p class="lead">Unsere aktuellen Kapitalanlage-Objekte auf einen Blick – mit Kennzahlen, Sanierungsstand, Zeitplan und Unterlagen zum Download.</p>
-    ${(() => { const n = ctx.data.objekte.filter(isNeu).length; return n ? `<p class="newbanner"><b>${n} ${n === 1 ? 'Objekt' : 'Objekte'} neu oder geändert</b> seit Ihrem letzten Besuch. <button class="linkbtn" id="showNeu">Anzeigen</button></p>` : ''; })()}
-    <dl class="stats"><div><dt>Wohnungen</dt><dd>${stats.n}</dd></div><div><dt>Wohnfläche</dt><dd>${stats.min}–${stats.max} m²</dd></div><div><dt>Abgabepreis ab</dt><dd>${eur(stats.ab)}</dd></div></dl></div></section>
+  <div class="wrap">
+  <section class="held">
+    <div><h2>${grussZeit()} <span>${esc(ctx.sess.n || '')}</span></h2><p>${esc(tageLang())} · <span class="num">${stats.n}</span> ${stats.n === 1 ? 'Wohnung' : 'Wohnungen'}</p></div>
+    <div class="leit"><p class="eyebrow slogan">Gemeinsam mehr erreichen.</p>
+      <label class="suche">${ICON.lupe}<input type="search" id="q" placeholder="Objekt suchen, z. B. Straße, Garage …" value="${esc(ctx.q)}" aria-label="Suchen" autocomplete="off"><kbd>/</kbd></label></div>
+  </section>
+  <img class="kopfbild" src="kopfbild.webp" alt="Bürogebäude Norderfranken im Abendlicht">
+  <section class="lage">
+    <div class="zeile blau"><div class="z-titel"><span class="z-ic">${ICON.haus}</span><span class="z-txt"><b>Bestand</b><small>Eigentumswohnungen in Hof</small></span></div>
+      <div class="z-inhalt"><div class="spalten">
+        ${sp('Wohnungen', stats.n, 'für Sie freigegeben', 'Stand ' + esc(ctx.data.stand || ''), { summe: true })}
+        ${sp('Wohnfläche', `${stats.min}–${stats.max} <small>&nbsp;m²</small>`, 'je Einheit')}
+        ${sp('Abgabepreis ab', eur(stats.ab), 'für Vertriebspartner')}
+        ${sp('Ø Rendite', `${num(rend)} <small>&nbsp;%</small>`, 'Jahreskaltmiete ÷ Abgabepreis')}
+      </div></div></div>
+    <div class="zeile"><div class="z-titel"><span class="z-ic">${ICON.chart}</span><span class="z-txt"><b>Verfügbarkeit</b><small>Antippen zum Filtern</small></span></div>
+      <div class="z-inhalt"><div class="spalten">
+        ${sp('Frei', nFrei, 'sofort anfragbar', '', { f: 'frei', null: !nFrei })}
+        ${sp('Reserviert / Notar', nRes, 'in Abwicklung', '', { null: !nRes })}
+        ${sp('Neu / geändert', nNeu, 'seit Ihrem letzten Besuch', '', { f: 'neu', null: !nNeu })}
+        ${sp('Favoriten', nFav, 'von Ihnen gemerkt', '', { f: 'fav', null: !nFav })}
+      </div></div></div>
+  </section>
+  </div>
   <main class="wrap list-wrap">
+    <div class="banner">Objekte in Hof <span>${stats.n} ${stats.n === 1 ? 'Einheit' : 'Einheiten'}</span></div>
+    ${nNeu ? `<p class="newbanner"><b>${nNeu} ${nNeu === 1 ? 'Objekt' : 'Objekte'} neu oder geändert</b> seit Ihrem letzten Besuch. <button class="linkbtn" id="showNeu">Anzeigen</button></p>` : ''}
     <div class="bar"><div class="chips" id="chips">${FILTER.map((f) => `<button class="chip${ctx.filter === f[0] ? ' on' : ''}" data-f="${f[0]}">${f[1]}</button>`).join('')}</div>
-      <div class="tools"><input type="search" id="q" placeholder="Suchen, z. B. Straße, Garage …" value="${esc(ctx.q)}" aria-label="Suchen">
+      <div class="tools">
       <select id="sort" aria-label="Sortieren">${[['standard', 'Sortierung: Standard'], ['preis', 'Preis aufsteigend'], ['rendite', 'Rendite absteigend'], ['flaeche', 'Wohnfläche absteigend']].map(([v, l]) => `<option value="${v}"${ctx.sort === v ? ' selected' : ''}>${l}</option>`).join('')}</select>
       <div class="seg" id="mode" role="group" aria-label="Ansicht"><button data-m="karten" aria-pressed="${ctx.mode === 'karten'}">Karten</button><button data-m="tabelle" aria-pressed="${ctx.mode === 'tabelle'}">Tabelle</button></div>
       <button class="btn ghost sm" id="print">Drucken / PDF</button></div></div>
@@ -289,11 +336,18 @@ function render() {
     <div class="cards" id="cards">${listeHtml()}</div>
     <p class="legend">Kaltmiete: <b>IST</b> = laut Mietvertrag · <b>SOLL</b> = kalkulierte Marktmiete (unvermietet) · <b>PLAN</b> = Planwert vor Sanierung. Rendite = Jahreskaltmiete inkl. Garage/Stellplatz ÷ Abgabepreis. Alle Angaben laut Exposés und Objektunterlagen, ohne Gewähr. Der Abgabepreis ist der Preis für Sie als Vertrieb; Ihren eigenen Aufschlag legen Sie selbst fest (siehe „Kunden-Exposé“).</p>
   </main>
-  <footer class="foot"><div class="wrap foot-in"><span><b>${KONTAKT.firma}</b> · ${KONTAKT.adresse}</span><span><a href="tel:${KONTAKT.telHref}">${KONTAKT.tel}</a> · <a href="mailto:${KONTAKT.mail}">${KONTAKT.mail}</a> · ${KONTAKT.web}</span></div></footer>`;
+  <footer class="wrap"><div class="p-fuss"><span><b>${KONTAKT.firma}</b> · ${KONTAKT.adresse}</span><span><a href="tel:${KONTAKT.telHref}">${KONTAKT.tel}</a> · <a href="mailto:${KONTAKT.mail}">${KONTAKT.mail}</a> · ${KONTAKT.web}</span></div></footer>
+  <p class="leitzeile">Unternehmen · Vertrauen · Zukunft</p>`;
   const refresh = () => { document.getElementById('cards').innerHTML = listeHtml(); document.querySelectorAll('.calc-in').forEach(calcUpdate); };
   refresh();
   for (const [id, key, conv] of [['fb', 'budget', Number], ['fr', 'rend', Number], ['fz', 'zi', Number]]) document.getElementById(id).addEventListener('change', (e) => { ctx[key] = conv(e.target.value); refresh(); });
   document.getElementById('showNeu')?.addEventListener('click', () => { ctx.filter = 'neu'; render(); });
+  document.querySelector('.lage').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-f]'); if (!b) return;
+    ctx.filter = ctx.filter === b.dataset.f ? 'alle' : b.dataset.f;
+    document.querySelectorAll('#chips .chip').forEach((c) => c.classList.toggle('on', c.dataset.f === ctx.filter));
+    refresh(); document.getElementById('chips').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
   const cards = document.getElementById('cards');
   cards.addEventListener('input', (e) => { const b = e.target.closest('.calc-in'); if (b) calcUpdate(b); });
   cards.addEventListener('click', (e) => {

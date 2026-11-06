@@ -3,7 +3,7 @@ import { STAGES, stageOf, chains } from './fb.js';
 import { esc, eur } from './app.js';
 
 const VS = { frei: 'Frei', reserviert: 'Reserviert', notar: 'Notartermin', verkauft: 'Verkauft' };
-const VCOL = { frei: '#2f7d57', reserviert: '#c98a1b', notar: '#5470b8', verkauft: '#6b7580' };
+const VCOL = { frei: 'var(--gut)', reserviert: 'var(--warn)', notar: 'var(--schiefer)', verkauft: 'var(--muted)' };
 const titel = (o) => `${o.strasse}${o.lage ? ' · ' + o.lage : ''}`;
 const dt = (t) => new Date(t).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'gerade eben' : m < 60 ? `vor ${m} Min.` : m < 1440 ? `vor ${Math.round(m / 60)} Std.` : `vor ${Math.round(m / 1440)} Tg.`; };
@@ -12,7 +12,7 @@ const rendite = (o) => (((o.miete + (o.zuschlag?.betrag ?? 0)) * 12) / o.preis) 
 function donut(parts, centerTop, centerBottom) {
   const total = parts.reduce((a, p) => a + p.value, 0), R = 52, C = 2 * Math.PI * R;
   let off = 0;
-  const arcs = total ? parts.filter((p) => p.value).map((p) => { const len = (p.value / total) * C, a = `<circle r="${R}" cx="70" cy="70" fill="none" stroke="${p.color}" stroke-width="22" stroke-dasharray="${len} ${C - len}" stroke-dashoffset="${-off}" transform="rotate(-90 70 70)"/>`; off += len; return a; }).join('') : `<circle r="${R}" cx="70" cy="70" fill="none" stroke="#e6e9ed" stroke-width="22"/>`;
+  const arcs = total ? parts.filter((p) => p.value).map((p) => { const len = (p.value / total) * C, a = `<circle r="${R}" cx="70" cy="70" fill="none" style="stroke:${p.color}" stroke-width="22" stroke-dasharray="${len} ${C - len}" stroke-dashoffset="${-off}" transform="rotate(-90 70 70)"/>`; off += len; return a; }).join('') : `<circle r="${R}" cx="70" cy="70" fill="none" stroke="#e6e9ed" stroke-width="22"/>`;
   return `<svg class="donut" viewBox="0 0 140 140" role="img" aria-label="${esc(parts.map((p) => `${p.label}: ${p.value}`).join(', '))}">${arcs}<text x="70" y="68" text-anchor="middle" class="d-t">${esc(centerTop)}</text><text x="70" y="86" text-anchor="middle" class="d-b">${esc(centerBottom)}</text></svg>`;
 }
 const legend = (parts) => `<ul class="lgd">${parts.map((p) => `<li><i style="background:${p.color}"></i>${esc(p.label)}<b>${p.value}</b></li>`).join('')}</ul>`;
@@ -24,7 +24,7 @@ function weekly(events) {
   const max = Math.max(1, ...bins), bw = 28, gap = 12;
   const bars = bins.map((v, i) => {
     const h = Math.round((v / max) * 70), x = 10 + i * (bw + gap), lab = dt(now - (W - 1 - i) * wk);
-    return `<rect x="${x}" y="${90 - h}" width="${bw}" height="${h || 1}" rx="5" fill="${v ? '#2f5d8a' : '#e6e9ed'}"/><text x="${x + bw / 2}" y="${84 - h}" text-anchor="middle" class="w-v">${v || ''}</text><text x="${x + bw / 2}" y="106" text-anchor="middle" class="w-l">${lab}</text>`;
+    return `<rect x="${x}" y="${90 - h}" width="${bw}" height="${h || 1}" rx="5" class="${v ? 'wb' : 'wb0'}"/><text x="${x + bw / 2}" y="${84 - h}" text-anchor="middle" class="w-v">${v || ''}</text><text x="${x + bw / 2}" y="106" text-anchor="middle" class="w-l">${lab}</text>`;
   }).join('');
   return `<svg class="weekly" viewBox="0 0 ${10 + W * (bw + gap)} 112" role="img" aria-label="Rückmeldungen pro Woche">${bars}</svg>`;
 }
@@ -44,7 +44,7 @@ export function dashHtml({ objekte, partners, events, fb, state }) {
   const tile = (l, v, sub = '') => `<div class="kt"><small>${l}</small><b>${v}</b>${sub ? `<em>${sub}</em>` : ''}</div>`;
   const setup = fb ? '' : `<section class="panel setup"><h2>Rückmeldungen der Vertriebe einrichten</h2>
     <p class="hint">Damit Partner bei jedem Objekt melden können, wie weit ihr Interessent ist (Prüfung, Finanzierung, Reservierung), und Sie das hier live sehen, braucht es einmalig einen eigenen GitHub-Token nur für Rückmeldungen. Die Nachrichten sind Ende-zu-Ende verschlüsselt – nur Master können sie lesen.</p>
-    <ol class="hint steps"><li>github.com → Einstellungen → Developer settings → Fine-grained tokens → „Generate new token“.</li><li>Repository: nur <b>keuerleber-real-estate</b>. Berechtigung <b>Issues: Read and write</b> (sonst nichts).</li><li>Token hier einfügen und „Einrichten“, danach „Veröffentlichen“.</li></ol>
+    <ol class="hint ol"><li>github.com → Einstellungen → Developer settings → Fine-grained tokens → „Generate new token“.</li><li>Repository: nur <b>keuerleber-real-estate</b>. Berechtigung <b>Issues: Read and write</b> (sonst nichts).</li><li>Token hier einfügen und „Einrichten“, danach „Veröffentlichen“.</li></ol>
     <form class="inline" id="fbSetup"><input type="password" name="tk" placeholder="Token nur für Rückmeldungen" required autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Token für Rückmeldungen"><button class="btn fill sm">Einrichten</button></form>
     <p class="hint">Bis dahin können Rückmeldungen, die Partner per WhatsApp oder E-Mail schicken, unten manuell erfasst werden.</p></section>`;
   const status = fb ? `<div class="dstat">${state.loading ? 'Lade Rückmeldungen …' : state.err ? `<span class="warn">${esc(state.err)}</span>` : state.at ? `✓ Rückmeldungen aktuell (${ago(state.at)})` : ''}

@@ -1,9 +1,9 @@
 // Rückmeldungen der Vertriebe zu Objekten: Stufen und Auswertung (gemeinsam für Partner-Ansicht und Master-Dashboard).
 export const STAGES = [
-  { id: 'pruefung', label: 'Interessent in Prüfung', short: 'In Prüfung', hint: 'Ein Kunde prüft das Objekt (Unterlagen, Besichtigung).', color: '#6f9bc9' },
-  { id: 'finanzierung', label: 'Finanzierungsanfrage', short: 'Finanzierung', hint: 'Die Finanzierung wird bei der Bank angefragt.', color: '#2f5d8a' },
-  { id: 'reserviert', label: 'Reservieren – Kunde sagt zu', short: 'Reservierung', hint: 'Der Kunde möchte kaufen. Das Objekt soll für ihn reserviert werden.', color: '#c98a1b' },
-  { id: 'absage', label: 'Absage', short: 'Absage', hint: 'Kein Interesse mehr oder Finanzierung nicht möglich.', color: '#98a2ab' },
+  { id: 'pruefung', label: 'Interessent in Prüfung', short: 'In Prüfung', hint: 'Ein Kunde prüft das Objekt (Unterlagen, Besichtigung).', color: 'var(--schiefer)' },
+  { id: 'finanzierung', label: 'Finanzierungsanfrage', short: 'Finanzierung', hint: 'Die Finanzierung wird bei der Bank angefragt.', color: 'var(--gold)' },
+  { id: 'reserviert', label: 'Reservieren – Kunde sagt zu', short: 'Reservierung', hint: 'Der Kunde möchte kaufen. Das Objekt soll für ihn reserviert werden.', color: 'var(--gut)' },
+  { id: 'absage', label: 'Absage', short: 'Absage', hint: 'Kein Interesse mehr oder Finanzierung nicht möglich.', color: 'var(--muted)' },
 ];
 export const stageOf = (id) => STAGES.find((s) => s.id === id) ?? STAGES[0];
 
