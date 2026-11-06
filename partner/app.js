@@ -245,11 +245,16 @@ function tabelle(l) {
     <p class="hint tbl-h">Zeile antippen für alle Details, Unterlagen und Rechner.</p>`;
 }
 
-function listeHtml() {
+function visible() {
   const l = filtered();
   if (ctx.sort === 'preis') l.sort((a, b) => a.preis - b.preis);
   if (ctx.sort === 'rendite') l.sort((a, b) => kennzahlen(b).rendite - kennzahlen(a).rendite);
   if (ctx.sort === 'flaeche') l.sort((a, b) => b.flaeche - a.flaeche);
+  return l;
+}
+
+function listeHtml() {
+  const l = visible();
   if (!ctx.data.objekte.length) return '<p class="empty">Für Sie sind aktuell keine Objekte freigegeben. Bitte sprechen Sie Sebastian Sultanow an: ' + KONTAKT.tel + '</p>';
   return l.length ? (ctx.mode === 'tabelle' ? tabelle(l) : l.map(karte).join('')) : '<p class="empty">Keine Objekte für diese Auswahl.<br><button class="btn ghost sm" data-reset>Filter zurücksetzen</button></p>';
 }
@@ -258,7 +263,7 @@ function header() {
   return `<header class="top"><div class="wrap top-in"><img src="logo.svg" alt="Norderfranken Haus & Grund" class="top-logo">
     <div class="top-r"><span class="top-user">Angemeldet: ${esc(ctx.sess.n || (ctx.sess.r === 'admin' ? 'Master' : 'Partner'))}</span>
     ${ctx.sess.r === 'admin' ? '<button class="btn dark sm" id="toAdmin">Verwaltung</button>' : ''}
-    <button class="btn ghost sm" id="print">Drucken / PDF</button><button class="btn dark sm" id="logout">Abmelden</button></div></div></header>`;
+    <button class="btn dark sm" id="logout">Abmelden</button></div></div></header>`;
 }
 
 function render() {
@@ -276,7 +281,8 @@ function render() {
     <div class="bar"><div class="chips" id="chips">${FILTER.map((f) => `<button class="chip${ctx.filter === f[0] ? ' on' : ''}" data-f="${f[0]}">${f[1]}</button>`).join('')}</div>
       <div class="tools"><input type="search" id="q" placeholder="Suchen, z. B. Straße, Garage …" value="${esc(ctx.q)}" aria-label="Suchen">
       <select id="sort" aria-label="Sortieren">${[['standard', 'Sortierung: Standard'], ['preis', 'Preis aufsteigend'], ['rendite', 'Rendite absteigend'], ['flaeche', 'Wohnfläche absteigend']].map(([v, l]) => `<option value="${v}"${ctx.sort === v ? ' selected' : ''}>${l}</option>`).join('')}</select>
-      <div class="seg" id="mode" role="group" aria-label="Ansicht"><button data-m="karten" aria-pressed="${ctx.mode === 'karten'}">Karten</button><button data-m="tabelle" aria-pressed="${ctx.mode === 'tabelle'}">Tabelle</button></div></div></div>
+      <div class="seg" id="mode" role="group" aria-label="Ansicht"><button data-m="karten" aria-pressed="${ctx.mode === 'karten'}">Karten</button><button data-m="tabelle" aria-pressed="${ctx.mode === 'tabelle'}">Tabelle</button></div>
+      <button class="btn ghost sm" id="print">Drucken / PDF</button></div></div>
     <div class="tools2"><label>Budget bis<select id="fb">${[[0, 'egal'], [130000, '130.000 €'], [160000, '160.000 €'], [200000, '200.000 €'], [250000, '250.000 €']].map(([v, l]) => `<option value="${v}"${ctx.budget === v ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
       <label>Rendite ab<select id="fr">${[[0, 'egal'], [4, '4 %'], [4.5, '4,5 %'], [5, '5 %'], [5.5, '5,5 %']].map(([v, l]) => `<option value="${v}"${ctx.rend === v ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
       <label>Zimmer<select id="fz">${[[0, 'alle'], [2, '2'], [3, '3'], [4, '4 und mehr']].map(([v, l]) => `<option value="${v}"${ctx.zi === v ? ' selected' : ''}>${l}</option>`).join('')}</select></label></div>
@@ -321,7 +327,7 @@ function render() {
   cards.addEventListener('keydown', (e) => { const r = e.target.closest?.('tr[data-go]'); if (r && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); r.click(); } });
   document.getElementById('q').addEventListener('input', (e) => { ctx.q = e.target.value; refresh(); });
   document.getElementById('sort').addEventListener('change', (e) => { ctx.sort = e.target.value; refresh(); });
-  document.getElementById('print').addEventListener('click', () => window.print());
+  document.getElementById('print').addEventListener('click', printOpen);
   document.getElementById('logout').addEventListener('click', logout);
   document.getElementById('toAdmin')?.addEventListener('click', () => { ctx.view = 'admin'; render(); window.scrollTo(0, 0); });
 }
@@ -390,6 +396,48 @@ function feedbackOpen(o) {
       <div class="acts">${wa}${mail}<a class="btn ghost" href="tel:+${waNr(a.tel)}">Anrufen</a><button class="btn dark" data-close>Fertig</button></div></div>`;
     if (document.getElementById('cards')) { const y = window.scrollY; render(); window.scrollTo(0, y); }
   });
+}
+
+/* ---------- Druckansicht der Projekte ---------- */
+const printTitle = document.title;
+window.addEventListener('afterprint', () => { document.body.classList.remove('pe'); document.title = printTitle; });
+
+function printHtml(list, det) {
+  const stand = ctx.data.stand || datum(Date.now());
+  const rows = list.map((o) => {
+    const k = kennzahlen(o), v = o.vs || 'frei';
+    return `<tr><td><b>${esc(o.strasse)}</b><small>${esc(o.lage)}</small></td><td>${num(o.flaeche)} m²<small>${esc(o.zimmer)} Zimmer</small></td><td>${eur(o.miete)}<small>${esc(o.mieteTyp)}</small></td><td><b>${eur(o.preis)}</b><small>${eur(k.preisQm)} / m²</small></td><td>${num(k.rendite)} %<small>Faktor ${num(k.faktor, 1)}</small></td><td>${esc(VSTATUS[v] ?? v)}<small>${esc(o.status.label)}</small></td></tr>`;
+  }).join('');
+  const details = det ? list.map((o) => {
+    const k = kennzahlen(o);
+    const steps = o.schritte.map((s) => `<li class="${esc(s.state)}"><span class="dot">${s.state === 'done' ? '✓' : ''}</span><b>${esc(s.label)}</b><em>${s.state === 'current' && s.label === 'Sanierung' ? o.fortschritt + ' %' : esc(s.datum ?? '')}</em></li>`).join('');
+    return `<section class="pv-o"><img src="${esc(o.bild)}" alt=""><div><h2>${esc(o.strasse)} <span>· ${esc(o.lage)}</span></h2><p class="pv-m">Bj. ${esc(o.baujahr)} · Energie ${esc(o.energie)} · Hausgeld ${eur(o.hausgeld)} · ${num(o.flaeche)} m² · ${esc(o.zimmer)} Zimmer</p>
+      <p>${esc(o.ort)}</p><p class="pv-m">${o.tags.map(esc).join(' · ')}</p>
+      <p class="pv-k"><span>Kaltmiete <b>${eur(o.miete)}</b> (${esc(o.mieteTyp)})</span><span>Abgabepreis <b>${eur(o.preis)}</b></span><span>Rendite <b>${num(k.rendite)} %</b></span></p>
+      <p>${esc(o.sanierung)}</p>${o.hinweis ? `<p class="note">${esc(o.hinweis)}</p>` : ''}<ol class="steps">${steps}</ol></div></section>`;
+  }).join('') : '';
+  return `<header class="ex-h"><div><small>Vertriebsübersicht · Stand ${esc(stand)}</small><h1>Eigentumswohnungen in Hof</h1><p>Kapitalanlage-Objekte · ${list.length} ${list.length === 1 ? 'Einheit' : 'Einheiten'}</p></div>
+    <div class="ex-by"><b>${esc(KONTAKT.firma)}</b><span>Ansprechpartner: ${esc(ANSP.name)}</span><span>${esc(ANSP.tel)}</span></div></header>
+    ${list.length ? `<table class="pv-t"><thead><tr><th>Objekt</th><th>Fläche</th><th>Kaltmiete</th><th>Abgabepreis</th><th>Rendite p. a.</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>` : '<p class="hint">Keine Objekte für diese Auswahl.</p>'}
+    ${details}
+    <p class="ex-f">Kaltmiete: IST = laut Mietvertrag · SOLL = kalkulierte Marktmiete · PLAN = Planwert vor Sanierung. Rendite = Jahreskaltmiete inkl. Garage/Stellplatz ÷ Abgabepreis. Alle Angaben laut Exposés und Objektunterlagen, ohne Gewähr. Der Abgabepreis gilt für Vertriebspartner und ist vertraulich. Stand ${datum(Date.now())}.</p>`;
+}
+
+function printOpen() {
+  const list = visible();
+  const { d } = overlay(`<button class="ex-x" data-close aria-label="Schließen">×</button><div class="ex-wrap"><div class="ex-bar">
+      <label class="chk"><input type="checkbox" id="pvDet" checked> Mit Objektdetails (Foto, Sanierung, Zeitplan)</label>
+      <div class="acts"><button class="btn fill sm" id="pvPrint">Drucken / als PDF speichern</button><button class="btn ghost sm" data-close>Schließen</button></div>
+      <p class="hint">Es wird die aktuell gefilterte und sortierte Auswahl gedruckt. Im Druckdialog „Als PDF sichern“ wählen, um eine Datei zu erhalten. Die Abgabepreise sind vertraulich.</p></div>
+    <article class="ex pv" id="pvDoc"></article></div>`, 'ov-ex');
+  const doc = d.querySelector('#pvDoc'), det = d.querySelector('#pvDet');
+  const draw = () => { doc.innerHTML = printHtml(list, det.checked); };
+  det.addEventListener('change', draw);
+  d.querySelector('#pvPrint').addEventListener('click', () => {
+    document.body.classList.add('pe'); document.title = `Vertriebsübersicht Hof – Stand ${ctx.data.stand || datum(Date.now())}`;
+    window.print();
+  });
+  draw();
 }
 
 /* ---------- Kunden-Exposé mit eigenem Aufschlag ---------- */
