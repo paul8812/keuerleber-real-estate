@@ -53,7 +53,7 @@ export async function openSlot(code, slot, iter = ITER) {
 /** Baut die komplette Datei {pkg, k, a}.
  *  Jedes Objekt hat einen eigenen Schlüssel. Ein Partner-Slot enthält nur die Schlüssel seiner freigegebenen Objekte,
  *  ein Master-Slot alle Schlüssel plus den Admin-Schlüssel. Alle Schlüssel werden bei jedem Veröffentlichen neu erzeugt. */
-export async function buildPackage({ stand, objekte, partners, masters }) {
+export async function buildPackage({ stand, objekte, partners, masters, fb = null, ev = [] }) {
   const a = newKeyB64();
   const blobs = [];
   const keyOf = {}; // interne Objekt-ID -> Schlüssel
@@ -67,9 +67,9 @@ export async function buildPackage({ stand, objekte, partners, masters }) {
   }
   const keysFor = (ids) => Object.fromEntries(ids.filter((id) => keyOf[id]).map((id) => [bidOf[id], keyOf[id]]));
   const slots = [];
-  for (const m of masters) slots.push(await makeSlot(m.id, m.code, { r: 'admin', n: m.name, a, stand, keys: keysFor(objekte.map((o) => o.id)) }));
-  for (const p of partners) slots.push(await makeSlot(p.id, p.code, { r: 'partner', n: p.name, stand, keys: keysFor(p.objekte ?? []) }));
-  return { a, pkg: { v: 2, iter: ITER, slots, objekte: blobs, admin: await sealJson(a, { partners, masters }) } };
+  for (const m of masters) slots.push(await makeSlot(m.id, m.code, { r: 'admin', n: m.name, a, stand, keys: keysFor(objekte.map((o) => o.id)), ...(fb ? { fb } : {}) }));
+  for (const p of partners) slots.push(await makeSlot(p.id, p.code, { r: 'partner', n: p.name, stand, keys: keysFor(p.objekte ?? []), ...(fb ? { fb: { token: fb.token, pub: fb.pub } } : {}) }));
+  return { a, pkg: { v: 2, iter: ITER, slots, objekte: blobs, admin: await sealJson(a, { partners, masters, fb, ev }) } };
 }
 
 /** Entschlüsselt alle Objekte, für die der Slot einen Schlüssel hat (Reihenfolge wie veröffentlicht). */
@@ -90,3 +90,24 @@ export function randomCode(len = 24) {
   return out;
 }
 export const randomId = () => [...rnd(4)].map((b) => b.toString(16).padStart(2, '0')).join('');
+
+/* ---------- Rückmeldungen: Partner verschlüsseln mit dem öffentlichen Schlüssel, nur Master können lesen ---------- */
+const RSA = { name: 'RSA-OAEP', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' };
+export async function newFeedbackKeys() {
+  const k = await crypto.subtle.generateKey(RSA, true, ['encrypt', 'decrypt']);
+  return { pub: await crypto.subtle.exportKey('jwk', k.publicKey), priv: await crypto.subtle.exportKey('jwk', k.privateKey) };
+}
+/** Hybrid: zufälliger AES-Schlüssel verschlüsselt die Nachricht, RSA verpackt den AES-Schlüssel. */
+export async function sealFeedback(pubJwk, obj) {
+  const pub = await crypto.subtle.importKey('jwk', pubJwk, { name: 'RSA-OAEP', hash: 'SHA-256' }, false, ['encrypt']);
+  const raw = rnd(32);
+  const box = await seal(await aes(raw, ['encrypt']), enc.encode(JSON.stringify(obj)));
+  const wrapped = await crypto.subtle.encrypt({ name: 'RSA-OAEP' }, pub, raw);
+  return JSON.stringify({ w: toB64(wrapped), ...box });
+}
+export async function openFeedback(privJwk, text) {
+  const priv = await crypto.subtle.importKey('jwk', privJwk, { name: 'RSA-OAEP', hash: 'SHA-256' }, false, ['decrypt']);
+  const m = JSON.parse(text);
+  const raw = new Uint8Array(await crypto.subtle.decrypt({ name: 'RSA-OAEP' }, priv, fromB64(m.w)));
+  return JSON.parse(dec.decode(await unseal(await aes(raw, ['decrypt']), m)));
+}
