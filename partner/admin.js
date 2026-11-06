@@ -168,7 +168,7 @@ export async function mount({ app, ctx, render, logout, header }) {
         const sees = S.partners.filter((p) => p.objekte.includes(o.id)).length;
         return `<li class="oc"><img src="${esc(o.bild)}" alt=""><div class="oc-b"><b>${esc(titel(o))}</b><small>${eur(o.preis)} · ${esc(String(o.zimmer))} Zi. · ${esc(String(o.flaeche))} m²${o.docs?.length ? ` · ${o.docs.length} Unterlagen` : ''}</small>
           <div class="oc-r"><label class="vsel"><span>Status</span><select data-vs="${esc(o.id)}" aria-label="Status von ${esc(titel(o))}">${Object.entries(VS).map(([v, t]) => `<option value="${v}"${(o.vs || 'frei') === v ? ' selected' : ''}>${t}</option>`).join('')}</select></label>
-          <button class="chip" data-a="share" data-id="${esc(o.id)}">${S.partners.length ? `Sichtbar für ${sees} von ${S.partners.length} Partnern ›` : 'Noch keine Partner'}</button></div></div>
+          <button class="vchip" data-a="share" data-id="${esc(o.id)}">${S.partners.length ? `Sichtbar für ${sees} von ${S.partners.length} Partnern ›` : 'Noch keine Partner'}</button></div></div>
           <div class="acts"><button class="btn dark sm" data-a="edit" data-id="${esc(o.id)}">Bearbeiten</button>
           <button class="btn ghost sm" data-a="up" data-id="${esc(o.id)}" ${i === 0 ? 'disabled' : ''} aria-label="Nach oben">↑</button>
           <button class="btn ghost sm" data-a="down" data-id="${esc(o.id)}" ${i === l.length - 1 ? 'disabled' : ''} aria-label="Nach unten">↓</button>
@@ -417,7 +417,7 @@ export async function mount({ app, ctx, render, logout, header }) {
     const me = S.masters.find((m) => m.id === ctx.sess.id);
     ctx.pkg = built.pkg;
     const payload = await openSlot(me.code, built.pkg.slots.find((x) => x.id === ctx.sess.id), built.pkg.iter);
-    ctx.sess = { ...payload, code: me.code, id: ctx.sess.id };
+    ctx.sess = { ...payload, code: me.code, id: ctx.sess.id, sig: built.pkg.objekte.map((b) => b.b).join('|') };
     ctx.data = await openObjects(ctx.sess, built.pkg);
     try { sessionStorage.setItem('nf-partner-session', JSON.stringify(ctx.sess)); } catch { /* egal */ }
     B = snapshot();

@@ -22,7 +22,7 @@ export function kennzahlen(o) {
   return { preisQm: o.preis / o.flaeche, mieteQm: o.miete / o.flaeche, rendite: (jahresmiete / o.preis) * 100, faktor: o.preis / jahresmiete };
 }
 
-const ctx = { pkg: null, sess: null, data: null, view: 'start', filter: 'alle', sort: 'standard', q: '', budget: 0, rend: 0, zi: 0 };
+const ctx = { mode: lsGet('nf-mode') === 'tabelle' ? 'tabelle' : 'karten', pkg: null, sess: null, data: null, view: 'start', filter: 'alle', sort: 'standard', q: '', budget: 0, rend: 0, zi: 0 };
 
 async function loadPackage() {
   const r = await fetch('data.enc.json?t=' + Date.now(), { cache: 'no-store' });
@@ -30,8 +30,49 @@ async function loadPackage() {
   return r.json();
 }
 
+const sigOf = (pkg) => pkg.objekte.map((b) => b.b).join('|');
+
+function note(text) {
+  document.getElementById('toast')?.remove();
+  const d = document.createElement('div');
+  d.id = 'toast'; d.className = 'toast ok'; d.setAttribute('role', 'status'); d.textContent = text;
+  document.body.append(d); setTimeout(() => d.remove(), 4500);
+}
+
+/** Öffnet den eigenen Zugang im (neuen) Datenstand erneut – nötig, wenn zwischenzeitlich veröffentlicht wurde. */
+async function reopen(pkg) {
+  const slot = pkg.slots.find((s) => s.id === ctx.sess.id);
+  const payload = slot && await openSlot(ctx.sess.code, slot, pkg.iter);
+  if (!payload) return false;
+  ctx.pkg = pkg;
+  ctx.sess = { ...payload, code: ctx.sess.code, id: ctx.sess.id, sig: sigOf(pkg) };
+  ctx.data = await openObjects(payload, pkg);
+  try { sessionStorage.setItem(SESSION, JSON.stringify(ctx.sess)); } catch { /* egal */ }
+  return true;
+}
+
+/** Holt den aktuellen Stand (z. B. wenn der Tab länger offen war) und aktualisiert die Übersicht. */
+let lastCheck = Date.now();
+async function refreshData() {
+  lastCheck = Date.now();
+  if (!ctx.sess) return;
+  let pkg; try { pkg = await loadPackage(); } catch { return; }
+  if (sigOf(pkg) === ctx.sess.sig) return;
+  if (!(await reopen(pkg))) {
+    try { sessionStorage.removeItem(SESSION); } catch { /* egal */ }
+    ctx.sess = ctx.data = null;
+    return showLogin('Ihr Zugang wurde geändert. Bitte neu anmelden.');
+  }
+  if (ctx.view === 'start' && !document.getElementById('ov')) {
+    const y = window.scrollY; render(); window.scrollTo(0, y);
+    note('Die Übersicht wurde aktualisiert.');
+  }
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && Date.now() - lastCheck > 60000) refreshData(); });
+setInterval(() => { if (document.visibilityState === 'visible' && ctx.sess && Date.now() - lastCheck > 300000) refreshData(); }, 60000);
+
 async function enter(payload, code, id) {
-  ctx.sess = { ...payload, code, id };
+  ctx.sess = { ...payload, code, id, sig: sigOf(ctx.pkg) };
   const seen = lsGet('nf-seen-' + id);
   ctx.seen = seen ?? Date.now(); // erster Besuch: nichts als „neu“ markieren
   lsSet('nf-seen-' + id, Date.now());
@@ -175,13 +216,25 @@ function filtered() {
     && (!ctx.zi || (ctx.zi === 4 ? o.zimmer >= 4 : o.zimmer === ctx.zi)));
 }
 
+function tabelle(l) {
+  const rows = l.map((o) => {
+    const k = kennzahlen(o), v = o.vs || 'frei';
+    return `<tr data-go="${esc(o.id)}" tabindex="0" class="${v === 'verkauft' ? 'sold' : ''}"><td class="t-o" data-l="Objekt"><b>${esc(o.strasse)}</b><small>${esc(o.lage)}</small>${isNeu(o) ? '<span class="neu-s">neu</span>' : ''}</td>
+      <td data-l="Fläche">${num(o.flaeche)} m²<small>${esc(o.zimmer)} Zimmer</small></td><td data-l="Kaltmiete">${eur(o.miete)}</td><td class="t-p" data-l="Abgabepreis">${eur(o.preis)}</td>
+      <td data-l="€/m²">${eur(k.preisQm)}</td><td data-l="Rendite">${num(k.rendite)} %</td>
+      <td data-l="Status"><span class="tvs ${esc(v)}">${esc(VSTATUS[v] ?? v)}</span><small>${esc(o.status.label)}</small></td></tr>`;
+  }).join('');
+  return `<div class="tbl-w"><table class="tbl"><thead><tr><th>Objekt</th><th>Fläche</th><th>Kaltmiete</th><th>Abgabepreis</th><th>€/m²</th><th>Rendite</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <p class="hint tbl-h">Zeile antippen für alle Details, Unterlagen und Rechner.</p>`;
+}
+
 function listeHtml() {
   const l = filtered();
   if (ctx.sort === 'preis') l.sort((a, b) => a.preis - b.preis);
   if (ctx.sort === 'rendite') l.sort((a, b) => kennzahlen(b).rendite - kennzahlen(a).rendite);
   if (ctx.sort === 'flaeche') l.sort((a, b) => b.flaeche - a.flaeche);
   if (!ctx.data.objekte.length) return '<p class="empty">Für Sie sind aktuell keine Objekte freigegeben. Bitte sprechen Sie Sebastian Sultanow an: ' + KONTAKT.tel + '</p>';
-  return l.length ? l.map(karte).join('') : '<p class="empty">Keine Objekte für diese Auswahl.</p>';
+  return l.length ? (ctx.mode === 'tabelle' ? tabelle(l) : l.map(karte).join('')) : '<p class="empty">Keine Objekte für diese Auswahl.<br><button class="btn ghost sm" data-reset>Filter zurücksetzen</button></p>';
 }
 
 function header() {
@@ -205,7 +258,8 @@ function render() {
   <main class="wrap list-wrap">
     <div class="bar"><div class="chips" id="chips">${FILTER.map((f) => `<button class="chip${ctx.filter === f[0] ? ' on' : ''}" data-f="${f[0]}">${f[1]}</button>`).join('')}</div>
       <div class="tools"><input type="search" id="q" placeholder="Suchen, z. B. Straße, Garage …" value="${esc(ctx.q)}" aria-label="Suchen">
-      <select id="sort" aria-label="Sortieren">${[['standard', 'Sortierung: Standard'], ['preis', 'Preis aufsteigend'], ['rendite', 'Rendite absteigend'], ['flaeche', 'Wohnfläche absteigend']].map(([v, l]) => `<option value="${v}"${ctx.sort === v ? ' selected' : ''}>${l}</option>`).join('')}</select></div></div>
+      <select id="sort" aria-label="Sortieren">${[['standard', 'Sortierung: Standard'], ['preis', 'Preis aufsteigend'], ['rendite', 'Rendite absteigend'], ['flaeche', 'Wohnfläche absteigend']].map(([v, l]) => `<option value="${v}"${ctx.sort === v ? ' selected' : ''}>${l}</option>`).join('')}</select>
+      <div class="seg" id="mode" role="group" aria-label="Ansicht"><button data-m="karten" aria-pressed="${ctx.mode === 'karten'}">Karten</button><button data-m="tabelle" aria-pressed="${ctx.mode === 'tabelle'}">Tabelle</button></div></div></div>
     <div class="tools2"><label>Budget bis<select id="fb">${[[0, 'egal'], [130000, '130.000 €'], [160000, '160.000 €'], [200000, '200.000 €'], [250000, '250.000 €']].map(([v, l]) => `<option value="${v}"${ctx.budget === v ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
       <label>Rendite ab<select id="fr">${[[0, 'egal'], [4, '4 %'], [4.5, '4,5 %'], [5, '5 %'], [5.5, '5,5 %']].map(([v, l]) => `<option value="${v}"${ctx.rend === v ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
       <label>Zimmer<select id="fz">${[[0, 'alle'], [2, '2'], [3, '3'], [4, '4 und mehr']].map(([v, l]) => `<option value="${v}"${ctx.zi === v ? ' selected' : ''}>${l}</option>`).join('')}</select></label></div>
@@ -220,7 +274,10 @@ function render() {
   const cards = document.getElementById('cards');
   cards.addEventListener('input', (e) => { const b = e.target.closest('.calc-in'); if (b) calcUpdate(b); });
   cards.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-doc],[data-ex],[data-mel]'); if (!b) return;
+    const go = e.target.closest('[data-go]');
+    if (go) { ctx.mode = 'karten'; render(); document.querySelector(`[data-oid="${CSS.escape(go.dataset.go)}"]`)?.scrollIntoView({ block: 'start' }); return; }
+    const b = e.target.closest('[data-doc],[data-ex],[data-mel],[data-reset]'); if (!b) return;
+    if (b.dataset.reset !== undefined) { Object.assign(ctx, { filter: 'alle', q: '', budget: 0, rend: 0, zi: 0 }); return render(); }
     if (b.dataset.doc) return download(b.dataset.doc);
     const o = ctx.data.objekte.find((x) => x.id === (b.dataset.ex || b.dataset.mel));
     if (b.dataset.ex) exposeOpen(o); else melden(o);
@@ -231,6 +288,13 @@ function render() {
     document.querySelectorAll('#chips .chip').forEach((c) => c.classList.toggle('on', c === b));
     refresh();
   });
+  document.getElementById('mode').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-m]'); if (!b || ctx.mode === b.dataset.m) return;
+    ctx.mode = b.dataset.m; lsSet('nf-mode', ctx.mode);
+    document.querySelectorAll('#mode button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    refresh();
+  });
+  cards.addEventListener('keydown', (e) => { const r = e.target.closest?.('tr[data-go]'); if (r && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); r.click(); } });
   document.getElementById('q').addEventListener('input', (e) => { ctx.q = e.target.value; refresh(); });
   document.getElementById('sort').addEventListener('change', (e) => { ctx.sort = e.target.value; refresh(); });
   document.getElementById('print').addEventListener('click', () => window.print());
@@ -340,9 +404,10 @@ function exposeHtml(o, p) {
   try {
     const s = JSON.parse(sessionStorage.getItem(SESSION) || 'null');
     if (s?.keys) {
-      ctx.data = await openObjects(s, ctx.pkg);
       ctx.sess = s;
       ctx.seen = Number(sessionStorage.getItem('nf-seen-ctx')) || Date.now();
+      if (s.sig === sigOf(ctx.pkg)) ctx.data = await openObjects(s, ctx.pkg);
+      else if (!(await reopen(ctx.pkg))) { ctx.sess = null; try { sessionStorage.removeItem(SESSION); } catch { /* egal */ } return showLogin('Ihr Zugang wurde geändert. Bitte neu anmelden.'); }
       return render();
     }
   } catch { try { sessionStorage.removeItem(SESSION); } catch { /* egal */ } }
