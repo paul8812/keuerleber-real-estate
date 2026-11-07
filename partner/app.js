@@ -304,7 +304,7 @@ function render() {
       <label class="suche">${ICON.lupe}<input type="search" id="q" placeholder="Objekt suchen, z. B. Straße, Garage …" value="${esc(ctx.q)}" aria-label="Suchen" autocomplete="off"><kbd>/</kbd></label></div>
   </section>
   <div class="kopfbild" role="img" aria-label="Bürogebäude Norderfranken im Abendlicht"><div class="k-stage"><img src="kopfbild.webp" alt="">
-    <svg viewBox="0 0 2000 1125" preserveAspectRatio="none" aria-hidden="true"><defs><filter id="kw" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="7"/></filter><filter id="kl" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="3"/></filter></defs>
+    <svg viewBox="0 0 2000 1125" preserveAspectRatio="none" aria-hidden="true"><defs><filter id="kw" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="4"/></filter><filter id="kl" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="1.2"/></filter></defs>
       <polygon class="k-rahmen" points="565,243 936,370 936,516 564,419" pathLength="100" filter="url(#kw)"/>
       <polygon class="k-lauf" points="565,243 936,370 936,516 564,419" pathLength="100" filter="url(#kl)"/></svg></div></div>
   <section class="lage">
