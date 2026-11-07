@@ -53,7 +53,7 @@ export async function openSlot(code, slot, iter = ITER) {
 /** Baut die komplette Datei {pkg, k, a}.
  *  Jedes Objekt hat einen eigenen Schlüssel. Ein Partner-Slot enthält nur die Schlüssel seiner freigegebenen Objekte,
  *  ein Master-Slot alle Schlüssel plus den Admin-Schlüssel. Alle Schlüssel werden bei jedem Veröffentlichen neu erzeugt. */
-export async function buildPackage({ stand, objekte, partners, masters, fb = null, ev = [] }) {
+export async function buildPackage({ stand, objekte, partners, masters, fb = null, ev = [], evx = null }) {
   const a = newKeyB64();
   const blobs = [];
   const keyOf = {}; // interne Objekt-ID -> Schlüssel
@@ -69,7 +69,7 @@ export async function buildPackage({ stand, objekte, partners, masters, fb = nul
   const slots = [];
   for (const m of masters) slots.push(await makeSlot(m.id, m.code, { r: 'admin', n: m.name, a, stand, keys: keysFor(objekte.map((o) => o.id)), ...(fb ? { fb } : {}) }));
   for (const p of partners) slots.push(await makeSlot(p.id, p.code, { r: 'partner', n: p.name, stand, keys: keysFor(p.objekte ?? []), ...(fb ? { fb: { token: fb.token, pub: fb.pub } } : {}) }));
-  return { a, pkg: { v: 2, iter: ITER, slots, objekte: blobs, admin: await sealJson(a, { partners, masters, fb, ev }) } };
+  return { a, pkg: { v: 2, iter: ITER, slots, objekte: blobs, admin: await sealJson(a, { partners, masters, fb, ev, evx }) } };
 }
 
 /** Entschlüsselt alle Objekte, für die der Slot einen Schlüssel hat (Reihenfolge wie veröffentlicht). */

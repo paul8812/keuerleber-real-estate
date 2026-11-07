@@ -151,8 +151,8 @@ input[type=checkbox],input[type=radio]{height:auto;accent-color:var(--gold)}
 .k-stage img{position:absolute;inset:0;width:100%;height:100%;opacity:var(--bild-op);filter:var(--bild-filter)}
 .k-stage svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;mix-blend-mode:screen;pointer-events:none}
 .k-rahmen,.k-lauf{fill:none;stroke-linejoin:round;vector-effect:non-scaling-stroke}
-.k-rahmen{stroke:#FFB45E;stroke-width:3;opacity:.6;animation:rahmen 4.5s ease-in-out infinite alternate}
-.k-lauf{stroke:#FFE6B0;stroke-width:1.6;stroke-dasharray:12 88;animation:lauf 7s linear infinite}
+.k-rahmen{stroke:#FFB45E;stroke-width:7;opacity:.5;animation:rahmen 4.5s ease-in-out infinite alternate}
+.k-lauf{stroke:#FFE6B0;stroke-width:5;stroke-dasharray:12 88;animation:lauf 7s linear infinite}
 :root[data-theme="light"] .k-stage svg{opacity:.55}
 @keyframes rahmen{from{opacity:.18}to{opacity:.75}}
 @keyframes lauf{from{stroke-dashoffset:0}to{stroke-dashoffset:-100}}
@@ -525,3 +525,4 @@ dialog.mini{width:min(440px,100% - 32px);margin:auto}
   .pv-t{font-size:11px}.pv-o{grid-template-columns:150px 1fr}.pv-o img{width:150px;height:110px}
   .pv .ex-h h1{font-size:22px}.pv .ex-h{gap:8px 20px}
 }
+.bact{display:flex;gap:14px;margin-top:4px;font-size:11px}

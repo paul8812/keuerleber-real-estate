@@ -20,7 +20,7 @@ const EV = { list: [], at: 0, err: '', loading: false }; // entschlüsselte Rüc
 const clone = (x) => JSON.parse(JSON.stringify(x));
 const token = () => { try { return localStorage.getItem(TOKEN_KEY) || ''; } catch { return ''; } };
 const linkFor = (p) => `${location.origin}${location.pathname}#${p.id}.${encodeURIComponent(p.code)}`;
-const snapshot = () => clone({ partners: S.partners, masters: S.masters, objekte: S.data.objekte, fb: S.fb, ev: S.ev });
+const snapshot = () => clone({ partners: S.partners, masters: S.masters, objekte: S.data.objekte, fb: S.fb, ev: S.ev, evx: S.evx });
 const byId = (a) => new Map(a.map((x) => [x.id, x]));
 const titel = (o) => `${o.strasse}${o.lage ? ' · ' + o.lage : ''}`;
 const nObj = (p) => p.objekte.filter((i) => S.data.objekte.some((o) => o.id === i)).length;
@@ -56,6 +56,7 @@ function changes() {
   }
   for (const b of B.objekte) if (!so.has(b.id)) out.push(`Objekt „${titel(b)}“ gelöscht`);
   if (JSON.stringify(B.fb) !== JSON.stringify(S.fb)) out.push(!B.fb ? 'Rückmeldekanal für Partner eingerichtet' : 'Token für Rückmeldungen geändert');
+  if (JSON.stringify(B.evx ?? null) !== JSON.stringify(S.evx)) out.push('Rückmeldungen bearbeitet oder entfernt');
   if ((B.ev?.length ?? 0) !== S.ev.length) out.push(`${S.ev.length > (B.ev?.length ?? 0) ? 'Rückmeldung erfasst' : 'Rückmeldung entfernt'} (manuell)`);
   const kept = B.objekte.filter((o) => so.has(o.id)).map((o) => o.id), now = S.data.objekte.filter((o) => bo.has(o.id)).map((o) => o.id);
   if (kept.join() !== now.join()) out.push('Reihenfolge der Objekte geändert');
@@ -134,7 +135,7 @@ async function copyText(text, fallbackTitle) {
 export async function mount({ app, ctx, render, logout, header }) {
   if (!S) {
     const a = await openJson(ctx.sess.a, ctx.pkg.admin);
-    S = { partners: a.partners.map((p) => ({ ...p, objekte: p.objekte ?? [] })), masters: a.masters, fb: a.fb ?? null, ev: a.ev ?? [], data: { objekte: clone(ctx.data.objekte) } };
+    S = { partners: a.partners.map((p) => ({ ...p, objekte: p.objekte ?? [] })), masters: a.masters, fb: a.fb ?? null, ev: a.ev ?? [], evx: a.evx ?? { hide: [], edit: {} }, data: { objekte: clone(ctx.data.objekte) } };
     B = snapshot();
   }
   const codeTaken = (code, exceptId) => [...S.partners, ...S.masters].some((x) => x.code === code && x.id !== exceptId);
@@ -165,7 +166,14 @@ export async function mount({ app, ctx, render, logout, header }) {
     if (tab === 'dash' && S.fb && !EV.loading && Date.now() - EV.at > 120000) loadEvents();
   };
 
-  const allEvents = () => [...EV.list, ...S.ev];
+  const evKey = (e) => `${e.pid}|${e.oid}|${String(e.k || '').trim().toLowerCase()}`;
+  const allEvents = () => [...EV.list, ...S.ev].filter((e) => !S.evx.hide.includes(e.id)).map((e) => (S.evx.edit[e.id] ? { ...e, ...S.evx.edit[e.id] } : e));
+  const chainOf = (key) => allEvents().filter((e) => evKey(e) === key).sort((a, b) => a.t - b.t);
+  function removeEvents(ids) {
+    S.ev = S.ev.filter((x) => !ids.includes(x.id));
+    S.evx.hide = [...new Set([...S.evx.hide, ...ids.filter((i) => !i.startsWith('m'))])];
+    for (const i of ids) delete S.evx.edit[i];
+  }
   function dashPanel() { return dashHtml({ objekte: S.data.objekte, partners: S.partners, events: allEvents(), fb: S.fb, state: EV }); }
 
   async function loadEvents() {
@@ -279,11 +287,16 @@ export async function mount({ app, ctx, render, logout, header }) {
       const i = S.data.objekte.findIndex((o) => o.id === id), was = S.data.objekte[i], neu = clone(was);
       neu.vs = 'reserviert'; neu.vbis = new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10);
       S.data.objekte[i] = stamp(neu, was); draw(); toast(`${titel(was)} reserviert (14 Tage) – bitte veröffentlichen.`);
-    } else if (a === 'ev-del') { S.ev = S.ev.filter((x) => x.id !== id); draw(); }
+    } else if (a === 'ev-del') { removeEvents([id]); draw(); toast('Rückmeldung entfernt – bitte veröffentlichen.'); }
+    else if (a === 'ch-del') {
+      const ch = chainOf(b.dataset.key), last = ch[ch.length - 1];
+      if (last && await confirmBox({ title: 'Interessent entfernen?', text: `„${last.k || 'Interessent'}“ bei ${last.on || 'diesem Objekt'} (${ch.length} Eintrag${ch.length > 1 ? 'e' : ''}) wird aus Dashboard und Verlauf entfernt (nach dem Veröffentlichen gespeichert).`, ok: 'Entfernen', danger: true })) { removeEvents(ch.map((e) => e.id)); draw(); toast('Entfernt – bitte veröffentlichen.'); }
+    }
+    else if (a === 'ch-edit') openChainEdit(b.dataset.key)
     else if (a === 'ev-add') openEvent();
     else if (a === 'discard') {
       if (await confirmBox({ title: 'Änderungen verwerfen?', text: 'Alles seit der letzten Veröffentlichung wird zurückgesetzt.', ok: 'Verwerfen', danger: true })) {
-        S.partners = clone(B.partners); S.masters = clone(B.masters); S.data.objekte = clone(B.objekte); S.fb = clone(B.fb); S.ev = clone(B.ev);
+        S.partners = clone(B.partners); S.masters = clone(B.masters); S.data.objekte = clone(B.objekte); S.fb = clone(B.fb); S.ev = clone(B.ev); S.evx = clone(B.evx ?? { hide: [], edit: {} });
         const me = S.masters.find((m) => m.id === ctx.sess.id); if (me) ctx.sess.n = me.name;
         draw(); toast('Änderungen verworfen.');
       }
@@ -431,10 +444,32 @@ export async function mount({ app, ctx, render, logout, header }) {
     sheet.showModal();
   }
 
+  /* ---------- Interessent bearbeiten (Stand, Name, Notiz) ---------- */
+  function openChainEdit(key) {
+    const ch = chainOf(key), last = ch[ch.length - 1];
+    if (!last) return;
+    const sheet = dlg('sheet', 'sheet');
+    sheet.innerHTML = `<form class="panel form" id="chForm"><div class="sh-h"><h2>Interessent bearbeiten</h2><button type="button" class="btn ghost sm" data-a="close">Abbrechen</button></div>
+      <p class="hint">${esc(last.on || '')} · ${esc(last.pn || '')}</p><div class="grid">
+      <label class="f"><span>Stand</span><select name="st">${STAGES.map((s) => `<option value="${s.id}"${s.id === last.st ? ' selected' : ''}>${esc(s.label)}</option>`).join('')}</select></label>
+      <label class="f"><span>Interessent (Name/Kürzel)</span><input name="k" maxlength="60" autocomplete="off" value="${esc(last.k || '')}"></label>
+      <label class="f wide"><span>Notiz</span><textarea name="n" rows="2" maxlength="400">${esc(last.n || '')}</textarea></label></div>
+      <div class="acts sticky-save"><button class="btn fill">Speichern</button></div></form>`;
+    sheet.onclose = () => draw(); sheet.onchange = null;
+    sheet.onclick = (e) => { if (e.target.closest('[data-a=close]')) sheet.close(); };
+    sheet.querySelector('#chForm').onsubmit = (e) => {
+      e.preventDefault();
+      const f = new FormData(e.target), k = String(f.get('k')).trim();
+      for (const ev of ch) S.evx.edit[ev.id] = { ...(S.evx.edit[ev.id] ?? {}), k, ...(ev.id === last.id ? { st: String(f.get('st')), n: String(f.get('n')).trim() } : {}) };
+      sheet.close(); toast('Gespeichert – bitte veröffentlichen.');
+    };
+    sheet.showModal();
+  }
+
   /* ---------- Veröffentlichen ---------- */
   async function buildNext() {
     const stand = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    return buildPackage({ stand, objekte: S.data.objekte, partners: S.partners, masters: S.masters, fb: S.fb, ev: S.ev });
+    return buildPackage({ stand, objekte: S.data.objekte, partners: S.partners, masters: S.masters, fb: S.fb, ev: S.ev, evx: S.evx });
   }
 
   function openPublish() {

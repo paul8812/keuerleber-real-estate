@@ -54,7 +54,7 @@ export function dashHtml({ objekte, partners, events, fb, state }) {
     const items = ch.filter((e) => e.st === s.id).sort((a, b) => b.t - a.t);
     return `<div class="col" style="--c:${s.color}"><h3><i></i>${esc(s.short)} <span>${items.length}</span></h3>${items.map((e) => {
       const o = objekte.find((x) => x.id === e.oid), canMark = s.id === 'reserviert' && o && !['reserviert', 'notar', 'verkauft'].includes(o.vs || 'frei');
-      return `<div class="bc"><b>${esc(e.k || 'Interessent')}</b><span>${esc(e.on || (o ? titel(o) : ''))}</span><small>${esc(e.pn || '')} · ${dt(e.t)}</small>${e.n ? `<em>${esc(e.n)}</em>` : ''}${canMark ? `<button class="btn fill sm" data-a="mark-res" data-id="${esc(e.oid)}">Objekt reservieren</button>` : ''}</div>`;
+      return `<div class="bc"><b>${esc(e.k || 'Interessent')}</b><span>${esc(e.on || (o ? titel(o) : ''))}</span><small>${esc(e.pn || '')} · ${dt(e.t)}</small>${e.n ? `<em>${esc(e.n)}</em>` : ''}${canMark ? `<button class="btn fill sm" data-a="mark-res" data-id="${esc(e.oid)}">Objekt reservieren</button>` : ''}<div class="bact"><button class="linkbtn" data-a="ch-edit" data-key="${esc(`${e.pid}|${e.oid}|${String(e.k || '').trim().toLowerCase()}`)}">Bearbeiten</button><button class="linkbtn" data-a="ch-del" data-key="${esc(`${e.pid}|${e.oid}|${String(e.k || '').trim().toLowerCase()}`)}">Entfernen</button></div></div>`;
     }).join('') || '<p class="hint">–</p>'}</div>`;
   }).join('')}</div>`;
 
@@ -76,7 +76,7 @@ export function dashHtml({ objekte, partners, events, fb, state }) {
   const pmax = Math.max(1, ...prow.map((r) => r.n));
   const pbars = prow.map((r) => `<li><div class="pl"><b>${esc(r.p.name)}</b><small>${r.last ? 'zuletzt ' + ago(r.last.t) : 'noch keine Rückmeldung'}</small></div><div class="pr"><div style="width:${Math.max(6, (r.n / pmax) * 100)}%;${r.n ? '' : 'opacity:.25'}">${seg(r.c, r.n)}</div><span>${r.n}</span></div></li>`).join('');
 
-  const feed = [...events].sort((a, b) => b.t - a.t).slice(0, 12).map((e) => { const s = stageOf(e.st); return `<li style="--c:${s.color}"><i></i><div><b>${esc(e.pn || 'Partner')}</b> · ${esc(s.short)}${e.k ? ` · ${esc(e.k)}` : ''}<span>${esc(e.on || '')}</span>${e.n ? `<em>${esc(e.n)}</em>` : ''}</div><small>${ago(e.t)}${e.man ? ` · <button class="linkbtn" data-a="ev-del" data-id="${esc(e.id)}">entfernen</button>` : ''}</small></li>`; }).join('');
+  const feed = [...events].sort((a, b) => b.t - a.t).slice(0, 12).map((e) => { const s = stageOf(e.st); return `<li style="--c:${s.color}"><i></i><div><b>${esc(e.pn || 'Partner')}</b> · ${esc(s.short)}${e.k ? ` · ${esc(e.k)}` : ''}<span>${esc(e.on || '')}</span>${e.n ? `<em>${esc(e.n)}</em>` : ''}</div><small>${ago(e.t)} · <button class="linkbtn" data-a="ev-del" data-id="${esc(e.id)}">entfernen</button></small></li>`; }).join('');
 
   return `${setup}
     <section class="panel"><div class="ph"><div><h2>Überblick</h2><p class="hint">Stand ${new Date().toLocaleDateString('de-DE')} · ${objekte.length} Objekte · ${partners.length} Partner</p></div>${status}</div>
