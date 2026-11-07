@@ -3,7 +3,7 @@ import { STAGES, stageOf, chains } from './fb.js';
 import { esc, eur } from './app.js';
 
 const VS = { frei: 'Frei', reserviert: 'Reserviert', notar: 'Notartermin', verkauft: 'Verkauft' };
-const VCOL = { frei: 'var(--gut)', reserviert: 'var(--warn)', notar: 'var(--schiefer)', verkauft: 'var(--muted)' };
+const VCOL = { frei: 'var(--schiefer)', reserviert: 'var(--warn)', notar: 'var(--gold)', verkauft: 'var(--gut)' };
 const titel = (o) => `${o.strasse}${o.lage ? ' · ' + o.lage : ''}`;
 const dt = (t) => new Date(t).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'gerade eben' : m < 60 ? `vor ${m} Min.` : m < 1440 ? `vor ${Math.round(m / 60)} Std.` : `vor ${Math.round(m / 1440)} Tg.`; };
