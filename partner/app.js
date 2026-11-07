@@ -182,34 +182,33 @@ function karte(o) {
   <article class="card${sold ? ' sold' : ''}" data-oid="${esc(o.id)}">
     <div class="photo"><img src="${esc(o.bild)}" alt="${esc(o.strasse + ', ' + o.lage)}" loading="lazy"><button class="fav${favs().includes(o.id) ? ' on' : ''}" data-fav="${esc(o.id)}" aria-pressed="${favs().includes(o.id)}" aria-label="Als Favorit merken">★</button><span class="pill ${esc(o.status.tone)}"><i></i>${esc(o.status.label)}</span>${vBadge(o)}${isNeu(o) ? `<span class="neu">${esc(o.aend || 'Aktualisiert')}</span>` : ''}</div>
     <div class="body">
-      <div class="head"><h2>${esc(o.strasse)} <span>· ${esc(o.lage)}</span></h2><span class="meta">Bj. ${esc(o.baujahr)} · Energie ${esc(o.energie)} · Hausgeld ${eur(o.hausgeld)}</span></div>
-      <p class="ort">${esc(o.ort)}</p>
-      <ul class="tags">${o.tags.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
+      <div class="head"><h2>${esc(o.strasse)} <span>· ${esc(o.lage)}</span></h2><span class="meta">${esc(o.zimmer)} Zi. · Bj. ${esc(o.baujahr)} · Energie ${esc(o.energie)} · Hausgeld ${eur(o.hausgeld)}</span></div>
       <div class="kpis">
-        <div><small>Wohnfläche</small><b>${num(o.flaeche)} m²</b><em>${esc(o.zimmer)} Zimmer</em></div>
-        <div><small>Kaltmiete / Mon.</small><b>${eur(o.miete)} <u class="tag ${esc(o.mieteTyp.toLowerCase())}">${esc(o.mieteTyp)}</u></b><em>${num(k.mieteQm)} €/m²${o.zuschlag ? ` · + ${esc(o.zuschlag.label)} ${esc(o.zuschlag.betrag)} €` : ''}</em></div>
-        <div class="price"><small>Abgabepreis</small><b>${eur(o.preis)}</b><em>${esc(o.preisHinweis)}</em></div>
-        <div><small>Abgabepreis / m²</small><b>${eur(k.preisQm)}</b><em>pro m² Wohnfläche</em></div>
-        <div><small>Rendite p. a.</small><b>${num(k.rendite)} %</b><em>Faktor ${num(k.faktor, 1)}</em></div>
+        <div><small>Wohnfläche</small><b>${num(o.flaeche)} m²</b></div>
+        <div><small>Kaltmiete / Mon.</small><b>${eur(o.miete)} <u class="tag ${esc(o.mieteTyp.toLowerCase())}">${esc(o.mieteTyp)}</u></b></div>
+        <div class="price"><small>Abgabepreis</small><b>${eur(o.preis)}</b></div>
+        <div><small>Rendite p. a.</small><b>${num(k.rendite)} %</b></div>
       </div>
-      <div class="lower">
-        <div class="san">
-          <div class="san-h"><small>Sanierungsstand</small><b class="${esc(o.status.tone)}">${o.fortschritt} %</b></div>
-          <div class="bar-t"><i class="${esc(o.status.tone)}" style="width:${o.fortschritt}%"></i></div>
-          <p>${esc(o.sanierung)}</p><p class="note">${esc(o.hinweis)}</p>
-        </div>
-        <ol class="steps">${steps}</ol>
-      </div>
+      <div class="san-h"><small>Sanierungsstand</small><b class="${esc(o.status.tone)}">${o.fortschritt} %</b></div>
+      <div class="bar-t"><i class="${esc(o.status.tone)}" style="width:${o.fortschritt}%"></i></div>
       <div class="cact">
-        <button class="btn fill sm" data-fb="${esc(o.id)}" ${sold ? 'disabled' : ''}>Rückmeldung geben</button>
-        <button class="btn dark sm" data-ex="${esc(o.id)}">Kunden-Exposé</button>
+        <button class="btn fill sm" data-fb="${esc(o.id)}" ${sold ? 'disabled' : ''}>Rückmeldung</button>
+        <button class="btn dark sm" data-ex="${esc(o.id)}">Exposé</button>
         <a class="btn ghost sm" href="tel:+${waNr(a.tel)}">Anrufen</a>
         ${isMobil(a.tel) ? `<a class="btn ghost sm" href="https://wa.me/${waNr(a.tel)}" target="_blank" rel="noopener noreferrer">WhatsApp</a>` : a.mail ? `<a class="btn ghost sm" href="mailto:${esc(a.mail)}">E-Mail</a>` : ''}
-        <span class="who">Ansprechpartner: <b>${esc(a.name)}</b> · ${esc(a.tel)}</span>
       </div>
       ${fbBlock(o)}
-      ${docs.length ? `<details class="dd"><summary>Unterlagen (${docs.length})</summary><div class="doclist">${docs.map((d, i) => `<button class="doc" data-doc="${esc(o.id)}:${i}"><span>${esc(d.n)}</span><small>${Math.max(1, Math.round((d.d.length * 0.75) / 1024))} KB · herunterladen</small></button>`).join('')}</div></details>` : ''}
-      <details class="dd calc"><summary>Rechner: Finanzierung &amp; Cashflow</summary>${calcHtml(o)}</details>
+      <details class="dd more"><summary>Details, Zeitplan &amp; Unterlagen</summary>
+        <div class="mb">
+          <ul class="tags">${o.tags.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
+          <p class="ort">${esc(o.ort)}</p>
+          <div class="san"><p>${esc(o.sanierung)}</p>${o.hinweis ? `<p class="note">${esc(o.hinweis)}</p>` : ''}<p class="hint">Kaltmiete ${num(k.mieteQm)} €/m²${o.zuschlag ? ` · + ${esc(o.zuschlag.label)} ${esc(o.zuschlag.betrag)} €` : ''} · Abgabepreis ${eur(k.preisQm)}/m²${o.preisHinweis ? ' (' + esc(o.preisHinweis) + ')' : ''} · Faktor ${num(k.faktor, 1)}</p></div>
+          <ol class="steps">${steps}</ol>
+          <p class="who">Ansprechpartner: <b>${esc(a.name)}</b> · ${esc(a.tel)}</p>
+          ${docs.length ? `<details class="dd"><summary>Unterlagen (${docs.length})</summary><div class="doclist">${docs.map((d, i) => `<button class="doc" data-doc="${esc(o.id)}:${i}"><span>${esc(d.n)}</span><small>${Math.max(1, Math.round((d.d.length * 0.75) / 1024))} KB · herunterladen</small></button>`).join('')}</div></details>` : ''}
+          <details class="dd calc"><summary>Rechner: Finanzierung &amp; Cashflow</summary>${calcHtml(o)}</details>
+        </div>
+      </details>
     </div>
   </article>`;
 }
@@ -304,7 +303,10 @@ function render() {
     <div class="leit"><p class="eyebrow slogan">Gemeinsam mehr erreichen.</p>
       <label class="suche">${ICON.lupe}<input type="search" id="q" placeholder="Objekt suchen, z. B. Straße, Garage …" value="${esc(ctx.q)}" aria-label="Suchen" autocomplete="off"><kbd>/</kbd></label></div>
   </section>
-  <div class="kopfbild" role="img" aria-label="Bürogebäude Norderfranken im Abendlicht"><img src="kopfbild.webp" alt=""><i class="k-glanz"></i><i class="k-licht"></i></div>
+  <div class="kopfbild" role="img" aria-label="Bürogebäude Norderfranken im Abendlicht"><div class="k-stage"><img src="kopfbild.webp" alt="">
+    <svg viewBox="0 0 2000 1125" preserveAspectRatio="none" aria-hidden="true"><defs><filter id="kw" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="7"/></filter><filter id="kl" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="3"/></filter></defs>
+      <polygon class="k-rahmen" points="565,243 936,370 936,516 564,419" pathLength="100" filter="url(#kw)"/>
+      <polygon class="k-lauf" points="565,243 936,370 936,516 564,419" pathLength="100" filter="url(#kl)"/></svg></div></div>
   <section class="lage">
     <div class="zeile blau"><div class="z-titel"><span class="z-ic">${ICON.haus}</span><span class="z-txt"><b>Bestand</b><small>Eigentumswohnungen in Hof</small></span></div>
       <div class="z-inhalt"><div class="spalten">
@@ -341,8 +343,6 @@ function render() {
   const refresh = () => { document.getElementById('cards').innerHTML = listeHtml(); document.querySelectorAll('.calc-in').forEach(calcUpdate); };
   refresh();
   for (const [id, key, conv] of [['fb', 'budget', Number], ['fr', 'rend', Number], ['fz', 'zi', Number]]) document.getElementById(id).addEventListener('change', (e) => { ctx[key] = conv(e.target.value); refresh(); });
-  const kb = document.querySelector('.kopfbild img');
-  if (kb && !matchMedia('(prefers-reduced-motion: reduce)').matches) { let t = 0; const par = () => { t = 0; kb.style.setProperty('--py', Math.min(40, window.scrollY * 0.08) + 'px'); }; window.addEventListener('scroll', () => { if (!t) t = requestAnimationFrame(par); }, { passive: true }); }
   document.getElementById('showNeu')?.addEventListener('click', () => { ctx.filter = 'neu'; render(); });
   document.querySelector('.lage').addEventListener('click', (e) => {
     const b = e.target.closest('[data-f]'); if (!b) return;
@@ -522,7 +522,7 @@ function exposeHtml(o, p) {
     ${p.firma ? `<div class="ex-by"><b>${esc(p.firma)}</b>${p.tel ? `<span>${esc(p.tel)}</span>` : ''}${p.mail ? `<span>${esc(p.mail)}</span>` : ''}</div>` : ''}</header>
     <img class="ex-img" src="${esc(o.bild)}" alt="">
     <ul class="tags">${o.tags.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
-    <div class="kpis ex-k"><div><small>Wohnfläche</small><b>${num(o.flaeche)} m²</b><em>${esc(o.zimmer)} Zimmer</em></div>
+    <div class="kpis ex-k"><div><small>Wohnfläche</small><b>${num(o.flaeche)} m²</b></div>
       <div class="price"><small>Kaufpreis</small><b>${eur(preis)}</b><em>${num(kz.preisQm)} € pro m²</em></div>
       <div><small>Kaltmiete / Mon.</small><b>${eur(o.miete)}</b><em>${esc(o.mieteTyp)}${o.zuschlag ? ` · + ${esc(o.zuschlag.label)} ${esc(o.zuschlag.betrag)} €` : ''}</em></div>
       <div><small>Rendite p. a.</small><b>${num(kz.rendite)} %</b><em>Faktor ${num(kz.faktor, 1)}</em></div>
