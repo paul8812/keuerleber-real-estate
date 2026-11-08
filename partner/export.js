@@ -85,11 +85,35 @@ function xlsx(list, kz) {
   ]);
 }
 
+
+/* ---------- Investagon-Einheitentabelle (CSV): übliche Importfelder, Zuordnung beim ersten Import nötig ---------- */
+const split = (o) => {
+  const m = String(o.strasse || '').match(/^(.*?)\s+(\d+\s?[a-zA-Z]?)$/), p = String(o.ort || '').match(/^(\d{5})\s+([^\s—–-]+)/), e = String(o.lage || '').match(/(\d+)\.\s*(OG|DG|EG|UG)(?:\s+(.*))?/i);
+  return { str: m ? m[1] : o.strasse, nr: m ? m[2] : '', plz: p ? p[1] : '', ort: p ? p[2] : 'Hof', etage: e ? e[1] : /EG/i.test(o.lage || '') ? '0' : '', lage: e ? e[3] || '' : o.lage || '' };
+};
+const IV_STATUS = { frei: 'Verfügbar', reserviert: 'Reserviert', notar: 'Notartermin', verkauft: 'Verkauft' };
+function investagon(list, kz) {
+  const sp = [
+    ['Einheit-Nr.', (o) => o.id], ['Straße', (o) => split(o).str], ['Hausnummer', (o) => split(o).nr], ['PLZ', (o) => split(o).plz], ['Ort', (o) => split(o).ort],
+    ['Etage', (o) => split(o).etage], ['Lage in Etage', (o) => split(o).lage], ['Zimmer', (o) => o.zimmer, 'n'], ['Wohnfläche (m²)', (o) => o.flaeche, 'q'],
+    ['Baujahr', (o) => o.baujahr, 'n'], ['Energieeffizienzklasse', (o) => o.energie], ['Status', (o) => IV_STATUS[o.vs || 'frei']],
+    ['Kaufpreis (€)', (o) => o.preis, 'e'], ['Kaufpreis je m² (€)', (o) => kz(o).preisQm, 'e'],
+    ['Nettokaltmiete (€/Monat)', (o) => o.miete, 'e'], ['Mietart', (o) => ({ IST: 'Ist-Miete', SOLL: 'Soll-Miete', PLAN: 'Plan-Miete' })[o.mieteTyp] ?? o.mieteTyp],
+    ['Zusatzmiete (€/Monat)', (o) => o.zuschlag?.betrag ?? '', 'e'], ['Zusatzmiete Bezeichnung', (o) => o.zuschlag?.label ?? ''],
+    ['Hausgeld (€/Monat)', (o) => o.hausgeld, 'e'], ['Mietrendite brutto (%)', (o) => kz(o).rendite, 'p2'], ['Kaufpreisfaktor', (o) => kz(o).faktor, 'f'],
+    ['Sanierungsstand (%)', (o) => o.fortschritt, 'p'], ['Bauzustand', (o) => o.status?.label], ['Ausstattung', (o) => (o.tags ?? []).join(', ')],
+    ['Beschreibung Lage', (o) => o.ort], ['Beschreibung Sanierung', (o) => o.sanierung], ['Hinweis', (o) => o.hinweis],
+  ];
+  const num = (v, t) => (t === undefined ? String(v ?? '') : v === '' || v == null || Number.isNaN(v) ? '' : String(Math.round(v * 100) / 100).replace('.', ','));
+  const rows = [sp.map((c) => csvCell(c[0])).join(';'), ...list.map((o) => sp.map((c) => csvCell(num(c[1](o), c[2]))).join(';'))];
+  return new Blob(['\ufeff' + rows.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+}
+
 export function exportObjekte(list, kz, format) {
   if (!list.length) return false;
-  const blob = format === 'csv' ? csv(list, kz) : xlsx(list, kz), a = document.createElement('a');
+  const blob = format === 'investagon' ? investagon(list, kz) : format === 'csv' ? csv(list, kz) : xlsx(list, kz), a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `Norderfranken_Objekte_${new Date().toISOString().slice(0, 10)}.${format === 'csv' ? 'csv' : 'xlsx'}`;
+  a.download = `${format === 'investagon' ? 'Norderfranken_Investagon_Einheiten' : 'Norderfranken_Objekte'}_${new Date().toISOString().slice(0, 10)}.${format === 'xlsx' ? 'xlsx' : 'csv'}`;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   return true;
