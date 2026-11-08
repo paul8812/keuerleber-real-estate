@@ -1,6 +1,7 @@
 // Partnerbereich: lädt die verschlüsselte Datei, entschlüsselt sie im Browser und zeigt die Übersicht.
 import { openObjects, openSlot, sealFeedback, randomId } from './crypto.js';
 import { STAGES, stageOf, chains } from './fb.js';
+import { exportObjekte } from './export.js';
 
 const app = document.getElementById('app');
 const KONTAKT = { firma: 'Norderfranken Haus und Grund GmbH', adresse: 'Am Gewerbegebiet 5 · 95185 Gattendorf', tel: '+49 160 3636997', telHref: '+491603636997', mail: 'info@norderfranken.de', web: 'www.norderfranken.de' };
@@ -331,7 +332,7 @@ function render() {
       <div class="tools">
       <select id="sort" aria-label="Sortieren">${[['standard', 'Sortierung: Standard'], ['preis', 'Preis aufsteigend'], ['rendite', 'Rendite absteigend'], ['flaeche', 'Wohnfläche absteigend']].map(([v, l]) => `<option value="${v}"${ctx.sort === v ? ' selected' : ''}>${l}</option>`).join('')}</select>
       <div class="seg" id="mode" role="group" aria-label="Ansicht"><button data-m="karten" aria-pressed="${ctx.mode === 'karten'}">Karten</button><button data-m="tabelle" aria-pressed="${ctx.mode === 'tabelle'}">Tabelle</button></div>
-      <button class="btn ghost sm" id="print">Drucken / PDF</button></div></div>
+      <button class="btn ghost sm" id="print">Drucken / PDF</button><button class="btn ghost sm" data-exp="xlsx" title="Alle angezeigten Objekte mit Kennzahlen als Excel-Datei">Excel</button><button class="btn ghost sm" data-exp="csv" title="Alle angezeigten Objekte mit Kennzahlen als CSV-Datei">CSV</button></div></div>
     <div class="tools2"><label>Budget bis<select id="fb">${[[0, 'egal'], [130000, '130.000 €'], [160000, '160.000 €'], [200000, '200.000 €'], [250000, '250.000 €']].map(([v, l]) => `<option value="${v}"${ctx.budget === v ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
       <label>Rendite ab<select id="fr">${[[0, 'egal'], [4, '4 %'], [4.5, '4,5 %'], [5, '5 %'], [5.5, '5,5 %']].map(([v, l]) => `<option value="${v}"${ctx.rend === v ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
       <label>Zimmer<select id="fz">${[[0, 'alle'], [2, '2'], [3, '3'], [4, '4 und mehr']].map(([v, l]) => `<option value="${v}"${ctx.zi === v ? ' selected' : ''}>${l}</option>`).join('')}</select></label></div>
@@ -384,6 +385,7 @@ function render() {
   document.getElementById('q').addEventListener('input', (e) => { ctx.q = e.target.value; refresh(); });
   document.getElementById('sort').addEventListener('change', (e) => { ctx.sort = e.target.value; refresh(); });
   document.getElementById('print').addEventListener('click', printOpen);
+  document.querySelectorAll('[data-exp]').forEach((x) => x.addEventListener('click', () => { if (!exportObjekte(visible(), kennzahlen, x.dataset.exp)) alert('Keine Objekte zum Exportieren – bitte Filter anpassen.'); }));
   document.getElementById('logout').addEventListener('click', logout);
   document.getElementById('toAdmin')?.addEventListener('click', () => { ctx.view = 'admin'; render(); window.scrollTo(0, 0); });
 }
