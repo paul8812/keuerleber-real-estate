@@ -517,7 +517,8 @@ dialog.mini{width:min(440px,100% - 32px);margin:auto}
 @media print{
   body.pe #app{display:none!important}
   body.pe::before{display:none}
-  body.pe,html:has(body.pe){background:#fff!important}
+  :root,html,body,body.pe{color-scheme:light!important;background:#fff!important;color:#111}
+  body.ovopen{overflow:visible!important}
   body.pe *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body.pe .ov{position:static;background:#fff;display:block;padding:0;overflow:visible;-webkit-backdrop-filter:none;backdrop-filter:none}
   body.pe .ex-bar,body.pe .chk,.ex-x{display:none!important}
