@@ -111,3 +111,15 @@ export async function openFeedback(privJwk, text) {
   const raw = new Uint8Array(await crypto.subtle.decrypt({ name: 'RSA-OAEP' }, priv, fromB64(m.w)));
   return JSON.parse(dec.decode(await unseal(await aes(raw, ['decrypt']), m)));
 }
+
+/* ---------- Dateien (Handwerkerbereich): Bytes mit dem Schlüssel des Verlaufs verschlüsseln, IV vorangestellt ---------- */
+export async function sealBytes(keyB64, bytes) {
+  const iv = rnd(12);
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await aes(fromB64(keyB64), ['encrypt']), bytes));
+  const out = new Uint8Array(12 + ct.length); out.set(iv); out.set(ct, 12);
+  return out;
+}
+export async function openBytes(keyB64, bytes) {
+  const u = new Uint8Array(bytes);
+  return new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: u.subarray(0, 12) }, await aes(fromB64(keyB64), ['decrypt']), u.subarray(12)));
+}
