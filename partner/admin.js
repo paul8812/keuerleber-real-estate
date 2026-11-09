@@ -156,8 +156,8 @@ export async function mount({ app, ctx, render, logout, header }) {
     app.innerHTML = `${header().replace('<button class="btn dark sm" id="toAdmin">Verwaltung</button>', '<button class="btn ghost sm" id="back" data-a="back">Zur Übersicht</button>').replace('<button class="btn ghost sm" id="print">Drucken / PDF</button>', '').replace('id="logout"', 'id="logout" data-a="logout"')}
     <main class="wrap adm">
       <h1>Verwaltung</h1>
-      <nav class="tabs" role="tablist" aria-label="Bereiche">${[['dash', 'Dashboard', ''], ['objekte', 'Objekte', S.data.objekte.length], ['partner', 'Partner', S.partners.length], ['team', 'Team', S.masters.length]]
-        .map(([k, l, c]) => `<button role="tab" class="tab" aria-selected="${tab === k}" data-a="tab" data-id="${k}">${l}${c === '' ? '' : `<span>${c}</span>`}</button>`).join('')}</nav>
+      <nav class="tabs" aria-label="Bereiche">${[['dash', 'Dashboard', ''], ['objekte', 'Objekte', S.data.objekte.length], ['partner', 'Partner', S.partners.length], ['team', 'Team', S.masters.length]]
+        .map(([k, l, c]) => `<button type="button" class="tab" aria-current="${tab === k}" data-a="tab" data-id="${k}">${l}${c === '' ? '' : `<span>${c}</span>`}</button>`).join('')}</nav>
       ${tab === 'dash' ? dashPanel() : tab === 'objekte' ? objektPanel() : tab === 'partner' ? partnerPanel() : teamPanel()}
     </main>
     <div class="admin-bar"><div class="wrap">
