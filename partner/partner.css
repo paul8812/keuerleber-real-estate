@@ -508,7 +508,9 @@ dialog.mini{width:min(440px,100% - 32px);margin:auto}
 
 /* ---------- Umbrüche ---------- */
 @media (max-width:1150px){.spalten{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:700px){.zeile{grid-template-columns:minmax(0,1fr)}.z-titel{border-right:0;border-bottom:1px solid var(--rand2)}}
 @media (max-width:560px){.board{grid-template-columns:1fr}.kpis4{grid-template-columns:1fr 1fr}.hb li{grid-template-columns:92px 1fr 24px}.dstat .btn{flex:1}.feed li{grid-template-columns:12px 1fr}.feed small{grid-column:2}}
+@media (max-width:480px){.top-r{flex-wrap:wrap;gap:6px 14px;max-width:100%}.top-user{flex-basis:100%}.p-kopf #logout{padding:8px 4px}}
 @media (max-width:420px){.p-in{gap:8px}.brand{gap:12px}.brand img{padding-right:12px}.brand small{letter-spacing:.06em}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.k-lauf{display:none}}
 
