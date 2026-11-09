@@ -251,7 +251,10 @@ export async function mount({ app, ctx, render, logout, header }) {
     const b = e.target.closest('[data-a]'); if (!b) return;
     const { a, id } = b.dataset, l = S.data.objekte;
     if (a === 'back') { leave(); render(); }
-    else if (a === 'logout') { leave(); S = B = null; logout(); }
+    else if (a === 'logout') {
+      if (changes().length && !confirm('Es gibt ungespeicherte Änderungen. Wirklich abmelden? Die Änderungen gehen verloren.')) return;
+      leave(); S = B = null; logout();
+    }
     else if (a === 'tab') { tab = id; draw(false); }
     else if (a === 'new-obj') openEditor('neu');
     else if (a === 'edit') openEditor(id);
