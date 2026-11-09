@@ -1,7 +1,8 @@
 // Speicherdienst (Supabase, nur REST). Alles Inhaltliche ist vorher verschlüsselt – der Dienst sieht nur Zufallskennungen und Chiffretext.
 import { openBytes, openJson, sealBytes, sealJson } from '../partner/crypto.js';
 
-const H = (sb, extra = {}) => ({ apikey: sb.key, Authorization: 'Bearer ' + sb.key, ...extra });
+// Alte „anon“-Schlüssel sind JWTs (eyJ…) und gehören zusätzlich in Authorization; neue „publishable“-Schlüssel (sb_publishable_…) nur in apikey.
+const H = (sb, extra = {}) => ({ apikey: sb.key, ...(sb.key.startsWith('eyJ') ? { Authorization: 'Bearer ' + sb.key } : {}), ...extra });
 const base = (sb) => sb.url.replace(/\/+$/, '');
 const fail = async (r, what) => { throw new Error(`${what} (${r.status}${r.status === 401 || r.status === 403 ? ' – Zugriff verweigert' : r.status === 404 ? ' – Tabelle/Speicher nicht eingerichtet' : ''})`); };
 
@@ -63,22 +64,25 @@ export async function testConnection(sb) {
 export const SQL = `-- Einmalig im Supabase-Dashboard unter „SQL Editor“ ausführen
 create table if not exists public.msgs (
   id bigint generated always as identity primary key,
-  thread text not null check (char_length(thread) = 24),
+  thread text not null check (thread ~ '^[0-9a-f]{24}$'),
   body text not null check (char_length(body) < 30000),
   created_at timestamptz not null default now()
 );
 create index if not exists msgs_thread_id on public.msgs (thread, id);
 alter table public.msgs enable row level security;
+grant usage on schema public to anon;
+grant select, insert on public.msgs to anon;
 drop policy if exists "msgs lesen" on public.msgs;
 drop policy if exists "msgs schreiben" on public.msgs;
 create policy "msgs lesen" on public.msgs for select to anon using (true);
 create policy "msgs schreiben" on public.msgs for insert to anon with check (true);
 
-insert into storage.buckets (id, name, public, file_size_limit)
-values ('hw', 'hw', false, 15728640) on conflict (id) do nothing;
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('hw', 'hw', false, 15728640, array['application/octet-stream'])
+on conflict (id) do update set public = false, file_size_limit = 15728640, allowed_mime_types = array['application/octet-stream'];
 drop policy if exists "hw lesen" on storage.objects;
 drop policy if exists "hw hochladen" on storage.objects;
 create policy "hw lesen" on storage.objects for select to anon using (bucket_id = 'hw');
-create policy "hw hochladen" on storage.objects for insert to anon with check (bucket_id = 'hw');
+create policy "hw hochladen" on storage.objects for insert to anon with check (bucket_id = 'hw' and name ~ '^[0-9a-f]{24}/[0-9a-f]{24}$');
 -- Löschen und Ändern ist für die Handwerker-Seite bewusst nicht erlaubt.
 `;
