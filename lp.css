@@ -45,3 +45,4 @@ header.top{top:10px;margin:10px auto 0;width:min(1200px,calc(100% - 20px));borde
 .card{border:1px solid rgba(255,255,255,.08);border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.012)),#121311}
 .cta{border-radius:26px}
 @media(max-width:560px){header.top{padding:6px 6px 6px 14px;min-height:60px;gap:10px}.lk{--n:16px;gap:9px}.lk img{height:40px}header.top .btn{font-size:13px;padding:4px 4px 4px 14px;gap:8px}header.top .btn::after{width:28px;height:28px;background-size:12px}}
+ol.quellen{margin:10px 0 28px 20px;font-size:14.5px;color:#a29d93}ol.quellen li{margin:6px 0}ol.quellen a{color:var(--gl);word-break:break-word}
