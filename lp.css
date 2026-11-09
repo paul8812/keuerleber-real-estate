@@ -30,3 +30,18 @@ details{background:var(--panel);border:.5px solid var(--line);border-radius:14px
 .rel{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 0}.rel a{border:.5px solid var(--line);border-radius:99px;padding:8px 18px;font-size:15px;text-decoration:none}.rel a:hover{border-color:var(--gold)}
 footer.f{border-top:.5px solid var(--line);padding:34px 40px;display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;align-items:center;font-size:14px;color:var(--mu)}footer.f .lk{--n:17px}footer.f .lk img{height:46px}footer.f a{color:var(--mu)}footer.f a:hover{color:var(--gl)}
 @media(max-width:820px){nav.m .btn{padding:9px 16px;font-size:14px}header.top{padding:10px 14px;min-height:66px;gap:10px}nav.m a:not(.btn){display:none}.lk{--n:17px}.lk img{height:44px}footer.f{padding:28px 20px}body{font-size:16.5px}}
+/* Design 2 (November 2026): Grotesk-Überschriften, Pill-Buttons mit Pfeil, ruhigere Karten */
+body{background:radial-gradient(55% 30% at 10% 0%,rgba(201,169,110,.09),transparent 62%),radial-gradient(45% 26% at 92% 0%,rgba(23,96,72,.14),transparent 62%),#0a0b0a}
+h1,h2{font-family:var(--f-sans);font-weight:700;letter-spacing:-.035em;line-height:1.04;font-size-adjust:none}
+h1 em,h2 em{font-family:var(--f-serif);font-style:italic;font-weight:500;letter-spacing:-.01em;color:var(--gl)}
+.eyebrow::before{content:"";display:inline-block;vertical-align:middle;width:6px;height:6px;margin:-2px 10px 0 0;border-radius:50%;background:var(--gl);box-shadow:0 0 0 3px rgba(217,188,127,.16),0 0 12px rgba(217,188,127,.6)}
+header.top{top:10px;margin:10px auto 0;width:min(1200px,calc(100% - 20px));border:1px solid rgba(255,255,255,.08);border-radius:999px;background:rgba(14,15,13,.78);padding:8px 10px 8px 24px;min-height:70px}
+@media(max-width:700px){header.top{border-radius:22px}}
+.btn{display:inline-flex;align-items:center;gap:12px;background:linear-gradient(180deg,#f2deae 0%,#d9bc7f 48%,#b88f4c 100%);padding:6px 6px 6px 22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 12px 30px -14px rgba(217,188,127,.7);transition:transform .25s}
+.btn::after{content:"";width:34px;height:34px;border-radius:50%;flex:none;background:#0d0c0a url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e2c88f' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E") center/15px no-repeat}
+.btn:hover{transform:translateY(-1px);filter:none}
+.btn.ghost{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);box-shadow:none;padding:12px 22px}
+.btn.ghost::after{display:none}
+.card{border:1px solid rgba(255,255,255,.08);border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.012)),#121311}
+.cta{border-radius:26px}
+@media(max-width:560px){header.top{padding:6px 6px 6px 14px;min-height:60px;gap:10px}.lk{--n:16px;gap:9px}.lk img{height:40px}header.top .btn{font-size:13px;padding:4px 4px 4px 14px;gap:8px}header.top .btn::after{width:28px;height:28px;background-size:12px}}
