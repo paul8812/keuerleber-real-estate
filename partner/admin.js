@@ -18,6 +18,7 @@ let tab = 'dash';
 const EV = { list: [], at: 0, err: '', loading: false }; // entschlüsselte Rückmeldungen vom Server
 
 const clone = (x) => JSON.parse(JSON.stringify(x));
+const canon = (x) => JSON.stringify(x, (k, v) => (v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.keys(v).sort().map((i) => [i, v[i]])) : v));
 const token = () => { try { return localStorage.getItem(TOKEN_KEY) || ''; } catch { return ''; } };
 const linkFor = (p) => `${location.origin}${location.pathname}#${p.id}.${encodeURIComponent(p.code)}`;
 const snapshot = () => clone({ partners: S.partners, masters: S.masters, objekte: S.data.objekte, fb: S.fb, ev: S.ev, evx: S.evx });
@@ -52,11 +53,11 @@ function changes() {
   for (const o of S.data.objekte) {
     const b = bo.get(o.id);
     if (!b) out.push(`Objekt „${titel(o)}“ neu`);
-    else if (JSON.stringify(b) !== JSON.stringify(o)) out.push(`Objekt „${titel(o)}“ geändert${o.aend && o.t !== b.t ? ' (' + o.aend + ')' : ''}`);
+    else if (canon(b) !== canon(o)) out.push(`Objekt „${titel(o)}“ geändert${o.aend && o.t !== b.t ? ' (' + o.aend + ')' : ''}`);
   }
   for (const b of B.objekte) if (!so.has(b.id)) out.push(`Objekt „${titel(b)}“ gelöscht`);
-  if (JSON.stringify(B.fb) !== JSON.stringify(S.fb)) out.push(!B.fb ? 'Rückmeldekanal für Partner eingerichtet' : 'Token für Rückmeldungen geändert');
-  if (JSON.stringify(B.evx ?? null) !== JSON.stringify(S.evx)) out.push('Rückmeldungen bearbeitet oder entfernt');
+  if (canon(B.fb) !== canon(S.fb)) out.push(!B.fb ? 'Rückmeldekanal für Partner eingerichtet' : 'Token für Rückmeldungen geändert');
+  if (canon(B.evx ?? null) !== canon(S.evx)) out.push('Rückmeldungen bearbeitet oder entfernt');
   if ((B.ev?.length ?? 0) !== S.ev.length) out.push(`${S.ev.length > (B.ev?.length ?? 0) ? 'Rückmeldung erfasst' : 'Rückmeldung entfernt'} (manuell)`);
   const kept = B.objekte.filter((o) => so.has(o.id)).map((o) => o.id), now = S.data.objekte.filter((o) => bo.has(o.id)).map((o) => o.id);
   if (kept.join() !== now.join()) out.push('Reihenfolge der Objekte geändert');
@@ -133,9 +134,10 @@ async function copyText(text, fallbackTitle) {
 }
 
 export async function mount({ app, ctx, render, logout, header }) {
+  if (S && S.owner !== ctx.sess.id) { S = B = null; Object.assign(EV, { list: [], at: 0, err: '', loading: false }); }
   if (!S) {
     const a = await openJson(ctx.sess.a, ctx.pkg.admin);
-    S = { partners: a.partners.map((p) => ({ ...p, objekte: p.objekte ?? [] })), masters: a.masters, fb: a.fb ?? null, ev: a.ev ?? [], evx: a.evx ?? { hide: [], edit: {} }, data: { objekte: clone(ctx.data.objekte) } };
+    S = { partners: a.partners.map((p) => ({ ...p, objekte: p.objekte ?? [] })), masters: a.masters, fb: a.fb ?? null, ev: a.ev ?? [], evx: a.evx ?? { hide: [], edit: {} }, data: { objekte: clone(ctx.data.objekte) }, owner: ctx.sess.id, base: canon(ctx.pkg.admin) };
     B = snapshot();
   }
   const codeTaken = (code, exceptId) => [...S.partners, ...S.masters].some((x) => x.code === code && x.id !== exceptId);
@@ -208,7 +210,7 @@ export async function mount({ app, ctx, render, logout, header }) {
     return `<section class="panel"><div class="ph"><div><h2>Objekte</h2><p class="hint">${l.length ? `${l.length} Objekte · ${sum}` : 'Noch keine Objekte.'}</p></div><button class="btn fill sm" data-a="new-obj">+ Objekt hinzufügen</button></div>
       <ul class="rows oc-list">${l.map((o, i) => {
         const sees = S.partners.filter((p) => p.objekte.includes(o.id)).length;
-        return `<li class="oc"><img src="${esc(o.bild)}" alt=""><div class="oc-b"><b>${esc(titel(o))}</b><small>${eur(o.preis)} · ${esc(String(o.zimmer))} Zi. · ${esc(String(o.flaeche))} m²${o.docs?.length ? ` · ${o.docs.length} Unterlagen` : ''}</small>
+        return `<li class="oc"><img src="${esc(o.bild)}" alt=""><div class="oc-b"><b>${esc(titel(o))}</b><small>${eur(o.preis)} · ${esc(String(o.zimmer))} Zi. · ${esc(String(o.flaeche))} m²${o.docs?.length ? ` · ${o.docs.length} ${o.docs.length === 1 ? 'Unterlage' : 'Unterlagen'}` : ''}</small>
           <div class="oc-r"><label class="vsel"><span>Status</span><select data-vs="${esc(o.id)}" aria-label="Status von ${esc(titel(o))}">${Object.entries(VS).map(([v, t]) => `<option value="${v}"${(o.vs || 'frei') === v ? ' selected' : ''}>${t}</option>`).join('')}</select></label>
           <button class="vchip" data-a="share" data-id="${esc(o.id)}">${S.partners.length ? `Sichtbar für ${sees} von ${S.partners.length} Partnern ›` : 'Noch keine Partner'}</button></div></div>
           <div class="acts"><button class="btn dark sm" data-a="edit" data-id="${esc(o.id)}">Bearbeiten</button>
@@ -328,12 +330,14 @@ export async function mount({ app, ctx, render, logout, header }) {
         S.fb = { token: tk, ...(await newFeedbackKeys()) }; EV.at = 0; draw(); toast('Eingerichtet – jetzt „Veröffentlichen“, damit Partner melden können.');
       });
     } else if (e.target.id === 'addPartner') {
-      const p = { id: randomId(), name: String(f.get('name')).trim(), code: randomCode(16), objekte: [] };
+      const name = String(f.get('name')).trim();
+      if (!name) return toast('Bitte einen Namen eingeben.', false);
+      const p = { id: randomId(), name, code: randomCode(16), objekte: [] };
       S.partners.push(p); draw(); openPartner(p.id);
     } else if (e.target.id === 'addMaster') {
-      const code = String(f.get('code')).trim(), err = pwError(code, '');
+      const code = String(f.get('code')).trim(), name = String(f.get('name')).trim(), err = !name ? 'Bitte einen Namen eingeben.' : pwError(code, '');
       if (err) return toast(err, false);
-      S.masters.push({ id: 'm' + randomId().slice(0, 4), name: String(f.get('name')).trim(), code });
+      S.masters.push({ id: 'm' + randomId().slice(0, 4), name, code });
       draw(); toast('Master hinzugefügt – bitte veröffentlichen.');
     }
   };
@@ -424,6 +428,7 @@ export async function mount({ app, ctx, render, logout, header }) {
 
   /* ---------- Rückmeldung manuell erfassen (z. B. per WhatsApp erhalten) ---------- */
   function openEvent() {
+    if (!S.data.objekte.length) return toast('Bitte zuerst ein Objekt anlegen.', false);
     const sheet = dlg('sheet', 'sheet');
     sheet.innerHTML = `<form class="panel form" id="evForm"><div class="sh-h"><h2>Rückmeldung erfassen</h2><button type="button" class="btn ghost sm" data-a="close">Abbrechen</button></div>
       <p class="hint">Für Rückmeldungen, die Sie per WhatsApp, Mail oder Telefon erhalten haben.</p><div class="grid">
@@ -504,16 +509,31 @@ export async function mount({ app, ctx, render, logout, header }) {
       e.preventDefault(); err('');
       const tk = sheet.querySelector('#gh').value.trim();
       if (!tk) { sheet.querySelector('#tkWrap').classList.remove('hidden'); return err('Bitte zuerst den GitHub-Token eintragen (Anleitung oben).'); }
-      const go = sheet.querySelector('#pubGo'); go.disabled = true; go.textContent = 'Veröffentliche …';
-      try { await publish(tk); sheet.close(); draw(); toast('Veröffentlicht ✓ – Partner sehen es in ca. 1–2 Minuten.'); }
-      catch (x) { err(x.message || String(x)); go.disabled = false; go.textContent = 'Jetzt veröffentlichen'; }
+      const go = sheet.querySelector('#pubGo'), force = go.dataset.force === '1'; go.disabled = true; go.textContent = 'Veröffentliche …';
+      try { await publish(tk, force); sheet.close(); draw(); toast('Veröffentlicht ✓ – Partner sehen es in ca. 1–2 Minuten.'); }
+      catch (x) {
+        err(x.message || String(x)); go.disabled = false;
+        if (x.stale) { go.dataset.force = '1'; go.textContent = 'Trotzdem überschreiben'; } else go.textContent = 'Jetzt veröffentlichen';
+      }
     };
     sheet.showModal();
   }
 
-  async function publish(tk) {
+  async function publish(tk, force = false) {
     const built = await buildNext();
     const h = { Authorization: 'Bearer ' + tk, Accept: 'application/vnd.github+json' };
+    if (!force) {
+      // Wurde seit dem Öffnen von anderer Stelle veröffentlicht? Dann würde dieser Stand fremde Änderungen überschreiben.
+      const cur = await fetch(`https://api.github.com/repos/${REPO}/contents/${FILE}?ref=main`, { headers: { ...h, Accept: 'application/vnd.github.raw+json' } });
+      if (cur.status === 401 || cur.status === 403) throw new Error('GitHub-Token ungültig oder ohne Schreibrecht.');
+      if (cur.ok) {
+        let remote = null; try { remote = await cur.json(); } catch { /* unlesbar: nicht blockieren */ }
+        if (remote?.admin && canon(remote.admin) !== S.base) {
+          const x = new Error('Seit dem Öffnen dieser Seite wurde von anderer Stelle veröffentlicht (z. B. von einem zweiten Master). Wenn Sie jetzt veröffentlichen, gehen diese Änderungen verloren. Besser: Seite neu laden und die Änderungen erneut vornehmen – oder bewusst überschreiben.');
+          x.stale = true; throw x;
+        }
+      }
+    }
     const meta = await fetch(`https://api.github.com/repos/${REPO}/contents/${FILE}?ref=main`, { headers: h });
     if (meta.status === 401 || meta.status === 403) throw new Error('GitHub-Token ungültig oder ohne Schreibrecht.');
     const sha = meta.ok ? (await meta.json()).sha : undefined;
@@ -528,6 +548,7 @@ export async function mount({ app, ctx, render, logout, header }) {
     ctx.sess = { ...payload, code: me.code, id: ctx.sess.id, sig: built.pkg.objekte.map((b) => b.b).join('|') };
     ctx.data = await openObjects(ctx.sess, built.pkg);
     try { sessionStorage.setItem('nf-partner-session', JSON.stringify(ctx.sess)); } catch { /* egal */ }
+    S.base = canon(built.pkg.admin);
     B = snapshot();
   }
 
@@ -543,13 +564,13 @@ export async function mount({ app, ctx, render, logout, header }) {
       <h2>${isNew ? 'Objekt hinzufügen' : esc(titel(o))}</h2>
       <div class="grid">${f('strasse', 'Straße & Hausnummer', o.strasse, 'text', false, 'required')}${f('lage', 'Lage im Haus (z. B. 3. OG links)', o.lage)}
         ${f('ort', 'Lagebeschreibung', o.ort, 'text', true)}${f('tags', 'Ausstattung (mit Komma trennen)', o.tags.join(', '), 'text', true)}
-        ${f('baujahr', 'Baujahr', o.baujahr, 'number')}${f('energie', 'Energieklasse', o.energie)}${f('hausgeld', 'Hausgeld (€/Mon.)', o.hausgeld, 'number')}${f('zimmer', 'Zimmer', o.zimmer, 'number')}${f('flaeche', 'Wohnfläche (m²)', o.flaeche, 'number', false, 'required')}</div>
-      <h2>Zahlen</h2><div class="grid">${f('miete', 'Kaltmiete (€/Mon.)', o.miete, 'number')}
+        ${f('baujahr', 'Baujahr', o.baujahr, 'number', false, 'min="1000" max="2100"')}${f('energie', 'Energieklasse', o.energie)}${f('hausgeld', 'Hausgeld (€/Mon.)', o.hausgeld, 'number', false, 'min="0"')}${f('zimmer', 'Zimmer', o.zimmer, 'number', false, 'min="0"')}${f('flaeche', 'Wohnfläche (m²)', o.flaeche, 'number', false, 'required min="1"')}</div>
+      <h2>Zahlen</h2><div class="grid">${f('miete', 'Kaltmiete (€/Mon.)', o.miete, 'number', false, 'min="0"')}
         <label class="f"><span>Miet-Art</span><select name="mieteTyp">${[['IST', 'IST – laut Mietvertrag'], ['SOLL', 'SOLL – kalkulierte Marktmiete'], ['PLAN', 'PLAN – Planwert vor Sanierung']].map(([v, l]) => `<option value="${v}"${o.mieteTyp === v ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
-        ${f('zl', 'Zuschlag (z. B. Garage, Stellplatz)', o.zuschlag?.label ?? '')}${f('zb', 'Zuschlag (€/Mon.)', o.zuschlag?.betrag ?? '', 'number')}
-        ${f('preis', 'Abgabepreis (€)', o.preis, 'number', false, 'required')}${f('preisHinweis', 'Hinweis zum Preis', o.preisHinweis)}</div>
+        ${f('zl', 'Zuschlag (z. B. Garage, Stellplatz)', o.zuschlag?.label ?? '')}${f('zb', 'Zuschlag (€/Mon.)', o.zuschlag?.betrag ?? '', 'number', false, 'min="0"')}
+        ${f('preis', 'Abgabepreis (€)', o.preis, 'number', false, 'required min="1"')}${f('preisHinweis', 'Hinweis zum Preis', o.preisHinweis)}</div>
       <p class="hint">Preis pro m², Rendite und Faktor werden automatisch berechnet.</p>
-      <h2>Sanierung &amp; Status</h2><div class="grid">${f('fortschritt', 'Sanierungsstand (0–100 %)', o.fortschritt, 'number')}${f('statusLabel', 'Statusbezeichnung am Foto (leer = automatisch)', o.status.label)}
+      <h2>Sanierung &amp; Status</h2><div class="grid">${f('fortschritt', 'Sanierungsstand (0–100 %)', o.fortschritt, 'number', false, 'min="0" max="100"')}${f('statusLabel', 'Statusbezeichnung am Foto (leer = automatisch)', o.status.label)}
         <label class="f wide"><span>Beschreibung der Sanierung</span><textarea name="sanierung" rows="3">${esc(o.sanierung)}</textarea></label>${f('hinweis', 'Hinweis fett (z. B. Unvermietet · Erstvermietung möglich)', o.hinweis, 'text', true)}</div>
       <h3 class="sub-h">Zeitplan</h3><div class="steps-ed">${o.schritte.map((s, i) => `<div><b>${esc(s.label)}</b><select name="ss${i}">${[['done', 'erledigt'], ['current', 'aktuell'], ['todo', 'offen']].map(([v, l]) => `<option value="${v}"${s.state === v ? ' selected' : ''}>${l}</option>`).join('')}</select><input name="sd${i}" placeholder="Datum, z. B. 07/2026" value="${esc(s.datum ?? '')}"></div>`).join('')}</div>
       <h2>Verfügbarkeit &amp; Ansprechpartner</h2><div class="grid">
@@ -594,10 +615,17 @@ export async function mount({ app, ctx, render, logout, header }) {
       const strasse = g('strasse'), lage = g('lage');
       let oid = o.id;
       if (!oid) oid = uniqueId((strasse + '-' + lage).toLowerCase().replace(/ß/g, 'ss').replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'objekt-' + Date.now());
-      const zl = g('zl'), zb = n('zb');
+      const zl = g('zl'), zb = n('zb'), er = sheet.querySelector('#formErr');
+      const fail = (t) => { er.textContent = t; er.classList.remove('hidden'); er.scrollIntoView({ block: 'center' }); };
+      if (!photo) return fail('Bitte ein Foto hochladen – ohne Foto kann das Objekt bei den Partnern nicht angezeigt werden.');
+      if (!!zl !== !!zb) return fail('Zuschlag: bitte Bezeichnung und Betrag angeben (oder beides leer lassen).');
+      er.classList.add('hidden');
+      const auto = (fo, to) => (to === 'done' ? 'Saniert' : to === 'prep' ? 'In Vorbereitung' : `In Sanierung · ${fo} %`);
+      // Automatische Bezeichnung mitführen, solange sie nicht von Hand geändert wurde
+      const label = g('statusLabel') && !(g('statusLabel') === o.status.label && o.status.label === auto(o.fortschritt, o.status.tone)) ? g('statusLabel') : auto(fort, tone);
       const neu = {
         id: oid, bild: photo, strasse, lage,
-        status: { label: g('statusLabel') || (tone === 'done' ? 'Saniert' : tone === 'prep' ? 'In Vorbereitung' : `In Sanierung · ${fort} %`), tone },
+        status: { label, tone },
         baujahr: Math.round(n('baujahr')), energie: g('energie'), hausgeld: n('hausgeld'), ort: g('ort'),
         tags: g('tags').split(',').map((t) => t.trim()).filter(Boolean), zimmer: n('zimmer'), flaeche: n('flaeche') || 1,
         miete: n('miete'), mieteTyp: ['IST', 'SOLL', 'PLAN'].includes(g('mieteTyp')) ? g('mieteTyp') : 'SOLL', ...(zl && zb ? { zuschlag: { label: zl, betrag: zb } } : {}),

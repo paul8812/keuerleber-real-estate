@@ -489,10 +489,10 @@ dialog.mini{width:min(440px,100% - 32px);margin:auto}
 .bc .btn{margin-top:4px}
 .stk{display:flex;height:18px;border-radius:2px;overflow:hidden;background:var(--spur);min-width:80px}
 .stk i{display:flex;align-items:center;justify-content:center;color:var(--bg);font-style:normal;font-size:10.5px;font-weight:700;min-width:18px}
-.stk.empty{opacity:.6}
+.stk.empty{opacity:.6;padding:0;text-align:left}
 .pb{height:6px;border-radius:1px;background:var(--spur);overflow:hidden;min-width:70px;box-shadow:inset 0 1px 2px rgba(0,0,0,.4)}
 .pb i{display:block;height:100%;background:var(--g-blau);box-shadow:var(--glow-blau)}
-.pa{list-style:none;display:grid;gap:14px}
+.pa{list-style:none;display:grid;gap:14px;align-content:start}
 .pa li{display:grid;gap:6px}.pl{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:12.5px;color:var(--ink)}.pl small{color:var(--muted);font-size:11px}
 .pr{display:flex;align-items:center;gap:10px}.pr>div{min-width:0}.pr span{font-weight:700;min-width:20px;color:var(--ink)}
 .weekly{width:100%;height:auto;max-height:200px}
@@ -529,3 +529,10 @@ dialog.mini{width:min(440px,100% - 32px);margin:auto}
   .pv .ex-h h1{font-size:22px}.pv .ex-h{gap:8px 20px}
 }
 .bact{display:flex;gap:14px;margin-top:4px;font-size:11px}
+
+/* ---------- Verwaltung auf dem Handy: Kopfzeile und Reiter bleiben vollständig sichtbar ---------- */
+@media (max-width:480px){
+  .top-r{flex-wrap:wrap;gap:10px 12px;width:100%}.top-user{flex:1 1 100%}
+  .tabs{gap:0}.tab{padding:10px 9px 11px;gap:5px;letter-spacing:.12em}
+}
+@media (max-width:760px){.two{grid-template-columns:1fr}}
