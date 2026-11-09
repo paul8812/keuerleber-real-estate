@@ -45,3 +45,14 @@ dialog.lb img{max-width:96vw;max-height:94vh;display:block;border-radius:2px}
 textarea.code{width:100%;font:12px/1.5 ui-monospace,Menlo,monospace}
 .chg{display:grid;gap:4px;list-style:disc;padding-left:18px;font-size:12.5px;color:var(--ink2)}
 @media (max-width:560px){.bub{max-width:100%}.composer{flex-wrap:wrap}.composer textarea{flex:1 1 100%}.composer .btn{flex:1}}
+
+/* Anmeldung: Touch-Ziele mind. 44 px, Rufnummer nicht umbrechen */
+.lg-form input,.lg-form .btn{min-height:44px}
+.tel{white-space:nowrap;color:inherit;text-decoration:underline;text-underline-offset:2px}
+@media (max-width:560px){.thread .panel .acts{display:grid;grid-template-columns:1fr}.thread .panel .acts .btn,form.form .sticky-save .btn{width:100%;min-height:44px}.composer .btn{min-height:44px}}
+/* partner.css nutzt .pill/.neu als absolut positionierte Foto-Marken – hier sind es normale Status-Pillen */
+.pill,.pill.neu,.pill.ok,.pill.warn,.pill.krit{position:static;top:auto;left:auto;right:auto;bottom:auto;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;gap:0}
+/* Kopfzeile darf auf schmalen Geräten umbrechen (Master: Verwaltung + Abmelden + Schalter) */
+.top-r{flex-wrap:wrap;max-width:100%;gap:10px 14px}
+@media (max-width:560px){.top-user{flex:1 1 100%}}
+form.form .grid>.hint{grid-column:1/-1}
