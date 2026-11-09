@@ -230,7 +230,7 @@ button.sp:hover{border-color:var(--z-l)}
 .fav{position:absolute;left:8px;bottom:8px;width:30px;height:30px;border-radius:50%;border:1px solid #48484C;background:rgba(14,14,15,.82);color:#8B8B8E;font-size:16px;line-height:1;cursor:pointer;transition:border-color .15s,color .15s}
 .fav:hover{border-color:#CBA86A}
 .fav.on{color:#CBA86A;border-color:#CBA86A}
-.body{padding:10px 12px 10px;display:grid;gap:7px;align-content:start;min-width:0}
+.body{padding:10px 12px 10px;display:grid;grid-template-columns:minmax(0,1fr);gap:7px;align-content:start;min-width:0}
 .head{display:grid;gap:1px}
 .head h2{font:700 13.5px/1.35 var(--sans);color:var(--ink)}
 .head h2 span{font-weight:400;color:var(--muted)}
@@ -327,6 +327,16 @@ button.sp:hover{border-color:var(--z-l)}
 .tvs{display:inline-block;padding:2px 7px;border-radius:2px;font:700 9.5px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--schiefer);border:1px solid color-mix(in srgb,currentColor 45%,transparent)}
 .tvs.reserviert{color:var(--warn)}.tvs.notar{color:var(--gold-t)}.tvs.verkauft{color:var(--gut)}
 .tbl-h{text-align:center;margin-top:10px}
+@media (max-width:560px){
+  .tbl thead{display:none}
+  .tbl,.tbl tbody{display:block}
+  .tbl tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 12px;padding:10px 12px;border-bottom:1px solid var(--t-linie)}
+  .tbl tr:last-child{border-bottom:0}
+  .tbl td,.tbl td:first-child{display:block;padding:0;border:0;white-space:normal;text-align:left!important;min-width:0}
+  .tbl td.t-o{grid-column:1/-1;font-size:14px}
+  .tbl td[data-l]:not(.t-o)::before{content:attr(data-l);display:block;font:700 9px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:1px}
+  .tbl tbody tr:hover td:first-child,.tbl tbody tr:focus-visible td:first-child{box-shadow:none}
+}
 
 /* ---------- Fuß ---------- */
 .p-fuss{margin-top:56px;padding-top:16px;padding-bottom:12px;border-top:1px solid var(--gold-l);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;
@@ -510,8 +520,11 @@ dialog.mini{width:min(440px,100% - 32px);margin:auto}
 @media (max-width:1150px){.spalten{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:700px){.zeile{grid-template-columns:minmax(0,1fr)}.z-titel{border-right:0;border-bottom:1px solid var(--rand2)}}
 @media (max-width:560px){.board{grid-template-columns:1fr}.kpis4{grid-template-columns:1fr 1fr}.hb li{grid-template-columns:92px 1fr 24px}.dstat .btn{flex:1}.feed li{grid-template-columns:12px 1fr}.feed small{grid-column:2}}
-@media (max-width:480px){.top-r{flex-wrap:wrap;gap:6px 14px;max-width:100%}.top-user{flex-basis:100%}.p-kopf #logout{padding:8px 4px}}
+@media (max-width:480px){.p-kopf{position:static}.top-r{flex-wrap:wrap;gap:6px 14px;max-width:100%}.top-user{flex-basis:100%}.p-kopf #logout{padding:8px 4px}}
 @media (max-width:420px){.p-in{gap:8px}.brand{gap:12px}.brand img{padding-right:12px}.brand small{letter-spacing:.06em}}
+.card{container-type:inline-size;scroll-margin-top:130px}
+.card .body{overflow-wrap:anywhere}
+@container (max-width:400px){.card .steps{grid-template-columns:1fr;gap:8px}.card .steps li{grid-template-columns:20px 1fr auto;justify-items:start;align-items:center;gap:0 10px;text-align:left}.card .steps li::before{display:none}.card .steps b{margin:0}.card .steps em{min-height:0;text-align:right}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.k-lauf{display:none}}
 
 /* ---------- Druck ---------- */
