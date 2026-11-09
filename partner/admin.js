@@ -1,5 +1,5 @@
 // Verwaltung (nur Master): Objekte, Partner und Team pflegen und verschlüsselt veröffentlichen.
-import { buildPackage, newFeedbackKeys, openFeedback, openJson, openObjects, openSlot, randomCode, randomId, toB64 } from './crypto.js';
+import { buildPackage, newFeedbackKeys, openFeedback, openJson, openObjects, openSlot, randomCode, randomId, sealJson, toB64 } from './crypto.js';
 import { dashHtml } from './dash.js';
 import { STAGES } from './fb.js';
 import { esc, eur } from './app.js';
@@ -139,10 +139,47 @@ export async function mount({ app, ctx, render, logout, header }) {
     const a = await openJson(ctx.sess.a, ctx.pkg.admin);
     S = { partners: a.partners.map((p) => ({ ...p, objekte: p.objekte ?? [] })), masters: a.masters, fb: a.fb ?? null, ev: a.ev ?? [], evx: a.evx ?? { hide: [], edit: {} }, data: { objekte: clone(ctx.data.objekte) }, owner: ctx.sess.id, base: canon(ctx.pkg.admin) };
     B = snapshot();
+    await restoreDraft();
   }
   const codeTaken = (code, exceptId) => [...S.partners, ...S.masters].some((x) => x.code === code && x.id !== exceptId);
   const pwError = (code, exceptId) => (code.length < MIN_PW ? `Das Passwort braucht mindestens ${MIN_PW} Zeichen.` : codeTaken(code, exceptId) ? 'Dieses Passwort wird schon verwendet – bitte ein anderes wählen.' : '');
   const uniqueId = (base) => { let id = base; while (S.data.objekte.some((x) => x.id === id)) id += '-2'; return id; };
+
+  /* ---------- Entwurf: ungespeicherte Änderungen bleiben (verschlüsselt) in diesem Browser ---------- */
+  const draftKey = () => 'nf-partner-draft-' + ctx.sess.id;
+  let draftTimer = 0, draftWarned = false;
+  async function restoreDraft() {
+    let raw = null;
+    try { raw = localStorage.getItem(draftKey()); } catch { /* egal */ }
+    if (!raw) return;
+    try {
+      const d = await openJson(ctx.sess.a, JSON.parse(raw));
+      if (d.base !== S.base) throw new Error('veraltet');
+      Object.assign(S, { partners: d.s.partners, masters: d.s.masters, fb: d.s.fb, ev: d.s.ev, evx: d.s.evx, data: { objekte: d.s.objekte } });
+      S.restored = true;
+    } catch {
+      try { localStorage.removeItem(draftKey()); } catch { /* egal */ }
+      S.staleDraft = true;
+    }
+  }
+  async function saveDraftNow() {
+    try { const snap = snapshot(); localStorage.setItem(draftKey(), JSON.stringify(await sealJson(ctx.sess.a, { base: S.base, s: { partners: snap.partners, masters: snap.masters, fb: snap.fb, ev: snap.ev, evx: snap.evx, objekte: snap.objekte } }))); S.draftOk = true; } catch { S.draftOk = false; }
+  }
+  function saveDraft() {
+    clearTimeout(draftTimer);
+    draftTimer = setTimeout(async () => {
+      if (!S || !B) return;
+      try {
+        if (!changes().length) { localStorage.removeItem(draftKey()); S.draftOk = true; return; }
+        const snap = snapshot();
+        localStorage.setItem(draftKey(), JSON.stringify(await sealJson(ctx.sess.a, { base: S.base, s: { partners: snap.partners, masters: snap.masters, fb: snap.fb, ev: snap.ev, evx: snap.evx, objekte: snap.objekte } })));
+        S.draftOk = true;
+      } catch {
+        S.draftOk = false;
+        if (!draftWarned) { draftWarned = true; toast('Entwurf ist zu groß für den lokalen Speicher – bitte bald veröffentlichen, sonst gehen Änderungen beim Abmelden verloren.', false); }
+      }
+    }, 400);
+  }
 
   function leave() {
     app.onclick = app.onchange = app.onsubmit = app.oninput = null;
@@ -166,6 +203,7 @@ export async function mount({ app, ctx, render, logout, header }) {
     </div></div>`;
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
     if (tab === 'dash' && S.fb && !EV.loading && Date.now() - EV.at > 120000) loadEvents();
+    saveDraft();
   };
 
   const evKey = (e) => `${e.pid}|${e.oid}|${String(e.k || '').trim().toLowerCase()}`;
@@ -253,7 +291,8 @@ export async function mount({ app, ctx, render, logout, header }) {
     const { a, id } = b.dataset, l = S.data.objekte;
     if (a === 'back') { leave(); render(); }
     else if (a === 'logout') {
-      if (changes().length && !confirm('Es gibt ungespeicherte Änderungen. Wirklich abmelden? Die Änderungen gehen verloren.')) return;
+      if (changes().length && S.draftOk === false && !confirm('Es gibt ungespeicherte Änderungen, die nicht lokal gesichert werden konnten. Wirklich abmelden? Die Änderungen gehen verloren.')) return;
+      if (changes().length) { clearTimeout(draftTimer); await saveDraftNow(); }
       leave(); S = B = null; logout();
     }
     else if (a === 'tab') { tab = id; draw(false); }
@@ -652,6 +691,8 @@ export async function mount({ app, ctx, render, logout, header }) {
   }
 
   draw(false);
+  if (S.restored) { S.restored = false; toast('Ungespeicherte Änderungen aus Ihrer letzten Sitzung wiederhergestellt – bitte „Veröffentlichen“, damit Partner sie sehen.'); }
+  else if (S.staleDraft) { S.staleDraft = false; toast('Ein älterer Entwurf wurde verworfen, weil zwischenzeitlich veröffentlicht wurde.', false); }
 }
 
 /** Verkleinert ein Foto auf max. 1280 px Breite (JPEG), damit die Datei klein bleibt. */
