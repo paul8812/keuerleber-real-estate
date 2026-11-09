@@ -9,9 +9,9 @@ const SESSION = 'nf-partner-session';
 const ANSP = { name: 'Sebastian Sultanow', tel: '+49 160 3636997', mail: 'info@norderfranken.de' }; // Standard-Ansprechpartner, pro Objekt im Admin überschreibbar
 const REPO = 'paul8812/keuerleber-real-estate';
 const VSTATUS = { frei: 'Frei', reserviert: 'Reserviert', notar: 'Notartermin', verkauft: 'Verkauft' };
-export const waNr = (t) => { const d = String(t ?? '').replace(/[^\d+]/g, ''); return d.startsWith('+') ? d.slice(1) : d.startsWith('00') ? d.slice(2) : d.startsWith('0') ? '49' + d.slice(1) : d; };
+export const waNr = (t) => { const d = String(t ?? '').replace(/\(0\)/g, '').replace(/[^\d+]/g, ''); return d.startsWith('+') ? d.slice(1) : d.startsWith('00') ? d.slice(2) : d.startsWith('0') ? '49' + d.slice(1) : d; };
 const ansp = (o) => ({ name: o.ansp?.name || ANSP.name, tel: o.ansp?.tel || ANSP.tel, mail: o.ansp?.mail || (o.ansp?.tel ? '' : ANSP.mail) });
-const isMobil = (t) => /^(\+49|0049|0)\s*1[5-7]/.test(String(t).replace(/[\s()\-\/]/g, ''));
+const isMobil = (t) => /^491[5-7]/.test(waNr(t));
 const lsGet = (k) => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* privater Modus */ } };
 const datum = (t) => new Date(t).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -167,7 +167,7 @@ const fbMine = () => lsGet(fbKey()) ?? [];
 function fbBlock(o) {
   const mine = chains(fbMine().filter((e) => e.oid === o.id));
   if (!mine.length) return '';
-  return `<div class="fbl"><small>Ihre Rückmeldungen</small>${mine.map((e) => { const s = stageOf(e.st); return `<span class="fbc" style="--c:${s.color}"><i></i><b>${esc(e.k || 'Interessent')}</b> ${esc(s.short)} <em>${datum(e.t)}${e.sent === false ? ' · nur lokal' : ''}</em></span>`; }).join('')}</div>`;
+  return `<div class="fbl"><small>Ihre Rückmeldungen</small>${mine.map((e) => { const s = stageOf(e.st); return `<span class="fbc" style="--c:${s.color}"><i></i><b>${esc(e.k || 'Interessent')}</b> ${esc(s.short)} <em>${datum(e.t)}${e.sent === false ? ' · nur lokal' : ''}</em>${e.sent === false && ctx.sess.fb?.token ? `<button type="button" class="linkbtn" data-retry="${esc(e.id)}">Erneut senden</button>` : ''}</span>`; }).join('')}</div>`;
 }
 
 const isNeu = (o) => o.t && o.t > (ctx.seen ?? Infinity);
@@ -356,7 +356,8 @@ function render() {
   cards.addEventListener('click', (e) => {
     const go = e.target.closest('[data-go]');
     if (go) { ctx.mode = 'karten'; render(); document.querySelector(`[data-oid="${CSS.escape(go.dataset.go)}"]`)?.scrollIntoView({ block: 'start' }); return; }
-    const b = e.target.closest('[data-doc],[data-ex],[data-fb],[data-fav],[data-reset]'); if (!b) return;
+    const b = e.target.closest('[data-doc],[data-ex],[data-fb],[data-fav],[data-reset],[data-retry]'); if (!b) return;
+    if (b.dataset.retry) return fbRetry(b);
     if (b.dataset.fav) {
       const l = favs(), id = b.dataset.fav, on = !l.includes(id);
       lsSet('nf-fav-' + ctx.sess.id, on ? [...l, id] : l.filter((x) => x !== id));
@@ -420,8 +421,33 @@ function overlay(html, cls = '') {
 /* ---------- Rückmeldung zum Objekt (Prüfung / Finanzierung / Reservierung) ---------- */
 async function fbSend(ev) {
   const body = await sealFeedback(ctx.sess.fb.pub, ev);
-  const r = await fetch(`https://api.github.com/repos/${REPO}/issues`, { method: 'POST', headers: { Authorization: 'Bearer ' + ctx.sess.fb.token, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: JSON.stringify({ title: 'Rückmeldung', body }) });
-  if (!r.ok) throw new Error(`Die Rückmeldung konnte nicht übermittelt werden (Fehler ${r.status}).`);
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 20000);
+  let r;
+  try {
+    r = await fetch(`https://api.github.com/repos/${REPO}/issues`, { method: 'POST', signal: ctl.signal, headers: { Authorization: 'Bearer ' + ctx.sess.fb.token, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: JSON.stringify({ title: 'Rückmeldung', body }) });
+  } catch (x) {
+    throw new Error(x?.name === 'AbortError' ? 'Die Übermittlung dauert zu lange.' : 'Keine Verbindung zum Server – bitte Internetverbindung prüfen.');
+  } finally { clearTimeout(timer); }
+  if (r.ok) return;
+  const limit = r.status === 429 || (r.status === 403 && (r.headers.get('x-ratelimit-remaining') === '0' || r.headers.get('retry-after')));
+  throw new Error(limit ? 'Gerade gehen zu viele Rückmeldungen ein – bitte in ein paar Minuten erneut versuchen.'
+    : r.status === 401 || r.status === 403 ? 'Der Zugang für die Direktübermittlung ist abgelaufen oder gesperrt – bitte melden Sie das Ihrem Ansprechpartner.'
+    : r.status === 404 ? 'Der Empfangskanal wurde nicht gefunden – bitte melden Sie das Ihrem Ansprechpartner.'
+    : r.status === 422 ? 'Die Rückmeldung wurde abgelehnt.'
+    : r.status >= 500 ? 'Der Server ist gerade nicht erreichbar.'
+    : `Die Rückmeldung konnte nicht übermittelt werden (Fehler ${r.status}).`);
+}
+
+async function fbRetry(b) {
+  const l = fbMine(), e = l.find((x) => x.id === b.dataset.retry);
+  if (!e || !ctx.sess.fb?.token || b.disabled) return;
+  b.disabled = true; b.textContent = 'Sende …';
+  try {
+    const { sent, ...ev } = e; await fbSend(ev);
+    lsSet(fbKey(), fbMine().map((x) => (x.id === e.id ? { ...x, sent: true } : x)));
+    note('Rückmeldung übermittelt.');
+  } catch (x) { b.disabled = false; b.textContent = 'Erneut senden'; return alert(x.message); }
+  const y = window.scrollY; render(); window.scrollTo(0, y);
 }
 
 function feedbackOpen(o) {
@@ -432,16 +458,18 @@ function feedbackOpen(o) {
     <p class="hint">Teilen Sie uns den Stand Ihres Interessenten mit – ${esc(a.name)} sieht das sofort im Überblick.</p>
     <fieldset class="stg">${STAGES.map((s, i) => `<label class="stgo" style="--c:${s.color}"><input type="radio" name="st" value="${s.id}"${i === 0 ? ' checked' : ''}><span><b>${esc(s.label)}</b><small>${esc(s.hint)}</small></span></label>`).join('')}</fieldset>
     ${mine.length ? `<div class="fbq"><small>Bestehenden Interessenten aktualisieren:</small>${mine.map((e) => `<button type="button" class="chip" data-k="${esc(e.k)}">${esc(e.k || 'Interessent')}</button>`).join('')}</div>` : ''}
-    <label class="f"><span>Interessent (Name oder Kürzel, z. B. „Fam. M.“)</span><input name="k" maxlength="60" autocomplete="off"></label>
+    <label class="f"><span>Interessent (Name oder Kürzel, z. B. „Fam. M.“)</span><input name="k" maxlength="60" autocomplete="off" required></label>
     <label class="f"><span>Notiz (optional)</span><textarea name="n" rows="3" maxlength="400" placeholder="z. B. Finanzierungszusage bis Freitag, Besichtigung am 14.11. …"></textarea></label>
     <p class="lg-err hidden" id="fbErr" role="alert"></p>
     <div class="acts"><button class="btn fill" id="fbGo">${direct ? 'Rückmeldung senden' : 'Rückmeldung speichern'}</button></div></form>`);
   const form = d.querySelector('#fbF'), err = (t) => { const p = d.querySelector('#fbErr'); p.textContent = t; p.classList.toggle('hidden', !t); };
   d.querySelectorAll('[data-k]').forEach((b) => b.addEventListener('click', () => { form.k.value = b.dataset.k; }));
+  let busy = false;
   form.addEventListener('submit', async (e) => {
     e.preventDefault(); err('');
     const st = form.st.value, k = form.k.value.trim(), n = form.n.value.trim();
-    if (st === 'reserviert' && !k) return err('Bitte Namen oder Kürzel des Kunden angeben, der zugesagt hat.');
+    if (!k) return err(st === 'reserviert' ? 'Bitte Namen oder Kürzel des Kunden angeben, der zugesagt hat.' : 'Bitte Namen oder Kürzel des Interessenten angeben.');
+    if (busy) return; busy = true;
     const ev = { id: Date.now().toString(36) + randomId(), t: Date.now(), pid: ctx.sess.id, pn: ctx.sess.n || 'Partner', oid: o.id, on: `${o.strasse} · ${o.lage}`, st, k, n };
     const go = d.querySelector('#fbGo'); go.disabled = true; go.textContent = 'Sende …';
     let sent = false, problem = '';
@@ -501,28 +529,35 @@ function printOpen() {
 
 /* ---------- Kunden-Exposé mit eigenem Aufschlag ---------- */
 function exposeOpen(o) {
-  const prof = lsGet('nf-expose-prof') ?? { firma: ctx.sess.r === 'partner' ? ctx.sess.n : '', tel: '', mail: '', pct: 3.57 };
+  const profKey = 'nf-expose-prof-' + ctx.sess.id;
+  const prof = lsGet(profKey) ?? { firma: ctx.sess.r === 'partner' ? ctx.sess.n : '', tel: '', mail: '', pct: 3.57 };
   const { d } = overlay(`<button class="ex-x" data-close aria-label="Schließen">×</button><div class="ex-wrap"><div class="ex-bar"><div class="ex-form">
       <label class="f"><span>Ihre Firma / Name</span><input data-p="firma" value="${esc(prof.firma)}"></label>
       <label class="f"><span>Telefon</span><input data-p="tel" value="${esc(prof.tel)}" inputmode="tel"></label>
       <label class="f"><span>E-Mail</span><input data-p="mail" value="${esc(prof.mail)}" inputmode="email"></label>
-      <label class="f"><span>Ihr Aufschlag (% auf den Abgabepreis)</span><input data-p="pct" type="number" step="0.01" inputmode="decimal" value="${esc(prof.pct)}"></label></div>
+      <label class="f"><span>Ihr Aufschlag (% auf den Abgabepreis)</span><input data-p="pct" type="text" inputmode="decimal" autocomplete="off" value="${esc(String(prof.pct).replace('.', ','))}" aria-describedby="exPctErr"></label>
+      <p class="lg-err hidden" id="exPctErr" role="alert">Bitte einen Aufschlag zwischen 0 und 100 % eintragen, z. B. 3,57.</p></div>
       <div class="acts"><button class="btn fill sm" id="exPrint">Drucken / als PDF speichern</button><button class="btn ghost sm" data-close>Schließen</button></div>
       <p class="hint">Der Kunde sieht nur den Kaufpreis inklusive Ihres Aufschlags – Abgabepreis und Aufschlag werden nicht getrennt ausgewiesen. Ihre Eingaben bleiben nur in diesem Browser.</p></div>
     <article class="ex" id="exDoc"></article></div>`, 'ov-ex');
   const doc = d.querySelector('#exDoc');
-  const read = () => { const g = (k) => d.querySelector(`[data-p=${k}]`).value.trim(); return { firma: g('firma'), tel: g('tel'), mail: g('mail'), pct: Math.max(0, parseFloat(g('pct').replace(',', '.')) || 0) }; };
-  const draw = () => { const p = read(); lsSet('nf-expose-prof', p); doc.innerHTML = exposeHtml(o, p); };
+  const pctOf = (v) => { const t = v.trim().replace(/\s|%/g, '').replace(',', '.'); const n = /^\d+(\.\d+)?$/.test(t) ? parseFloat(t) : NaN; return n >= 0 && n <= 100 ? n : null; };
+  const read = () => { const g = (k) => d.querySelector(`[data-p=${k}]`).value.trim(); return { firma: g('firma'), tel: g('tel'), mail: g('mail'), pct: pctOf(g('pct')) }; };
+  const draw = () => {
+    const p = read(), bad = p.pct === null;
+    d.querySelector('#exPctErr').classList.toggle('hidden', !bad); d.querySelector('#exPrint').disabled = bad;
+    if (bad) { doc.innerHTML = '<p class="hint">Bitte oben einen gültigen Aufschlag eintragen – ohne ihn wird kein Kaufpreis angezeigt.</p>'; return; }
+    lsSet(profKey, p); doc.innerHTML = exposeHtml(o, p);
+  };
   d.querySelector('.ex-form').addEventListener('input', draw);
   d.querySelector('#exPrint').addEventListener('click', () => { document.body.classList.add('pe'); window.print(); });
-  window.addEventListener('afterprint', () => document.body.classList.remove('pe'), { once: false });
   draw();
 }
 function exposeHtml(o, p) {
   const preis = Math.round(o.preis * (1 + p.pct / 100)), kz = kennzahlen({ ...o, preis });
   const steps = o.schritte.map((s) => `<li class="${esc(s.state)}"><span class="dot">${s.state === 'done' ? '✓' : ''}</span><b>${esc(s.label)}</b><em>${s.state === 'current' && s.label === 'Sanierung' ? o.fortschritt + ' %' : esc(s.datum ?? '')}</em></li>`).join('');
   return `<header class="ex-h"><div><small>Kapitalanlage · Eigentumswohnung in Hof</small><h1>${esc(o.strasse)} <span>· ${esc(o.lage)}</span></h1><p>${esc(o.ort)}</p></div>
-    ${p.firma ? `<div class="ex-by"><b>${esc(p.firma)}</b>${p.tel ? `<span>${esc(p.tel)}</span>` : ''}${p.mail ? `<span>${esc(p.mail)}</span>` : ''}</div>` : ''}</header>
+    ${p.firma || p.tel || p.mail ? `<div class="ex-by">${p.firma ? `<b>${esc(p.firma)}</b>` : ''}${p.tel ? `<span>${esc(p.tel)}</span>` : ''}${p.mail ? `<span>${esc(p.mail)}</span>` : ''}</div>` : ''}</header>
     <img class="ex-img" src="${esc(o.bild)}" alt="">
     <ul class="tags">${o.tags.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
     <div class="kpis ex-k"><div><small>Wohnfläche</small><b>${num(o.flaeche)} m²</b></div>
