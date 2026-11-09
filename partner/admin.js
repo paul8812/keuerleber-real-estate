@@ -182,7 +182,7 @@ export async function mount({ app, ctx, render, logout, header }) {
     EV.loading = true; EV.err = ''; draw();
     try {
       const out = [];
-      for (let page = 1; page <= 5; page++) {
+      for (let page = 1; page <= 40; page++) {
         const r = await fetch(`https://api.github.com/repos/${REPO}/issues?state=all&per_page=100&page=${page}&sort=created&direction=asc`, { headers: { Authorization: 'Bearer ' + S.fb.token, Accept: 'application/vnd.github+json' } });
         if (!r.ok) throw new Error(r.status === 401 || r.status === 403 ? 'Token ungültig oder ohne Recht „Issues“.' : r.status === 404 ? 'Repository nicht erreichbar (sind „Issues“ aktiviert?).' : 'GitHub meldet Fehler ' + r.status);
         const list = await r.json();
@@ -191,9 +191,10 @@ export async function mount({ app, ctx, render, logout, header }) {
           try { const ev = await openFeedback(S.fb.priv, is.body); out.push({ ...ev, id: 'i' + is.number, t: Date.parse(is.created_at) }); } catch { /* fremder Eintrag */ }
         }
         if (list.length < 100) break;
+        if (page === 40) throw new Error('Mehr als 4.000 Einträge – bitte alte Rückmeldungen auf GitHub schließen/entfernen.');
       }
       EV.list = out; EV.at = Date.now();
-    } catch (e) { EV.err = e.message || String(e); EV.at = Date.now() - 60000; }
+    } catch (e) { EV.err = e instanceof TypeError ? 'Keine Verbindung zu GitHub.' : e.message || String(e); EV.at = Date.now() - 60000; }
     EV.loading = false; draw();
   }
 
