@@ -169,3 +169,15 @@ body.v2-oben .fab-box{opacity:0;pointer-events:none;transform:translateY(14px)}
 
 /* Bildkarten „Alles aus einer Hand“: Text auf hellen Bildern gut lesbar */
 .leistung-overlay,.leistung-small .leistung-overlay{background:linear-gradient(180deg,rgba(8,8,8,.12) 0%,rgba(8,8,8,.5) 42%,rgba(8,8,8,.95) 100%)!important}
+
+/* Off-Market-Zugang: Formular in zwei Spalten */
+.vl-band-felder{display:grid!important;grid-template-columns:1fr 1fr;gap:10px}
+.vl-band-felder select{min-width:0;padding:15px 16px;border-radius:14px;font:inherit;font-size:16px;color:#efe9de;
+  background:rgba(255,255,255,.03);border:1px solid var(--v2-line);-webkit-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d9bc7f' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;background-size:16px}
+.vl-band-felder select option{background:#151513;color:#efe9de}
+.vl-band-felder #vbBtn{width:100%}
+@media(max-width:700px){.vl-band-felder{grid-template-columns:1fr}}
+/* Aktuelle Objekte: Handlungsaufforderung statt leerer Fläche */
+.imm-cta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:26px}
