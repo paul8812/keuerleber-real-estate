@@ -272,3 +272,9 @@ body.v2-oben .fab-box{opacity:0;pointer-events:none;transform:translateY(14px)}
 .v2-ck-ic{width:42px;height:42px;flex:none;border-radius:13px;display:flex;align-items:center;justify-content:center;background:rgba(217,188,127,.12);border:1px solid rgba(217,188,127,.28)}
 .v2-ck-ic svg{width:19px;height:19px;fill:none;stroke:#e2c88f;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 @media(max-width:900px){.v2-close-kontakt{flex-direction:column;margin-top:40px}.v2-close-kontakt a{word-break:break-word}}
+/* Referenz-Karte fest in der Textspalte des Startbilds */
+.v2-float.v2-float-in{position:static;animation:none;margin:0 0 22px;padding:8px 18px 8px 8px;border-radius:18px;width:max-content;max-width:100%;
+  background:rgba(14,15,13,.5);box-shadow:0 14px 40px -20px rgba(0,0,0,.8)}
+.v2-float.v2-float-in img{width:48px;height:48px;border-radius:12px}
+@media(max-width:1100px){.v2-float.v2-float-in{display:flex}}
+@media(max-width:900px){.v2-float.v2-float-in{margin:0 0 18px}}
