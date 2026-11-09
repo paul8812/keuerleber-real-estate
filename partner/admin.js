@@ -156,8 +156,8 @@ export async function mount({ app, ctx, render, logout, header }) {
     app.innerHTML = `${header().replace('<button class="btn dark sm" id="toAdmin">Verwaltung</button>', '<button class="btn ghost sm" id="back" data-a="back">Zur Übersicht</button>').replace('<button class="btn ghost sm" id="print">Drucken / PDF</button>', '').replace('id="logout"', 'id="logout" data-a="logout"')}
     <main class="wrap adm">
       <h1>Verwaltung</h1>
-      <nav class="tabs" role="tablist" aria-label="Bereiche">${[['dash', 'Dashboard', ''], ['objekte', 'Objekte', S.data.objekte.length], ['partner', 'Partner', S.partners.length], ['team', 'Team', S.masters.length]]
-        .map(([k, l, c]) => `<button role="tab" class="tab" aria-selected="${tab === k}" data-a="tab" data-id="${k}">${l}${c === '' ? '' : `<span>${c}</span>`}</button>`).join('')}</nav>
+      <nav class="tabs" aria-label="Bereiche">${[['dash', 'Dashboard', ''], ['objekte', 'Objekte', S.data.objekte.length], ['partner', 'Partner', S.partners.length], ['team', 'Team', S.masters.length]]
+        .map(([k, l, c]) => `<button type="button" class="tab" aria-current="${tab === k}" data-a="tab" data-id="${k}">${l}${c === '' ? '' : `<span>${c}</span>`}</button>`).join('')}</nav>
       ${tab === 'dash' ? dashPanel() : tab === 'objekte' ? objektPanel() : tab === 'partner' ? partnerPanel() : teamPanel()}
     </main>
     <div class="admin-bar"><div class="wrap">
@@ -182,7 +182,7 @@ export async function mount({ app, ctx, render, logout, header }) {
     EV.loading = true; EV.err = ''; draw();
     try {
       const out = [];
-      for (let page = 1; page <= 5; page++) {
+      for (let page = 1; page <= 40; page++) {
         const r = await fetch(`https://api.github.com/repos/${REPO}/issues?state=all&per_page=100&page=${page}&sort=created&direction=asc`, { headers: { Authorization: 'Bearer ' + S.fb.token, Accept: 'application/vnd.github+json' } });
         if (!r.ok) throw new Error(r.status === 401 || r.status === 403 ? 'Token ungültig oder ohne Recht „Issues“.' : r.status === 404 ? 'Repository nicht erreichbar (sind „Issues“ aktiviert?).' : 'GitHub meldet Fehler ' + r.status);
         const list = await r.json();
@@ -191,9 +191,10 @@ export async function mount({ app, ctx, render, logout, header }) {
           try { const ev = await openFeedback(S.fb.priv, is.body); out.push({ ...ev, id: 'i' + is.number, t: Date.parse(is.created_at) }); } catch { /* fremder Eintrag */ }
         }
         if (list.length < 100) break;
+        if (page === 40) throw new Error('Mehr als 4.000 Einträge – bitte alte Rückmeldungen auf GitHub schließen/entfernen.');
       }
       EV.list = out; EV.at = Date.now();
-    } catch (e) { EV.err = e.message || String(e); EV.at = Date.now() - 60000; }
+    } catch (e) { EV.err = e instanceof TypeError ? 'Keine Verbindung zu GitHub.' : e.message || String(e); EV.at = Date.now() - 60000; }
     EV.loading = false; draw();
   }
 
