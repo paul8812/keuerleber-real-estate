@@ -14,6 +14,14 @@ const ansp = (o) => ({ name: o.ansp?.name || ANSP.name, tel: o.ansp?.tel || ANSP
 const isMobil = (t) => /^491[5-7]/.test(waNr(t));
 const lsGet = (k) => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* privater Modus */ } };
+const safeDecode = (t) => { try { return decodeURIComponent(t); } catch { return t; } };
+/** Bereinigt eingefügte Zugangsdaten: unsichtbare Zeichen, Leerraum an den Enden, komplett eingefügter Einladungslink. */
+const cleanCode = (raw) => {
+  let t = String(raw ?? '').replace(/[\u200b-\u200d\u2060\ufeff]/g, '').trim();
+  const h = t.indexOf('#');
+  if (h >= 0 && /^https?:\/\//i.test(t)) t = safeDecode(t.slice(h + 1)).trim(); // Passwörter dürfen selbst „#“ enthalten
+  return t;
+};
 const datum = (t) => new Date(t).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -80,11 +88,7 @@ async function refreshData() {
   if (!ctx.sess) return;
   let pkg; try { pkg = await loadPackage(); } catch { return; }
   if (sigOf(pkg) === ctx.sess.sig) return;
-  if (!(await reopen(pkg))) {
-    try { sessionStorage.removeItem(SESSION); } catch { /* egal */ }
-    ctx.sess = ctx.data = null;
-    return showLogin('Ihr Zugang wurde geändert. Bitte neu anmelden.');
-  }
+  if (!(await reopen(pkg))) return leaveAndReload('Ihr Zugang wurde geändert. Bitte neu anmelden.');
   if (ctx.view === 'start' && !document.getElementById('ov')) {
     const y = window.scrollY; render(); window.scrollTo(0, y);
     note('Die Übersicht wurde aktualisiert.');
@@ -98,6 +102,7 @@ async function enter(payload, code, id) {
   const seen = lsGet('nf-seen-' + id);
   ctx.seen = seen ?? Date.now(); // erster Besuch: nichts als „neu“ markieren
   lsSet('nf-seen-' + id, Date.now());
+  try { localStorage.removeItem('nf-expose-prof'); } catch { /* egal */ } // altes, für alle Zugänge gemeinsames Profil
   try { sessionStorage.setItem('nf-seen-ctx', String(ctx.seen)); } catch { /* egal */ }
   ctx.data = await openObjects(payload, ctx.pkg);
   try { sessionStorage.setItem(SESSION, JSON.stringify(ctx.sess)); } catch { /* privater Modus */ }
@@ -106,12 +111,15 @@ async function enter(payload, code, id) {
   render();
 }
 
-function logout() {
-  try { sessionStorage.removeItem(SESSION); } catch { /* egal */ }
+const FLASH = 'nf-flash';
+const takeFlash = () => { try { const m = sessionStorage.getItem(FLASH) || ''; sessionStorage.removeItem(FLASH); return m; } catch { return ''; } };
+/** Meldet ab und lädt die Seite neu: So verschwinden auch alle entschlüsselten Daten (inkl. Verwaltungsstand) aus dem Speicher. */
+function leaveAndReload(msg = '') {
+  try { sessionStorage.removeItem(SESSION); sessionStorage.removeItem('nf-seen-ctx'); if (msg) sessionStorage.setItem(FLASH, msg); } catch { /* egal */ }
   ctx.sess = ctx.data = null;
-  history.replaceState(null, '', location.pathname);
-  showLogin();
+  location.replace(location.pathname);
 }
+function logout() { leaveAndReload(); }
 
 /* ---------- Anmeldung ---------- */
 function showLogin(msg = '', busy = false) {
@@ -133,7 +141,7 @@ function showLogin(msg = '', busy = false) {
   document.getElementById('pw').focus();
   f.addEventListener('submit', async (e) => {
     e.preventDefault();
-    let code = document.getElementById('pw').value.trim();
+    let code = cleanCode(document.getElementById('pw').value);
     let only = null;
     const dot = code.indexOf('.');
     if (dot > 0 && ctx.pkg.slots.some((s) => s.id === code.slice(0, dot))) { only = code.slice(0, dot); code = code.slice(dot + 1); }
@@ -283,18 +291,20 @@ function listeHtml() {
   return l.length ? (ctx.mode === 'tabelle' ? tabelle(l) : l.map(karte).join('')) : `<p class="empty">${leer}<br><button class="btn ghost sm" data-reset>Filter zurücksetzen</button></p>`;
 }
 
+const isAdmin = () => ctx.sess?.r === 'admin' && !!ctx.sess.a; // ohne Admin-Schlüssel (z. B. veränderte Sitzungsdaten) gibt es keine Verwaltung
 function header() {
   const hell = document.documentElement.getAttribute('data-theme') === 'light';
   const name = ctx.sess.n || (ctx.sess.r === 'admin' ? 'Master' : 'Partner');
   return `<header class="p-kopf"><div class="wrap p-in"><div class="brand">${logo('top-logo')}
     <div><h1>Partnerbereich</h1><small><b></b>Vertriebsübersicht · Stand <span class="num">${esc(ctx.data.stand || '')}</span></small></div></div>
     <div class="top-r"><span class="top-user">Angemeldet: <b>${esc(name)}</b></span>
-    ${ctx.sess.r === 'admin' ? '<button class="btn dark sm" id="toAdmin">Verwaltung</button>' : ''}
+    ${isAdmin() ? '<button class="btn dark sm" id="toAdmin">Verwaltung</button>' : ''}
     <button class="btn dark sm" id="logout">Abmelden</button>
     <button class="thema" type="button" role="switch" aria-checked="${hell}" aria-label="Helle Darstellung"></button></div></div></header>`;
 }
 
 function render() {
+  if (ctx.view === 'admin' && !isAdmin()) ctx.view = 'start';
   if (ctx.view === 'admin') return import('./admin.js').then((m) => m.mount({ app, ctx, render: () => { ctx.view = 'start'; render(); }, logout, header }));
   const objs = ctx.data.objekte;
   const fl = objs.map((o) => o.flaeche);
@@ -614,13 +624,13 @@ function exposeHtml(o, p) {
     return;
   }
   // 1) Einladungslink: #<id>.<code>
-  const h = decodeURIComponent(location.hash.slice(1));
+  const h = safeDecode(location.hash.slice(1));
   const dot = h.indexOf('.');
   if (dot > 0) {
     const slot = ctx.pkg.slots.find((s) => s.id === h.slice(0, dot));
     if (slot) {
       app.innerHTML = '<main class="lg"><div class="lg-card"><p class="lg-sub">Zugang wird geprüft …</p></div></main>';
-      const code = h.slice(dot + 1);
+      const code = h.slice(dot + 1).replace(/[\u200b-\u200d\u2060\ufeff]/g, '').trim();
       const payload = await openSlot(code, slot, ctx.pkg.iter);
       if (payload) return enter(payload, code, slot.id);
       history.replaceState(null, '', location.pathname);
@@ -638,5 +648,5 @@ function exposeHtml(o, p) {
       return render();
     }
   } catch { try { sessionStorage.removeItem(SESSION); } catch { /* egal */ } }
-  showLogin();
+  showLogin(takeFlash());
 })();
