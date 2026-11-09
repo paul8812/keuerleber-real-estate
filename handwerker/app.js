@@ -39,19 +39,23 @@ export const berichtDieseWoche = (tid) => evOf(tid).some((e) => e.typ === 'beric
 
 export async function load(quiet = false) {
   if (!ctx.sess?.sb) { ctx.err = 'Der Speicherdienst ist noch nicht eingerichtet.'; return; }
-  if (ctx.loading) return;
+  while (ctx.loading) await new Promise((r) => setTimeout(r, 100));
   ctx.loading = true; if (!quiet) { ctx.err = ''; }
   try {
     const neu = await fetchEvents(ctx.sess.sb, Object.fromEntries(threadList().map((t) => [t.tid, t])), ctx.last);
     if (neu.length) { ctx.ev = ctx.ev.concat(neu); ctx.last = ctx.ev.at(-1).rid; }
     ctx.err = ''; ctx.at = Date.now();
     return neu.length;
-  } catch (e) { ctx.err = e.message || String(e); } finally { ctx.loading = false; }
+  } catch (e) { ctx.err = netMsg(e); } finally { ctx.loading = false; }
 }
 
+/** Verständliche Meldung statt „Failed to fetch“. */
+const netMsg = (e) => (e instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(e?.message || '')) ? 'Keine Verbindung zum Speicherdienst. Bitte Internet prüfen und erneut versuchen.' : (e?.message || String(e));
+const needSb = () => { if (!ctx.sess?.sb) throw new Error('Der Speicherdienst ist noch nicht eingerichtet. Bitte bei uns melden.'); };
 async function send(tid, ev) {
+  needSb();
   const t = ctx.sess.threads[tid];
-  await postEvent(ctx.sess.sb, tid, t.k, { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7), t: Date.now(), von: isAdmin() ? 'm' : 'hw', n: ctx.sess.n, ...ev });
+  try { await postEvent(ctx.sess.sb, tid, t.k, { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7), t: Date.now(), von: isAdmin() ? 'm' : 'hw', n: ctx.sess.n, ...ev }); } catch (e) { throw new Error(netMsg(e)); }
   await load(true);
 }
 
@@ -80,7 +84,7 @@ function showLogin(msg = '', busy = false) {
       <input id="pw" type="password" autocomplete="current-password" required maxlength="200" ${busy ? 'disabled' : ''}>
       ${msg ? `<p class="lg-err" role="alert">${esc(msg)}</p>` : ''}
       <button class="btn fill" ${busy ? 'disabled' : ''}>${busy ? 'Prüfe …' : 'Anmelden'}</button></form>
-    <p class="lg-foot">Kein Zugang? Rufen Sie ${KONTAKT.name} an: ${KONTAKT.tel}</p></div></main>`;
+    <p class="lg-foot">Kein Zugang? Rufen Sie ${KONTAKT.name} an: <a class="tel" href="tel:${KONTAKT.tel.replace(/\s/g, '')}">${KONTAKT.tel}</a></p></div></main>`;
   document.getElementById('pw').focus();
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -134,12 +138,12 @@ function renderStart() {
   const gr = new Date().getHours() < 11 ? 'Guten Morgen' : new Date().getHours() < 18 ? 'Guten Tag' : 'Guten Abend';
   app.innerHTML = `${header()}<main class="wrap hw-main">
     <section class="held"><div><span class="eyebrow">${new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })}</span><h2>${gr} <span>${esc(ctx.sess.firma || ctx.sess.n)}</span></h2></div></section>
-    ${ctx.err ? `<p class="banner warn-b">${esc(ctx.err)} <button class="linkbtn" id="retry">Erneut versuchen</button></p>` : ''}
+    ${ctx.err ? `<p class="banner warn-b">${esc(ctx.err)} ${ctx.sess.sb ? '<button class="linkbtn" id="retry">Erneut versuchen</button>' : ''}</p>` : ''}
     <div class="banner">Ihre Baustellen <span>${list.length}</span></div>
     ${list.length ? `<div class="hw-grid">${list.map((t) => { const p = projOf(t) ?? {}, l = evOf(t.tid).at(-1); return `<button class="hw-card" data-tid="${t.tid}"><h3>${esc(p.name || 'Baustelle')}</h3><p>${esc(p.adresse || '')}</p>
       <div class="pills">${status(t)}</div><small>${l ? `Letzte Aktivität ${ago(l.at)} · ${esc(l.von === 'm' ? l.n : 'Sie')}` : 'Noch keine Einträge'}</small></button>`; }).join('')}</div>`
       : '<p class="empty">Ihnen ist noch keine Baustelle freigeschaltet. Bitte melden Sie sich bei uns.</p>'}
-    <footer class="p-fuss wrap"><span>Norderfranken Haus und Grund GmbH · Am Gewerbegebiet 5 · 95185 Gattendorf</span><span>${KONTAKT.name} · ${KONTAKT.tel}</span></footer></main>`;
+    <footer class="p-fuss wrap"><span>Norderfranken Haus und Grund GmbH · Am Gewerbegebiet 5 · 95185 Gattendorf</span><span>${KONTAKT.name} · <a class="tel" href="tel:${KONTAKT.tel.replace(/\s/g, '')}">${KONTAKT.tel}</a></span></footer></main>`;
   wire();
   document.getElementById('retry')?.addEventListener('click', async () => { await load(); render(); });
   app.querySelectorAll('.hw-card').forEach((b) => b.addEventListener('click', () => go('thread', b.dataset.tid)));
@@ -148,12 +152,12 @@ function renderStart() {
 /* ---------- Verlauf einer Baustelle ---------- */
 const FILE_TYPES = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', pdf: 'application/pdf' };
 function bubble(e, tid) {
-  const t = TYP[e.typ];
+  const t = TYP[e.typ], pct = Math.max(0, Math.min(100, Number(e.pct) || 0)), kw = /^\d{4}-\d{2}$/.test(e.kw ?? '') ? e.kw.slice(-2) : '';
   if (e.typ === 'bezahlt') return `<li class="sys">✓ Rechnung als bezahlt markiert · ${esc(e.n)} · ${dtm(e.at)}</li>`;
   if (e.typ === 'erledigt') return `<li class="sys">✓ Problem erledigt · ${esc(e.n)} · ${dtm(e.at)}</li>`;
   const done = new Set(evOf(tid).filter((x) => x.typ === 'erledigt').map((x) => x.ref));
-  const head = `<div class="bh"><b>${esc(e.von === 'm' ? e.n : e.von === (isAdmin() ? 'hw' : 'm') ? e.n : 'Sie')}</b>${t && e.typ !== 'chat' ? `<span class="chip2" style="--c:${t.c}">${t.l}${e.kw ? ' KW ' + esc(String(e.kw).slice(-2)) : ''}${e.dring ? ' · dringend' : ''}</span>` : ''}<small>${dtm(e.at)}</small></div>`;
-  const pc = Math.max(0, Math.min(100, Math.round(Number(e.pct) || 0))), kpi = e.typ === 'bericht' && e.pct != null ? `<div class="pb"><i style="width:${pc}%"></i></div><small>Baufortschritt ${pc} %</small>` : '';
+  const head = `<div class="bh"><b>${esc(e.von === 'm' ? e.n : e.von === (isAdmin() ? 'hw' : 'm') ? e.n : 'Sie')}</b>${t && e.typ !== 'chat' ? `<span class="chip2" style="--c:${t.c}">${t.l}${kw ? ' KW ' + kw : ''}${e.dring ? ' · dringend' : ''}</span>` : ''}<small>${dtm(e.at)}</small></div>`;
+  const kpi = e.typ === 'bericht' && e.pct != null ? `<div class="pb"><i style="width:${pct}%"></i></div><small>Baufortschritt ${pct} %</small>` : '';
   const fotos = (e.fotos ?? []).map((f, i) => `<button class="foto" data-p="${esc(f.p)}" data-i="${i}" aria-label="Foto vergrößern"><span>Foto lädt …</span></button>`).join('');
   const paid = new Set(evOf(tid).filter((x) => x.typ === 'bezahlt').map((x) => x.ref)).has(e.id);
   const rg = e.typ === 'rechnung' ? `<div class="rg"><div><b>${esc(e.nr || 'Rechnung')}</b><small>${e.betrag != null ? eur(e.betrag) : ''}${e.datum ? ' · ' + dt(e.datum) : ''}${paid ? ' · <span class="ok-t">bezahlt</span>' : ''}</small></div><span class="rg-b"><button class="btn ghost sm" data-file="${esc(e.datei?.p)}" data-name="${esc(e.datei?.n)}" data-type="${esc(e.datei?.t)}">Öffnen / Laden</button>${isAdmin() && !paid ? `<button class="btn ghost sm" data-paid="${esc(e.id)}">Bezahlt</button>` : ''}</span></div>` : '';
@@ -195,6 +199,7 @@ function renderThread() {
 
 async function uploadPics(files) {
   const t = ctx.sess.threads[ctx.tid], out = [];
+  if (files.length > 8) toast('Es werden nur die ersten 8 Fotos gesendet.', false);
   for (const f of files.slice(0, 8)) out.push({ p: await putFile(ctx.sess.sb, ctx.tid, t.k, await shrinkImage(f)), n: f.name });
   return out;
 }
@@ -217,19 +222,27 @@ function lightbox(u) {
 }
 
 /* ---------- Formulare ---------- */
+/** „4.250,00“, „4250,5“, „4250.50“, „€ 1.200“ → Zahl (NaN bei Unsinn). */
+export function parseBetrag(v) {
+  let x = String(v).replace(/[€\s]/g, '');
+  if (!/^\d[\d.,]*$/.test(x)) return NaN;
+  if (x.includes(',')) x = x.replace(/\./g, '').replace(',', '.');
+  else if (/^\d+\.\d{1,2}$/.test(x)) { /* englische Schreibweise 4250.50 */ } else x = x.replace(/\./g, '');
+  const n = Number(x); return Number.isFinite(n) ? Math.round(n * 100) / 100 : NaN;
+}
 function openForm(kind) {
   const d = dlg('sheet', 'sheet'), k = kwOf(), prior = evOf(ctx.tid).filter((e) => e.typ === 'bericht').at(-1);
   const fields = {
     bericht: `<p class="hint">Bitte einmal pro Woche: aktuelle Fotos und kurz, was erledigt wurde und was als Nächstes ansteht (KW ${k.w}).</p>
       <label class="f wide"><span>Aktueller Stand</span><textarea name="text" rows="4" maxlength="2000" required placeholder="Was wurde diese Woche erledigt? Was kommt als Nächstes?"></textarea></label>
-      <label class="f"><span>Baufortschritt Ihres Gewerks (%)</span><input name="pct" type="number" min="0" max="100" step="5" value="${prior?.pct ?? 0}" required></label>`,
+      <label class="f"><span>Baufortschritt Ihres Gewerks (%)</span><input name="pct" type="number" min="0" max="100" step="1" value="${prior?.pct ?? 0}" required></label>`,
     problem: `<p class="hint">Mängel, Verzögerungen, fehlendes Material, Rückfragen zur Planung – wir sehen es sofort.</p>
       <label class="f wide"><span>Was ist das Problem?</span><textarea name="text" rows="4" maxlength="2000" required></textarea></label>
       <label class="f"><span>Dringlichkeit</span><select name="dring"><option value="">Normal</option><option value="1">Dringend – bitte heute melden</option></select></label>`,
     rechnung: `<p class="hint">PDF oder Foto der Rechnung. Nur wir (Master) sehen sie.</p>
       <label class="f"><span>Rechnungsnummer</span><input name="nr" maxlength="60" required></label>
       <label class="f"><span>Betrag brutto (€)</span><input name="betrag" inputmode="decimal" placeholder="z. B. 4.250,00" required></label>
-      <label class="f"><span>Rechnungsdatum</span><input name="datum" type="date" required value="${new Date().toISOString().slice(0, 10)}"></label>
+      <label class="f"><span>Rechnungsdatum</span><input name="datum" type="date" required value="${new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10)}"></label>
       <label class="f wide"><span>Notiz (optional)</span><textarea name="text" rows="2" maxlength="500"></textarea></label>`,
   }[kind];
   const title = { bericht: 'Wochenbericht', problem: 'Problem melden', rechnung: 'Rechnung hochladen' }[kind];
@@ -248,8 +261,8 @@ function openForm(kind) {
         if (file.size > 12 * 1024 * 1024) throw new Error('Die Datei ist größer als 12 MB.');
         const ext = file.name.split('.').pop().toLowerCase(), type = FILE_TYPES[ext] || file.type || 'application/octet-stream';
         const bytes = type.startsWith('image/') ? await shrinkImage(file, 2400) : new Uint8Array(await file.arrayBuffer());
-        const betrag = Number(String(f.betrag.value).replace(/\./g, '').replace(',', '.'));
-        if (!(betrag >= 0)) throw new Error('Bitte einen gültigen Betrag eingeben.');
+        const betrag = parseBetrag(f.betrag.value);
+        if (!(betrag > 0)) throw new Error('Bitte einen gültigen Betrag eingeben.');
         await send(ctx.tid, { typ: 'rechnung', nr: f.nr.value.trim(), betrag, datum: Date.parse(f.datum.value), text, datei: { p: await putFile(ctx.sess.sb, ctx.tid, t.k, bytes), n: file.name, t: type.startsWith('image/') ? 'image/jpeg' : type } });
       } else {
         await send(ctx.tid, { typ: kind, text, fotos: await uploadPics(files), ...(kind === 'bericht' ? { pct: Number(f.pct.value), kw: kwKey(k) } : { dring: f.dring.value === '1' }) });
@@ -267,7 +280,7 @@ async function tick() {
   busy = true;
   try {
     const n = await load(true);
-    if (n && ctx.view === 'thread' && !document.getElementById('sheet')?.open && !document.querySelector('#chatForm textarea')?.value) renderThread();
+    if (n && ctx.view === 'thread' && !document.getElementById('sheet')?.open && !document.querySelector('#chatForm textarea')?.value && !document.getElementById('chatPics')?.files.length) renderThread();
     else if (n && ctx.view === 'start') renderStart();
     else if (n && ctx.view === 'admin' && !document.getElementById('sheet')?.open && !document.getElementById('mini')?.open) import('./admin.js').then((m) => m.adminRender());
   } finally { busy = false; }
@@ -281,6 +294,6 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
   const hash = location.hash.slice(1);
   if (!hash) { const s = (() => { try { return JSON.parse(sessionStorage.getItem(SESSION) || 'null'); } catch { return null; } })(); if (s?.id && ctx.pkg.slots.some((x) => x.id === s.id)) { ctx.sess = s; ctx.proj = await openProjects(s, ctx.pkg).catch(() => []); render(); await load(); render(); return; } }
   showLogin();
-  if (hash) { const i = hash.indexOf('.'); if (i > 0) { const pw = document.getElementById('pw'); pw.value = decodeURIComponent(hash); pw.form.requestSubmit(); } }
+  if (hash) { const i = hash.indexOf('.'); if (i > 0) { const pw = document.getElementById('pw'); pw.value = (() => { try { return decodeURIComponent(hash); } catch { return hash; } })(); pw.form.requestSubmit(); } }
 })();
 export { send, load as reload };
