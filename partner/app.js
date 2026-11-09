@@ -18,6 +18,7 @@ const datum = (t) => new Date(t).toLocaleDateString('de-DE', { day: '2-digit', m
 
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 export const eur = (n) => new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 }).format(Math.round(n)) + ' €';
+const zim = (z) => esc(String(z).replace('.', ','));
 const num = (n, d = 2) => new Intl.NumberFormat('de-DE', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n);
 
 export function kennzahlen(o) {
@@ -183,7 +184,7 @@ function karte(o) {
   <article class="card${sold ? ' sold' : ''}" data-oid="${esc(o.id)}">
     <div class="photo"><img src="${esc(o.bild)}" alt="${esc(o.strasse + ', ' + o.lage)}" loading="lazy"><button class="fav${favs().includes(o.id) ? ' on' : ''}" data-fav="${esc(o.id)}" aria-pressed="${favs().includes(o.id)}" aria-label="Als Favorit merken">★</button><span class="pill ${esc(o.status.tone)}"><i></i>${esc(o.status.label)}</span>${vBadge(o)}${isNeu(o) ? `<span class="neu">${esc(o.aend || 'Aktualisiert')}</span>` : ''}</div>
     <div class="body">
-      <div class="head"><h2>${esc(o.strasse)} <span>· ${esc(o.lage)}</span></h2><span class="meta">${esc(o.zimmer)} Zi. · Bj. ${esc(o.baujahr)} · Energie ${esc(o.energie)} · Hausgeld ${eur(o.hausgeld)}</span></div>
+      <div class="head"><h2>${esc(o.strasse)} <span>· ${esc(o.lage)}</span></h2><span class="meta">${zim(o.zimmer)} Zi. · Bj. ${esc(o.baujahr)} · Energie ${esc(o.energie)} · Hausgeld ${eur(o.hausgeld)}</span></div>
       <div class="kpis">
         <div><small>Wohnfläche</small><b>${num(o.flaeche)} m²</b></div>
         <div><small>Kaltmiete / Mon.</small><b>${eur(o.miete)} <u class="tag ${esc(o.mieteTyp.toLowerCase())}">${esc(o.mieteTyp)}</u></b></div>
@@ -203,7 +204,7 @@ function karte(o) {
         <div class="mb">
           <ul class="tags">${o.tags.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
           <p class="ort">${esc(o.ort)}</p>
-          <div class="san"><p>${esc(o.sanierung)}</p>${o.hinweis ? `<p class="note">${esc(o.hinweis)}</p>` : ''}<p class="hint">Kaltmiete ${num(k.mieteQm)} €/m²${o.zuschlag ? ` · + ${esc(o.zuschlag.label)} ${esc(o.zuschlag.betrag)} €` : ''} · Abgabepreis ${eur(k.preisQm)}/m²${o.preisHinweis ? ' (' + esc(o.preisHinweis) + ')' : ''} · Faktor ${num(k.faktor, 1)}</p></div>
+          <div class="san"><p>${esc(o.sanierung)}</p>${o.hinweis ? `<p class="note">${esc(o.hinweis)}</p>` : ''}<p class="hint">Kaltmiete ${num(k.mieteQm)} €/m²${o.zuschlag ? ` · + ${esc(o.zuschlag.label)} ${eur(o.zuschlag.betrag)}` : ''} · Abgabepreis ${eur(k.preisQm)}/m²${o.preisHinweis ? ' (' + esc(o.preisHinweis) + ')' : ''} · Faktor ${num(k.faktor, 1)}</p></div>
           <ol class="steps">${steps}</ol>
           <p class="who">Ansprechpartner: <b>${esc(a.name)}</b> · ${esc(a.tel)}</p>
           ${docs.length ? `<details class="dd"><summary>Unterlagen (${docs.length})</summary><div class="doclist">${docs.map((d, i) => `<button class="doc" data-doc="${esc(o.id)}:${i}"><span>${esc(d.n)}</span><small>${Math.max(1, Math.round((d.d.length * 0.75) / 1024))} KB · herunterladen</small></button>`).join('')}</div></details>` : ''}
@@ -226,40 +227,44 @@ function vBadge(o) {
 function calcHtml(o) {
   const nk = 6.5, ek = Math.round((o.preis * nk) / 100 / 100) * 100;
   return `<div class="calc-in" data-p="${o.preis}" data-m="${o.miete + (o.zuschlag?.betrag ?? 0)}" data-h="${o.hausgeld}">
-    <label class="f"><span>Kaufnebenkosten (%)</span><input type="number" step="0.1" inputmode="decimal" data-c="nk" value="${nk}"></label>
-    <label class="f"><span>Eigenkapital (€)</span><input type="number" step="500" inputmode="numeric" data-c="ek" value="${ek}"></label>
-    <label class="f"><span>Zins (% p. a.)</span><input type="number" step="0.05" inputmode="decimal" data-c="zins" value="3.8"></label>
-    <label class="f"><span>Tilgung (% p. a.)</span><input type="number" step="0.1" inputmode="decimal" data-c="til" value="2"></label>
+    <label class="f"><span>Kaufnebenkosten (%)</span><input type="number" step="0.1" min="0" max="30" inputmode="decimal" data-c="nk" value="${nk}"></label>
+    <label class="f"><span>Eigenkapital (€)</span><input type="number" step="500" min="0" inputmode="numeric" data-c="ek" value="${ek}"></label>
+    <label class="f"><span>Zins (% p. a.)</span><input type="number" step="0.05" min="0" max="20" inputmode="decimal" data-c="zins" value="3.8"></label>
+    <label class="f"><span>Tilgung (% p. a.)</span><input type="number" step="0.1" min="0" max="20" inputmode="decimal" data-c="til" value="2"></label>
     <dl class="c-out"></dl>
     <p class="hint">Vereinfachte, unverbindliche Beispielrechnung vor Steuern (Cashflow = Kaltmiete − Rate − Hausgeld; das Hausgeld ist teilweise umlagefähig). Keine Steuer- oder Finanzierungsberatung.</p></div>`;
 }
 function calcUpdate(box) {
-  const v = (k) => parseFloat(box.querySelector(`[data-c=${k}]`).value.replace(',', '.')) || 0;
+  const grenze = { nk: 30, zins: 20, til: 20, ek: 1e8 };
+  const v = (k) => { const x = parseFloat(box.querySelector(`[data-c=${k}]`).value.replace(',', '.')); return Number.isFinite(x) ? Math.min(Math.max(x, 0), grenze[k]) : 0; };
   const p = +box.dataset.p, m = +box.dataset.m, h = +box.dataset.h;
   const gesamt = p * (1 + v('nk') / 100), darlehen = Math.max(0, gesamt - v('ek'));
-  const rate = (darlehen * (v('zins') + v('til'))) / 100 / 12, cf = m - rate - h;
+  const rate = (darlehen * (v('zins') + v('til'))) / 100 / 12, cf = Math.round(m - rate - h);
   const row = (l, x, cls = '') => `<div class="${cls}"><dt>${l}</dt><dd>${x}</dd></div>`;
   box.querySelector('.c-out').innerHTML = row('Gesamtinvestition', eur(gesamt)) + row('Darlehen', eur(darlehen)) + row('Rate / Monat', eur(rate)) +
-    row('Kaltmiete / Monat', eur(m)) + row('Hausgeld / Monat', eur(h)) + row('Cashflow / Monat', (cf >= 0 ? '+' : '−') + eur(Math.abs(cf)), cf >= 0 ? 'pos' : 'neg');
+    row('Kaltmiete / Monat', eur(m)) + row('Hausgeld / Monat', eur(h)) + row('Cashflow / Monat', (cf > 0 ? '+' : cf < 0 ? '−' : '') + eur(Math.abs(cf)), cf >= 0 ? 'pos' : 'neg');
 }
 
+/** Suchtext vereinheitlichen: Groß-/Kleinschreibung, ß/ss, Umlaute, Bindestriche und Punkte egal. */
+const norm = (t) => String(t ?? '').toLowerCase().replace(/ß/g, 'ss').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[-–—·.,/]+/g, ' ').replace(/\s+/g, ' ').trim();
 function filtered() {
   const t = FILTER.find((f) => f[0] === ctx.filter)[2];
-  const s = ctx.q.trim().toLowerCase();
-  return ctx.data.objekte.filter((o) => t(o) && (!s || `${o.strasse} ${o.lage} ${o.tags.join(' ')}`.toLowerCase().includes(s))
+  const terms = norm(ctx.q).split(' ').filter(Boolean);
+  const hay = (o) => norm(`${o.strasse} ${o.lage} ${o.tags.join(' ')} ${o.status.label} ${o.vs ? VSTATUS[o.vs] ?? '' : 'frei'}`);
+  return ctx.data.objekte.filter((o) => t(o) && (!terms.length || terms.every((w) => hay(o).includes(w)))
     && (!ctx.budget || o.preis <= ctx.budget) && (!ctx.rend || kennzahlen(o).rendite >= ctx.rend)
-    && (!ctx.zi || (ctx.zi === 4 ? o.zimmer >= 4 : o.zimmer === ctx.zi)));
+    && (!ctx.zi || (ctx.zi === 4 ? o.zimmer >= 4 : Math.floor(o.zimmer) === ctx.zi)));
 }
 
 function tabelle(l) {
   const rows = l.map((o) => {
     const k = kennzahlen(o), v = o.vs || 'frei';
     return `<tr data-go="${esc(o.id)}" tabindex="0" class="${v === 'verkauft' ? 'sold' : ''}"><td class="t-o" data-l="Objekt"><b>${esc(o.strasse)}</b><small>${esc(o.lage)}</small>${isNeu(o) ? '<span class="neu-s">neu</span>' : ''}</td>
-      <td data-l="Fläche">${num(o.flaeche)} m²<small>${esc(o.zimmer)} Zimmer</small></td><td data-l="Kaltmiete">${eur(o.miete)}</td><td class="t-p" data-l="Abgabepreis">${eur(o.preis)}</td>
-      <td data-l="€/m²">${eur(k.preisQm)}</td><td data-l="Rendite">${num(k.rendite)} %</td>
+      <td data-l="Fläche">${num(o.flaeche)} m²<small>${zim(o.zimmer)} Zimmer</small></td><td data-l="Kaltmiete">${eur(o.miete)}<small>${esc(o.mieteTyp)}${o.zuschlag ? ' · + ' + esc(o.zuschlag.label) : ''}</small></td><td class="t-p" data-l="Abgabepreis">${eur(o.preis)}</td>
+      <td data-l="Preis/m²">${eur(k.preisQm)}</td><td data-l="Rendite">${num(k.rendite)} %</td>
       <td data-l="Status"><span class="tvs ${esc(v)}">${esc(VSTATUS[v] ?? v)}</span><small>${esc(o.status.label)}</small></td></tr>`;
   }).join('');
-  return `<div class="tbl-w"><table class="tbl"><thead><tr><th>Objekt</th><th>Fläche</th><th>Kaltmiete</th><th>Abgabepreis</th><th>€/m²</th><th>Rendite</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>
+  return `<div class="tbl-w"><table class="tbl"><thead><tr><th>Objekt</th><th>Fläche</th><th>Kaltmiete</th><th>Abgabepreis</th><th>Preis/m²</th><th>Rendite</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>
     <p class="hint tbl-h">Zeile antippen für alle Details, Unterlagen und Rechner.</p>`;
 }
 
@@ -274,7 +279,8 @@ function visible() {
 function listeHtml() {
   const l = visible();
   if (!ctx.data.objekte.length) return '<p class="empty">Für Sie sind aktuell keine Objekte freigegeben. Bitte sprechen Sie Sebastian Sultanow an: ' + KONTAKT.tel + '</p>';
-  return l.length ? (ctx.mode === 'tabelle' ? tabelle(l) : l.map(karte).join('')) : '<p class="empty">Keine Objekte für diese Auswahl.<br><button class="btn ghost sm" data-reset>Filter zurücksetzen</button></p>';
+  const leer = ctx.filter === 'fav' && !favs().length ? 'Noch keine Favoriten gemerkt – tippen Sie am Foto eines Objekts auf ★.' : 'Keine Objekte für diese Auswahl.';
+  return l.length ? (ctx.mode === 'tabelle' ? tabelle(l) : l.map(karte).join('')) : `<p class="empty">${leer}<br><button class="btn ghost sm" data-reset>Filter zurücksetzen</button></p>`;
 }
 
 function header() {
@@ -355,7 +361,12 @@ function render() {
   cards.addEventListener('input', (e) => { const b = e.target.closest('.calc-in'); if (b) calcUpdate(b); });
   cards.addEventListener('click', (e) => {
     const go = e.target.closest('[data-go]');
-    if (go) { ctx.mode = 'karten'; render(); document.querySelector(`[data-oid="${CSS.escape(go.dataset.go)}"]`)?.scrollIntoView({ block: 'start' }); return; }
+    if (go) {
+      ctx.mode = 'karten'; render();
+      const k = document.querySelector(`[data-oid="${CSS.escape(go.dataset.go)}"]`);
+      if (k) { k.querySelector('details.more')?.setAttribute('open', ''); const kopf = document.querySelector('.p-kopf'); k.style.scrollMarginTop = (kopf && getComputedStyle(kopf).position === 'sticky' ? kopf.offsetHeight : 0) + 12 + 'px'; k.scrollIntoView({ block: 'start' }); }
+      return;
+    }
     const b = e.target.closest('[data-doc],[data-ex],[data-fb],[data-fav],[data-reset]'); if (!b) return;
     if (b.dataset.fav) {
       const l = favs(), id = b.dataset.fav, on = !l.includes(id);
@@ -395,8 +406,9 @@ function render() {
 function download(ref) {
   const [id, i] = [ref.slice(0, ref.lastIndexOf(':')), +ref.slice(ref.lastIndexOf(':') + 1)];
   const d = ctx.data.objekte.find((o) => o.id === id)?.docs?.[i]; if (!d) return;
-  const [head, b64] = d.d.split(',');
-  const bin = atob(b64), u = new Uint8Array(bin.length);
+  const [head, b64] = String(d.d).split(',');
+  let bin; try { bin = atob(b64); } catch { return alert('Die Unterlage „' + d.n + '“ konnte nicht geöffnet werden. Bitte beim Ansprechpartner anfragen.'); }
+  const u = new Uint8Array(bin.length);
   for (let k = 0; k < bin.length; k++) u[k] = bin.charCodeAt(k);
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([u], { type: /data:([^;]+)/.exec(head)?.[1] || 'application/octet-stream' }));
@@ -465,12 +477,12 @@ function printHtml(list, det) {
   const stand = ctx.data.stand || datum(Date.now());
   const rows = list.map((o) => {
     const k = kennzahlen(o), v = o.vs || 'frei';
-    return `<tr><td><b>${esc(o.strasse)}</b><small>${esc(o.lage)}</small></td><td>${num(o.flaeche)} m²<small>${esc(o.zimmer)} Zimmer</small></td><td>${eur(o.miete)}<small>${esc(o.mieteTyp)}</small></td><td><b>${eur(o.preis)}</b><small>${eur(k.preisQm)} / m²</small></td><td>${num(k.rendite)} %<small>Faktor ${num(k.faktor, 1)}</small></td><td>${esc(VSTATUS[v] ?? v)}<small>${esc(o.status.label)}</small></td></tr>`;
+    return `<tr><td><b>${esc(o.strasse)}</b><small>${esc(o.lage)}</small></td><td>${num(o.flaeche)} m²<small>${zim(o.zimmer)} Zimmer</small></td><td>${eur(o.miete)}<small>${esc(o.mieteTyp)}</small></td><td><b>${eur(o.preis)}</b><small>${eur(k.preisQm)} / m²</small></td><td>${num(k.rendite)} %<small>Faktor ${num(k.faktor, 1)}</small></td><td>${esc(VSTATUS[v] ?? v)}<small>${esc(o.status.label)}</small></td></tr>`;
   }).join('');
   const details = det ? list.map((o) => {
     const k = kennzahlen(o);
     const steps = o.schritte.map((s) => `<li class="${esc(s.state)}"><span class="dot">${s.state === 'done' ? '✓' : ''}</span><b>${esc(s.label)}</b><em>${s.state === 'current' && s.label === 'Sanierung' ? o.fortschritt + ' %' : esc(s.datum ?? '')}</em></li>`).join('');
-    return `<section class="pv-o"><img src="${esc(o.bild)}" alt=""><div><h2>${esc(o.strasse)} <span>· ${esc(o.lage)}</span></h2><p class="pv-m">Bj. ${esc(o.baujahr)} · Energie ${esc(o.energie)} · Hausgeld ${eur(o.hausgeld)} · ${num(o.flaeche)} m² · ${esc(o.zimmer)} Zimmer</p>
+    return `<section class="pv-o"><img src="${esc(o.bild)}" alt=""><div><h2>${esc(o.strasse)} <span>· ${esc(o.lage)}</span></h2><p class="pv-m">Bj. ${esc(o.baujahr)} · Energie ${esc(o.energie)} · Hausgeld ${eur(o.hausgeld)} · ${num(o.flaeche)} m² · ${zim(o.zimmer)} Zimmer</p>
       <p>${esc(o.ort)}</p><p class="pv-m">${o.tags.map(esc).join(' · ')}</p>
       <p class="pv-k"><span>Kaltmiete <b>${eur(o.miete)}</b> (${esc(o.mieteTyp)})</span><span>Abgabepreis <b>${eur(o.preis)}</b></span><span>Rendite <b>${num(k.rendite)} %</b></span></p>
       <p>${esc(o.sanierung)}</p>${o.hinweis ? `<p class="note">${esc(o.hinweis)}</p>` : ''}<ol class="steps">${steps}</ol></div></section>`;
@@ -506,12 +518,12 @@ function exposeOpen(o) {
       <label class="f"><span>Ihre Firma / Name</span><input data-p="firma" value="${esc(prof.firma)}"></label>
       <label class="f"><span>Telefon</span><input data-p="tel" value="${esc(prof.tel)}" inputmode="tel"></label>
       <label class="f"><span>E-Mail</span><input data-p="mail" value="${esc(prof.mail)}" inputmode="email"></label>
-      <label class="f"><span>Ihr Aufschlag (% auf den Abgabepreis)</span><input data-p="pct" type="number" step="0.01" inputmode="decimal" value="${esc(prof.pct)}"></label></div>
+      <label class="f"><span>Ihr Aufschlag (% auf den Abgabepreis)</span><input data-p="pct" type="number" step="0.01" min="0" max="50" inputmode="decimal" value="${esc(prof.pct)}"></label></div>
       <div class="acts"><button class="btn fill sm" id="exPrint">Drucken / als PDF speichern</button><button class="btn ghost sm" data-close>Schließen</button></div>
       <p class="hint">Der Kunde sieht nur den Kaufpreis inklusive Ihres Aufschlags – Abgabepreis und Aufschlag werden nicht getrennt ausgewiesen. Ihre Eingaben bleiben nur in diesem Browser.</p></div>
     <article class="ex" id="exDoc"></article></div>`, 'ov-ex');
   const doc = d.querySelector('#exDoc');
-  const read = () => { const g = (k) => d.querySelector(`[data-p=${k}]`).value.trim(); return { firma: g('firma'), tel: g('tel'), mail: g('mail'), pct: Math.max(0, parseFloat(g('pct').replace(',', '.')) || 0) }; };
+  const read = () => { const g = (k) => d.querySelector(`[data-p=${k}]`).value.trim(); return { firma: g('firma'), tel: g('tel'), mail: g('mail'), pct: Math.min(50, Math.max(0, parseFloat(g('pct').replace(',', '.')) || 0)) }; };
   const draw = () => { const p = read(); lsSet('nf-expose-prof', p); doc.innerHTML = exposeHtml(o, p); };
   d.querySelector('.ex-form').addEventListener('input', draw);
   d.querySelector('#exPrint').addEventListener('click', () => { document.body.classList.add('pe'); window.print(); });
@@ -526,8 +538,8 @@ function exposeHtml(o, p) {
     <img class="ex-img" src="${esc(o.bild)}" alt="">
     <ul class="tags">${o.tags.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
     <div class="kpis ex-k"><div><small>Wohnfläche</small><b>${num(o.flaeche)} m²</b></div>
-      <div class="price"><small>Kaufpreis</small><b>${eur(preis)}</b><em>${num(kz.preisQm)} € pro m²</em></div>
-      <div><small>Kaltmiete / Mon.</small><b>${eur(o.miete)}</b><em>${esc(o.mieteTyp)}${o.zuschlag ? ` · + ${esc(o.zuschlag.label)} ${esc(o.zuschlag.betrag)} €` : ''}</em></div>
+      <div class="price"><small>Kaufpreis</small><b>${eur(preis)}</b><em>${eur(kz.preisQm)} pro m²</em></div>
+      <div><small>Kaltmiete / Mon.</small><b>${eur(o.miete)}</b><em>${esc(o.mieteTyp)}${o.zuschlag ? ` · + ${esc(o.zuschlag.label)} ${eur(o.zuschlag.betrag)}` : ''}</em></div>
       <div><small>Rendite p. a.</small><b>${num(kz.rendite)} %</b><em>Faktor ${num(kz.faktor, 1)}</em></div>
       <div><small>Hausgeld</small><b>${eur(o.hausgeld)}</b><em>pro Monat</em></div></div>
     <div class="ex-cols"><section><h2>Sanierung</h2><p>${esc(o.sanierung)}</p>${o.hinweis ? `<p class="note">${esc(o.hinweis)}</p>` : ''}<p>Baujahr ${esc(o.baujahr)} · Energieklasse ${esc(o.energie)}</p></section>
