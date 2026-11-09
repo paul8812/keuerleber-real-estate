@@ -26,7 +26,7 @@ const byId = (a) => new Map(a.map((x) => [x.id, x]));
 const titel = (o) => `${o.strasse}${o.lage ? ' · ' + o.lage : ''}`;
 const nObj = (p) => p.objekte.filter((i) => S.data.objekte.some((o) => o.id === i)).length;
 
-window.addEventListener('beforeunload', (e) => { if (S && B && changes().length) { e.preventDefault(); e.returnValue = ''; } });
+window.addEventListener('beforeunload', (e) => { if (S && B && S.draftOk !== true && changes().length) { e.preventDefault(); e.returnValue = ''; } });
 
 /** Alles, was sich seit der letzten Veröffentlichung geändert hat – als lesbare Liste. */
 function changes() {
@@ -134,17 +134,6 @@ async function copyText(text, fallbackTitle) {
 }
 
 export async function mount({ app, ctx, render, logout, header }) {
-  if (S && S.owner !== ctx.sess.id) { S = B = null; Object.assign(EV, { list: [], at: 0, err: '', loading: false }); }
-  if (!S) {
-    const a = await openJson(ctx.sess.a, ctx.pkg.admin);
-    S = { partners: a.partners.map((p) => ({ ...p, objekte: p.objekte ?? [] })), masters: a.masters, fb: a.fb ?? null, ev: a.ev ?? [], evx: a.evx ?? { hide: [], edit: {} }, data: { objekte: clone(ctx.data.objekte) }, owner: ctx.sess.id, base: canon(ctx.pkg.admin) };
-    B = snapshot();
-    await restoreDraft();
-  }
-  const codeTaken = (code, exceptId) => [...S.partners, ...S.masters].some((x) => x.code === code && x.id !== exceptId);
-  const pwError = (code, exceptId) => (code.length < MIN_PW ? `Das Passwort braucht mindestens ${MIN_PW} Zeichen.` : codeTaken(code, exceptId) ? 'Dieses Passwort wird schon verwendet – bitte ein anderes wählen.' : '');
-  const uniqueId = (base) => { let id = base; while (S.data.objekte.some((x) => x.id === id)) id += '-2'; return id; };
-
   /* ---------- Entwurf: ungespeicherte Änderungen bleiben (verschlüsselt) in diesem Browser ---------- */
   const draftKey = () => 'nf-partner-draft-' + ctx.sess.id;
   let draftTimer = 0, draftWarned = false;
@@ -180,6 +169,17 @@ export async function mount({ app, ctx, render, logout, header }) {
       }
     }, 400);
   }
+
+  if (S && S.owner !== ctx.sess.id) { S = B = null; Object.assign(EV, { list: [], at: 0, err: '', loading: false }); }
+  if (!S) {
+    const a = await openJson(ctx.sess.a, ctx.pkg.admin);
+    S = { partners: a.partners.map((p) => ({ ...p, objekte: p.objekte ?? [] })), masters: a.masters, fb: a.fb ?? null, ev: a.ev ?? [], evx: a.evx ?? { hide: [], edit: {} }, data: { objekte: clone(ctx.data.objekte) }, owner: ctx.sess.id, base: canon(ctx.pkg.admin) };
+    B = snapshot();
+    await restoreDraft();
+  }
+  const codeTaken = (code, exceptId) => [...S.partners, ...S.masters].some((x) => x.code === code && x.id !== exceptId);
+  const pwError = (code, exceptId) => (code.length < MIN_PW ? `Das Passwort braucht mindestens ${MIN_PW} Zeichen.` : codeTaken(code, exceptId) ? 'Dieses Passwort wird schon verwendet – bitte ein anderes wählen.' : '');
+  const uniqueId = (base) => { let id = base; while (S.data.objekte.some((x) => x.id === id)) id += '-2'; return id; };
 
   function leave() {
     app.onclick = app.onchange = app.onsubmit = app.oninput = null;
