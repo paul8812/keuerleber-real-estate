@@ -1,7 +1,10 @@
 // Export der Objektliste als Excel (.xlsx) oder CSV – ohne Bilder, mit Kennzahlen. Läuft komplett im Browser.
 const VS = { frei: 'Frei', reserviert: 'Reserviert', notar: 'Notartermin', verkauft: 'Verkauft' };
-const STEP = { done: '✓ ', now: '● ' };
-const dDe = (iso) => (iso ? new Date(iso).toLocaleDateString('de-DE') : '');
+const STEP = { done: '✓ ', current: '● ', todo: '○ ' };
+const leer = (v) => v === '' || v == null || (typeof v === 'number' && !Number.isFinite(v)); // NaN/Infinity (z. B. Division durch 0) wären ungültiges XLSX
+// Datum ohne Zeitzonen-Verschiebung: nur Jahr-Monat-Tag auswerten, Rückgabe [Excel-Seriennummer] oder null
+const isoTag = (v) => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(v ?? '')); if (!m) return null; const [y, mo, d] = [+m[1], +m[2], +m[3]], t = new Date(Date.UTC(y, mo - 1, d)); return t.getUTCMonth() === mo - 1 && t.getUTCDate() === d ? { y, mo, d, serial: Math.round(t.getTime() / 86400000) + 25569 } : null; };
+const dDe = (iso) => { const t = isoTag(iso); return t ? `${String(t.d).padStart(2, '0')}.${String(t.mo).padStart(2, '0')}.${t.y}` : ''; };
 
 // Spalten: [Überschrift, Wert, Typ, Breite]  Typ: s Text · e € · e2 € mit Cent · d Datum (ISO) · p % · q m² · n Zahl · w Text mit Umbruch
 function spalten(kz) {
@@ -34,7 +37,7 @@ function kpis(list, kz) {
 
 // Textwerte, die mit = + - @ oder Tab/CR beginnen, würde Excel als Formel ausführen – mit ' entschärfen (Zahlen werden nicht angefasst)
 const safe = (s) => (/^[=+\-@\t\r]/.test(s) ? "'" + s : s);
-const zahlDe = (v, t) => (t === 'd' ? dDe(v) : t === 's' || t === 'w' ? safe(String(v ?? '')) : v === '' || v == null || Number.isNaN(v) ? '' : t === 'n' || t === 'p' ? String(Math.round(v * 100) / 100).replace('.', ',') : (Math.round(v * 100) / 100).toFixed(2).replace('.', ','));
+const zahlDe = (v, t) => (t === 'd' ? dDe(v) : t === 's' || t === 'w' ? safe(String(v ?? '')) : leer(v) ? '' : t === 'n' || t === 'p' ? String(Math.round(v * 100) / 100).replace('.', ',') : (Math.round(v * 100) / 100).toFixed(2).replace('.', ','));
 const csvCell = (s) => `"${String(s).replace(/"/g, '""').replace(/\r?\n/g, ' ')}"`;
 
 function csv(list, kz) {
@@ -49,9 +52,9 @@ const colName = (i) => { let s = ''; for (i++; i > 0; i = Math.floor((i - 1) / 2
 const STYLE = { s: 0, h: 1, e: 2, p: 3, p2: 4, q: 5, w: 6, n: 0, f: 7, e2: 8, d: 9 };
 const cell = (r, c, v, t) => {
   const ref = colName(c) + (r + 1);
-  if (v === '' || v == null || Number.isNaN(v)) return `<c r="${ref}"/>`;
-  if (t === 'd') { const ms = Date.parse(v); return Number.isNaN(ms) ? `<c r="${ref}"/>` : `<c r="${ref}" s="9"><v>${Math.floor(ms / 86400000) + 25569}</v></c>`; }
-  if (typeof v === 'number' && t !== 's' && t !== 'w') return `<c r="${ref}" s="${STYLE[t]}"><v>${v}</v></c>`;
+  if (leer(v)) return `<c r="${ref}"/>`;
+  if (t === 'd') { const d = isoTag(v); return d ? `<c r="${ref}" s="9"><v>${d.serial}</v></c>` : `<c r="${ref}"/>`; }
+  if (typeof v === 'number' && t !== 's' && t !== 'w') return `<c r="${ref}" s="${STYLE[t]}"><v>${Math.round(v * 1e6) / 1e6}</v></c>`; // gerundet gegen Gleitkomma-Rauschen (6.860,0599999…)
   return `<c r="${ref}" s="${STYLE[t === 'h' ? 'h' : t] ?? 0}" t="inlineStr"><is><t xml:space="preserve">${xe(v)}</t></is></c>`;
 };
 const sheet = (rows, widths, freeze) => `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0">${freeze ? '<pane ySplit="1" xSplit="2" topLeftCell="C2" activePane="bottomRight" state="frozen"/>' : ''}</sheetView></sheetViews><cols>${widths.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join('')}</cols><sheetData>${rows.map((r, i) => `<row r="${i + 1}">${r.join('')}</row>`).join('')}</sheetData>${freeze ? `<autoFilter ref="A1:${colName(freeze - 1)}1"/>` : ''}</worksheet>`;
@@ -80,7 +83,7 @@ function xlsx(list, kz) {
   return zip([
     ['[Content_Types].xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`],
     ['_rels/.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${rel}/officeDocument" Target="xl/workbook.xml"/></Relationships>`],
-    ['xl/workbook.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook ${ns} xmlns:r="${rel}"><sheets><sheet name="Objekte" sheetId="1" r:id="rId1"/><sheet name="Kennzahlen" sheetId="2" r:id="rId2"/></sheets></workbook>`],
+    ['xl/workbook.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook ${ns} xmlns:r="${rel}"><bookViews><workbookView/></bookViews><sheets><sheet name="Objekte" sheetId="1" r:id="rId1"/><sheet name="Kennzahlen" sheetId="2" r:id="rId2"/></sheets></workbook>`],
     ['xl/_rels/workbook.xml.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${rel}/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="${rel}/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="${rel}/styles" Target="styles.xml"/></Relationships>`],
     ['xl/styles.xml', styles],
     ['xl/worksheets/sheet1.xml', sheet(s1, sp.map((c) => c[3]), sp.length)],
@@ -91,8 +94,9 @@ function xlsx(list, kz) {
 
 /* ---------- Investagon-Einheitentabelle (CSV): übliche Importfelder, Zuordnung beim ersten Import nötig ---------- */
 const split = (o) => {
-  const m = String(o.strasse || '').match(/^(.*?)\s+(\d+\s?[a-zA-Z]?)$/), p = String(o.ort || '').match(/^(\d{5})\s+([^\s—–-]+)/), e = String(o.lage || '').match(/(\d+)\.\s*(OG|DG|EG|UG)(?:\s+(.*))?/i);
-  return { str: m ? m[1] : o.strasse, nr: m ? m[2] : '', plz: p ? p[1] : '', ort: p ? p[2] : 'Hof', etage: e ? e[1] : /EG/i.test(o.lage || '') ? '0' : '', lage: e ? e[3] || '' : o.lage || '' };
+  // Hausnummer auch als „12a“ oder „3-5“; Ort bis zum Gedankenstrich/Komma („Bad Steben — Lage …“); UG als negative Etage
+  const m = String(o.strasse || '').match(/^(.*?)\s+(\d+\s?[a-zA-Z]?(?:\s?[-–/]\s?\d+\s?[a-zA-Z]?)?)$/), p = String(o.ort || '').match(/^(\d{5})\s+(.+?)(?:\s+[—–-]\s+|,|$)/), e = String(o.lage || '').match(/(\d+)\.\s*(OG|DG|EG|UG)(?:\s+(.*))?/i);
+  return { str: m ? m[1] : o.strasse, nr: m ? m[2] : '', plz: p ? p[1] : '', ort: p ? p[2].trim() : 'Hof', etage: e ? (/^UG$/i.test(e[2]) ? '-' : '') + e[1] : /EG/i.test(o.lage || '') ? '0' : '', lage: e ? e[3] || '' : o.lage || '' };
 };
 const IV_STATUS = { frei: 'Verfügbar', reserviert: 'Reserviert', notar: 'Notartermin', verkauft: 'Verkauft' };
 function investagon(list, kz) {
@@ -107,7 +111,7 @@ function investagon(list, kz) {
     ['Sanierungsstand (%)', (o) => o.fortschritt, 'p'], ['Bauzustand', (o) => o.status?.label], ['Ausstattung', (o) => (o.tags ?? []).join(', ')],
     ['Beschreibung Lage', (o) => o.ort], ['Beschreibung Sanierung', (o) => o.sanierung], ['Hinweis', (o) => o.hinweis],
   ];
-  const num = (v, t) => (t === undefined ? safe(String(v ?? '')) : v === '' || v == null || Number.isNaN(v) ? '' : String(Math.round(v * 100) / 100).replace('.', ','));
+  const num = (v, t) => (t === undefined ? safe(String(v ?? '')) : leer(v) ? '' : String(Math.round(v * 100) / 100).replace('.', ','));
   const rows = [sp.map((c) => csvCell(c[0])).join(';'), ...list.map((o) => sp.map((c) => csvCell(num(c[1](o), c[2]))).join(';'))];
   return new Blob(['\ufeff' + rows.join('\r\n')], { type: 'text/csv;charset=utf-8' });
 }
@@ -116,7 +120,8 @@ export function exportObjekte(list, kz, format) {
   if (!list.length) return false;
   const blob = format === 'investagon' ? investagon(list, kz) : format === 'csv' ? csv(list, kz) : xlsx(list, kz), a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `${format === 'investagon' ? 'Norderfranken_Investagon_Einheiten' : 'Norderfranken_Objekte'}_${new Date().toISOString().slice(0, 10)}.${format === 'xlsx' ? 'xlsx' : 'csv'}`;
+  const jetzt = new Date(), tag = `${jetzt.getFullYear()}-${String(jetzt.getMonth() + 1).padStart(2, '0')}-${String(jetzt.getDate()).padStart(2, '0')}`; // lokales Datum (toISOString wäre UTC → nach Mitternacht der Vortag)
+  a.download = `${format === 'investagon' ? 'Norderfranken_Investagon_Einheiten' : 'Norderfranken_Objekte'}_${tag}.${format === 'xlsx' ? 'xlsx' : 'csv'}`;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   return true;
