@@ -166,3 +166,6 @@ body.v2-oben .fab-box{opacity:0;pointer-events:none;transform:translateY(14px)}
 .hub-next p{font-family:var(--f-sans)!important;font-weight:600!important;letter-spacing:-.025em;font-size:clamp(20px,2vw,26px)!important}
 .hub-next{border-top:1px solid var(--v2-line)!important}
 #kpB .kpb-kb{border-radius:28px!important;border:1px solid var(--v2-line)!important}
+
+/* Bildkarten „Alles aus einer Hand“: Text auf hellen Bildern gut lesbar */
+.leistung-overlay,.leistung-small .leistung-overlay{background:linear-gradient(180deg,rgba(8,8,8,.12) 0%,rgba(8,8,8,.5) 42%,rgba(8,8,8,.95) 100%)!important}
