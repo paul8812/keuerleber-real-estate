@@ -51,3 +51,4 @@ ol.quellen{margin:10px 0 28px 20px;font-size:14.5px;color:#a29d93}ol.quellen li{
 .lead-box h3{font-size:22px;letter-spacing:-.02em;margin:0 0 8px}
 .lead-box p{font-size:15.5px;margin-bottom:18px}
 .lead-box .btns{display:flex;flex-wrap:wrap;gap:10px}
+.rg-video{margin:30px 0 36px}.rg-video video{display:block;width:100%;aspect-ratio:16/9;border-radius:20px;border:1px solid rgba(217,188,127,.28);background:#0b0b0a;box-shadow:0 24px 60px -30px rgba(0,0,0,.8)}.rg-video figcaption{font-size:13.5px;color:var(--mu);margin-top:10px;display:flex;gap:8px;align-items:center}.rg-video figcaption::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 4px rgba(201,169,110,.14);flex:none}
