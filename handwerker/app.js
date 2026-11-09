@@ -27,8 +27,8 @@ export const TYP = {
 /* ---------- Daten ---------- */
 export const isAdmin = () => ctx.sess?.r === 'admin';
 export const threadList = () => Object.entries(ctx.sess.threads).filter(([, t]) => t.on || isAdmin()).map(([tid, t]) => ({ tid, ...t }));
-export const projOf = (t) => ctx.proj.find((p) => p.bid === t.bid) ?? ctx.admin?.projekte?.find((p) => p.id === t.pid);
-export const hwName = (hid) => ctx.admin?.handwerker?.find((h) => h.id === hid)?.name ?? ctx.sess.n;
+export const projOf = (t) => ctx.proj.find((p) => p.bid === t.bid) ?? ctx.admin?.projekte?.find((p) => p.id === t.pid) ?? (ctx.admin?.threads?.find((x) => x.pid === t.pid)?.pn ? { name: ctx.admin.threads.find((x) => x.pid === t.pid).pn + ' (entfernt)' } : undefined);
+export const hwName = (hid) => ctx.admin?.handwerker?.find((h) => h.id === hid)?.name ?? ctx.admin?.threads?.find((t) => t.hid === hid)?.hn ?? (isAdmin() ? 'Entfernter Handwerker' : ctx.sess.n);
 export const evOf = (tid) => ctx.ev.filter((e) => e.tid === tid);
 export const mine = (e) => e.von === (isAdmin() ? 'm' : 'hw');
 const seenKey = () => 'nf-hw-seen-' + ctx.sess.id;
@@ -130,7 +130,7 @@ export const go = (view, tid = null) => { ctx.view = view; ctx.tid = tid; render
 function status(t) {
   const p = offeneProbleme(t.tid).length, u = unread(t.tid), k = kwOf();
   return `${berichtDieseWoche(t.tid) ? `<span class="pill ok">Bericht KW ${k.w} ✓</span>` : `<span class="pill warn">Bericht KW ${k.w} fehlt</span>`}
-    ${p ? `<span class="pill krit">${p} offenes Problem${p > 1 ? 'e' : ''}</span>` : ''}${u ? `<span class="pill neu">${u} neu</span>` : ''}`;
+    ${p ? `<span class="pill krit">${p} offenes Problem${p > 1 ? 'e' : ''}</span>` : ''}${u ? `<span class="pill ung">${u} neu</span>` : ''}`;
 }
 
 function renderStart() {
