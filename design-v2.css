@@ -181,3 +181,83 @@ body.v2-oben .fab-box{opacity:0;pointer-events:none;transform:translateY(14px)}
 @media(max-width:700px){.vl-band-felder{grid-template-columns:1fr}}
 /* Aktuelle Objekte: Handlungsaufforderung statt leerer Fläche */
 .imm-cta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:26px}
+
+/* ===================== Design 2.1 (Vorschau) ===================== */
+/* Startbild als Bühne */
+.hero.hz h1{font-size:clamp(44px,6.4vw,104px)!important;letter-spacing:-.045em!important}
+.v2-float{position:absolute;right:clamp(24px,4vw,64px);top:clamp(110px,16vh,170px);z-index:5;display:flex;align-items:center;gap:14px;
+  padding:10px 20px 10px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.14);color:#f3ede2;cursor:pointer;text-align:left;
+  background:rgba(14,15,13,.55);-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%);
+  box-shadow:0 24px 60px -24px rgba(0,0,0,.8);animation:v2schweb 6s ease-in-out infinite;font:inherit}
+.v2-float img{width:56px;height:56px;border-radius:13px;object-fit:cover}
+.v2-float b{display:block;font:600 14.5px/1.25 var(--f-sans);letter-spacing:-.01em}
+.v2-float small{display:flex;align-items:center;gap:7px;font:500 12.5px/1.3 var(--f-sans);color:#d9bc7f;margin-top:4px}
+.v2-float small::before{content:"";width:7px;height:7px;border-radius:50%;background:#6fd3a0;box-shadow:0 0 0 3px rgba(111,211,160,.18)}
+.v2-float:hover{border-color:rgba(217,188,127,.5)}
+@keyframes v2schweb{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.v2-scroll{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:5;display:flex;flex-direction:column;align-items:center;gap:8px;
+  font:500 10.5px/1 var(--f-sans);letter-spacing:.3em;text-transform:uppercase;color:rgba(243,237,226,.6)}
+.v2-scroll i{width:22px;height:34px;border-radius:12px;border:1.5px solid rgba(243,237,226,.45);position:relative}
+.v2-scroll i::after{content:"";position:absolute;left:50%;top:7px;width:3px;height:7px;margin-left:-1.5px;border-radius:2px;background:#d9bc7f;animation:v2maus 1.8s ease-in-out infinite}
+@keyframes v2maus{0%{opacity:0;transform:translateY(0)}30%{opacity:1}100%{opacity:0;transform:translateY(10px)}}
+@media(max-width:1100px){.v2-float,.v2-scroll{display:none}}
+@media(prefers-reduced-motion:reduce){.v2-float,.v2-scroll i::after{animation:none}}
+
+/* Bento-Raster „Ihre Vorteile“ */
+.v2-bento-wrap{padding:110px 56px 96px;max-width:1240px;margin:0 auto}
+.v2-bento-head{max-width:640px;margin-bottom:44px}
+.v2-bento-lead{font-size:17px;line-height:1.7;color:var(--gray-light,#b9b3a8);margin-top:16px}
+.v2-bento{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.v2-b{position:relative;overflow:hidden;border-radius:26px;padding:30px 30px 32px;min-height:220px;display:flex;flex-direction:column;justify-content:flex-end;
+  border:1px solid var(--v2-line);background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.012)),#121311;transition:transform .35s cubic-bezier(.2,.7,.2,1),border-color .3s}
+.v2-b:hover{transform:translateY(-4px);border-color:rgba(217,188,127,.35)}
+.v2-b-wide{grid-column:span 2;min-height:260px;background:radial-gradient(70% 120% at 100% 0%,rgba(217,188,127,.14),transparent 60%),linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.012)),#121311}
+.v2-b-green{background:var(--v2-green);border-color:rgba(120,200,160,.2)}
+.v2-b-gold{background:linear-gradient(135deg,#f2deae 0%,#d6b675 45%,#a8823f 100%);border-color:transparent;color:#14110b}
+.v2-b h3{font:700 clamp(24px,2.3vw,32px)/1.08 var(--f-sans);letter-spacing:-.035em;margin:0 0 10px;color:#f3ede2}
+.v2-b h3 em{font-family:var(--f-serif);font-style:italic;font-weight:500;letter-spacing:-.01em;font-size:1.1em;color:#e2c88f}
+.v2-b p{font-size:15px;line-height:1.6;color:#b9b2a5;max-width:46ch;margin:0}
+.v2-b-green p{color:#cfe3d8}.v2-b-green h3 em{color:#f0d9a2}
+.v2-b-gold h3,.v2-b-gold p{color:#14110b}.v2-b-gold h3 em{color:#3b2a10}.v2-b-gold p{opacity:.8}
+.v2-ic{position:absolute;top:24px;right:24px;width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+  background:rgba(217,188,127,.12);border:1px solid rgba(217,188,127,.3)}
+.v2-ic svg{width:22px;height:22px;fill:none;stroke:#e2c88f;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.v2-b-gold .v2-ic{background:#14110b;border-color:transparent}
+.v2-b-green .v2-ic{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16)}
+@media(max-width:900px){.v2-bento-wrap{padding:72px 20px 64px}.v2-bento{grid-template-columns:1fr}.v2-b-wide{grid-column:auto}.v2-b{min-height:0;padding-top:86px}}
+
+/* FAQ als Karten mit Plus */
+.faq-item{border:1px solid var(--v2-line)!important;border-radius:20px;margin:0 0 10px;padding:0 24px;
+  background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01)),#111210;transition:border-color .25s,background .25s}
+.faq-item:hover{border-color:rgba(217,188,127,.3)!important}
+.faq-item[open]{border-color:rgba(217,188,127,.4)!important;background:radial-gradient(80% 120% at 100% 0%,rgba(217,188,127,.08),transparent 60%),#121311}
+.faq-item summary{padding:22px 52px 22px 0!important;font:600 16.5px/1.4 var(--f-sans)!important;letter-spacing:-.01em;position:relative}
+.faq-item summary::after{content:""!important;position:absolute!important;right:0!important;top:50%!important;width:32px!important;height:32px!important;margin-top:-16px!important;
+  border:0!important;border-radius:50%;transform:none!important;transition:transform .3s cubic-bezier(.2,.7,.2,1),background .25s!important;
+  background:rgba(217,188,127,.14) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e2c88f' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M12 6v12M6 12h12'/%3E%3C/svg%3E") center/16px no-repeat!important}
+.faq-item[open] summary::after{transform:rotate(45deg)!important;background-color:rgba(217,188,127,.28)!important}
+.faq-item p{padding:0 0 22px;margin:0}
+
+/* Großer Abschluss */
+.v2-close{text-align:center;padding:120px 24px 110px;border-top:1px solid var(--v2-line);
+  background:radial-gradient(50% 70% at 50% 100%,rgba(217,188,127,.14),transparent 70%),radial-gradient(40% 60% at 85% 0%,rgba(23,96,72,.16),transparent 70%)}
+.v2-close h2{font-size:clamp(40px,6.6vw,96px)!important;max-width:1100px;margin:0 auto 22px!important;line-height:.98!important}
+.v2-close p{font-size:17px;color:#b9b2a5;margin:0 auto 34px;max-width:52ch}
+.v2-close-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+@media(max-width:900px){.v2-close{padding:80px 20px 76px}.v2-close-btns .btn-cu,.v2-close-btns .btn-ghost{width:100%}}
+
+/* Handy: feste Leiste statt runder Knöpfe */
+.v2-bar{display:none}
+@media(max-width:900px){
+  .v2-bar{position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:880;display:flex;gap:8px;padding:6px;
+    border-radius:22px;border:1px solid var(--v2-line-2);background:rgba(14,15,13,.9);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+    box-shadow:0 18px 40px -16px rgba(0,0,0,.9);transition:transform .35s cubic-bezier(.2,.7,.2,1),opacity .3s}
+  body.v2-oben .v2-bar,body.menu-offen .v2-bar{transform:translateY(130%);opacity:0;pointer-events:none}
+  .v2-bar-main{flex:1;border:0;border-radius:16px;background:var(--v2-gold);color:#14110b;font:600 15px/1 var(--f-sans);padding:15px 16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.55)}
+  .v2-bar-ic{width:50px;flex:none;border-radius:16px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.05);border:1px solid var(--v2-line)}
+  .v2-bar-ic svg{width:21px;height:21px;fill:none;stroke:#e2c88f;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .fab-tel,.fab-wa,#fabTop{display:none!important}
+  .fab-box{bottom:calc(84px + env(safe-area-inset-bottom,0px))!important}
+  footer{padding-bottom:110px!important}
+}
+.v2-bento-head h2{font-size:clamp(36px,4.6vw,64px)!important}
