@@ -361,6 +361,7 @@ function render() {
       const l = favs(), id = b.dataset.fav, on = !l.includes(id);
       lsSet('nf-fav-' + ctx.sess.id, on ? [...l, id] : l.filter((x) => x !== id));
       b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on));
+      const ft = document.querySelector('.lage [data-f=fav] .sp-w'); if (ft) { const n = ctx.data.objekte.filter((x) => favs().includes(x.id)).length; ft.textContent = n; ft.classList.toggle('null', !n); }
       if (ctx.filter === 'fav') refresh();
       return;
     }
@@ -529,7 +530,7 @@ function exposeHtml(o, p) {
       <div><small>Kaltmiete / Mon.</small><b>${eur(o.miete)}</b><em>${esc(o.mieteTyp)}${o.zuschlag ? ` · + ${esc(o.zuschlag.label)} ${esc(o.zuschlag.betrag)} €` : ''}</em></div>
       <div><small>Rendite p. a.</small><b>${num(kz.rendite)} %</b><em>Faktor ${num(kz.faktor, 1)}</em></div>
       <div><small>Hausgeld</small><b>${eur(o.hausgeld)}</b><em>pro Monat</em></div></div>
-    <div class="ex-cols"><section><h2>Sanierung</h2><p>${esc(o.sanierung)}</p><p class="note">${esc(o.hinweis)}</p><p>Baujahr ${esc(o.baujahr)} · Energieklasse ${esc(o.energie)}</p></section>
+    <div class="ex-cols"><section><h2>Sanierung</h2><p>${esc(o.sanierung)}</p>${o.hinweis ? `<p class="note">${esc(o.hinweis)}</p>` : ''}<p>Baujahr ${esc(o.baujahr)} · Energieklasse ${esc(o.energie)}</p></section>
       <section><h2>Zeitplan</h2><ol class="steps">${steps}</ol></section></div>
     <p class="ex-f">Alle Angaben laut Objektunterlagen, ohne Gewähr. Die Rendite ist eine Beispielrechnung (Jahreskaltmiete ÷ Kaufpreis) und keine Steuer- oder Anlageberatung. Stand ${datum(Date.now())}.</p>`;
 }
