@@ -10,11 +10,13 @@ export function syncThreads(threads, handwerker, projekte) {
   const ids = new Set(projekte.map((p) => p.id));
   for (const h of handwerker) for (const pid of h.projekte ?? []) {
     if (!ids.has(pid)) continue;
-    if (!threads.some((t) => t.hid === h.id && t.pid === pid && t.aktiv !== false)) threads.push({ tid: randomId() + randomId() + randomId(), k: newKeyB64(), hid: h.id, pid, aktiv: true });
+    if (!threads.some((t) => t.hid === h.id && t.pid === pid)) threads.push({ tid: randomId() + randomId() + randomId(), k: newKeyB64(), hid: h.id, pid, aktiv: true });
   }
   for (const t of threads) { // Freigabe entzogen: Verlauf archivieren (Master lesen weiter, Handwerker verliert den Schlüssel)
-    const h = handwerker.find((x) => x.id === t.hid);
+    const h = handwerker.find((x) => x.id === t.hid), p = projekte.find((x) => x.id === t.pid);
     t.aktiv = !!h && (h.projekte ?? []).includes(t.pid) && ids.has(t.pid);
+    if (h) t.hn = h.name; // Namen merken, damit archivierte Verläufe auch nach dem Löschen lesbar bleiben
+    if (p) t.pn = p.name;
   }
   return threads;
 }

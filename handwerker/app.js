@@ -27,8 +27,8 @@ export const TYP = {
 /* ---------- Daten ---------- */
 export const isAdmin = () => ctx.sess?.r === 'admin';
 export const threadList = () => Object.entries(ctx.sess.threads).filter(([, t]) => t.on || isAdmin()).map(([tid, t]) => ({ tid, ...t }));
-export const projOf = (t) => ctx.proj.find((p) => p.bid === t.bid) ?? ctx.admin?.projekte?.find((p) => p.id === t.pid);
-export const hwName = (hid) => ctx.admin?.handwerker?.find((h) => h.id === hid)?.name ?? ctx.sess.n;
+export const projOf = (t) => ctx.proj.find((p) => p.bid === t.bid) ?? ctx.admin?.projekte?.find((p) => p.id === t.pid) ?? (ctx.admin?.threads?.find((x) => x.pid === t.pid)?.pn ? { name: ctx.admin.threads.find((x) => x.pid === t.pid).pn + ' (entfernt)' } : undefined);
+export const hwName = (hid) => ctx.admin?.handwerker?.find((h) => h.id === hid)?.name ?? ctx.admin?.threads?.find((t) => t.hid === hid)?.hn ?? (isAdmin() ? 'Entfernter Handwerker' : ctx.sess.n);
 export const evOf = (tid) => ctx.ev.filter((e) => e.tid === tid);
 export const mine = (e) => e.von === (isAdmin() ? 'm' : 'hw');
 const seenKey = () => 'nf-hw-seen-' + ctx.sess.id;
@@ -126,7 +126,7 @@ export const go = (view, tid = null) => { ctx.view = view; ctx.tid = tid; render
 function status(t) {
   const p = offeneProbleme(t.tid).length, u = unread(t.tid), k = kwOf();
   return `${berichtDieseWoche(t.tid) ? `<span class="pill ok">Bericht KW ${k.w} ✓</span>` : `<span class="pill warn">Bericht KW ${k.w} fehlt</span>`}
-    ${p ? `<span class="pill krit">${p} offenes Problem${p > 1 ? 'e' : ''}</span>` : ''}${u ? `<span class="pill neu">${u} neu</span>` : ''}`;
+    ${p ? `<span class="pill krit">${p} offenes Problem${p > 1 ? 'e' : ''}</span>` : ''}${u ? `<span class="pill ung">${u} neu</span>` : ''}`;
 }
 
 function renderStart() {
@@ -152,13 +152,13 @@ function bubble(e, tid) {
   if (e.typ === 'bezahlt') return `<li class="sys">✓ Rechnung als bezahlt markiert · ${esc(e.n)} · ${dtm(e.at)}</li>`;
   if (e.typ === 'erledigt') return `<li class="sys">✓ Problem erledigt · ${esc(e.n)} · ${dtm(e.at)}</li>`;
   const done = new Set(evOf(tid).filter((x) => x.typ === 'erledigt').map((x) => x.ref));
-  const head = `<div class="bh"><b>${esc(e.von === 'm' ? e.n : e.von === (isAdmin() ? 'hw' : 'm') ? e.n : 'Sie')}</b>${t && e.typ !== 'chat' ? `<span class="chip2" style="--c:${t.c}">${t.l}${e.kw ? ' KW ' + e.kw.slice(-2) : ''}${e.dring ? ' · dringend' : ''}</span>` : ''}<small>${dtm(e.at)}</small></div>`;
-  const kpi = e.typ === 'bericht' && e.pct != null ? `<div class="pb"><i style="width:${e.pct}%"></i></div><small>Baufortschritt ${e.pct} %</small>` : '';
+  const head = `<div class="bh"><b>${esc(e.von === 'm' ? e.n : e.von === (isAdmin() ? 'hw' : 'm') ? e.n : 'Sie')}</b>${t && e.typ !== 'chat' ? `<span class="chip2" style="--c:${t.c}">${t.l}${e.kw ? ' KW ' + esc(String(e.kw).slice(-2)) : ''}${e.dring ? ' · dringend' : ''}</span>` : ''}<small>${dtm(e.at)}</small></div>`;
+  const pc = Math.max(0, Math.min(100, Math.round(Number(e.pct) || 0))), kpi = e.typ === 'bericht' && e.pct != null ? `<div class="pb"><i style="width:${pc}%"></i></div><small>Baufortschritt ${pc} %</small>` : '';
   const fotos = (e.fotos ?? []).map((f, i) => `<button class="foto" data-p="${esc(f.p)}" data-i="${i}" aria-label="Foto vergrößern"><span>Foto lädt …</span></button>`).join('');
   const paid = new Set(evOf(tid).filter((x) => x.typ === 'bezahlt').map((x) => x.ref)).has(e.id);
-  const rg = e.typ === 'rechnung' ? `<div class="rg"><div><b>${esc(e.nr || 'Rechnung')}</b><small>${e.betrag != null ? eur(e.betrag) : ''}${e.datum ? ' · ' + dt(e.datum) : ''}${paid ? ' · <span class="ok-t">bezahlt</span>' : ''}</small></div><span class="rg-b"><button class="btn ghost sm" data-file="${esc(e.datei.p)}" data-name="${esc(e.datei.n)}" data-type="${esc(e.datei.t)}">Öffnen / Laden</button>${isAdmin() && !paid ? `<button class="btn ghost sm" data-paid="${esc(e.id)}">Bezahlt</button>` : ''}</span></div>` : '';
+  const rg = e.typ === 'rechnung' ? `<div class="rg"><div><b>${esc(e.nr || 'Rechnung')}</b><small>${e.betrag != null ? eur(e.betrag) : ''}${e.datum ? ' · ' + dt(e.datum) : ''}${paid ? ' · <span class="ok-t">bezahlt</span>' : ''}</small></div><span class="rg-b"><button class="btn ghost sm" data-file="${esc(e.datei?.p)}" data-name="${esc(e.datei?.n)}" data-type="${esc(e.datei?.t)}">Öffnen / Laden</button>${isAdmin() && !paid ? `<button class="btn ghost sm" data-paid="${esc(e.id)}">Bezahlt</button>` : ''}</span></div>` : '';
   const erl = e.typ === 'problem' ? (done.has(e.id) ? '<small class="ok-t">✓ erledigt</small>' : isAdmin() ? `<button class="btn ghost sm" data-erl="${esc(e.id)}">Als erledigt markieren</button>` : '<small class="warn-t">Offen</small>') : '';
-  return `<li class="bub ${e.von === 'm' ? 'm' : 'h'}${mine(e) ? ' me' : ''}" data-typ="${e.typ}" style="--c:${t?.c || 'var(--rand)'}">${head}${e.text ? `<p>${esc(e.text)}</p>` : ''}${kpi}${fotos ? `<div class="fotos">${fotos}</div>` : ''}${rg}${erl}</li>`;
+  return `<li class="bub ${e.von === 'm' ? 'm' : 'h'}${mine(e) ? ' me' : ''}" data-typ="${esc(e.typ)}" style="--c:${t?.c || 'var(--rand)'}">${head}${e.text ? `<p>${esc(e.text)}</p>` : ''}${kpi}${fotos ? `<div class="fotos">${fotos}</div>` : ''}${rg}${erl}</li>`;
 }
 
 function renderThread() {
