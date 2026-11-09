@@ -126,7 +126,7 @@ function showLogin(msg = '', busy = false) {
       ${msg ? `<p class="lg-err" role="alert">${esc(msg)}</p>` : ''}
       <button class="btn fill" ${busy ? 'disabled' : ''}>${busy ? 'Prüfe …' : 'Anmelden'}</button>
     </form>
-    <p class="lg-foot">Kein Zugang? Rufen Sie Sebastian Sultanow an: ${KONTAKT.tel}</p>
+    <p class="lg-foot">Kein Zugang? Rufen Sie Sebastian Sultanow an: <a class="nowrap" href="tel:${KONTAKT.telHref}">${KONTAKT.tel}</a></p>
   </div></main>`;
   const f = document.getElementById('loginForm');
   document.getElementById('pw').focus();
@@ -349,7 +349,7 @@ function render() {
     const b = e.target.closest('[data-f]'); if (!b) return;
     ctx.filter = ctx.filter === b.dataset.f ? 'alle' : b.dataset.f;
     document.querySelectorAll('#chips .chip').forEach((c) => c.classList.toggle('on', c.dataset.f === ctx.filter));
-    refresh(); document.getElementById('chips').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    refresh(); document.getElementById('chips').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion:reduce)').matches ? 'auto' : 'smooth', block: 'center' });
   });
   const cards = document.getElementById('cards');
   cards.addEventListener('input', (e) => { const b = e.target.closest('.calc-in'); if (b) calcUpdate(b); });
@@ -406,15 +406,29 @@ function download(ref) {
 }
 
 /* ---------- Overlay-Hilfe ---------- */
-function overlay(html, cls = '') {
+const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]):not([type=hidden]),select:not([disabled]),textarea:not([disabled]),summary,[tabindex]:not([tabindex="-1"])';
+function overlay(html, cls = '', label = '') {
   document.getElementById('ov')?.remove();
+  const back = document.activeElement;
   const d = document.createElement('div');
   d.id = 'ov'; d.className = 'ov ' + cls; d.innerHTML = html;
+  d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true'); d.tabIndex = -1;
+  d.setAttribute('aria-label', label || d.querySelector('h1,h2')?.textContent.trim() || 'Fenster');
   document.body.appendChild(d); document.body.classList.add('ovopen');
-  const esc2 = (e) => { if (e.key === 'Escape') close(); };
-  const close = () => { d.remove(); document.body.classList.remove('ovopen', 'pe'); document.removeEventListener('keydown', esc2); };
+  app.inert = true;
+  const keys = (e) => {
+    if (e.key === 'Escape') return close();
+    if (e.key !== 'Tab') return;
+    const f = [...d.querySelectorAll(FOCUSABLE)].filter((x) => x.offsetParent !== null || x === document.activeElement);
+    if (!f.length) return;
+    const i = f.indexOf(document.activeElement);
+    if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
+    else if (!e.shiftKey && (i === -1 || i === f.length - 1)) { e.preventDefault(); f[0].focus(); }
+  };
+  const close = () => { d.remove(); app.inert = false; document.body.classList.remove('ovopen', 'pe'); document.removeEventListener('keydown', keys); if (back?.isConnected) back.focus(); };
   d.addEventListener('click', (e) => { if (e.target === d || e.target.closest('[data-close]')) close(); });
-  document.addEventListener('keydown', esc2);
+  document.addEventListener('keydown', keys);
+  d.focus(); // Fokus in den Dialog, ohne auf dem Handy die Tastatur zu öffnen; Tab führt zum ersten Feld
   return { d, close };
 }
 
@@ -481,6 +495,7 @@ function feedbackOpen(o) {
     form.outerHTML = `<div class="ov-box"><button type="button" class="x" data-close aria-label="Schließen">×</button><span class="eyebrow">${sent ? 'Gesendet' : 'Gespeichert'}</span><h2>${sent ? '✓ Danke – ist angekommen' : 'Bitte noch abschicken'}</h2>
       <p class="hint">${sent ? `Ihre Rückmeldung „${esc(stageOf(st).short)}“ ist bei ${esc(a.name)} im Überblick. Für eilige Fälle (z. B. Reservierung) können Sie zusätzlich direkt schreiben.` : esc(problem || 'Die Direktübermittlung ist noch nicht eingerichtet.') + ' Damit die Rückmeldung ankommt, schicken Sie sie bitte jetzt direkt:'}</p>
       <div class="acts">${wa}${mail}<a class="btn ghost" href="tel:+${waNr(a.tel)}">Anrufen</a><button class="btn dark" data-close>Fertig</button></div></div>`;
+    d.focus();
     if (document.getElementById('cards')) { const y = window.scrollY; render(); window.scrollTo(0, y); }
   });
 }
@@ -516,7 +531,7 @@ function printOpen() {
       <label class="chk"><input type="checkbox" id="pvDet" checked> Mit Objektdetails (Foto, Sanierung, Zeitplan)</label>
       <div class="acts"><button class="btn fill sm" id="pvPrint">Drucken / als PDF speichern</button><button class="btn ghost sm" data-close>Schließen</button></div>
       <p class="hint">Es wird die aktuell gefilterte und sortierte Auswahl gedruckt. Im Druckdialog „Als PDF sichern“ wählen, um eine Datei zu erhalten. Die Abgabepreise sind vertraulich.</p></div>
-    <article class="ex pv" id="pvDoc"></article></div>`, 'ov-ex');
+    <article class="ex pv" id="pvDoc"></article></div>`, 'ov-ex', 'Drucken / PDF');
   const doc = d.querySelector('#pvDoc'), det = d.querySelector('#pvDet');
   const draw = () => { doc.innerHTML = printHtml(list, det.checked); };
   det.addEventListener('change', draw);
@@ -539,7 +554,7 @@ function exposeOpen(o) {
       <p class="lg-err hidden" id="exPctErr" role="alert">Bitte einen Aufschlag zwischen 0 und 100 % eintragen, z. B. 3,57.</p></div>
       <div class="acts"><button class="btn fill sm" id="exPrint">Drucken / als PDF speichern</button><button class="btn ghost sm" data-close>Schließen</button></div>
       <p class="hint">Der Kunde sieht nur den Kaufpreis inklusive Ihres Aufschlags – Abgabepreis und Aufschlag werden nicht getrennt ausgewiesen. Ihre Eingaben bleiben nur in diesem Browser.</p></div>
-    <article class="ex" id="exDoc"></article></div>`, 'ov-ex');
+    <article class="ex" id="exDoc"></article></div>`, 'ov-ex', 'Kunden-Exposé');
   const doc = d.querySelector('#exDoc');
   const pctOf = (v) => { const t = v.trim().replace(/\s|%/g, '').replace(',', '.'); const n = /^\d+(\.\d+)?$/.test(t) ? parseFloat(t) : NaN; return n >= 0 && n <= 100 ? n : null; };
   const read = () => { const g = (k) => d.querySelector(`[data-p=${k}]`).value.trim(); return { firma: g('firma'), tel: g('tel'), mail: g('mail'), pct: pctOf(g('pct')) }; };
