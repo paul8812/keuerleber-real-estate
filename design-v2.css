@@ -278,3 +278,26 @@ body.v2-oben .fab-box{opacity:0;pointer-events:none;transform:translateY(14px)}
 .v2-float.v2-float-in img{width:48px;height:48px;border-radius:12px}
 @media(max-width:1100px){.v2-float.v2-float-in{display:flex}}
 @media(max-width:900px){.v2-float.v2-float-in{margin:0 0 18px}}
+
+/* ===== Feinschliff Handy / Tablet / Mac (Prüfung 09.11.) ===== */
+/* Reiter-Leiste nicht unter die schwebende Kopfzeile schieben */
+@media(max-width:900px){
+  .hub-bar{top:80px!important;max-width:calc(100% - 20px);
+    -webkit-mask-image:linear-gradient(90deg,#000 0,#000 86%,transparent);mask-image:linear-gradient(90deg,#000 0,#000 86%,transparent)}
+  .hub{scroll-margin-top:136px!important}
+  /* Sprache im Menü statt schwebendem Knopf, der Text verdeckt */
+  .fab-lang-wrap{display:none!important}
+  .mobile-nav .lang-switch.v2-ml{display:flex!important;align-self:flex-start;margin:4px 0 18px;padding:4px;gap:4px}
+  .mobile-nav .lang-switch.v2-ml .lang-btn{padding:9px 16px;font-size:13px}
+}
+@media(min-width:901px){.mobile-nav .lang-switch.v2-ml{display:none!important}}
+/* Startbild: Text auf hellem Himmel besser lesbar */
+.hero.hz .hz-txt{text-shadow:0 2px 22px rgba(0,0,0,.45)}
+.hero.hz .hz-eyebrow{color:#f0d9a2!important}
+@media(max-width:900px){.hero.hz::after{content:"";position:absolute;inset:auto 0 0 0;height:75%;pointer-events:none;z-index:1;
+  background:linear-gradient(180deg,transparent,rgba(8,8,8,.55) 45%,rgba(8,8,8,.88))}.hero.hz .hz-txt{position:relative;z-index:2}}
+/* Sanierungs-Reiter: lesbarer Text auf Gold */
+.san-tab.aktiv b,.san-tab.aktiv span{color:#14110b!important}
+.san-tab.aktiv span{opacity:.75}
+/* Kontaktkarten im Abschluss: lange E-Mail sauber umbrechen */
+.v2-close-kontakt a span:last-child{min-width:0;overflow-wrap:anywhere}
