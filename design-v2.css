@@ -261,3 +261,14 @@ body.v2-oben .fab-box{opacity:0;pointer-events:none;transform:translateY(14px)}
   footer{padding-bottom:110px!important}
 }
 .v2-bento-head h2{font-size:clamp(36px,4.6vw,64px)!important}
+/* Abschluss: Rubrik, Kontaktwege */
+.v2-close .section-label{display:block;margin:0 auto 18px}
+.v2-close-lead{font-size:17px;color:#b9b2a5;margin:0 auto 34px;max-width:52ch}
+.v2-close-kontakt{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin:56px auto 0;max-width:980px}
+.v2-close-kontakt a{display:flex;align-items:center;gap:14px;padding:14px 22px 14px 14px;border-radius:18px;text-align:left;text-decoration:none;color:#f3ede2;
+  font:500 14.5px/1.35 var(--f-sans);border:1px solid var(--v2-line);background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.012)),#121311;transition:border-color .25s,transform .25s}
+.v2-close-kontakt a:hover{border-color:rgba(217,188,127,.4);transform:translateY(-2px)}
+.v2-close-kontakt small{display:block;font:600 10.5px/1.2 var(--f-sans);letter-spacing:.2em;text-transform:uppercase;color:#d9bc7f;margin-bottom:4px}
+.v2-ck-ic{width:42px;height:42px;flex:none;border-radius:13px;display:flex;align-items:center;justify-content:center;background:rgba(217,188,127,.12);border:1px solid rgba(217,188,127,.28)}
+.v2-ck-ic svg{width:19px;height:19px;fill:none;stroke:#e2c88f;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:900px){.v2-close-kontakt{flex-direction:column;margin-top:40px}.v2-close-kontakt a{word-break:break-word}}
