@@ -459,7 +459,15 @@ function feedbackOpen(o) {
 
 /* ---------- Druckansicht der Projekte ---------- */
 const printTitle = document.title;
-window.addEventListener('afterprint', () => { document.body.classList.remove('pe'); document.title = printTitle; });
+window.addEventListener('afterprint', () => { document.body.classList.remove('pe'); document.getElementById('ov-auto')?.remove(); document.title = printTitle; });
+// Strg+P / Menü „Drucken“ direkt auf der Übersicht: sauberes Druckdokument (wie „Drucken / PDF“) statt der dunklen Bildschirmansicht
+window.addEventListener('beforeprint', () => {
+  if (!ctx.sess || !ctx.data?.objekte?.length || ctx.view === 'admin' || document.body.classList.contains('pe') || document.getElementById('ov')) return;
+  const d = document.createElement('div'); d.id = 'ov-auto'; d.className = 'ov ov-ex';
+  d.innerHTML = `<div class="ex-wrap"><article class="ex pv">${printHtml(visible(), true)}</article></div>`;
+  document.body.appendChild(d); document.body.classList.add('pe');
+  document.title = `Vertriebsübersicht Hof – Stand ${ctx.data.stand || datum(Date.now())}`;
+});
 
 function printHtml(list, det) {
   const stand = ctx.data.stand || datum(Date.now());
