@@ -90,3 +90,6 @@ html:not(.rg-l) .rg-gate form{display:none}
 .rg-gate-pts{list-style:none;display:flex;flex-wrap:wrap;gap:8px 18px;margin:10px 0 0;padding:0;font-size:13.5px;color:#a29d93}.rg-gate-pts li::before{content:'✓ ';color:var(--gold)}
 .rg-gate-ok{margin:0;font-size:16px;color:#cfc9bd}.rg-gate-ok b{color:#fff}
 @media(max-width:560px){.rg-gate{padding:24px 18px 20px;border-radius:20px}.rg-gate .kf{grid-template-columns:1fr}}
+.rg-video{position:relative}.rg-vlock{position:absolute;inset:0 0 auto 0;aspect-ratio:16/9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:20px;border-radius:20px;background:rgba(8,8,8,.86);backdrop-filter:blur(6px);z-index:2}
+.rg-vlock[hidden]{display:none}.rg-vlock b{font-size:clamp(18px,2.4vw,24px);color:#fff}.rg-vlock span{font-size:14.5px;color:#b9b3a8;max-width:440px}
+.rg-vlock button{margin-top:6px;border:0;border-radius:99px;padding:12px 24px;font:inherit;font-weight:600;font-size:15px;color:#141210;background:linear-gradient(135deg,#d9c08a,#8a6d2e);cursor:pointer}
