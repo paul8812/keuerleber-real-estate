@@ -713,3 +713,7 @@ dialog.mini{width:min(440px,100% - 32px);margin:auto}
 @media (pointer:coarse),(max-width:760px){.dd-menu [role=menuitem]{min-height:44px}.tools-r .btn{min-height:44px}}
 @media (max-width:560px){.tools{flex-basis:100%}.tools select{flex:1 1 100%}.tools-r{width:100%;justify-content:space-between;margin-left:0}.tools-r>.btn,.tools-r>.dropdown{flex:1 1 0}.tools-r>.dropdown>.btn{width:100%}}
 @media (max-width:480px){.spalten.s3{gap:6px}.s3 .sp{padding:7px 8px 6px}.s3 .sp-t{letter-spacing:.08em;text-overflow:clip}}
+/* Eigene Rückmeldung unter der Kachel ausblenden */
+.fbx{display:inline-grid;place-items:center;width:18px;height:18px;margin:0 -4px 0 2px;padding:0;border:0;border-radius:50%;background:none;color:var(--muted);font:400 15px/1 var(--sans);cursor:pointer;position:relative}
+.fbx:hover,.fbx:focus-visible{color:var(--krit);background:var(--krit-bg)}
+.fbx::after{content:"";position:absolute;inset:-8px}
