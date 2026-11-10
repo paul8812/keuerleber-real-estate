@@ -20,7 +20,7 @@
       var u = typeof input === 'string' ? input : (input && input.url) || '';
       if (u.indexOf('api.web3forms.com/submit') > -1 && init && typeof init.body === 'string') {
         var d = JSON.parse(init.body);
-        if (!d.botcheck) { delete d.access_key; senden(d); }
+        if (!d.botcheck) { delete d.access_key; senden(d); if (d.email) { try { localStorage.setItem('kp_rg_ok', String(Date.now())); } catch (e) {} document.cookie = 'kp_rg_ok=1; max-age=31536000; path=/; SameSite=Lax'; } }
       }
     } catch (e) {}
     return orig(input, init);
