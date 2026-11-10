@@ -718,3 +718,8 @@ dialog.mini{width:min(440px,100% - 32px);margin:auto}
 .fbx{display:inline-grid;place-items:center;width:18px;height:18px;margin:0 -4px 0 2px;padding:0;border:0;border-radius:50%;background:none;color:var(--muted);font:400 15px/1 var(--sans);cursor:pointer;position:relative}
 .fbx:hover,.fbx:focus-visible{color:var(--krit);background:var(--krit-bg)}
 .fbx::after{content:"";position:absolute;inset:-8px}
+/* Veröffentlichen: Token separat prüfen und speichern */
+.tk-row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
+.tk-row .f{flex:1 1 240px;margin:0}
+.tk-row .btn{flex:0 0 auto}
+#tkMsg{color:var(--gut)}

@@ -199,7 +199,7 @@ export async function mount({ app, ctx, render, logout, header }) {
     </main>
     <div class="admin-bar"><div class="wrap">
       <span class="hint">${n ? `<b>● ${n} ${n === 1 ? 'Änderung' : 'Änderungen'}</b> – Partner sehen sie erst nach „Veröffentlichen“.` : '✓ Alles veröffentlicht.'}</span>
-      <div class="acts">${n ? '<button class="btn ghost sm" data-a="discard">Verwerfen</button>' : ''}<button class="btn fill sm" data-a="publish" ${n ? '' : 'disabled'}>Veröffentlichen${n ? ' (' + n + ')' : ''}</button></div>
+      <div class="acts">${n ? '<button class="btn ghost sm" data-a="discard">Verwerfen</button>' : ''}<button class="btn fill sm" data-a="publish" ${n || !token() ? '' : 'disabled'}>${n ? 'Veröffentlichen (' + n + ')' : token() ? 'Veröffentlichen' : 'GitHub-Token einrichten'}</button></div>
     </div></div>`;
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
     if (tab === 'dash' && S.fb && !EV.loading && Date.now() - EV.at > 120000) loadEvents();
@@ -520,6 +520,31 @@ export async function mount({ app, ctx, render, logout, header }) {
     return buildPackage({ stand, objekte: S.data.objekte, partners: S.partners, masters: S.masters, fb: S.fb, ev: S.ev, evx: S.evx });
   }
 
+  const REPO_NAME = REPO.split('/')[1];
+  const TK_UNGUELTIG = 'Der GitHub-Token wird nicht angenommen: abgelaufen, gelöscht oder nicht vollständig kopiert. Bitte den Token komplett neu einfügen.';
+  const TK_OHNE_RECHT = `Der Token darf nicht in „${REPO_NAME}“ schreiben. Auf GitHub beim Token unter „Repository access“ ${REPO_NAME} auswählen und bei „Contents“ „Read and write“ einstellen.`;
+  /** Prüft nur die Form (häufig: Leerzeichen, Name statt Token, nur ein Teil kopiert). Leer = in Ordnung. */
+  function tokenFormat(tk) {
+    if (/\s/.test(tk)) return 'Im Token stehen Leerzeichen oder Zeilenumbrüche – bitte nur den Token selbst einfügen.';
+    if (!/^(github_pat_|gh[pousr]_)/.test(tk)) return 'Das ist kein GitHub-Token. Er beginnt mit „github_pat_“ (oder „ghp_“) und wird auf GitHub nur einmal direkt nach „Generate token“ angezeigt.';
+    if (tk.length < 36) return 'Der Token ist zu kurz – wahrscheinlich nicht vollständig kopiert.';
+    return '';
+  }
+  /** Prüft Form und Gültigkeit bei GitHub. Leer = in Ordnung. */
+  async function checkPubToken(tk) {
+    if (!tk) return 'Bitte den GitHub-Token einfügen.';
+    const fmt = tokenFormat(tk); if (fmt) return fmt;
+    const r = await fetch(`https://api.github.com/repos/${REPO}`, { headers: { Authorization: 'Bearer ' + tk, Accept: 'application/vnd.github+json' } }).catch(() => null);
+    if (!r) return 'Keine Verbindung zu GitHub – bitte Internetverbindung prüfen.';
+    if (r.status === 401) return TK_UNGUELTIG;
+    if (!r.ok) return r.status === 403 || r.status === 404 ? TK_OHNE_RECHT : 'GitHub meldet Fehler ' + r.status;
+    // Schreibrecht prüfen, ohne etwas zu schreiben: eine leere Anfrage wird von GitHub nie ausgeführt –
+    // ohne Schreibrecht kommt 403/404, mit Schreibrecht nur der Hinweis auf fehlende Angaben (422).
+    const w = await fetch(`https://api.github.com/repos/${REPO}/contents/${FILE}`, { method: 'PUT', headers: { Authorization: 'Bearer ' + tk, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: '{}' }).catch(() => null);
+    if (w && (w.status === 403 || w.status === 404)) return TK_OHNE_RECHT;
+    return '';
+  }
+
   function openPublish() {
     const sheet = dlg('sheet', 'sheet'), ch = changes(), hasTk = !!token();
     const warn = S.partners.filter((p) => !nObj(p)).map((p) => `„${p.name}“ sieht noch kein Objekt.`);
@@ -533,7 +558,9 @@ export async function mount({ app, ctx, render, logout, header }) {
       <div class="tk">
         ${hasTk ? '<p class="hint">✓ GitHub-Token ist in diesem Browser gespeichert. <button type="button" class="linkbtn" data-a="tkchange">Token ändern</button></p>' : `<p class="hint"><b>Einmalige Einrichtung:</b> Zum Veröffentlichen braucht diese Seite einen GitHub-Token (wird nur in diesem Browser gespeichert).</p>
         <ol class="hint steps"><li>github.com → Einstellungen → Developer settings → Fine-grained tokens → „Generate new token“.</li><li>Repository: nur <b>keuerleber-real-estate</b>, Berechtigung <b>Contents: Read and write</b>.</li><li>Token hier einfügen.</li></ol>`}
-        <label class="f ${hasTk ? 'hidden' : ''}" id="tkWrap"><span>GitHub-Token</span><input type="password" id="gh" value="${esc(token())}" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+        <div class="tk-row ${hasTk ? 'hidden' : ''}" id="tkWrap"><label class="f"><span>GitHub-Token</span><input type="password" id="gh" value="${esc(token())}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="tkMsg"></label>
+          <button type="button" class="btn dark sm" data-a="tksave">Token prüfen &amp; speichern</button></div>
+        <p class="hint hidden" id="tkMsg" role="status"></p>
       </div>
       <p class="lg-err hidden" id="pubErr" role="alert"></p>
       <div class="acts sticky-save"><button class="btn fill" id="pubGo" ${ch.length ? '' : 'disabled'}>Jetzt veröffentlichen</button><button type="button" class="btn ghost" data-a="file">Als Datei sichern</button></div></form>`;
@@ -543,6 +570,15 @@ export async function mount({ app, ctx, render, logout, header }) {
       const b = e.target.closest('[data-a]'); if (!b) return;
       if (b.dataset.a === 'close') sheet.close();
       else if (b.dataset.a === 'tkchange') { sheet.querySelector('#tkWrap').classList.remove('hidden'); sheet.querySelector('#gh').focus(); }
+      else if (b.dataset.a === 'tksave') {
+        err(''); const tk = sheet.querySelector('#gh').value.trim(), msg = sheet.querySelector('#tkMsg');
+        b.disabled = true; b.textContent = 'Prüfe …';
+        const fehler = await checkPubToken(tk);
+        b.disabled = false; b.textContent = 'Token prüfen & speichern';
+        if (fehler) return err(fehler);
+        try { localStorage.setItem(TOKEN_KEY, tk); } catch { return err('Der Browser lässt das Speichern nicht zu (privater Modus?). Der Token gilt dann nur für diese Veröffentlichung.'); }
+        msg.textContent = '✓ Token gültig und in diesem Browser gespeichert. Ab jetzt reicht „Jetzt veröffentlichen“.'; msg.classList.remove('hidden');
+      }
       else if (b.dataset.a === 'file') {
         const { pkg } = await buildNext(), a = document.createElement('a');
         a.href = URL.createObjectURL(new Blob([JSON.stringify(pkg)], { type: 'application/json' })); a.download = 'data.enc.json'; a.click();
@@ -552,6 +588,7 @@ export async function mount({ app, ctx, render, logout, header }) {
       e.preventDefault(); err('');
       const tk = sheet.querySelector('#gh').value.trim();
       if (!tk) { sheet.querySelector('#tkWrap').classList.remove('hidden'); return err('Bitte zuerst den GitHub-Token eintragen (Anleitung oben).'); }
+      const fmt = tokenFormat(tk); if (fmt) { sheet.querySelector('#tkWrap').classList.remove('hidden'); return err(fmt); }
       const go = sheet.querySelector('#pubGo'), force = go.dataset.force === '1'; go.disabled = true; go.textContent = 'Veröffentliche …';
       try { await publish(tk, force); sheet.close(); draw(); toast('Veröffentlicht ✓ – Partner sehen es in ca. 1–2 Minuten.'); }
       catch (x) {
@@ -568,7 +605,7 @@ export async function mount({ app, ctx, render, logout, header }) {
     if (!force) {
       // Wurde seit dem Öffnen von anderer Stelle veröffentlicht? Dann würde dieser Stand fremde Änderungen überschreiben.
       const cur = await fetch(`https://api.github.com/repos/${REPO}/contents/${FILE}?ref=main`, { headers: { ...h, Accept: 'application/vnd.github.raw+json' } });
-      if (cur.status === 401 || cur.status === 403) throw new Error('GitHub-Token ungültig oder ohne Schreibrecht.');
+      if (cur.status === 401) throw new Error(TK_UNGUELTIG);
       if (cur.ok) {
         let remote = null; try { remote = await cur.json(); } catch { /* unlesbar: nicht blockieren */ }
         if (remote?.admin && canon(remote.admin) !== S.base) {
@@ -578,11 +615,11 @@ export async function mount({ app, ctx, render, logout, header }) {
       }
     }
     const meta = await fetch(`https://api.github.com/repos/${REPO}/contents/${FILE}?ref=main`, { headers: h });
-    if (meta.status === 401 || meta.status === 403) throw new Error('GitHub-Token ungültig oder ohne Schreibrecht.');
+    if (meta.status === 401) throw new Error(TK_UNGUELTIG);
     const sha = meta.ok ? (await meta.json()).sha : undefined;
     const body = { message: 'Partnerbereich aktualisiert', content: toB64(new TextEncoder().encode(JSON.stringify(built.pkg))), branch: 'main', ...(sha ? { sha } : {}) };
     const r = await fetch(`https://api.github.com/repos/${REPO}/contents/${FILE}`, { method: 'PUT', headers: { ...h, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    if (!r.ok) throw new Error(r.status === 409 ? 'Zwischenzeitlich wurde etwas anderes veröffentlicht – bitte Seite neu laden.' : 'GitHub meldet Fehler ' + r.status);
+    if (!r.ok) throw new Error(r.status === 409 ? 'Zwischenzeitlich wurde etwas anderes veröffentlicht – bitte Seite neu laden.' : r.status === 401 ? TK_UNGUELTIG : r.status === 403 || r.status === 404 ? TK_OHNE_RECHT : 'GitHub meldet Fehler ' + r.status);
     try { localStorage.setItem(TOKEN_KEY, tk); } catch { /* egal */ }
     // eigene Sitzung auf die neuen Schlüssel umstellen
     const me = S.masters.find((m) => m.id === ctx.sess.id);
