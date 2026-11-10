@@ -198,8 +198,11 @@ const fbMine = () => lsGet(fbKey()) ?? [];
 function fbBlock(o) {
   const mine = chains(fbMine().filter((e) => e.oid === o.id));
   if (!mine.length) return '';
-  return `<div class="fbl"><small>Ihre Rückmeldungen</small>${mine.map((e) => { const s = stageOf(e.st); return `<span class="fbc" style="--c:${s.color}"><i></i><b>${esc(e.k || 'Interessent')}</b> ${esc(s.short)} <em>${datum(e.t)}${e.sent === false ? ' · nur lokal' : ''}</em>${e.sent === false && ctx.sess.fb?.token ? `<button type="button" class="linkbtn" data-retry="${esc(e.id)}">Erneut senden</button>` : ''}</span>`; }).join('')}</div>`;
+  return `<div class="fbl"><small>Ihre Rückmeldungen</small>${mine.map((e) => { const s = stageOf(e.st); return `<span class="fbc" style="--c:${s.color}"><i></i><b>${esc(e.k || 'Interessent')}</b> ${esc(s.short)} <em>${datum(e.t)}${e.sent === false ? ' · nur lokal' : ''}</em>${e.sent === false && ctx.sess.fb?.token ? `<button type="button" class="linkbtn" data-retry="${esc(e.id)}">Erneut senden</button>` : ''}<button type="button" class="fbx" data-fbdel="${esc(fbKette(e))}" aria-label="Rückmeldung ${esc(e.k || 'Interessent')} hier ausblenden" title="Hier ausblenden">×</button></span>`; }).join('')}</div>`;
 }
+
+// Eine Rückmeldekette = derselbe Interessent zum selben Objekt (wie in chains())
+const fbKette = (e) => `${e.pid}|${e.oid}|${String(e.k || '').trim().toLowerCase()}`;
 
 const isNeu = (o) => o.t && o.t > (ctx.seen ?? Infinity);
 
@@ -397,10 +400,16 @@ function render() {
       if (k) { details(k, true); const kopf = document.querySelector('.p-kopf'); k.style.scrollMarginTop = (kopf && getComputedStyle(kopf).position === 'sticky' ? kopf.offsetHeight : 0) + 12 + 'px'; k.scrollIntoView({ block: 'start' }); }
       return;
     }
-    const b = e.target.closest('[data-det],[data-doc],[data-ex],[data-blatt],[data-oexp],[data-fb],[data-reset],[data-retry]'); if (!b) return;
+    const b = e.target.closest('[data-det],[data-doc],[data-ex],[data-blatt],[data-oexp],[data-fb],[data-fbdel],[data-reset],[data-retry]'); if (!b) return;
     if (b.dataset.det) return details(b.closest('.card'));
     menuZu();
     if (b.dataset.retry) return fbRetry(b);
+    if (b.dataset.fbdel) { // nur die Anzeige in diesem Browser – im Master-Dashboard bleibt die Rückmeldung erhalten
+      lsSet(fbKey(), fbMine().filter((x) => fbKette(x) !== b.dataset.fbdel));
+      const k = b.closest('.card'), y = window.scrollY; refresh(); window.scrollTo(0, y);
+      document.querySelector(`[data-oid="${CSS.escape(k?.dataset.oid ?? '')}"] [data-fb]`)?.focus({ preventScroll: true });
+      return note('Rückmeldung ausgeblendet.');
+    }
     if (b.dataset.reset !== undefined) { Object.assign(ctx, { filter: 'alle', q: '' }); return render(); }
     if (b.dataset.doc) return download(b.dataset.doc);
     const o = ctx.data.objekte.find((x) => x.id === (b.dataset.ex || b.dataset.blatt || b.dataset.id || b.dataset.fb)); if (!o) return;

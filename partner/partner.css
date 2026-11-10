@@ -701,9 +701,10 @@ dialog.mini{width:min(440px,100% - 32px);margin:auto}
 .kz dd small{display:block;font-weight:400;font-size:10.5px;line-height:1.3;color:var(--muted)}
 .kz-h{margin-top:6px;font-size:11px;color:var(--muted)}
 .beschr{display:grid;gap:6px}
-.beschr p{font-size:12px;line-height:1.55;color:var(--ink2)}
-.beschr .ort{font-size:11.5px;color:var(--muted)}
-.beschr .note{margin-top:0}
+.beschr p{font-size:12px;line-height:1.55;color:var(--muted)}
+.beschr .ort{font-size:12px;color:var(--ink)}
+/* Hinweis (z. B. „Vermietet seit …“) in Grün */
+.beschr .note{margin-top:0;font-weight:700;color:var(--gut);background:var(--gut-bg);border:1px solid color-mix(in srgb,var(--gut) 45%,transparent);border-left:2px solid var(--gut)}
 .zeit{padding:10px 10px 8px;border:1px solid var(--gold-l);border-radius:2px;background:linear-gradient(180deg,var(--gold-bg),transparent 90%);box-shadow:inset 2px 0 0 var(--gold)}
 .zeit .steps li.done::before,.zeit .steps li.current::before{top:9.5px;height:2px;background:var(--gold)}
 .zeit .steps .done .dot{border-color:var(--gold);color:var(--gold-t)}
@@ -713,3 +714,7 @@ dialog.mini{width:min(440px,100% - 32px);margin:auto}
 @media (pointer:coarse),(max-width:760px){.dd-menu [role=menuitem]{min-height:44px}.tools-r .btn{min-height:44px}}
 @media (max-width:560px){.tools{flex-basis:100%}.tools select{flex:1 1 100%}.tools-r{width:100%;justify-content:space-between;margin-left:0}.tools-r>.btn,.tools-r>.dropdown{flex:1 1 0}.tools-r>.dropdown>.btn{width:100%}}
 @media (max-width:480px){.spalten.s3{gap:6px}.s3 .sp{padding:7px 8px 6px}.s3 .sp-t{letter-spacing:.08em;text-overflow:clip}}
+/* Eigene Rückmeldung unter der Kachel ausblenden */
+.fbx{display:inline-grid;place-items:center;width:18px;height:18px;margin:0 -4px 0 2px;padding:0;border:0;border-radius:50%;background:none;color:var(--muted);font:400 15px/1 var(--sans);cursor:pointer;position:relative}
+.fbx:hover,.fbx:focus-visible{color:var(--krit);background:var(--krit-bg)}
+.fbx::after{content:"";position:absolute;inset:-8px}
