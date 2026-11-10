@@ -723,3 +723,5 @@ dialog.mini{width:min(440px,100% - 32px);margin:auto}
 .tk-row .f{flex:1 1 240px;margin:0}
 .tk-row .btn{flex:0 0 auto}
 #tkMsg{color:var(--gut)}
+.gh-z{margin-top:6px;padding:8px 10px;border:1px solid var(--rand2);border-left:2px solid var(--gold);border-radius:2px;background:var(--senke)}
+#tkAlleWrap{margin-top:6px}
