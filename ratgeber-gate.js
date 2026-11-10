@@ -33,6 +33,20 @@
     '<button class="b" type="submit">Ratgeber freischalten</button><p class="h" role="status" aria-live="polite"></p></form>' +
     '<ul class="rg-gate-pts"><li>Kein Spam, keine Weitergabe</li><li>Nur einmal nötig</li><li>Persönliche Beratung in Hof</li></ul>';
   paid.parentNode.insertBefore(g, paid.nextSibling);
+  // Video: nur kurzer Teaser, danach Hinweis zum Freischalten
+  var TEASER = 10, fig = document.querySelector('.rg-video'), v = fig && fig.querySelector('video');
+  if (v) {
+    var cap = fig.querySelector('figcaption'), capAlt = cap && cap.textContent;
+    if (cap) cap.textContent = 'Vorschau · ' + TEASER + ' Sekunden · ganzes Video nach Freischaltung';
+    var ov = document.createElement('div'); ov.className = 'rg-vlock'; ov.hidden = true;
+    ov.innerHTML = '<b>Weiter geht’s nach der Freischaltung</b><span>Das ganze Erklärvideo und den vollständigen Artikel gibt es kostenlos nach einer kurzen Eintragung.</span><button type="button">Jetzt freischalten</button>';
+    fig.appendChild(ov);
+    ov.querySelector('button').onclick = function () { g.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(function () { f.n.focus({ preventScroll: true }); }, 500); };
+    var stop = function () { if (!root.classList.contains('rg-l')) return; if (v.currentTime > TEASER) { v.pause(); v.currentTime = TEASER; if (document.fullscreenElement) document.exitFullscreen().catch(function(){}); if (v.webkitDisplayingFullscreen) v.webkitExitFullscreen(); ov.hidden = false; } };
+    v.addEventListener('timeupdate', stop); v.addEventListener('seeking', stop);
+    v.addEventListener('play', function () { if (root.classList.contains('rg-l') && v.currentTime >= TEASER - .05) { v.pause(); ov.hidden = false; } });
+    window.__rgUnlockVideo = function () { ov.remove(); if (cap) cap.textContent = capAlt; };
+  }
   var f = g.querySelector('form'), h = f.querySelector('.h');
   f.addEventListener('submit', function (e) {
     e.preventDefault();
@@ -46,7 +60,7 @@
       message: 'Ratgeber freigeschaltet.\n\nName: ' + (n || '—') + '\nE-Mail: ' + m + '\nTelefon: ' + (tel || '—') + '\nArtikel: ' + t.trim() };
     fetch(URL, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(d) })
       .then(function (r) { return r.json(); })
-      .then(function (j) { if (j && j.success === false) throw 0; merken(); root.classList.remove('rg-l');
+      .then(function (j) { if (j && j.success === false) throw 0; merken(); root.classList.remove('rg-l'); if (window.__rgUnlockVideo) window.__rgUnlockVideo();
         g.innerHTML = '<p class="rg-gate-ok"><b>Danke, der Ratgeber ist freigeschaltet.</b> Viel Spaß beim Lesen!</p>';
         setTimeout(function () { g.remove(); }, 4000); })
       .catch(function () { b.disabled = false; b.textContent = 'Ratgeber freischalten'; h.textContent = 'Das Senden hat nicht geklappt. Bitte versuchen Sie es erneut.'; });
