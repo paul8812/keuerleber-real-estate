@@ -2,7 +2,7 @@
 import { buildPackage, newFeedbackKeys, openFeedback, openJson, openObjects, openSlot, randomCode, randomId, sealJson, toB64 } from './crypto.js';
 import { dashHtml } from './dash.js';
 import { STAGES } from './fb.js';
-import { esc, eur } from './app.js';
+import { esc, eur, pflege } from './app.js';
 
 const REPO = 'paul8812/keuerleber-real-estate';
 const FILE = 'partner/data.enc.json';
@@ -589,7 +589,7 @@ export async function mount({ app, ctx, render, logout, header }) {
     ctx.pkg = built.pkg;
     const payload = await openSlot(me.code, built.pkg.slots.find((x) => x.id === ctx.sess.id), built.pkg.iter);
     ctx.sess = { ...payload, code: me.code, id: ctx.sess.id, sig: built.pkg.objekte.map((b) => b.b).join('|') };
-    ctx.data = await openObjects(ctx.sess, built.pkg);
+    ctx.data = pflege(await openObjects(ctx.sess, built.pkg));
     try { sessionStorage.setItem('nf-partner-session', JSON.stringify(ctx.sess)); } catch { /* egal */ }
     S.base = canon(built.pkg.admin);
     B = snapshot();
@@ -663,7 +663,7 @@ export async function mount({ app, ctx, render, logout, header }) {
       if (!photo) return fail('Bitte ein Foto hochladen – ohne Foto kann das Objekt bei den Partnern nicht angezeigt werden.');
       if (!!zl !== !!zb) return fail('Zuschlag: bitte Bezeichnung und Betrag angeben (oder beides leer lassen).');
       er.classList.add('hidden');
-      const auto = (fo, to) => (to === 'done' ? 'Saniert' : to === 'prep' ? 'In Vorbereitung' : `In Sanierung · ${fo} %`);
+      const auto = (fo, to) => (to === 'done' ? 'Fertiggestellt' : to === 'prep' ? 'In Vorbereitung' : `In Sanierung · ${fo} %`);
       // Automatische Bezeichnung mitführen, solange sie nicht von Hand geändert wurde
       const label = g('statusLabel') && !(g('statusLabel') === o.status.label && o.status.label === auto(o.fortschritt, o.status.tone)) ? g('statusLabel') : auto(fort, tone);
       const neu = {

@@ -116,12 +116,18 @@ function investagon(list, kz) {
   return new Blob(['\ufeff' + rows.join('\r\n')], { type: 'text/csv;charset=utf-8' });
 }
 
-export function exportObjekte(list, kz, format) {
-  if (!list.length) return false;
+// Reihenfolge in jeder Datei: frei zuerst, Reservierte (und Notartermin/Verkauft) am Ende – innerhalb der Gruppen wie angezeigt
+const RANG = { frei: 0, reserviert: 1, notar: 2, verkauft: 3 };
+const dateiName = (t) => String(t).normalize('NFC').replace(/ß/g, 'ss').replace(/[äÄöÖüÜ]/g, (c) => ({ ä: 'ae', Ä: 'Ae', ö: 'oe', Ö: 'Oe', ü: 'ue', Ü: 'Ue' })[c]).replace(/[^\w-]+/g, '_').replace(/^_+|_+$/g, '');
+
+/** Exportiert eine Objektliste; name (optional) = Objektbezeichnung für den Dateinamen beim Einzel-Export. */
+export function exportObjekte(liste, kz, format, name = '') {
+  if (!liste.length) return false;
+  const list = [...liste].sort((x, y) => (RANG[x.vs || 'frei'] ?? 0) - (RANG[y.vs || 'frei'] ?? 0));
   const blob = format === 'investagon' ? investagon(list, kz) : format === 'csv' ? csv(list, kz) : xlsx(list, kz), a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   const jetzt = new Date(), tag = `${jetzt.getFullYear()}-${String(jetzt.getMonth() + 1).padStart(2, '0')}-${String(jetzt.getDate()).padStart(2, '0')}`; // lokales Datum (toISOString wäre UTC → nach Mitternacht der Vortag)
-  a.download = `${format === 'investagon' ? 'Norderfranken_Investagon_Einheiten' : 'Norderfranken_Objekte'}_${tag}.${format === 'xlsx' ? 'xlsx' : 'csv'}`;
+  a.download = `${format === 'investagon' ? 'Norderfranken_Investagon_Einheiten' : 'Norderfranken_Objekte'}${name ? '_' + dateiName(name) : ''}_${tag}.${format === 'xlsx' ? 'xlsx' : 'csv'}`;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   return true;

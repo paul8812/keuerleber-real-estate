@@ -31,14 +31,39 @@ const num = (n, d = 2) => new Intl.NumberFormat('de-DE', { minimumFractionDigits
 
 export function kennzahlen(o) {
   const jahresmiete = (o.miete + (o.zuschlag?.betrag ?? 0)) * 12;
-  return { preisQm: o.preis / o.flaeche, mieteQm: o.miete / o.flaeche, rendite: (jahresmiete / o.preis) * 100, faktor: o.preis / jahresmiete };
+  return { preisQm: o.preis / o.flaeche, mieteQm: o.miete / o.flaeche, rendite: (jahresmiete / o.preis) * 100, faktor: o.preis / jahresmiete, jahresmiete };
 }
+
+/* ---------- Einheitliche Begriffe und Reihenfolge ---------- */
+// Nie „Kernsanierung“/„kernsaniert“, sondern „Sanierung“/„saniert“ – in allen Texten eines Objekts.
+const ohneKern = (t) => t.replace(/\b([Kk])ern[-\s]?[Ss]anier/g, (m, k) => (k === 'K' ? 'S' : 's') + 'anier');
+// Am Foto heißen abgeschlossene Objekte „Fertiggestellt“ – egal ob vorher „saniert“ oder „renoviert“ eingetragen war.
+const fertig = (t) => t.replace(/\b(?:[Kk]ern[-\s]?)?([Ss]aniert|[Rr]enoviert)\b/g, (m) => (/^[A-ZÄÖÜ]/.test(m) ? 'F' : 'f') + 'ertiggestellt');
+const tief = (v, key = '') => (typeof v === 'string' ? (key === 'bild' || key === 'd' ? v : ohneKern(v))
+  : Array.isArray(v) ? v.map((x) => tief(x)) : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, tief(x, k)])) : v);
+/** Bereinigt entschlüsselte Objektdaten für die Anzeige (Bilder und Unterlagen bleiben unangetastet). */
+export function pflege(d) {
+  return { ...d, objekte: d.objekte.map((o) => { const n = tief(o); if (n.status) n.status = { ...n.status, label: fertig(String(n.status.label ?? '')) }; return n; }) };
+}
+// Reihenfolge überall (Übersicht, Registeransicht, Druck, Export): Frei zuerst, Reservierte (und Notartermin/Verkauft) am Ende.
+const RANG = { frei: 0, reserviert: 1, notar: 2, verkauft: 3 };
+const rang = (o) => RANG[o.vs || 'frei'] ?? 0;
+export const nachStatus = (l) => [...l].sort((a, b) => rang(a) - rang(b));
+const istRes = (o) => o.vs === 'reserviert' || o.vs === 'notar';
+// Ausstattung, die unter der Adresse genannt wird (aus Ausstattungsliste und Zuschlag, z. B. „TG-Stellplatz“)
+const EXTRAS = [['Stellplatz', /stellplatz|parkplatz|carport/i], ['Garage', /garage(?!n?stellplatz)/i], ['Balkon', /balkon/i]];
+const ausstattung = (o) => { const t = [...(o.tags ?? []), o.zuschlag?.label ?? ''].join(' | '); return EXTRAS.filter(([, re]) => re.test(t)).map(([n]) => n); };
 
 const logo = (cls) => `<img src="logo-weiss.svg" alt="Norderfranken Haus & Grund" class="${cls} logo-w"><img src="logo.svg" alt="Norderfranken Haus & Grund" class="${cls} logo-d">`;
 const ICON = {
   haus: '<svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>',
   chart: '<svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>',
   lupe: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
+  wecker: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13.5" r="7"/><path d="M12 10.5v3.2l2.2 1.6M4.5 5.5l3-2.5M19.5 5.5l-3-2.5M7.5 19.5l-1.5 2M16.5 19.5l1.5 2"/></svg>',
+  pfeil: '<svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>',
+  liste: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>',
+  kacheln: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1"/><rect x="13.5" y="3.5" width="7" height="7" rx="1"/><rect x="3.5" y="13.5" width="7" height="7" rx="1"/><rect x="13.5" y="13.5" width="7" height="7" rx="1"/></svg>',
+  export: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 17v3h16v-3"/></svg>',
 };
 const grussZeit = () => { const h = new Date().getHours(); return h < 11 ? 'Guten Morgen' : h < 18 ? 'Guten Tag' : 'Guten Abend'; };
 const tageLang = () => new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -52,7 +77,7 @@ function themaWechseln() {
 document.addEventListener('click', (e) => { if (e.target.closest('.thema')) themaWechseln(); });
 document.addEventListener('keydown', (e) => { if (e.key === '/' && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) && document.getElementById('q')) { e.preventDefault(); document.getElementById('q').focus(); } });
 
-const ctx = { mode: 'karten', pkg: null, sess: null, data: null, view: 'start', filter: 'alle', sort: 'standard', q: '', budget: 0, rend: 0, zi: 0 };
+const ctx = { mode: 'karten', pkg: null, sess: null, data: null, view: 'start', filter: 'alle', sort: 'standard', q: '' };
 
 async function loadPackage() {
   const r = await fetch('data.enc.json?t=' + Date.now(), { cache: 'no-store' });
@@ -76,7 +101,7 @@ async function reopen(pkg) {
   if (!payload) return false;
   ctx.pkg = pkg;
   ctx.sess = { ...payload, code: ctx.sess.code, id: ctx.sess.id, sig: sigOf(pkg) };
-  ctx.data = await openObjects(payload, pkg);
+  ctx.data = pflege(await openObjects(payload, pkg));
   try { sessionStorage.setItem(SESSION, JSON.stringify(ctx.sess)); } catch { /* egal */ }
   return true;
 }
@@ -104,7 +129,7 @@ async function enter(payload, code, id) {
   lsSet('nf-seen-' + id, Date.now());
   try { localStorage.removeItem('nf-expose-prof'); } catch { /* egal */ } // altes, für alle Zugänge gemeinsames Profil
   try { sessionStorage.setItem('nf-seen-ctx', String(ctx.seen)); } catch { /* egal */ }
-  ctx.data = await openObjects(payload, ctx.pkg);
+  ctx.data = pflege(await openObjects(payload, ctx.pkg));
   try { sessionStorage.setItem(SESSION, JSON.stringify(ctx.sess)); } catch { /* privater Modus */ }
   if (location.hash) history.replaceState(null, '', location.pathname);
   ctx.view = 'start';
@@ -161,15 +186,12 @@ function showLogin(msg = '', busy = false) {
 /* ---------- Übersicht ---------- */
 const FILTER = [
   ['alle', 'Alle', () => true],
-  ['frei', 'Frei', (o) => !o.vs || o.vs === 'frei'],
-  ['neu', 'Neu / geändert', (o) => isNeu(o)],
-  ['fav', '★ Favoriten', (o) => favs().includes(o.id)],
-  ['fertig', 'Saniert', (o) => o.fortschritt === 100],
-  ['arbeit', 'In Sanierung', (o) => o.fortschritt > 0 && o.fortschritt < 100],
-  ['vorbereitung', 'In Vorbereitung', (o) => o.fortschritt === 0],
+  ['frei', 'Frei', (o) => (o.vs || 'frei') === 'frei'],
+  ['res', 'Reserviert', istRes],
+  ['neu', 'Neu / geändert', (o) => isNeu(o)], // über die Kachel „Neu / geändert“ oder den Hinweis erreichbar
 ];
+const CHIPS = ['alle', 'frei', 'res'];
 
-const favs = () => lsGet('nf-fav-' + ctx.sess.id) ?? [];
 const fbKey = () => 'nf-fb-' + ctx.sess.id;
 const fbMine = () => lsGet(fbKey()) ?? [];
 
@@ -181,44 +203,68 @@ function fbBlock(o) {
 
 const isNeu = (o) => o.t && o.t > (ctx.seen ?? Infinity);
 
+/** Aufklappmenü (Export): Knopf + Liste. items: [{ a: 'data-…="…"', t: Titel, s: Zusatz }] oder { g: Gruppenüberschrift } */
+function menu(label, items, cls = '') {
+  return `<div class="dropdown ${cls}"><button type="button" class="btn fill sm" data-menu aria-haspopup="menu" aria-expanded="false">${ICON.export}<span>${label}</span>${ICON.pfeil}</button>
+    <div class="dd-menu" role="menu" aria-label="${esc(label)}">${items.map((i) => (i.g ? `<p class="dd-g" role="presentation">${esc(i.g)}</p>`
+      : `<button type="button" role="menuitem" ${i.a}><b>${esc(i.t)}</b>${i.s ? `<small>${esc(i.s)}</small>` : ''}</button>`)).join('')}</div></div>`;
+}
+const kb = (d) => Math.max(1, Math.round((String(d.d).length * 0.75) / 1024));
+
+function objektMenu(o) {
+  const id = esc(o.id), docs = o.docs ?? [];
+  return menu('Export', [
+    { a: `data-ex="${id}"`, t: 'Kunden-Exposé (PDF)', s: 'Mit Ihrem Aufschlag, ohne Abgabepreis' },
+    { a: `data-blatt="${id}"`, t: 'Datenblatt (PDF)', s: 'Alle Angaben inkl. Abgabepreis' },
+    { a: `data-oexp="xlsx" data-id="${id}"`, t: 'Excel', s: 'Kennzahlen als .xlsx' },
+    { a: `data-oexp="csv" data-id="${id}"`, t: 'CSV', s: 'Kennzahlen als .csv' },
+    { a: `data-oexp="investagon" data-id="${id}"`, t: 'Investagon', s: 'Einheit für den Import (CSV)' },
+    ...(docs.length ? [{ g: `Unterlagen (${docs.length})` }, ...docs.map((d, i) => ({ a: `data-doc="${id}:${i}"`, t: d.n, s: `${kb(d)} KB · herunterladen` }))] : []),
+  ], 'rechts');
+}
+
 function karte(o) {
   const k = kennzahlen(o);
   const steps = o.schritte.map((s) => `
     <li class="${esc(s.state)}"><span class="dot">${s.state === 'done' ? '✓' : ''}</span><b>${esc(s.label)}</b>
     <em>${s.state === 'current' && s.label === 'Sanierung' ? o.fortschritt + ' %' : esc(s.datum ?? '')}</em></li>`).join('');
-  const a = ansp(o), docs = o.docs ?? [], vs = o.vs || 'frei';
-  const sold = vs === 'verkauft';
+  const a = ansp(o), vs = o.vs || 'frei', id = esc(o.id);
+  const sold = vs === 'verkauft', extras = ausstattung(o);
+  const MIETART = { IST: 'laut Mietvertrag', SOLL: 'kalkulierte Marktmiete', PLAN: 'Planwert vor Sanierung' };
+  const kz = [
+    ['Preis je m²', eur(k.preisQm)],
+    ['Faktor', `${num(k.faktor, 1)}-fach`],
+    ['Kaltmiete je m²', `${num(k.mieteQm)} €`],
+    ['Jahreskaltmiete', eur(k.jahresmiete), o.zuschlag ? `inkl. ${o.zuschlag.label} ${eur(o.zuschlag.betrag)}/Mon.` : ''],
+    ['Hausgeld / Mon.', eur(o.hausgeld)],
+    ['Mietansatz', o.mieteTyp, MIETART[o.mieteTyp] ?? ''],
+  ];
   return `
-  <article class="card${sold ? ' sold' : ''}" data-oid="${esc(o.id)}">
-    <div class="photo"><img src="${esc(o.bild)}" alt="${esc(o.strasse + ', ' + o.lage)}" loading="lazy"><button class="fav${favs().includes(o.id) ? ' on' : ''}" data-fav="${esc(o.id)}" aria-pressed="${favs().includes(o.id)}" aria-label="Als Favorit merken">★</button><span class="pill ${esc(o.status.tone)}"><i></i>${esc(o.status.label)}</span>${vBadge(o)}${isNeu(o) ? `<span class="neu">${esc(o.aend || 'Aktualisiert')}</span>` : ''}</div>
+  <article class="card${sold ? ' sold' : ''}" data-oid="${id}">
+    <div class="photo"><img src="${esc(o.bild)}" alt="${esc(o.strasse + ', ' + o.lage)}" loading="lazy"><span class="pill ${esc(o.status.tone)}"><i></i>${esc(o.status.label)}</span>${vBadge(o)}${isNeu(o) ? `<span class="neu">${esc(o.aend || 'Aktualisiert')}</span>` : ''}</div>
     <div class="body">
-      <div class="head"><h2>${esc(o.strasse)} <span>· ${esc(o.lage)}</span></h2><span class="meta">${zim(o.zimmer)} Zi. · Bj. ${esc(o.baujahr)} · Energie ${esc(o.energie)} · Hausgeld ${eur(o.hausgeld)}</span></div>
+      <div class="head"><h2>${esc(o.strasse)} <span>· ${esc(o.lage)}</span></h2><span class="meta">${zim(o.zimmer)} Zi. · Bj. ${esc(o.baujahr)} · Energie ${esc(o.energie)}${extras.map((x) => ` · <b>${esc(x)}</b>`).join('')}</span></div>
       <div class="kpis">
-        <div><small>Wohnfläche</small><b>${num(o.flaeche)} m²</b></div>
-        <div><small>Kaltmiete / Mon.</small><b>${eur(o.miete)} <u class="tag ${esc(o.mieteTyp.toLowerCase())}">${esc(o.mieteTyp)}</u></b></div>
         <div class="price"><small>Abgabepreis</small><b>${eur(o.preis)}</b></div>
-        <div><small>Rendite p. a.</small><b>${num(k.rendite)} %</b></div>
+        <div class="rend"><small>Rendite p. a.</small><b>${num(k.rendite)} %</b></div>
+        <div><small>Wohnfläche</small><b>${num(o.flaeche)} m²</b></div>
+        <div class="miete"><small>Kaltmiete / Mon.</small><span class="wert"><b>${eur(o.miete)}</b><u class="tag ${esc(o.mieteTyp.toLowerCase())}" title="${esc(MIETART[o.mieteTyp] ?? '')}">${esc(o.mieteTyp)}</u></span></div>
       </div>
       <div class="san-h"><small>Sanierungsstand</small><b class="${esc(o.status.tone)}">${o.fortschritt} %</b></div>
       <div class="bar-t"><i class="${esc(o.status.tone)}" style="width:${o.fortschritt}%"></i></div>
       <div class="cact">
-        <button class="btn fill sm" data-fb="${esc(o.id)}" ${sold ? 'disabled' : ''}>Rückmeldung</button>
-        <button class="btn dark sm" data-ex="${esc(o.id)}">Exposé</button>
-        <a class="btn ghost sm" href="tel:+${waNr(a.tel)}">Anrufen</a>
-        ${isMobil(a.tel) ? `<a class="btn ghost sm" href="https://wa.me/${waNr(a.tel)}" target="_blank" rel="noopener noreferrer">WhatsApp</a>` : a.mail ? `<a class="btn ghost sm" href="mailto:${esc(a.mail)}">E-Mail</a>` : ''}
+        <button type="button" class="btn fill sm" data-det="${id}" aria-expanded="false" aria-controls="det-${id}"><span>Details</span>${ICON.pfeil}</button>
+        <div class="cact-r">${objektMenu(o)}<button type="button" class="btn fill sm" data-fb="${id}" ${sold ? 'disabled' : ''}>Rückmeldung</button></div>
       </div>
       ${fbBlock(o)}
-      <details class="dd more"><summary>Details, Zeitplan &amp; Unterlagen</summary>
-        <div class="mb">
-          <ul class="tags">${o.tags.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
-          <p class="ort">${esc(o.ort)}</p>
-          <div class="san"><p>${esc(o.sanierung)}</p>${o.hinweis ? `<p class="note">${esc(o.hinweis)}</p>` : ''}<p class="hint">Kaltmiete ${num(k.mieteQm)} €/m²${o.zuschlag ? ` · + ${esc(o.zuschlag.label)} ${eur(o.zuschlag.betrag)}` : ''} · Abgabepreis ${eur(k.preisQm)}/m²${o.preisHinweis ? ' (' + esc(o.preisHinweis) + ')' : ''} · Faktor ${num(k.faktor, 1)}</p></div>
-          <ol class="steps">${steps}</ol>
-          <p class="who">Ansprechpartner: <b>${esc(a.name)}</b> · ${esc(a.tel)}</p>
-          ${docs.length ? `<details class="dd"><summary>Unterlagen (${docs.length})</summary><div class="doclist">${docs.map((d, i) => `<button class="doc" data-doc="${esc(o.id)}:${i}"><span>${esc(d.n)}</span><small>${Math.max(1, Math.round((d.d.length * 0.75) / 1024))} KB · herunterladen</small></button>`).join('')}</div></details>` : ''}
-          <details class="dd calc"><summary>Rechner: Finanzierung &amp; Cashflow</summary>${calcHtml(o)}</details>
-        </div>
-      </details>
+      <div class="more" id="det-${id}" hidden>
+        <section class="mk" aria-label="Kennzahlen für den Vertrieb"><h3>Kennzahlen</h3>
+          <dl class="kz">${kz.map(([l, w, z]) => `<div><dt>${esc(l)}</dt><dd>${esc(w)}${z ? `<small>${esc(z)}</small>` : ''}</dd></div>`).join('')}</dl>
+          ${o.preisHinweis ? `<p class="kz-h">${esc(o.preisHinweis)}</p>` : ''}</section>
+        <section class="beschr"><h3>Objektbeschreibung</h3>${o.ort ? `<p class="ort">${esc(o.ort)}</p>` : ''}${o.sanierung ? `<p>${esc(o.sanierung)}</p>` : ''}${o.hinweis ? `<p class="note">${esc(o.hinweis)}</p>` : ''}</section>
+        <section class="zeit"><h3>Zeitplan</h3><ol class="steps">${steps}</ol></section>
+        <p class="who">Ansprechpartner: <b>${esc(a.name)}</b> · ${esc(a.tel)}${a.mail ? ' · ' + esc(a.mail) : ''}</p>
+      </div>
     </div>
   </article>`;
 }
@@ -228,29 +274,7 @@ function vBadge(o) {
   if (v === 'frei') return '';
   const bis = v === 'reserviert' && o.vbis ? ` · bis ${new Date(o.vbis).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}` : '';
   const abgelaufen = v === 'reserviert' && o.vbis && Date.parse(o.vbis) + 86400000 < Date.now();
-  return `<span class="vs ${esc(v)}">${abgelaufen ? 'Reservierung abgelaufen – bitte anfragen' : esc(VSTATUS[v] ?? v) + bis}</span>`;
-}
-
-/* ---------- Rechner ---------- */
-function calcHtml(o) {
-  const nk = 6.5, ek = Math.round((o.preis * nk) / 100 / 100) * 100;
-  return `<div class="calc-in" data-p="${o.preis}" data-m="${o.miete + (o.zuschlag?.betrag ?? 0)}" data-h="${o.hausgeld}">
-    <label class="f"><span>Kaufnebenkosten (%)</span><input type="number" step="0.1" min="0" max="30" inputmode="decimal" data-c="nk" value="${nk}"></label>
-    <label class="f"><span>Eigenkapital (€)</span><input type="number" step="500" min="0" inputmode="numeric" data-c="ek" value="${ek}"></label>
-    <label class="f"><span>Zins (% p. a.)</span><input type="number" step="0.05" min="0" max="20" inputmode="decimal" data-c="zins" value="3.8"></label>
-    <label class="f"><span>Tilgung (% p. a.)</span><input type="number" step="0.1" min="0" max="20" inputmode="decimal" data-c="til" value="2"></label>
-    <dl class="c-out"></dl>
-    <p class="hint">Vereinfachte, unverbindliche Beispielrechnung vor Steuern (Cashflow = Kaltmiete − Rate − Hausgeld; das Hausgeld ist teilweise umlagefähig). Keine Steuer- oder Finanzierungsberatung.</p></div>`;
-}
-function calcUpdate(box) {
-  const grenze = { nk: 30, zins: 20, til: 20, ek: 1e8 };
-  const v = (k) => { const x = parseFloat(box.querySelector(`[data-c=${k}]`).value.replace(',', '.')); return Number.isFinite(x) ? Math.min(Math.max(x, 0), grenze[k]) : 0; };
-  const p = +box.dataset.p, m = +box.dataset.m, h = +box.dataset.h;
-  const gesamt = p * (1 + v('nk') / 100), darlehen = Math.max(0, gesamt - v('ek'));
-  const rate = (darlehen * (v('zins') + v('til'))) / 100 / 12, cf = Math.round(m - rate - h);
-  const row = (l, x, cls = '') => `<div class="${cls}"><dt>${l}</dt><dd>${x}</dd></div>`;
-  box.querySelector('.c-out').innerHTML = row('Gesamtinvestition', eur(gesamt)) + row('Darlehen', eur(darlehen)) + row('Rate / Monat', eur(rate)) +
-    row('Kaltmiete / Monat', eur(m)) + row('Hausgeld / Monat', eur(h)) + row('Cashflow / Monat', (cf > 0 ? '+' : cf < 0 ? '−' : '') + eur(Math.abs(cf)), cf >= 0 ? 'pos' : 'neg');
+  return `<span class="vs ${esc(v)}">${v === 'reserviert' ? ICON.wecker : ''}${abgelaufen ? 'Reservierung abgelaufen – bitte anfragen' : esc(VSTATUS[v] ?? v) + bis}</span>`;
 }
 
 /** Suchtext vereinheitlichen: Groß-/Kleinschreibung, ß/ss, Umlaute, Bindestriche und Punkte egal. */
@@ -259,9 +283,7 @@ function filtered() {
   const t = FILTER.find((f) => f[0] === ctx.filter)[2];
   const terms = norm(ctx.q).split(' ').filter(Boolean);
   const hay = (o) => norm(`${o.strasse} ${o.lage} ${o.tags.join(' ')} ${o.status.label} ${o.vs ? VSTATUS[o.vs] ?? '' : 'frei'}`);
-  return ctx.data.objekte.filter((o) => t(o) && (!terms.length || terms.every((w) => hay(o).includes(w)))
-    && (!ctx.budget || o.preis <= ctx.budget) && (!ctx.rend || kennzahlen(o).rendite >= ctx.rend)
-    && (!ctx.zi || (ctx.zi === 4 ? o.zimmer >= 4 : Math.floor(o.zimmer) === ctx.zi)));
+  return ctx.data.objekte.filter((o) => t(o) && (!terms.length || terms.every((w) => hay(o).includes(w))));
 }
 
 function tabelle(l) {
@@ -273,7 +295,7 @@ function tabelle(l) {
       <td data-l="Status"><span class="tvs ${esc(v)}">${esc(VSTATUS[v] ?? v)}</span><small>${esc(o.status.label)}</small></td></tr>`;
   }).join('');
   return `<div class="tbl-w"><table class="tbl"><thead><tr><th>Objekt</th><th>Fläche</th><th>Kaltmiete</th><th>Abgabepreis</th><th>Preis/m²</th><th>Rendite</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>
-    <p class="hint tbl-h">Zeile antippen für alle Details, Unterlagen und Rechner.</p>`;
+    <p class="hint tbl-h">Zeile antippen für Details, Export und Rückmeldung.</p>`;
 }
 
 function visible() {
@@ -281,14 +303,13 @@ function visible() {
   if (ctx.sort === 'preis') l.sort((a, b) => a.preis - b.preis);
   if (ctx.sort === 'rendite') l.sort((a, b) => kennzahlen(b).rendite - kennzahlen(a).rendite);
   if (ctx.sort === 'flaeche') l.sort((a, b) => b.flaeche - a.flaeche);
-  return l;
+  return nachStatus(l); // Reservierte immer am Ende – auch in Druck und Export
 }
 
 function listeHtml() {
   const l = visible();
   if (!ctx.data.objekte.length) return '<p class="empty">Für Sie sind aktuell keine Objekte freigegeben. Bitte sprechen Sie Sebastian Sultanow an: ' + KONTAKT.tel + '</p>';
-  const leer = ctx.filter === 'fav' && !favs().length ? 'Noch keine Favoriten gemerkt – tippen Sie am Foto eines Objekts auf ★.' : 'Keine Objekte für diese Auswahl.';
-  return l.length ? (ctx.mode === 'tabelle' ? tabelle(l) : l.map(karte).join('')) : `<p class="empty">${leer}<br><button class="btn ghost sm" data-reset>Filter zurücksetzen</button></p>`;
+  return l.length ? (ctx.mode === 'tabelle' ? tabelle(l) : l.map(karte).join('')) : '<p class="empty">Keine Objekte für diese Auswahl.<br><button class="btn ghost sm" data-reset>Filter zurücksetzen</button></p>';
 }
 
 const isAdmin = () => ctx.sess?.r === 'admin' && !!ctx.sess.a; // ohne Admin-Schlüssel (z. B. veränderte Sitzungsdaten) gibt es keine Verwaltung
@@ -307,16 +328,21 @@ function render() {
   if (ctx.view === 'admin' && !isAdmin()) ctx.view = 'start';
   if (ctx.view === 'admin') return import('./admin.js').then((m) => m.mount({ app, ctx, render: () => { ctx.view = 'start'; render(); }, logout, header }));
   const objs = ctx.data.objekte;
-  const fl = objs.map((o) => o.flaeche);
-  const stats = objs.length ? { n: objs.length, min: Math.round(Math.min(...fl)), max: Math.round(Math.max(...fl)), ab: Math.min(...objs.map((o) => o.preis)) } : { n: 0, min: 0, max: 0, ab: 0 };
-  const sp = (t, w, u, q = '', o = {}) => `<${o.f ? 'button type="button" data-f="' + o.f + '"' : 'div'} class="sp${o.summe ? ' summe' : ''}"><div class="sp-t">${t}</div><div class="sp-w${o.null ? ' null' : ''}">${w}</div><div class="sp-u">${u}</div><div class="sp-q">${q || '&nbsp;'}</div></${o.f ? 'button' : 'div'}>`;
+  const n = objs.length;
+  const sp = (t, w, u, o = {}) => `<button type="button" data-f="${o.f}" class="sp${ctx.filter === o.f ? ' on' : ''}" aria-pressed="${ctx.filter === o.f}"><div class="sp-t">${t}</div><div class="sp-w${o.null ? ' null' : ''}">${w}</div><div class="sp-u">${u}</div></button>`;
   const cnt = (f) => objs.filter(FILTER.find((x) => x[0] === f)[2]).length;
-  const rend = objs.length ? objs.reduce((a, o) => a + kennzahlen(o).rendite, 0) / objs.length : 0;
-  const nNeu = cnt('neu'), nFrei = cnt('frei'), nRes = objs.filter((o) => ['reserviert', 'notar'].includes(o.vs)).length, nFav = cnt('fav');
+  const nNeu = cnt('neu'), nFrei = cnt('frei'), nRes = cnt('res');
+  const chips = [...CHIPS, ...(ctx.filter === 'neu' ? ['neu'] : [])].map((id) => FILTER.find((f) => f[0] === id));
+  const exportMenu = menu('Export', [
+    { a: 'data-exp="pdf"', t: 'PDF / Drucken', s: 'Übersicht der angezeigten Objekte' },
+    { a: 'data-exp="xlsx"', t: 'Excel', s: 'Alle angezeigten Objekte mit Kennzahlen' },
+    { a: 'data-exp="csv"', t: 'CSV', s: 'Alle angezeigten Objekte mit Kennzahlen' },
+    { a: 'data-exp="investagon"', t: 'Investagon', s: 'Einheitentabelle für den Import (CSV)' },
+  ], 'rechts');
   app.innerHTML = `${header()}
   <div class="wrap">
   <section class="held">
-    <div><h2>${grussZeit()} <span>${esc(ctx.sess.n || '')}</span></h2><p>${esc(tageLang())} · <span class="num">${stats.n}</span> ${stats.n === 1 ? 'Wohnung' : 'Wohnungen'}</p></div>
+    <div><h2>${grussZeit()} <span>${esc(ctx.sess.n || '')}</span></h2><p>${esc(tageLang())} · <span class="num">${n}</span> ${n === 1 ? 'Wohnung' : 'Wohnungen'}</p></div>
     <div class="leit"><p class="eyebrow slogan">Gemeinsam mehr erreichen.</p>
       <label class="suche">${ICON.lupe}<input type="search" id="q" placeholder="Objekt suchen, z. B. Straße, Garage …" value="${esc(ctx.q)}" aria-label="Suchen" autocomplete="off"><kbd>/</kbd></label></div>
   </section>
@@ -325,93 +351,119 @@ function render() {
       <polygon class="k-rahmen" points="565,243 936,370 936,516 564,419" pathLength="100" filter="url(#kw)"/>
       <polygon class="k-lauf" points="565,243 936,370 936,516 564,419" pathLength="100" filter="url(#kl)"/></svg></div></div>
   <section class="lage">
-    <div class="zeile blau"><div class="z-titel"><span class="z-ic">${ICON.haus}</span><span class="z-txt"><b>Bestand</b><small>Eigentumswohnungen in Hof</small></span></div>
-      <div class="z-inhalt"><div class="spalten">
-        ${sp('Wohnungen', stats.n, 'für Sie freigegeben', 'Stand ' + esc(ctx.data.stand || ''), { summe: true })}
-        ${sp('Wohnfläche', `${stats.min}–${stats.max} <small>&nbsp;m²</small>`, 'je Einheit')}
-        ${sp('Abgabepreis ab', eur(stats.ab), 'für Vertriebspartner')}
-        ${sp('Ø Rendite', `${num(rend)} <small>&nbsp;%</small>`, 'Jahreskaltmiete ÷ Abgabepreis')}
-      </div></div></div>
-    <div class="zeile"><div class="z-titel"><span class="z-ic">${ICON.chart}</span><span class="z-txt"><b>Verfügbarkeit</b><small>Antippen zum Filtern</small></span></div>
-      <div class="z-inhalt"><div class="spalten">
-        ${sp('Frei', nFrei, 'sofort anfragbar', '', { f: 'frei', null: !nFrei })}
-        ${sp('Reserviert / Notar', nRes, 'in Abwicklung', '', { null: !nRes })}
-        ${sp('Neu / geändert', nNeu, 'seit Ihrem letzten Besuch', '', { f: 'neu', null: !nNeu })}
-        ${sp('Favoriten', nFav, 'von Ihnen gemerkt', '', { f: 'fav', null: !nFav })}
+    <div class="zeile blau"><div class="z-titel"><span class="z-ic">${ICON.haus}</span><span class="z-txt"><b>Aktiv im Vertrieb</b><small>${n} ${n === 1 ? 'Wohnung' : 'Wohnungen'} in Hof</small></span></div>
+      <div class="z-inhalt"><div class="spalten s3">
+        ${sp('Frei', nFrei, 'sofort anfragbar', { f: 'frei', null: !nFrei })}
+        ${sp('Reserviert', nRes, 'in Abwicklung', { f: 'res', null: !nRes })}
+        ${sp('Neu / geändert', nNeu, 'seit Ihrem letzten Besuch', { f: 'neu', null: !nNeu })}
       </div></div></div>
   </section>
   </div>
   <main class="wrap list-wrap">
-    <div class="banner">Objekte in Hof <span>${stats.n} ${stats.n === 1 ? 'Einheit' : 'Einheiten'}</span></div>
+    <div class="banner">Objekte in Hof <span>${n} ${n === 1 ? 'Einheit' : 'Einheiten'}</span></div>
     ${nNeu ? `<p class="newbanner"><b>${nNeu} ${nNeu === 1 ? 'Objekt' : 'Objekte'} neu oder geändert</b> seit Ihrem letzten Besuch. <button class="linkbtn" id="showNeu">Anzeigen</button></p>` : ''}
-    <div class="bar"><div class="chips" id="chips">${FILTER.map((f) => `<button class="chip${ctx.filter === f[0] ? ' on' : ''}" data-f="${f[0]}">${f[1]}</button>`).join('')}</div>
+    <div class="bar"><div class="chips" id="chips">${chips.map((f) => `<button class="chip${ctx.filter === f[0] ? ' on' : ''}" data-f="${f[0]}">${f[1]}</button>`).join('')}</div>
       <div class="tools">
       <select id="sort" aria-label="Sortieren">${[['standard', 'Sortierung: Standard'], ['preis', 'Preis aufsteigend'], ['rendite', 'Rendite absteigend'], ['flaeche', 'Wohnfläche absteigend']].map(([v, l]) => `<option value="${v}"${ctx.sort === v ? ' selected' : ''}>${l}</option>`).join('')}</select>
-      <div class="seg" id="mode" role="group" aria-label="Ansicht"><button data-m="karten" aria-pressed="${ctx.mode === 'karten'}">Karten</button><button data-m="tabelle" aria-pressed="${ctx.mode === 'tabelle'}">Tabelle</button></div>
-      <button class="btn ghost sm" id="print">Drucken / PDF</button><button class="btn ghost sm" data-exp="xlsx" title="Alle angezeigten Objekte mit Kennzahlen als Excel-Datei">Excel</button><button class="btn ghost sm" data-exp="csv" title="Alle angezeigten Objekte mit Kennzahlen als CSV-Datei">CSV</button><button class="btn ghost sm" data-exp="investagon" title="Einheitentabelle für den Import in Investagon (CSV)">Investagon</button></div></div>
-    <div class="tools2"><label>Budget bis<select id="fb">${[[0, 'egal'], [130000, '130.000 €'], [160000, '160.000 €'], [200000, '200.000 €'], [250000, '250.000 €']].map(([v, l]) => `<option value="${v}"${ctx.budget === v ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
-      <label>Rendite ab<select id="fr">${[[0, 'egal'], [4, '4 %'], [4.5, '4,5 %'], [5, '5 %'], [5.5, '5,5 %']].map(([v, l]) => `<option value="${v}"${ctx.rend === v ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
-      <label>Zimmer<select id="fz">${[[0, 'alle'], [2, '2'], [3, '3'], [4, '4 und mehr']].map(([v, l]) => `<option value="${v}"${ctx.zi === v ? ' selected' : ''}>${l}</option>`).join('')}</select></label></div>
+      <div class="tools-r"><button type="button" class="btn fill sm" id="mode">${ctx.mode === 'karten' ? `${ICON.liste}<span>Registeransicht</span>` : `${ICON.kacheln}<span>Kartenansicht</span>`}</button>
+      ${exportMenu}</div></div></div>
     <div class="cards" id="cards">${listeHtml()}</div>
-    <p class="legend">Kaltmiete: <b>IST</b> = laut Mietvertrag · <b>SOLL</b> = kalkulierte Marktmiete (unvermietet) · <b>PLAN</b> = Planwert vor Sanierung. Rendite = Jahreskaltmiete inkl. Garage/Stellplatz ÷ Abgabepreis. Alle Angaben laut Exposés und Objektunterlagen, ohne Gewähr. Der Abgabepreis ist der Preis für Sie als Vertrieb; Ihren eigenen Aufschlag legen Sie selbst fest (siehe „Kunden-Exposé“).</p>
+    <p class="legend">Kaltmiete: <b>IST</b> = laut Mietvertrag · <b>SOLL</b> = kalkulierte Marktmiete (unvermietet) · <b>PLAN</b> = Planwert vor Sanierung. Rendite = Jahreskaltmiete inkl. Garage/Stellplatz ÷ Abgabepreis. Alle Angaben laut Exposés und Objektunterlagen, ohne Gewähr. Der Abgabepreis ist der Preis für Sie als Vertrieb; Ihren eigenen Aufschlag legen Sie selbst fest (Export → „Kunden-Exposé“).</p>
   </main>
   <footer class="wrap"><div class="p-fuss"><span><b>${KONTAKT.firma}</b> · ${KONTAKT.adresse}</span><span><a href="tel:${KONTAKT.telHref}">${KONTAKT.tel}</a> · <a href="mailto:${KONTAKT.mail}">${KONTAKT.mail}</a> · ${KONTAKT.web}</span></div></footer>
   <p class="leitzeile">Unternehmen · Vertrauen · Zukunft</p>`;
-  const refresh = () => { document.getElementById('cards').innerHTML = listeHtml(); document.querySelectorAll('.calc-in').forEach(calcUpdate); };
+  const refresh = () => { menuZu(); document.getElementById('cards').innerHTML = listeHtml(); };
+  /** Filter wechseln: Reiter und Kacheln oben zeigen denselben Stand. */
+  const setFilter = (f) => {
+    ctx.filter = f;
+    const c = document.getElementById('chips');
+    c.innerHTML = [...CHIPS, ...(f === 'neu' ? ['neu'] : [])].map((id) => FILTER.find((x) => x[0] === id)).map((x) => `<button class="chip${f === x[0] ? ' on' : ''}" data-f="${x[0]}">${x[1]}</button>`).join('');
+    document.querySelectorAll('.lage [data-f]').forEach((b) => { b.classList.toggle('on', b.dataset.f === f); b.setAttribute('aria-pressed', String(b.dataset.f === f)); });
+    refresh();
+  };
   refresh();
-  for (const [id, key, conv] of [['fb', 'budget', Number], ['fr', 'rend', Number], ['fz', 'zi', Number]]) document.getElementById(id).addEventListener('change', (e) => { ctx[key] = conv(e.target.value); refresh(); });
-  document.getElementById('showNeu')?.addEventListener('click', () => { ctx.filter = 'neu'; render(); });
+  document.getElementById('showNeu')?.addEventListener('click', () => { setFilter('neu'); document.getElementById('chips').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion:reduce)').matches ? 'auto' : 'smooth', block: 'center' }); });
   document.querySelector('.lage').addEventListener('click', (e) => {
     const b = e.target.closest('[data-f]'); if (!b) return;
-    ctx.filter = ctx.filter === b.dataset.f ? 'alle' : b.dataset.f;
-    document.querySelectorAll('#chips .chip').forEach((c) => c.classList.toggle('on', c.dataset.f === ctx.filter));
-    refresh(); document.getElementById('chips').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion:reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+    setFilter(ctx.filter === b.dataset.f ? 'alle' : b.dataset.f);
+    document.getElementById('chips').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion:reduce)').matches ? 'auto' : 'smooth', block: 'center' });
   });
   const cards = document.getElementById('cards');
-  cards.addEventListener('input', (e) => { const b = e.target.closest('.calc-in'); if (b) calcUpdate(b); });
   cards.addEventListener('click', (e) => {
     const go = e.target.closest('[data-go]');
     if (go) {
       ctx.mode = 'karten'; render();
       const k = document.querySelector(`[data-oid="${CSS.escape(go.dataset.go)}"]`);
-      if (k) { k.querySelector('details.more')?.setAttribute('open', ''); const kopf = document.querySelector('.p-kopf'); k.style.scrollMarginTop = (kopf && getComputedStyle(kopf).position === 'sticky' ? kopf.offsetHeight : 0) + 12 + 'px'; k.scrollIntoView({ block: 'start' }); }
+      if (k) { details(k, true); const kopf = document.querySelector('.p-kopf'); k.style.scrollMarginTop = (kopf && getComputedStyle(kopf).position === 'sticky' ? kopf.offsetHeight : 0) + 12 + 'px'; k.scrollIntoView({ block: 'start' }); }
       return;
     }
-    const b = e.target.closest('[data-doc],[data-ex],[data-fb],[data-fav],[data-reset],[data-retry]'); if (!b) return;
+    const b = e.target.closest('[data-det],[data-doc],[data-ex],[data-blatt],[data-oexp],[data-fb],[data-reset],[data-retry]'); if (!b) return;
+    if (b.dataset.det) return details(b.closest('.card'));
+    menuZu();
     if (b.dataset.retry) return fbRetry(b);
-    if (b.dataset.fav) {
-      const l = favs(), id = b.dataset.fav, on = !l.includes(id);
-      lsSet('nf-fav-' + ctx.sess.id, on ? [...l, id] : l.filter((x) => x !== id));
-      b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on));
-      const ft = document.querySelector('.lage [data-f=fav] .sp-w'); if (ft) { const n = ctx.data.objekte.filter((x) => favs().includes(x.id)).length; ft.textContent = n; ft.classList.toggle('null', !n); }
-      if (ctx.filter === 'fav') refresh();
-      return;
-    }
-    if (b.dataset.reset !== undefined) { Object.assign(ctx, { filter: 'alle', q: '', budget: 0, rend: 0, zi: 0 }); return render(); }
+    if (b.dataset.reset !== undefined) { Object.assign(ctx, { filter: 'alle', q: '' }); return render(); }
     if (b.dataset.doc) return download(b.dataset.doc);
-    const o = ctx.data.objekte.find((x) => x.id === (b.dataset.ex || b.dataset.fb));
-    if (b.dataset.ex) exposeOpen(o); else feedbackOpen(o);
+    const o = ctx.data.objekte.find((x) => x.id === (b.dataset.ex || b.dataset.blatt || b.dataset.id || b.dataset.fb)); if (!o) return;
+    if (b.dataset.ex) return exposeOpen(o);
+    if (b.dataset.blatt) return printOpen([o]);
+    if (b.dataset.oexp) return exportObjekte([o], kennzahlen, b.dataset.oexp, `${o.strasse} ${o.lage}`);
+    feedbackOpen(o);
   });
-  document.getElementById('chips').addEventListener('click', (e) => {
-    const b = e.target.closest('[data-f]'); if (!b) return;
-    ctx.filter = b.dataset.f;
-    document.querySelectorAll('#chips .chip').forEach((c) => c.classList.toggle('on', c === b));
-    refresh();
-  });
-  document.getElementById('mode').addEventListener('click', (e) => {
-    const b = e.target.closest('[data-m]'); if (!b || ctx.mode === b.dataset.m) return;
-    ctx.mode = b.dataset.m;
-    document.querySelectorAll('#mode button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  document.getElementById('chips').addEventListener('click', (e) => { const b = e.target.closest('[data-f]'); if (b) setFilter(b.dataset.f); });
+  document.getElementById('mode').addEventListener('click', () => {
+    ctx.mode = ctx.mode === 'karten' ? 'tabelle' : 'karten';
+    document.getElementById('mode').innerHTML = ctx.mode === 'karten' ? `${ICON.liste}<span>Registeransicht</span>` : `${ICON.kacheln}<span>Kartenansicht</span>`;
     refresh();
   });
   cards.addEventListener('keydown', (e) => { const r = e.target.closest?.('tr[data-go]'); if (r && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); r.click(); } });
   document.getElementById('q').addEventListener('input', (e) => { ctx.q = e.target.value; refresh(); });
   document.getElementById('sort').addEventListener('change', (e) => { ctx.sort = e.target.value; refresh(); });
-  document.getElementById('print').addEventListener('click', printOpen);
-  document.querySelectorAll('[data-exp]').forEach((x) => x.addEventListener('click', () => { if (!exportObjekte(visible(), kennzahlen, x.dataset.exp)) alert('Keine Objekte zum Exportieren – bitte Filter anpassen.'); }));
+  document.querySelector('.bar .dropdown').addEventListener('click', (e) => {
+    const x = e.target.closest('[data-exp]'); if (!x) return;
+    menuZu();
+    if (x.dataset.exp === 'pdf') return printOpen();
+    if (!exportObjekte(visible(), kennzahlen, x.dataset.exp)) alert('Keine Objekte zum Exportieren – bitte Filter anpassen.');
+  });
   document.getElementById('logout').addEventListener('click', logout);
   document.getElementById('toAdmin')?.addEventListener('click', () => { ctx.view = 'admin'; render(); window.scrollTo(0, 0); });
 }
+
+/** Details einer Karte auf- oder zuklappen (offen = true erzwingt „auf“). */
+function details(k, offen) {
+  const b = k?.querySelector('[data-det]'), box = k?.querySelector('.more'); if (!b || !box) return;
+  const auf = offen ?? box.hidden;
+  box.hidden = !auf; b.setAttribute('aria-expanded', String(auf)); k.classList.toggle('det-auf', auf);
+}
+
+/* ---------- Aufklappmenüs (Export) ---------- */
+function menuZu(ausser) {
+  document.querySelectorAll('.dropdown.offen').forEach((m) => {
+    if (m === ausser) return;
+    m.classList.remove('offen', 'hoch', 'links'); m.querySelector('[data-menu]').setAttribute('aria-expanded', 'false');
+    m.closest('.card')?.classList.remove('menu-auf');
+  });
+}
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('[data-menu]');
+  if (!t) { if (!e.target.closest('.dd-menu')) menuZu(); return; }
+  const m = t.closest('.dropdown'), auf = !m.classList.contains('offen');
+  menuZu(m);
+  m.classList.toggle('offen', auf); t.setAttribute('aria-expanded', String(auf));
+  m.closest('.card')?.classList.toggle('menu-auf', auf);
+  if (!auf) return;
+  // Platz prüfen: nach oben öffnen, wenn unten kein Raum ist; linksbündig, wenn rechtsbündig über den Rand ragt
+  const box = m.querySelector('.dd-menu'), r = box.getBoundingClientRect();
+  if (r.left < 8) m.classList.add('links');
+  if (r.bottom > innerHeight - 8 && m.getBoundingClientRect().top - r.height > 8) m.classList.add('hoch');
+  if (e.detail === 0) box.querySelector('[role=menuitem]')?.focus(); // per Tastatur geöffnet: gleich zum ersten Eintrag
+});
+document.addEventListener('keydown', (e) => {
+  const m = document.querySelector('.dropdown.offen'); if (!m) return;
+  const items = [...m.querySelectorAll('[role=menuitem]')], i = items.indexOf(document.activeElement);
+  if (e.key === 'Escape') { e.stopPropagation(); menuZu(); m.querySelector('[data-menu]').focus(); }
+  else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); items[e.key === 'ArrowDown' ? (i + 1) % items.length : i <= 0 ? items.length - 1 : i - 1]?.focus(); }
+  else if (e.key === 'Tab') menuZu();
+}, true);
 
 /* ---------- Unterlagen ---------- */
 function download(ref) {
@@ -555,18 +607,19 @@ function printHtml(list, det) {
     <p class="ex-f">Kaltmiete: IST = laut Mietvertrag · SOLL = kalkulierte Marktmiete · PLAN = Planwert vor Sanierung. Rendite = Jahreskaltmiete inkl. Garage/Stellplatz ÷ Abgabepreis. Alle Angaben laut Exposés und Objektunterlagen, ohne Gewähr. Der Abgabepreis gilt für Vertriebspartner und ist vertraulich. Stand ${datum(Date.now())}.</p>`;
 }
 
-function printOpen() {
-  const list = visible();
+function printOpen(auswahl) {
+  const einzel = Array.isArray(auswahl), list = nachStatus(einzel ? auswahl : visible());
+  const titel = einzel && list.length === 1 ? `Datenblatt ${list[0].strasse} ${list[0].lage}` : `Vertriebsübersicht Hof – Stand ${ctx.data.stand || datum(Date.now())}`;
   const { d } = overlay(`<button class="ex-x" data-close aria-label="Schließen">×</button><div class="ex-wrap"><div class="ex-bar">
       <label class="chk"><input type="checkbox" id="pvDet" checked> Mit Objektdetails (Foto, Sanierung, Zeitplan)</label>
       <div class="acts"><button class="btn fill sm" id="pvPrint">Drucken / als PDF speichern</button><button class="btn ghost sm" data-close>Schließen</button></div>
-      <p class="hint">Es wird die aktuell gefilterte und sortierte Auswahl gedruckt. Im Druckdialog „Als PDF sichern“ wählen, um eine Datei zu erhalten. Die Abgabepreise sind vertraulich.</p></div>
-    <article class="ex pv" id="pvDoc"></article></div>`, 'ov-ex', 'Drucken / PDF');
+      <p class="hint">${einzel ? 'Datenblatt für dieses Objekt.' : 'Es wird die aktuell gefilterte und sortierte Auswahl gedruckt (freie Objekte zuerst, reservierte am Ende).'} Im Druckdialog „Als PDF sichern“ wählen, um eine Datei zu erhalten. Die Abgabepreise sind vertraulich.</p></div>
+    <article class="ex pv" id="pvDoc"></article></div>`, 'ov-ex', einzel ? 'Datenblatt' : 'Drucken / PDF');
   const doc = d.querySelector('#pvDoc'), det = d.querySelector('#pvDet');
   const draw = () => { doc.innerHTML = printHtml(list, det.checked); };
   det.addEventListener('change', draw);
   d.querySelector('#pvPrint').addEventListener('click', () => {
-    document.body.classList.add('pe'); document.title = `Vertriebsübersicht Hof – Stand ${ctx.data.stand || datum(Date.now())}`;
+    document.body.classList.add('pe'); document.title = titel;
     window.print();
   });
   draw();
@@ -643,7 +696,7 @@ function exposeHtml(o, p) {
     if (s?.keys) {
       ctx.sess = s;
       ctx.seen = Number(sessionStorage.getItem('nf-seen-ctx')) || Date.now();
-      if (s.sig === sigOf(ctx.pkg)) ctx.data = await openObjects(s, ctx.pkg);
+      if (s.sig === sigOf(ctx.pkg)) ctx.data = pflege(await openObjects(s, ctx.pkg));
       else if (!(await reopen(ctx.pkg))) { ctx.sess = null; try { sessionStorage.removeItem(SESSION); } catch { /* egal */ } return showLogin('Ihr Zugang wurde geändert. Bitte neu anmelden.'); }
       return render();
     }
