@@ -128,6 +128,33 @@ details.vm-det[open]>summary{margin-bottom:10px}
 .vm-det2>summary::before{content:'▸ ';color:var(--gold-t)}.vm-det2[open]>summary::before{content:'▾ '}
 .vm-det2[open]>summary{margin-bottom:6px}
 
+/* Besichtigungen als Tabelle: Datum | Name | Ergebnis | Absagegrund / Feedback */
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.vm-btab{width:100%;border-collapse:collapse;font-size:12.5px;table-layout:auto}
+.vm-btab th{padding:0 10px 7px;text-align:left;font:700 9.5px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--rand)}
+.vm-btab td{padding:10px;vertical-align:top;border-bottom:1px solid var(--rand2);color:var(--ink2)}
+.vm-btab tr:last-child td{border-bottom:0}
+.vm-btab tr.abs td:first-child{box-shadow:inset 2px 0 0 var(--krit)}
+.vm-btab tr.zuk td{background:var(--gold-bg)}
+.vm-btab tr.zuk td:first-child{box-shadow:inset 2px 0 0 var(--gold)}
+.vm-btab .d{white-space:nowrap;width:1%}.vm-btab .d b{display:block;color:var(--ink)}.vm-btab .d small{font-size:11px;color:var(--muted)}
+.vm-btab .n{min-width:110px}.vm-btab .n b{display:block;color:var(--ink);font-size:13px;overflow-wrap:anywhere}.vm-btab .n small{display:block;margin-top:2px;font-size:10.5px;color:var(--muted)}
+.vm-btab .e{width:1%;white-space:nowrap}
+.vm-btab .g{min-width:160px}.vm-btab .g p{margin:2px 0 0;line-height:1.45;color:var(--ink);overflow-wrap:anywhere;white-space:pre-line}
+.vm-bg{display:block;color:var(--krit)}
+.vm-mut{color:var(--muted)}
+.vm-btab .a{width:1%;text-align:right;white-space:nowrap}
+.vm-wer{color:var(--ink);font-weight:700}
+@media (max-width:640px){
+  .vm-btab thead{display:none}
+  .vm-btab,.vm-btab tbody{display:block}
+  .vm-btab tr{display:grid;grid-template-columns:auto 1fr auto;gap:6px 10px;align-items:start;padding:10px;margin-bottom:8px;background:var(--senke);border:1px solid var(--rand2);border-radius:2px}
+  .vm-btab tr.abs{border-left:2px solid var(--krit)}.vm-btab tr.zuk{border-left:2px solid var(--gold);background:var(--gold-bg)}
+  .vm-btab td{display:block;padding:0;border:0;width:auto!important;background:none!important;box-shadow:none!important}
+  .vm-btab .d{grid-column:1}.vm-btab .n{grid-column:2;min-width:0}.vm-btab .e{grid-column:3;justify-self:end}
+  .vm-btab .g{grid-column:1/-1;min-width:0}.vm-btab .a{grid-column:1/-1;text-align:left}
+}
+
 /* Interessenten */
 .vm-ks{list-style:none;display:grid;gap:10px;margin:0;padding:0}
 .vm-k{display:grid;gap:8px;min-width:0;padding:12px;background:var(--senke);border:1px solid var(--rand2);border-left:2px solid var(--c);border-radius:2px}
