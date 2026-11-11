@@ -5,6 +5,7 @@ import { SQL, testConnection } from '../handwerker/store.js';
 import { ctx, header, go, relogin, ROLLEN, STATUS, eur, num, load } from './app.js';
 import { askBox, confirmBox, dlg, dt, esc, shrinkImage, toast } from '../handwerker/ui.js';
 import { randomCode, randomId, toB64 } from '../partner/crypto.js';
+import { AUSST, OBJ_FELDER, SEITEN, STP, UEBERNEHMBAR, ableiten, ibanOk, ibanSchoen, vorlageVon } from './mvfelder.js';
 
 const MIN_PW = 12;
 const app = document.getElementById('app');
@@ -129,6 +130,15 @@ async function sbSpeichern(e) {
 function editObjekt(id) {
   const o = id ? S.objekte.find((x) => x.id === id) : { id: '', titel: '', lage: '', ort: '95028 Hof', typ: 'Wohnung', zimmer: '', flaeche: '', kaltmiete: '', nk: '', kaution: '', frei: '', ausstattung: '', beschreibung: '', hinweis: '', bild: '', status0: 'vermarktung' };
   const d = dlg('sheet', 'sheet'); let bild = o.bild || '';
+  const mv = { ...(id ? {} : vorlageVon(S.objekte)), ...(o.mv ?? {}) }, ab = ableiten(o), quellen = S.objekte.filter((x) => x.id !== id && x.mv?.mvName);
+  const mvF = ([k, l, ph]) => {
+    if (k === 'seite') return `<label class="f"><span>${l}</span><select name="mv_seite">${SEITEN.map(([v, t]) => `<option value="${v}"${(mv.seite ?? '') === v ? ' selected' : ''}>${v ? t : 'aus „Lage im Haus“'}</option>`).join('')}</select></label>`;
+    if (k === 'stp') return `<label class="f"><span>${l}</span><select name="mv_stp">${STP.map((v) => `<option value="${v}"${(mv.stp ?? '') === v ? ' selected' : ''}>${v || 'keiner / aus Ausstattung'}</option>`).join('')}</select></label>`;
+    if (k === 'schluessel' || k === 'vereinbarungen') return `<label class="f wide"><span>${l}</span><textarea name="mv_${k}" rows="${k === 'schluessel' ? 4 : 2}" maxlength="2500" placeholder="${esc(ph)}">${esc(mv[k] ?? '')}</textarea></label>`;
+    const auto = k === 'geschoss' ? ab.geschoss : k === 'ort' ? ab.ort : '';
+    return `<label class="f"><span>${l}</span><input name="mv_${k}" value="${esc(mv[k] ?? '')}" maxlength="200" placeholder="${esc(auto ? auto + ' (aus Objekt)' : ph)}" autocomplete="off"${['kv', 'stpKosten', 'kuecheKosten', 'nutzflaeche'].includes(k) ? ' inputmode="decimal"' : ''}></label>`;
+  };
+  const mvPflicht = ['mvName', 'mvAnschrift', 'bank', 'iban'], mvOffen = mvPflicht.filter((k) => !mv[k]).length;
   const zahlF = (n, l, v, step = 'any') => `<label class="f"><span>${l}</span><input name="${n}" type="number" min="0" step="${step}" value="${esc(v ?? '')}"></label>`;
   d.innerHTML = `<form class="panel form" id="of"><div class="sh-h"><h2>${id ? 'Objekt bearbeiten' : 'Neues Mietobjekt'}</h2><button type="button" class="btn ghost sm" data-a="close">Abbrechen</button></div><div class="grid">
     <label class="f"><span>Straße und Hausnummer</span><input name="titel" required maxlength="80" value="${esc(o.titel)}" placeholder="z. B. Leopoldstraße 71"></label>
@@ -143,8 +153,19 @@ function editObjekt(id) {
     <label class="f wide"><span>Beschreibung</span><textarea name="beschreibung" rows="3" maxlength="3000">${esc(o.beschreibung || '')}</textarea></label>
     <label class="f wide"><span>Interne Hinweise (Schlüssel, Ansprechpartner, Besichtigungen)</span><textarea name="hinweis" rows="2" maxlength="1000">${esc(o.hinweis || '')}</textarea></label>
     <div class="f wide"><span>Titelbild</span><div class="vm-bild">${bild ? `<img src="${esc(bild)}" alt="" id="bVor">` : '<span class="hint" id="bVor">Kein Bild</span>'}<label class="btn ghost sm">Bild wählen<input type="file" accept="image/*" hidden id="bIn"></label>${bild ? '<button type="button" class="btn ghost sm" id="bWeg">Entfernen</button>' : ''}</div></div></div>
+    <details class="f wide vm-mvd"${!id || mvOffen ? ' open' : ''}><summary><b>Für den Mietvertrag</b><small>${mvOffen ? `${mvOffen} wichtige Angabe${mvOffen > 1 ? 'n' : ''} offen` : 'Vermieter, Bank, Ausstattung, Schlüssel …'}</small></summary>
+      <p class="hint">Diese Angaben setzt die Plattform beim Interessenten in den Mietvertrag ein. Was hier fehlt, kann dort noch ergänzt werden.${!id && Object.keys(vorlageVon(S.objekte)).length ? ' Vermieter, Bank und Hausverwaltung sind vom zuletzt gepflegten Objekt vorgeschlagen.' : ''}</p>
+      ${quellen.length ? `<label class="f"><span>Vermieter und Bank übernehmen von</span><select id="mvVon"><option value="">– Objekt wählen –</option>${quellen.map((x) => `<option value="${esc(x.id)}">${esc(x.titel)}${x.lage ? ' · ' + esc(x.lage) : ''}</option>`).join('')}</select></label>` : ''}
+      <div class="grid">${OBJ_FELDER.map(mvF).join('')}
+        <fieldset class="f wide vm-chk"><legend>Ausstattung laut Vertrag</legend>${AUSST.map(([k, l]) => `<label><input type="checkbox" name="mvau_${k}"${(typeof mv.ausst?.[k] === 'boolean' ? mv.ausst[k] : ab[k]) ? ' checked' : ''}> ${l}</label>`).join('')}</fieldset></div>
+    </details>
     <p class="lg-err hidden" id="oErr" role="alert"></p><div class="acts sticky-save"><button class="btn fill">Übernehmen</button></div></form>`;
   d.onclick = (e) => { if (e.target.closest('[data-a=close]')) d.close(); };
+  d.querySelector('#mvVon')?.addEventListener('change', (e) => {
+    const q = S.objekte.find((x) => x.id === e.target.value); if (!q) return;
+    for (const k of UEBERNEHMBAR) { const el = d.querySelector(`[name=mv_${k}]`); if (el && q.mv?.[k] != null) el.value = q.mv[k]; }
+    toast('Vermieter, Bank und Vertragsvorgaben übernommen.');
+  });
   d.querySelector('#bIn').onchange = async (e) => {
     const f = e.target.files[0]; if (!f) return;
     try { const bytes = await shrinkImage(f, 1200); bild = 'data:image/jpeg;base64,' + toB64(bytes); const v = d.querySelector('#bVor'); v.outerHTML = `<img src="${bild}" alt="" id="bVor">`; } catch (x) { toast(x.message, false); }
@@ -153,6 +174,11 @@ function editObjekt(id) {
   d.querySelector('#of').onsubmit = (e) => {
     e.preventDefault(); const f = e.target, z = (k) => (f[k].value === '' ? '' : Number(f[k].value));
     const n = { ...o, titel: f.titel.value.trim(), lage: f.lage.value.trim(), ort: f.ort.value.trim(), typ: f.typ.value, zimmer: z('zimmer'), flaeche: z('flaeche'), kaltmiete: z('kaltmiete'), nk: z('nk'), kaution: z('kaution'), frei: f.frei.value, ausstattung: f.ausstattung.value.trim(), beschreibung: f.beschreibung.value.trim(), hinweis: f.hinweis.value.trim(), bild, ...(id ? {} : { status0: f.status0.value }) };
+    const nmv = {}; for (const [k] of OBJ_FELDER) { const el = f[`mv_${k}`]; if (el && el.value.trim() !== '') nmv[k] = el.value.trim(); }
+    if (nmv.iban) { if (!ibanOk(nmv.iban)) return toast('Die IBAN ist nicht gültig – bitte prüfen.', false); nmv.iban = ibanSchoen(nmv.iban); }
+    for (const k of ['kv', 'stpKosten', 'kuecheKosten', 'nutzflaeche']) if (nmv[k] != null) { const z = Number(String(nmv[k]).replace(/\./g, '').replace(',', '.')); if (!Number.isFinite(z)) return toast(`„${OBJ_FELDER.find((x) => x[0] === k)[1]}“ bitte als Zahl.`, false); nmv[k] = z; }
+    nmv.ausst = Object.fromEntries(AUSST.map(([k]) => [k, f[`mvau_${k}`].checked]));
+    n.mv = nmv;
     if (!n.titel) return toast('Bitte Straße und Hausnummer eintragen.', false);
     if (!id) { let s = slug(n.titel + (n.lage ? '-' + n.lage : '')), i = 2; while (S.objekte.some((x) => x.id === s)) s = slug(n.titel) + '-' + i++; n.id = s; S.objekte.push(n); }
     else S.objekte[S.objekte.findIndex((x) => x.id === id)] = n;
