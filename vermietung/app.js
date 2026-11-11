@@ -27,6 +27,39 @@ export const ERG = {
   nicht: { l: 'Nicht erschienen', c: 'var(--muted)' },
 };
 export const GRUENDE = ['Miete zu hoch', 'Lage / Umgebung', 'Größe / Grundriss', 'Zustand / Ausstattung', 'Kein Balkon / Stellplatz', 'Etage / kein Aufzug', 'Anderes Objekt gefunden', 'Bonität / Unterlagen nicht ausreichend', 'Haustiere / Personenzahl', 'Sonstiges'];
+/** Stand eines Interessenten (Reihenfolge = Sortierung in der Liste) */
+export const KSTAND = {
+  zusage: { l: 'Zusage', c: 'var(--gut)' },
+  favorit: { l: 'Favorit', c: 'var(--warn)' },
+  unterlagen: { l: 'Unterlagen da', c: 'var(--gold)' },
+  besichtigung: { l: 'Besichtigung', c: 'var(--gold)' },
+  anfrage: { l: 'Anfrage', c: 'var(--schiefer)' },
+  absage: { l: 'Abgesagt', c: 'var(--krit)' },
+};
+const KRANG = Object.keys(KSTAND);
+/** Unterlagen-Checkliste eines Interessenten: [Schlüssel, Bezeichnung, Kurzname, nötige Anzahl Dateien] */
+export const DOKS = [
+  ['selbstauskunft', 'Mieterselbstauskunft', 'Selbstauskunft', 1],
+  ['einkommen', 'Letzte 3 Gehaltsnachweise', 'Gehaltsnachweis', 3],
+  ['mietschulden', 'Mietschuldenfreiheitsbescheinigung', 'Mietschuldenfreiheit', 1],
+  ['ausweis', 'Personalausweis', 'Ausweis', 1],
+  ['haftpflicht', 'Nachweis Privathaftpflicht', 'Haftpflicht', 1],
+  ['schufa', 'Schufa-Auskunft', 'Schufa', 1],
+  ['sonstiges', 'Weitere Unterlagen', 'Sonstiges', 0],
+];
+const DOK_L = Object.fromEntries(DOKS.map(([k, , kurz]) => [k, kurz]));
+const CHECK = DOKS.filter((x) => x[3]);
+/** Art am Dateinamen erkennen – Spezielles zuerst („Haftpflicht-Versicherungsbescheid“ ist kein Einkommen) */
+const ERKENNEN = [['selbstauskunft', /selbst.?auskunft|mieterauskunft|auskunft.?mieter/i], ['mietschulden', /mietschuld|schuldenfrei|vormieter|vermieterbesch/i], ['schufa', /schufa|bonit/i],
+  ['haftpflicht', /haftpflicht|privathaft|versicherungs?(schein|nachweis|police|bestätigung)/i], ['ausweis', /ausweis|perso\b|personal|reisepass|pass\b|id.?card/i],
+  ['einkommen', /gehalt|lohn|einkommen|verdienst|entgelt|abrechnung|rente|bafög|bafoeg|jobcenter|bescheid|kontoauszug/i]];
+export const dokArt = (name) => ERKENNEN.find(([, re]) => re.test(name))?.[0] ?? 'sonstiges';
+const dokListe = (k, key) => (k?.dateien ?? []).filter((f) => f.k === key);
+export const dokZahl = (k) => CHECK.filter(([key, , , min]) => dokListe(k, key).length >= min).length;
+const geprueftZahl = (k) => CHECK.filter(([key]) => k?.geprueft?.[key]).length;
+const QUELLEN = ['Kleinanzeigen', 'ImmoScout24', 'Immowelt', 'Eigene Webseite', 'Empfehlung', 'Aushang', 'Telefon', 'Sonstiges'];
+const telHref = (t) => { const x = String(t || '').replace(/[^\d+]/g, ''); return x.replace(/\D/g, '').length >= 5 ? 'tel:' + x : ''; };
+const mailOk = (m) => /^[^\s@<>"']+@[^\s@<>"']+\.[^\s@<>"']{2,}$/.test(m || '');
 export const ROLLEN = ['Vermieter', 'Vermittler', 'Hausverwaltung', 'Mitarbeiter'];
 const PORTALE = [[/immobilienscout24|is24/, 'ImmoScout24'], [/immowelt/, 'Immowelt'], [/immonet/, 'Immonet'], [/kleinanzeigen|ebay/, 'Kleinanzeigen'], [/wg-gesucht/, 'WG-Gesucht'], [/facebook|fb\.com/, 'Facebook'], [/instagram/, 'Instagram'], [/keuerleber|norderfranken/, 'Eigene Webseite']];
 export const portalOf = (url) => { let h = ''; try { h = new URL(url).hostname.replace(/^www\./, ''); } catch { return 'Link'; } return PORTALE.find(([re]) => re.test(h))?.[1] ?? h; };
@@ -50,22 +83,46 @@ function markSeen(tid) { const s = lsGet(seenKey()) ?? {}, l = evOf(tid).at(-1);
 export function stand(oid) {
   const ev = evOf(tidOf(oid)), jetzt = Date.now();
   const st = ev.filter((e) => e.typ === 'status' && STATUS[e.status]).at(-1)?.status ?? objOf(oid)?.status0 ?? 'vermarktung';
+  // Interessenten: jeder Eintrag ist der vollständige neue Stand, der letzte gilt
+  const kon = new Map();
+  for (const e of ev) {
+    if (e.typ === 'kontakt' && e.kid) kon.set(e.kid, { ...e, erstellt: kon.get(e.kid)?.erstellt ?? e.at });
+    else if (e.typ === 'kontakt_weg') kon.delete(e.ref);
+  }
+  const kontakte = [...kon.values()].sort((a, b) => (KRANG.indexOf(a.stand) - KRANG.indexOf(b.stand)) || (b.at - a.at));
+  const kname = (id) => kon.get(id)?.name;
   const upd = new Map(); for (const e of ev) if (e.typ === 'ergebnis') upd.set(e.ref, e);
-  const bes = ev.filter((e) => e.typ === 'besichtigung').map((b) => { const u = upd.get(b.id); return u ? { ...b, ergebnis: u.ergebnis, grund: u.grund, notiz2: u.text, von2: u.n } : b; }).sort((a, b) => a.datum - b.datum);
+  const bes = ev.filter((e) => e.typ === 'besichtigung').map((b) => { const u = upd.get(b.id); return { ...(u ? { ...b, ergebnis: u.ergebnis, grund: u.grund, notiz2: u.text, von2: u.n } : b), namen: (b.kids ?? []).map(kname).filter(Boolean) }; }).sort((a, b) => a.datum - b.datum);
   const weg = new Set(ev.filter((e) => e.typ === 'anzeige_weg').map((e) => e.ref));
   const anz = ev.filter((e) => e.typ === 'anzeige' && !weg.has(e.id));
   const md = ev.filter((e) => e.typ === 'mietdaten').at(-1);
   const gemacht = bes.filter((b) => b.datum <= jetzt || b.ergebnis !== 'geplant');
-  const absagen = gemacht.filter((b) => b.ergebnis === 'absage');
-  const gruende = {}; for (const b of absagen) gruende[b.grund || 'Ohne Angabe'] = (gruende[b.grund || 'Ohne Angabe'] ?? 0) + 1;
+  // Absagen aus Besichtigungen und von Interessenten – derselbe Interessent zählt nur einmal
+  const absagen = [], erfasst = new Set();
+  for (const k of kontakte) if (k.stand === 'absage') { absagen.push({ grund: k.grund || 'Ohne Angabe', wer: k.name, at: k.at, kid: k.kid }); erfasst.add(k.kid); }
+  for (const b of gemacht) {
+    if (b.ergebnis !== 'absage') continue;
+    const ks = (b.kids ?? []).filter((id) => kon.has(id));
+    if (ks.length && ks.every((id) => erfasst.has(id))) continue;
+    absagen.push({ grund: b.grund || 'Ohne Angabe', wer: ks.filter((id) => !erfasst.has(id)).map(kname).join(', '), at: b.datum, bid: b.id });
+  }
+  absagen.sort((a, b) => b.at - a.at);
+  const gruende = {}; for (const a of absagen) gruende[a.grund] = (gruende[a.grund] ?? 0) + 1;
+  const aktiv = kontakte.filter((k) => k.stand !== 'absage');
   return {
-    ev, st, bes, anz, md, gemacht, absagen, gruende,
+    ev, st, bes, anz, md, gemacht, absagen, gruende, kontakte, aktiv,
+    komplett: aktiv.filter((k) => dokZahl(k) === CHECK.length).length,
+    geprueft: aktiv.filter((k) => geprueftZahl(k) === CHECK.length).length,
+    mitDoks: aktiv.filter((k) => k.dateien?.length).length,
     naechste: bes.find((b) => b.datum > jetzt && b.ergebnis === 'geplant'),
+    geplant: bes.filter((b) => b.datum > jetzt && b.ergebnis === 'geplant'),
     offen: bes.filter((b) => b.datum <= jetzt && b.ergebnis === 'geplant'), // Termin vorbei, Ergebnis fehlt
     interessenten: gemacht.reduce((a, b) => a + (Number(b.anzahl) || 0), 0),
     zusagen: gemacht.filter((b) => b.ergebnis === 'zusage').length,
   };
 }
+/** „Miete zu hoch (2) · Lage (1)“ */
+const gruendeText = (g) => Object.entries(g).sort((a, b) => b[1] - a[1]).map(([x, n]) => `${esc(x)}${n > 1 ? ` (${n})` : ''}`).join(' · ');
 
 export async function load(quiet = false) {
   if (!ctx.sess?.sb) { ctx.err = 'Der Speicherdienst ist noch nicht eingerichtet (Verwaltung → Einstellungen).'; return 0; }
@@ -93,14 +150,19 @@ export async function send(oid, ev) {
 
 /** Dateien (Fotos, PDFs) verschlüsselt hochladen. Fotos werden verkleinert. */
 const TYPEN = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', heic: 'image/heic', pdf: 'application/pdf' };
-async function upload(oid, files) {
+async function upload(oid, files, art = '') {
   const tid = tidOf(oid), t = ctx.sess.threads[tid], out = [];
-  if (files.length > 10) throw new Error('Bitte höchstens 10 Dateien auf einmal.');
+  if (files.length > 15) throw new Error('Bitte höchstens 15 Dateien auf einmal.');
   for (const f of files) {
     const ext = f.name.split('.').pop().toLowerCase(), type = TYPEN[ext] || f.type || 'application/octet-stream', bild = type.startsWith('image/');
     if (!bild && f.size > 12 * 1024 * 1024) throw new Error(`„${f.name}“ ist größer als 12 MB.`);
+  }
+  for (const f of files) {
+    const ext = f.name.split('.').pop().toLowerCase(), type = TYPEN[ext] || f.type || 'application/octet-stream', bild = type.startsWith('image/');
     const bytes = bild ? await shrinkImage(f, 2000) : new Uint8Array(await f.arrayBuffer());
-    out.push({ p: await putFile(ctx.sess.sb, tid, t.k, bytes), n: f.name, t: bild ? 'image/jpeg' : type });
+    const d = { p: await putFile(ctx.sess.sb, tid, t.k, bytes), n: f.name, t: bild ? 'image/jpeg' : type };
+    if (art) d.k = art === 'auto' ? dokArt(f.name) : art;
+    out.push(d);
   }
   return out;
 }
@@ -179,98 +241,193 @@ const bild = (o, cls = '') => (o.bild ? `<img src="${esc(o.bild)}" alt="${esc(o.
 const warm = (o) => (Number(o.kaltmiete) || 0) + (Number(o.nk) || 0);
 const meta = (o) => [o.ort, o.zimmer ? `${num(o.zimmer, 1)} Zi.` : '', o.flaeche ? `${num(o.flaeche, 1)} m²` : '', o.frei ? `frei ab ${dt(Date.parse(o.frei))}` : ''].filter(Boolean).join(' · ');
 
+const namenText = (l) => (l?.length ? ' · ' + esc(l.join(', ')) : '');
 function karte(o) {
   const s = stand(o.id), tid = tidOf(o.id), u = unread(tid), l = s.ev.filter((e) => e.typ === 'chat').at(-1);
-  return `<article class="card vm-card" data-oid="${esc(o.id)}" tabindex="0" role="link" aria-label="${esc(o.titel)} öffnen">
+  const zahlen = [[s.gemacht.length, 'Besichtigung', 'Besichtigungen'], [s.aktiv.length, 'Interessent', 'Interessenten'], [s.mitDoks, 'mit Unterlagen', 'mit Unterlagen']]
+    .filter(([n]) => n).map(([n, e, m]) => `<b>${n}</b> ${n === 1 ? e : m}`).join(' · ');
+  return `<article class="card vm-card" data-oid="${esc(o.id)}" tabindex="0" role="link" aria-label="${esc(o.titel)}${o.lage ? ' ' + esc(o.lage) : ''} öffnen">
     <div class="photo">${bild(o)}${stPill(s.st)}${u ? `<span class="neu">${u} neu</span>` : ''}</div>
     <div class="body">
       <div class="head"><h2>${esc(o.titel)}${o.lage ? ` <span>· ${esc(o.lage)}</span>` : ''}</h2><span class="meta">${esc(meta(o))}</span></div>
       <div class="kpis">
         <div class="price"><small>Kaltmiete</small><b>${eur(o.kaltmiete)}</b></div>
         <div><small>Warmmiete</small><b>${o.nk != null && o.nk !== '' ? eur(warm(o)) : '–'}</b></div>
-        <div><small>Besichtigungen</small><b>${s.gemacht.length}${s.absagen.length ? ` <u class="tag vm-abs">${s.absagen.length} Abs.</u>` : ''}</b></div>
-        <div><small>Nächster Termin</small><b class="vm-n">${s.naechste ? `${tag(s.naechste.datum)} ${uhr(s.naechste.datum)}` : '–'}</b></div>
       </div>
-      <p class="vm-last">${l ? `<b>${esc(mine(l) ? 'Sie' : l.n)}:</b> ${esc(l.text || (l.dateien?.length ? 'Datei gesendet' : ''))} <small>${ago(l.at)}</small>` : '<small>Noch keine Nachrichten.</small>'}</p>
+      ${zahlen ? `<p class="vm-zahl">${zahlen}</p>` : ''}
+      ${s.naechste ? `<p class="vm-nx">Nächster Termin: <b>${tag(s.naechste.datum)}, ${uhr(s.naechste.datum)} Uhr</b>${namenText(s.naechste.namen)}</p>` : ''}
       ${s.offen.length ? `<p class="vm-hinw">Ergebnis fehlt für ${s.offen.length} Besichtigung${s.offen.length > 1 ? 'en' : ''}</p>` : ''}
+      ${s.absagen.length ? `<p class="vm-absz"><b>${s.absagen.length} ${s.absagen.length === 1 ? 'Absage' : 'Absagen'}:</b> ${gruendeText(s.gruende)}</p>` : ''}
+      ${l ? `<p class="vm-last"><b>${esc(mine(l) ? 'Sie' : l.n)}:</b> ${esc(l.text || (l.dateien?.length ? 'Datei gesendet' : ''))} <small>${ago(l.at)}</small></p>` : ''}
     </div></article>`;
 }
 
-const FILTER = [['alle', 'Alle'], ['vermarktung', 'In Vermarktung'], ['reserviert', 'Reserviert'], ['vermietet', 'Vermietet'], ['vorbereitung', 'In Vorbereitung']];
+/** Was als Nächstes ansteht: Termine der nächsten 14 Tage und vergangene Termine ohne Ergebnis – über alle Objekte. */
+function alsNaechstes(alle) {
+  const bis = Date.now() + 14 * 864e5, l = [];
+  for (const o of alle) {
+    const s = stand(o.id);
+    for (const b of s.offen) l.push({ o, b, t: b.datum, offen: true });
+    for (const b of s.geplant) if (b.datum <= bis) l.push({ o, b, t: b.datum });
+  }
+  if (!l.length) return '';
+  l.sort((a, b) => (b.offen - a.offen) || (a.t - b.t));
+  return `<section class="panel vm-todo"><div class="ph"><h2>Als Nächstes</h2><small class="hint">${l.length} ${l.length === 1 ? 'Eintrag' : 'Einträge'}</small></div><ul>
+    ${l.slice(0, 8).map(({ o, b, offen }) => `<li><button data-oid="${esc(o.id)}"><span class="vm-td"><b>${tag(b.datum)}</b><small>${uhr(b.datum)} Uhr</small></span>
+      <span class="vm-tm"><b>${esc(o.titel)}${o.lage ? ` · ${esc(o.lage)}` : ''}</b><small>${offen ? '<em class="vm-warn">Ergebnis eintragen</em> · ' : 'Besichtigung'}${b.anzahl ? ` · ${num(b.anzahl)} ${Number(b.anzahl) === 1 ? 'Interessent' : 'Interessenten'}` : ''}${namenText(b.namen)}</small></span><span class="vm-tp" aria-hidden="true">›</span></button></li>`).join('')}
+  </ul></section>`;
+}
+
+const ORD = { vermarktung: 0, reserviert: 1, vorbereitung: 2, vermietet: 3 }; // Reihenfolge der Karten
+const FILTER = [['alle', 'Alle Objekte'],['vorbereitung', 'In Vorbereitung'], ['vermarktung', 'In Vermarktung'], ['reserviert', 'Reserviert'], ['vermietet', 'Vermietet']];
 function renderStart() {
-  const alle = ctx.obj.filter((o) => tidOf(o.id)), st = (o) => stand(o.id).st, cnt = (k) => alle.filter((o) => st(o) === k).length;
+  const alle = ctx.obj.filter((o) => tidOf(o.id)), st = (o) => stand(o.id).st, cnt = (k) => (k === 'alle' ? alle.length : alle.filter((o) => st(o) === k).length);
   const list = alle.filter((o) => ctx.filter === 'alle' || st(o) === ctx.filter)
-    .sort((a, b) => (unread(tidOf(b.id)) - unread(tidOf(a.id))) || ((evOf(tidOf(b.id)).at(-1)?.rid ?? 0) - (evOf(tidOf(a.id)).at(-1)?.rid ?? 0)));
-  const monat = Date.now() - 30 * 864e5, bes30 = alle.reduce((a, o) => a + stand(o.id).gemacht.filter((b) => b.datum >= monat).length, 0);
-  const neu = alle.reduce((a, o) => a + unread(tidOf(o.id)), 0);
+    .sort((a, b) => (unread(tidOf(b.id)) - unread(tidOf(a.id))) || (ORD[st(a)] - ORD[st(b)]) || ((evOf(tidOf(b.id)).at(-1)?.rid ?? 0) - (evOf(tidOf(a.id)).at(-1)?.rid ?? 0)));
   const gr = new Date().getHours() < 11 ? 'Guten Morgen' : new Date().getHours() < 18 ? 'Guten Tag' : 'Guten Abend';
   titelZahl();
   app.innerHTML = `${header()}<main class="wrap hw-main">
     <section class="held"><div><span class="eyebrow">${new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })}</span><h2>${gr} <span>${esc(ctx.sess.n)}</span></h2></div></section>
     ${ctx.err ? `<p class="banner warn-b">${esc(ctx.err)} <button class="linkbtn" id="retry">Erneut versuchen</button></p>` : ''}
-    <div class="kpis4 vm-kpis">
-      <button class="kt" data-f="alle"><small>Objekte</small><b>${alle.length}</b></button>
-      <button class="kt" data-f="vermarktung"><small>In Vermarktung</small><b>${cnt('vermarktung')}</b></button>
-      <button class="kt" data-f="reserviert"><small>Reserviert</small><b class="${cnt('reserviert') ? 'warn-t' : ''}">${cnt('reserviert')}</b></button>
-      <button class="kt" data-f="vermietet"><small>Vermietet</small><b class="${cnt('vermietet') ? 'ok-t' : ''}">${cnt('vermietet')}</b></button>
-      <div class="kt"><small>Besichtigungen 30 Tage</small><b>${bes30}</b></div>
-      <div class="kt"><small>Ungelesen</small><b class="${neu ? 'vm-gold' : ''}">${neu}</b></div>
+    <div class="kpis4 vm-kpis" role="group" aria-label="Objekte filtern">
+      ${FILTER.map(([k, l]) => `<button class="kt${ctx.filter === k ? ' on' : ''}" data-f="${k}" aria-pressed="${ctx.filter === k}" style="--c:${STATUS[k]?.c ?? 'var(--gold)'}"><small>${l}</small><b>${cnt(k)}</b></button>`).join('')}
     </div>
-    <div class="bar"><div class="chips">${FILTER.map(([k, l]) => `<button class="chip${ctx.filter === k ? ' on' : ''}" data-f="${k}">${l}</button>`).join('')}</div></div>
+    ${alsNaechstes(alle)}
     ${list.length ? `<div class="cards vm-cards">${list.map(karte).join('')}</div>`
       : `<p class="empty">${alle.length ? 'Keine Objekte in dieser Auswahl.' : 'Noch keine Mietobjekte. Unter „Verwaltung → Objekte“ anlegen und veröffentlichen.'}</p>`}
     <footer class="p-fuss wrap"><span>Norderfranken Haus und Grund GmbH · Am Gewerbegebiet 5 · 95185 Gattendorf</span><span>Vertraulich · Ende-zu-Ende verschlüsselt</span></footer></main>`;
   wire();
   document.getElementById('retry')?.addEventListener('click', async () => { await load(); render(); });
-  app.querySelectorAll('[data-f]').forEach((b) => b.addEventListener('click', () => { ctx.filter = ctx.filter === b.dataset.f && b.classList.contains('kt') ? 'alle' : b.dataset.f; renderStart(); }));
+  app.querySelectorAll('[data-f]').forEach((b) => b.addEventListener('click', () => { ctx.filter = ctx.filter === b.dataset.f ? 'alle' : b.dataset.f; renderStart(); }));
+  app.querySelectorAll('.vm-todo [data-oid]').forEach((b) => b.addEventListener('click', () => go('objekt', b.dataset.oid)));
   app.querySelectorAll('.vm-card').forEach((k) => { const f = () => go('objekt', k.dataset.oid); k.addEventListener('click', f); k.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); f(); } }); });
 }
 
 /* ---------- Objekt: Infos ---------- */
+const hat = (v) => v != null && v !== '';
+const fileBtn = (f) => `<button class="vm-file" data-file="${esc(f.p)}" data-name="${esc(f.n)}" data-type="${esc(f.t)}"><b>${esc(f.n)}</b><small>${esc(DOK_L[f.k] ?? 'öffnen')}</small></button>`;
+const dateienHtml = (l) => (l?.length ? `<div class="vm-files">${l.map((f) => (f.t?.startsWith('image/') ? `<button class="foto" data-p="${esc(f.p)}" data-n="${esc(f.n)}" aria-label="Foto ${esc(f.n)} öffnen"><span>Foto lädt …</span></button>` : `<button class="vm-file" data-file="${esc(f.p)}" data-name="${esc(f.n)}" data-type="${esc(f.t)}"><b>${esc(f.n)}</b><small>öffnen</small></button>`)).join('')}</div>` : '');
+const auf = (k, std = false) => ((ctx.auf?.[k] ?? std) ? ' open' : '');
+
+/** Checkliste der Unterlagen: je Punkt hochladen, herunterladen und als geprüft abhaken. */
+function checkliste(k) {
+  const g = k.geprueft ?? {}, z = dokZahl(k), gz = geprueftZahl(k), weitere = dokListe(k, 'sonstiges');
+  const up = (key) => `<label class="btn ghost sm vm-up" title="Datei hochladen">+ Datei<input type="file" hidden multiple accept="application/pdf,image/*" data-kfile="${esc(k.kid)}" data-art="${key}"></label>`;
+  const zeile = ([key, l, , min]) => {
+    const fs = dokListe(k, key), ok = fs.length >= min, pr = g[key];
+    const st = pr ? 'pr' : ok ? 'ok' : fs.length ? 'teil' : 'fehlt';
+    const txt = pr ? `geprüft von ${esc(pr.n)} · ${dt(pr.at)}` : ok ? 'liegt vor – bitte prüfen' : fs.length ? `${fs.length} von ${min} – fehlt noch` : 'fehlt';
+    return `<li class="vm-cl-${st}"><span class="vm-cl-i" aria-hidden="true">${pr ? '✓' : ok ? '●' : fs.length ? '◐' : '○'}</span>
+      <div class="vm-cl-t"><b>${esc(l)}</b><small>${txt}</small>${fs.length ? `<div class="vm-files">${fs.map(fileBtn).join('')}</div>` : ''}</div>
+      <span class="vm-cl-a">${up(key)}${fs.length ? `<button class="btn sm${pr ? ' ghost' : ' vm-pr'}" data-kpr="${esc(k.kid)}" data-art="${key}" aria-pressed="${!!pr}">${pr ? 'Zurücknehmen' : '✓ Geprüft'}</button>` : ''}</span></li>`;
+  };
+  return `<details class="vm-cl-d" data-det="cl-${esc(k.kid)}"${auf('cl-' + k.kid, k.stand !== 'absage')}><summary><span>Unterlagen-Checkliste</span><b class="${z === CHECK.length ? 'ok-t' : ''}">${z}/${CHECK.length} da</b>${gz ? `<b class="ok-t">${gz}/${CHECK.length} geprüft</b>` : ''}</summary>
+    <ul class="vm-cl">${CHECK.map(zeile).join('')}
+      <li class="vm-cl-x"><span class="vm-cl-i" aria-hidden="true">+</span><div class="vm-cl-t"><b>Weitere Unterlagen</b><small>${weitere.length ? `${weitere.length} Datei${weitere.length > 1 ? 'en' : ''}` : 'optional (z. B. Arbeitsvertrag, Bürgschaft)'}</small>${weitere.length ? `<div class="vm-files">${weitere.map(fileBtn).join('')}</div>` : ''}</div><span class="vm-cl-a">${up('sonstiges')}</span></li>
+    </ul></details>`;
+}
+
+function kontaktHtml(k) {
+  const ks = KSTAND[k.stand] ?? KSTAND.anfrage, tel = telHref(k.tel);
+  const meta = [tel ? `<a href="${esc(tel)}">${esc(k.tel)}</a>` : esc(k.tel || ''), mailOk(k.mail) ? `<a href="mailto:${esc(k.mail)}">${esc(k.mail)}</a>` : esc(k.mail || ''),
+    k.personen ? `${num(k.personen)} ${Number(k.personen) === 1 ? 'Person' : 'Personen'}` : '', k.einzug ? `Einzug ab ${dt(Date.parse(k.einzug))}` : '', k.quelle ? `über ${esc(k.quelle)}` : ''].filter(Boolean);
+  return `<li class="vm-k${k.stand === 'absage' ? ' weg' : ''}" style="--c:${ks.c}">
+    <div class="vm-k-h"><b>${esc(k.name)}</b><span class="vm-erg" style="--c:${ks.c}">${esc(ks.l)}</span><small>seit ${dt(k.erstellt)}</small></div>
+    ${meta.length ? `<p class="vm-k-m">${meta.map((x) => `<span>${x}</span>`).join('')}</p>` : ''}
+    ${k.stand === 'absage' ? `<p class="vm-grund">Absagegrund: <b>${esc(k.grund || 'ohne Angabe')}</b></p>` : ''}
+    ${k.text ? `<p class="vm-k-t">${esc(k.text)}</p>` : ''}
+    ${checkliste(k)}
+    <div class="vm-k-a">${k.dateien?.length ? `<button class="btn sm" data-kzip="${esc(k.kid)}">Alle Unterlagen laden (ZIP)</button>` : ''}<button class="btn ghost sm" data-kup="${esc(k.kid)}">Mehrere hochladen</button>${k.stand !== 'absage' ? `<button class="btn ghost sm" data-kbes="${esc(k.kid)}">Besichtigung</button>` : ''}${k.stand === 'zusage' || k.stand === 'favorit' ? `<button class="btn sm" data-kmiet="${esc(k.kid)}">Als Mieter übernehmen</button>` : ''}<button class="btn ghost sm" data-k="${esc(k.kid)}">Bearbeiten</button></div>
+  </li>`;
+}
+
 function infoHtml(o, s) {
   const max = Math.max(1, ...Object.values(s.gruende));
-  const row = (b) => `<li class="vm-b"><div class="vm-b-d"><b>${tag(b.datum)}</b><small>${uhr(b.datum)}</small></div>
-      <div class="vm-b-m"><span class="vm-erg" style="--c:${ERG[b.ergebnis]?.c}">${esc(ERG[b.ergebnis]?.l ?? b.ergebnis)}</span>${b.anzahl ? ` <small>${num(b.anzahl)} ${Number(b.anzahl) === 1 ? 'Interessent' : 'Interessenten'}</small>` : ''}
-      ${b.grund ? `<small class="vm-gr">${esc(b.grund)}</small>` : ''}${b.text || b.notiz2 ? `<p>${esc([b.text, b.notiz2].filter(Boolean).join(' · '))}</p>` : ''}<small class="vm-von">${esc(b.n)}${b.von2 && b.von2 !== b.n ? ' · Ergebnis: ' + esc(b.von2) : ''}</small></div>
+  const row = (b) => `<li class="vm-b${b.ergebnis === 'absage' ? ' abs' : ''}"><div class="vm-b-d"><b>${tag(b.datum)}</b><small>${uhr(b.datum)} Uhr</small></div>
+      <div class="vm-b-m"><div class="vm-b-k"><span class="vm-erg" style="--c:${ERG[b.ergebnis]?.c}">${esc(ERG[b.ergebnis]?.l ?? b.ergebnis)}</span>${b.anzahl ? `<small>${num(b.anzahl)} ${Number(b.anzahl) === 1 ? 'Interessent' : 'Interessenten'}</small>` : ''}${b.namen.length ? `<small class="vm-b-n">${esc(b.namen.join(', '))}</small>` : ''}</div>
+      ${b.ergebnis === 'absage' ? `<p class="vm-grund">Absagegrund: <b>${esc(b.grund || 'ohne Angabe')}</b></p>` : ''}
+      ${b.text || b.notiz2 ? `<p>${esc([b.text, b.notiz2].filter(Boolean).join(' · '))}</p>` : ''}<small class="vm-von">${esc(b.n)}${b.von2 && b.von2 !== b.n ? ' · Ergebnis: ' + esc(b.von2) : ''}</small></div>
       ${b.ergebnis === 'geplant' || b.ergebnis === 'interesse' ? `<button class="btn ghost sm" data-erg="${esc(b.id)}">Ergebnis</button>` : ''}</li>`;
-  const md = s.md;
-  return `
-  <section class="panel vm-sec"><div class="ph"><h2>Anzeigen</h2><button class="btn ghost sm" data-act="anzeige">+ Anzeige-Link</button></div>
-    ${s.anz.length ? `<ul class="vm-links">${s.anz.map((a) => { const u = sicherUrl(a.url); return `<li><span class="chip2" style="--c:var(--gold)">${esc(a.portal || portalOf(a.url))}</span>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(a.text || u.replace(/^https?:\/\/(www\.)?/, '').slice(0, 60))}</a>` : esc(a.url)}<small>seit ${dt(a.at)} · ${esc(a.n)}</small><button class="vm-x" data-weg="${esc(a.id)}" aria-label="Anzeige entfernen" title="Anzeige ist offline – entfernen">×</button></li>`; }).join('')}</ul>`
-      : '<p class="hint">Noch keine Anzeige hinterlegt. Den Link zu ImmoScout24, Immowelt, Kleinanzeigen oder zur eigenen Seite hier eintragen.</p>'}</section>
+  const md = s.md, abgesagt = s.kontakte.filter((k) => k.stand === 'absage');
 
-  <section class="panel vm-sec"><div class="ph"><h2>Besichtigungen</h2><button class="btn fill sm" data-act="besichtigung">+ Besichtigung</button></div>
-    <div class="vm-mini"><div><small>Durchgeführt</small><b>${s.gemacht.length}</b></div><div><small>Interessenten</small><b>${s.interessenten}</b></div><div><small>Zusagen</small><b class="${s.zusagen ? 'ok-t' : ''}">${s.zusagen}</b></div><div><small>Absagen</small><b class="${s.absagen.length ? 'krit-t' : ''}">${s.absagen.length}</b></div></div>
-    ${s.naechste ? `<p class="vm-next">Nächster Termin: <b>${tag(s.naechste.datum)}, ${uhr(s.naechste.datum)} Uhr</b>${s.naechste.anzahl ? ` · ${num(s.naechste.anzahl)} Interessent${Number(s.naechste.anzahl) === 1 ? '' : 'en'}` : ''}</p>` : ''}
+  const blick = `<section class="panel vm-sec vm-blick"><div class="ph"><h2>Auf einen Blick</h2></div>
+    <div class="vm-mini">
+      <div><small>Besichtigungen</small><b>${s.gemacht.length}</b>${s.geplant.length ? `<em>+ ${s.geplant.length} geplant</em>` : ''}</div>
+      <div><small>Interessenten</small><b>${s.aktiv.length}</b>${s.zusagen ? `<em class="ok-t">${s.zusagen} ${s.zusagen === 1 ? 'Zusage' : 'Zusagen'}</em>` : ''}</div>
+      <div><small>Unterlagen komplett</small><b class="${s.komplett ? 'ok-t' : ''}">${s.komplett}</b>${s.geprueft ? `<em class="ok-t">${s.geprueft} geprüft</em>` : s.mitDoks > s.komplett ? `<em>${s.mitDoks - s.komplett} teilweise</em>` : ''}</div>
+      <div><small>Absagen</small><b class="${s.absagen.length ? 'krit-t' : ''}">${s.absagen.length}</b></div>
+    </div>
+    ${s.naechste ? `<p class="vm-next">Nächster Termin: <b>${tag(s.naechste.datum)}, ${uhr(s.naechste.datum)} Uhr</b>${s.naechste.anzahl ? ` · ${num(s.naechste.anzahl)} Interessent${Number(s.naechste.anzahl) === 1 ? '' : 'en'}` : ''}${namenText(s.naechste.namen)}</p>` : ''}
     ${s.offen.length ? `<p class="vm-hinw">Bei ${s.offen.length} vergangenen Termin${s.offen.length > 1 ? 'en' : ''} fehlt noch das Ergebnis.</p>` : ''}
-    ${s.absagen.length ? `<div class="vm-gruende"><h3 class="sub-h">Absagegründe</h3>${Object.entries(s.gruende).sort((a, b) => b[1] - a[1]).map(([g, n]) => `<div class="vm-g"><span>${esc(g)}</span><i style="width:${Math.round((n / max) * 100)}%"></i><b>${n}</b></div>`).join('')}</div>` : ''}
-    ${s.bes.length ? `<ul class="vm-bes">${[...s.bes].reverse().map(row).join('')}</ul>` : '<p class="hint">Noch keine Besichtigungen eingetragen.</p>'}</section>
+    ${s.absagen.length ? `<div class="vm-gruende"><h3 class="sub-h">Absagegründe</h3>${Object.entries(s.gruende).sort((a, b) => b[1] - a[1]).map(([g, n]) => `<div class="vm-g"><span>${esc(g)}</span><i style="width:${Math.round((n / max) * 100)}%"></i><b>${n}</b></div>`).join('')}
+      <ul class="vm-abl">${s.absagen.slice(0, 4).map((a) => `<li><b>${esc(a.grund)}</b>${a.wer ? ` – ${esc(a.wer)}` : ''} <small>${dt(a.at)}</small></li>`).join('')}</ul></div>` : ''}
+  </section>`;
 
-  <section class="panel vm-sec"><div class="ph"><h2>Mietdaten</h2><button class="btn ghost sm" data-act="mietdaten">${md ? 'Aktualisieren' : '+ Mietdaten'}</button></div>
+  const kontakte = `<section class="panel vm-sec"><div class="ph"><h2>Interessenten${s.aktiv.length ? ` <small class="vm-anz">${s.aktiv.length}</small>` : ''}</h2><button class="btn fill sm" data-act="kontakt">+ Interessent</button></div>
+    ${s.aktiv.length ? `<ul class="vm-ks">${s.aktiv.map(kontaktHtml).join('')}</ul>` : '<p class="hint">Noch keine Interessenten. Kontakt anlegen – danach je Interessent die Checkliste füllen: Selbstauskunft, 3 Gehaltsnachweise, Mietschuldenfreiheit, Ausweis, Haftpflicht, Schufa.</p>'}
+    ${abgesagt.length ? `<details class="vm-det2" data-det="abgesagt"${auf('abgesagt')}><summary>Abgesagt (${abgesagt.length})</summary><ul class="vm-ks">${abgesagt.map(kontaktHtml).join('')}</ul></details>` : ''}</section>`;
+
+  const besichtigungen = `<section class="panel vm-sec"><div class="ph"><h2>Besichtigungen${s.bes.length ? ` <small class="vm-anz">${s.bes.length}</small>` : ''}</h2><button class="btn fill sm" data-act="besichtigung">+ Besichtigung</button></div>
+    ${s.bes.length ? `<ul class="vm-bes">${[...s.bes].reverse().map(row).join('')}</ul>` : '<p class="hint">Noch keine Besichtigungen eingetragen.</p>'}</section>`;
+
+  const anzeigen = s.anz.length ? `<section class="panel vm-sec"><div class="ph"><h2>Anzeigen <small class="vm-anz">${s.anz.length}</small></h2><button class="btn ghost sm" data-act="anzeige">+ Anzeige-Link</button></div>
+    <ul class="vm-links">${s.anz.map((a) => { const u = sicherUrl(a.url); return `<li><span class="chip2" style="--c:var(--gold)">${esc(a.portal || portalOf(a.url))}</span>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(a.text || u.replace(/^https?:\/\/(www\.)?/, '').slice(0, 60))}</a>` : esc(a.url)}<small>seit ${dt(a.at)} · ${esc(a.n)}</small><button class="vm-x" data-weg="${esc(a.id)}" aria-label="Anzeige entfernen" title="Anzeige ist offline – entfernen">×</button></li>`; }).join('')}</ul></section>` : '';
+
+  const mietdaten = md || s.st === 'reserviert' || s.st === 'vermietet' ? `<section class="panel vm-sec"><div class="ph"><h2>Mietdaten</h2><button class="btn ghost sm" data-act="mietdaten">${md ? 'Aktualisieren' : '+ Mietdaten'}</button></div>
     ${md ? `<dl class="kz vm-kz">${[['Mieter', md.mieter], ['Kontakt', md.kontakt], ['Personen', md.personen ? num(md.personen) : ''], ['Mietbeginn', md.beginn ? dt(md.beginn) : ''], ['Kaltmiete', md.kaltmiete != null ? eur(md.kaltmiete) : ''], ['Nebenkosten', md.nk != null ? eur(md.nk) : ''], ['Warmmiete', md.kaltmiete != null && md.nk != null ? eur(Number(md.kaltmiete) + Number(md.nk)) : ''], ['Kaution', md.kaution != null ? eur(md.kaution) : '']].filter(([, w]) => w).map(([l, w]) => `<div><dt>${l}</dt><dd>${esc(w)}</dd></div>`).join('')}</dl>
-      ${md.text ? `<p class="vm-md-t">${esc(md.text)}</p>` : ''}${dateienHtml(md.dateien)}<p class="hint">Übermittelt von ${esc(md.n)} · ${dtm(md.at)}</p>`
-      : '<p class="hint">Noch keine Mietdaten. Sobald ein Mieter feststeht: Name, Kontakt, Mietbeginn, Miete, Kaution und Unterlagen (Selbstauskunft, Schufa, Einkommensnachweise) hier übermitteln.</p>'}</section>
+      ${md.text ? `<p class="vm-md-t">${esc(md.text)}</p>` : ''}${md.dateien?.length ? `<div class="vm-files">${md.dateien.map(fileBtn).join('')}</div>` : ''}<p class="hint">Übermittelt von ${esc(md.n)} · ${dtm(md.at)}</p>`
+      : '<p class="hint">Steht der Mieter fest? Beim Interessenten „Als Mieter übernehmen“ – Name, Kontakt und Unterlagen werden übernommen.</p>'}</section>` : '';
 
-  <section class="panel vm-sec"><div class="ph"><h2>Objekt</h2></div>
-    <div class="vm-od">${o.beschreibung ? `<p>${esc(o.beschreibung)}</p>` : ''}${o.ausstattung ? `<p class="vm-aus">${o.ausstattung.split(/[,;\n]/).map((x) => x.trim()).filter(Boolean).map((x) => `<span>${esc(x)}</span>`).join('')}</p>` : ''}
-    ${o.hinweis ? `<p class="note">${esc(o.hinweis)}</p>` : ''}${!o.beschreibung && !o.ausstattung && !o.hinweis ? '<p class="hint">Beschreibung, Ausstattung und interne Hinweise (Schlüssel, Ansprechpartner) unter „Verwaltung → Objekte“ ergänzen.</p>' : ''}</div></section>`;
+  const leer = !o.beschreibung && !o.ausstattung && !o.hinweis;
+  const objekt = `<details class="panel vm-sec vm-det" data-det="objekt"${auf('objekt')}><summary><h2>Objektbeschreibung &amp; Hinweise</h2></summary>
+    <div class="vm-od">${o.hinweis ? `<p class="note">${esc(o.hinweis)}</p>` : ''}${o.beschreibung ? `<p>${esc(o.beschreibung)}</p>` : ''}${o.ausstattung ? `<p class="vm-aus">${o.ausstattung.split(/[,;\n]/).map((x) => x.trim()).filter(Boolean).map((x) => `<span>${esc(x)}</span>`).join('')}</p>` : ''}
+    ${leer ? '<p class="hint">Beschreibung, Ausstattung und interne Hinweise (Schlüssel, Ansprechpartner) unter „Verwaltung → Objekte“ ergänzen.</p>' : ''}</div></details>`;
+
+  const mietdatenOben = md && (s.st === 'reserviert' || s.st === 'vermietet');
+  return [blick, mietdatenOben ? mietdaten : '', kontakte, besichtigungen, anzeigen, mietdatenOben ? '' : mietdaten, objekt].join('');
 }
-const dateienHtml = (l) => (l?.length ? `<div class="vm-files">${l.map((f) => (f.t?.startsWith('image/') ? `<button class="foto" data-p="${esc(f.p)}" data-n="${esc(f.n)}" aria-label="Foto ${esc(f.n)} öffnen"><span>Foto lädt …</span></button>` : `<button class="vm-file" data-file="${esc(f.p)}" data-name="${esc(f.n)}" data-type="${esc(f.t)}"><b>${esc(f.n)}</b><small>öffnen</small></button>`)).join('')}</div>` : '');
 
 /* ---------- Objekt: Verlauf (Live-Chat) ---------- */
+const kName = (tid, kid) => evOf(tid).filter((x) => x.typ === 'kontakt' && x.kid === kid).at(-1)?.name;
 function eintrag(e) {
   const wer = mine(e) ? 'Sie' : e.n, rolle = e.rolle && !mine(e) ? ` <em class="rolle">${esc(e.rolle)}</em>` : '';
   const sys = (txt) => `<li class="sys vm-sys"><span>${txt}</span> <small>${esc(wer)} · ${dtm(e.at)}</small></li>`;
+  const namen = () => namenText((e.kids ?? []).map((k) => kName(e.tid, k)).filter(Boolean));
   if (e.typ === 'status') return sys(`Status: <b style="color:${STATUS[e.status]?.c}">${esc(STATUS[e.status]?.l ?? e.status)}</b>${e.text ? ' – ' + esc(e.text) : ''}`);
   if (e.typ === 'anzeige') return sys(`Anzeige hinzugefügt: <b>${esc(e.portal || portalOf(e.url))}</b>`);
   if (e.typ === 'anzeige_weg') return sys('Anzeige entfernt');
-  if (e.typ === 'besichtigung') return sys(`Besichtigung ${esc(tag(e.datum))}, ${uhr(e.datum)} Uhr eingetragen – <b style="color:${ERG[e.ergebnis]?.c}">${esc(ERG[e.ergebnis]?.l ?? '')}</b>${e.grund ? ' (' + esc(e.grund) + ')' : ''}`);
+  if (e.typ === 'besichtigung') return sys(`Besichtigung ${esc(tag(e.datum))}, ${uhr(e.datum)} Uhr eingetragen${namen()} – <b style="color:${ERG[e.ergebnis]?.c}">${esc(ERG[e.ergebnis]?.l ?? '')}</b>${e.grund ? ' (' + esc(e.grund) + ')' : ''}`);
   if (e.typ === 'ergebnis') { const b = evOf(e.tid).find((x) => x.id === e.ref); return sys(`Ergebnis${b ? ` Besichtigung ${esc(tag(b.datum))}` : ''}: <b style="color:${ERG[e.ergebnis]?.c}">${esc(ERG[e.ergebnis]?.l ?? '')}</b>${e.grund ? ' (' + esc(e.grund) + ')' : ''}`); }
   if (e.typ === 'mietdaten') return sys(`Mietdaten übermittelt${e.mieter ? ': <b>' + esc(e.mieter) + '</b>' : ''}${e.dateien?.length ? ` · ${e.dateien.length} Unterlage${e.dateien.length > 1 ? 'n' : ''}` : ''}`);
+  if (e.typ === 'kontakt') {
+    const alt = evOf(e.tid).filter((x) => x.typ === 'kontakt' && x.kid === e.kid && x.rid < e.rid).at(-1), nd = (e.dateien?.length ?? 0) - (alt?.dateien?.length ?? 0), ks = KSTAND[e.stand];
+    const t = [];
+    if (!alt) t.push(`Interessent angelegt: <b>${esc(e.name)}</b>`);
+    if (nd > 0) t.push(`${alt ? `<b>${esc(e.name)}</b>: ` : ''}${nd} Unterlage${nd > 1 ? 'n' : ''} hochgeladen`);
+    if (alt && alt.stand !== e.stand && ks) t.push(`${nd > 0 ? '' : `<b>${esc(e.name)}</b>: `}<b style="color:${ks.c}">${esc(ks.l)}</b>${e.stand === 'absage' && e.grund ? ' (' + esc(e.grund) + ')' : ''}`);
+    if (alt) {
+      const pr = Object.keys(e.geprueft ?? {}).filter((x) => !alt.geprueft?.[x]), zur = Object.keys(alt.geprueft ?? {}).filter((x) => !e.geprueft?.[x] && nd <= 0);
+      if (pr.length) t.push(`<b>${esc(e.name)}</b>: ${pr.map((x) => esc(DOK_L[x] ?? x)).join(', ')} <b style="color:var(--gut)">geprüft ✓</b>`);
+      if (zur.length) t.push(`<b>${esc(e.name)}</b>: Prüfung zurückgenommen (${zur.map((x) => esc(DOK_L[x] ?? x)).join(', ')})`);
+    }
+    return sys(t.join(' · ') || `Interessent <b>${esc(e.name)}</b> aktualisiert`);
+  }
+  if (e.typ === 'kontakt_weg') { const n = kName(e.tid, e.ref); return sys(`Interessent entfernt${n ? ': <b>' + esc(n) + '</b>' : ''}`); }
   if (e.typ !== 'chat') return '';
   return `<li class="bub ${mine(e) ? 'me' : 'h'}" style="--c:${mine(e) ? 'var(--rand)' : 'var(--gold)'}"><div class="bh"><b>${esc(wer)}</b>${rolle}<small>${dtm(e.at)}</small></div>${e.text ? `<p>${esc(e.text)}</p>` : ''}${dateienHtml(e.dateien)}</li>`;
 }
 const feedHtml = (s) => (s.ev.length ? s.ev.map(eintrag).join('') : '<li class="empty">Noch keine Nachrichten. Schreiben Sie die erste – Ihr Gegenüber sieht sie sofort.</li>');
+
+const PLUS = [['besichtigung', 'Besichtigung', 'Termin oder Ergebnis eintragen'], ['kontakt', 'Interessent', 'Name, Telefon, E-Mail anlegen'], ['unterlagen', 'Unterlagen hochladen', 'Selbstauskunft, Einkommen, Schufa …'],
+  ['anzeige', 'Anzeige-Link', 'ImmoScout24, Kleinanzeigen …'], ['mietdaten', 'Mietdaten', 'Wenn der Mieter feststeht']];
+function menuZu() { app.querySelectorAll('.dropdown.offen').forEach((d) => { d.classList.remove('offen'); d.querySelector('[data-menu]')?.setAttribute('aria-expanded', 'false'); }); }
+document.addEventListener('click', (e) => { if (!e.target.closest('.dropdown')) menuZu(); });
+document.addEventListener('keydown', (e) => {
+  const dd = document.querySelector('.dropdown.offen'); if (!dd) return;
+  const items = [...dd.querySelectorAll('[role=menuitem]')], i = items.indexOf(document.activeElement);
+  if (e.key === 'Escape') { menuZu(); dd.querySelector('[data-menu]')?.focus(); }
+  else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); items[(i + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length]?.focus(); }
+});
 
 function renderObjekt() {
   const o = objOf(ctx.oid), s = stand(o.id), tid = tidOf(o.id), u = unread(tid);
@@ -280,8 +437,9 @@ function renderObjekt() {
     <section class="panel vm-top"><div class="vm-hero">${bild(o)}</div>
       <div class="vm-top-b"><span class="eyebrow">${esc(o.typ || 'Mietobjekt')}</span><h2 class="big">${esc(o.titel)}</h2><p class="hint">${esc([o.lage, o.ort].filter(Boolean).join(' · '))}</p>
         <label class="vm-stsel"><span>Status</span><select id="stSel" aria-label="Status ändern">${Object.entries(STATUS).map(([k, v]) => `<option value="${k}"${s.st === k ? ' selected' : ''}>${v.l}</option>`).join('')}</select></label>
-        <div class="vm-fakten">${[['Kaltmiete', eur(o.kaltmiete), 'p'], ['Nebenkosten', o.nk != null && o.nk !== '' ? eur(o.nk) : '–'], ['Warmmiete', o.nk != null && o.nk !== '' ? eur(warm(o)) : '–'], ['Kaution', o.kaution ? eur(o.kaution) : '–'], ['Wohnfläche', o.flaeche ? num(o.flaeche, 1) + ' m²' : '–'], ['Zimmer', o.zimmer ? num(o.zimmer, 1) : '–'], ['Frei ab', o.frei ? dt(Date.parse(o.frei)) : '–']].map(([l, w, c]) => `<div class="${c === 'p' ? 'price' : ''}"><small>${l}</small><b>${w}</b></div>`).join('')}</div>
-        <div class="acts vm-acts"><button class="btn fill sm" data-act="besichtigung">+ Besichtigung</button><button class="btn sm" data-act="mietdaten">Mietdaten</button><button class="btn sm" data-act="anzeige">Anzeige-Link</button></div></div></section>
+        <div class="vm-fakten">${[['Kaltmiete', eur(o.kaltmiete), 'p'], ['Nebenkosten', hat(o.nk) ? eur(o.nk) : ''], ['Warmmiete', hat(o.nk) ? eur(warm(o)) : ''], ['Kaution', o.kaution ? eur(o.kaution) : ''], ['Wohnfläche', o.flaeche ? num(o.flaeche, 1) + ' m²' : ''], ['Zimmer', o.zimmer ? num(o.zimmer, 1) : ''], ['Frei ab', o.frei ? dt(Date.parse(o.frei)) : '']].filter(([, w, c]) => c || w).map(([l, w, c]) => `<div class="${c === 'p' ? 'price' : ''}"><small>${l}</small><b>${w}</b></div>`).join('')}</div>
+        <div class="acts vm-acts"><div class="dropdown links"><button type="button" class="btn fill sm" data-menu aria-haspopup="menu" aria-expanded="false">+ Hinzufügen</button>
+          <div class="dd-menu" role="menu" aria-label="Hinzufügen">${PLUS.map(([a, l, h]) => `<button type="button" role="menuitem" data-act="${a}"><b>${l}</b><small>${h}</small></button>`).join('')}</div></div></div></div></section>
     ${ctx.err ? `<p class="banner warn-b">${esc(ctx.err)}</p>` : ''}
     <div class="vm-cols"><div class="vm-info" id="info">${infoHtml(o, s)}</div>
       <section class="panel vm-chat" aria-label="Chat zu diesem Objekt"><div class="ph"><h2>Chat</h2><small class="vm-live" id="live">● live</small></div>
@@ -300,6 +458,9 @@ function renderObjekt() {
     aktualisieren(true);
   });
   app.querySelector('.vm-obj').addEventListener('click', klick);
+  app.querySelector('.vm-obj').addEventListener('change', dateiGewaehlt);
+  // Auf-/Zuklappen merken, damit es bei neuen Einträgen nicht zurückspringt
+  document.getElementById('info').addEventListener('toggle', (e) => { const k = e.target.dataset?.det; if (k) (ctx.auf ??= {})[k] = e.target.open; }, true);
   const files = document.getElementById('chatFiles');
   files.addEventListener('change', () => { document.getElementById('filesInfo').textContent = files.files.length ? `${files.files.length} Datei${files.files.length > 1 ? 'en' : ''} angehängt` : ''; });
   const ta = document.querySelector('#chatForm textarea');
@@ -337,13 +498,86 @@ function aktualisieren(eigene = false) {
 }
 
 async function klick(e) {
-  const b = e.target.closest('[data-act],[data-erg],[data-weg],[data-file],.foto'); if (!b || b.closest('.vm-seg')) return;
-  const o = objOf(ctx.oid);
-  if (b.dataset.act) return formular(b.dataset.act, o);
-  if (b.dataset.erg) return formular('ergebnis', o, b.dataset.erg);
-  if (b.dataset.weg) { b.disabled = true; try { await send(o.id, { typ: 'anzeige_weg', ref: b.dataset.weg }); aktualisieren(true); } catch (x) { toast(x.message, false); b.disabled = false; } return; }
-  if (b.dataset.file) { b.disabled = true; try { const u = await getFile(ctx.sess.sb, b.dataset.file, ctx.sess.threads[tidOf(o.id)].k, b.dataset.type); const a = document.createElement('a'); a.href = u; a.download = b.dataset.name; a.target = '_blank'; a.rel = 'noopener'; document.body.append(a); a.click(); a.remove(); } catch (x) { toast(x.message, false); } b.disabled = false; }
+  const m = e.target.closest('[data-menu]');
+  if (m) { const dd = m.closest('.dropdown'), zu = dd.classList.contains('offen'); menuZu(); if (!zu) { dd.classList.add('offen'); m.setAttribute('aria-expanded', 'true'); dd.querySelector('[role=menuitem]')?.focus(); } return; }
+  const b = e.target.closest('[data-act],[data-erg],[data-weg],[data-file],[data-k],[data-kup],[data-kbes],[data-kmiet],[data-kpr],[data-kzip]'); if (!b || b.closest('.vm-seg')) return;
+  menuZu();
+  const o = objOf(ctx.oid), d = b.dataset;
+  if (d.kpr) {
+    const k = stand(o.id).kontakte.find((x) => x.kid === d.kpr); if (!k) return;
+    const g = { ...(k.geprueft ?? {}) }, war = !!g[d.art];
+    if (war) delete g[d.art]; else g[d.art] = { n: ctx.sess.n, at: Date.now() };
+    b.disabled = true;
+    try { await sendKontakt(o.id, k, { geprueft: g }); toast(war ? 'Prüfung zurückgenommen.' : `${DOK_L[d.art]} als geprüft markiert.`); aktualisieren(true); } catch (x) { toast(x.message, false); b.disabled = false; }
+    return;
+  }
+  if (d.kzip) return zipLaden(o, d.kzip, b);
+  if (d.act) return formular(d.act, o);
+  if (d.erg) return formular('ergebnis', o, d.erg);
+  if (d.k) return formular('kontakt', o, d.k);
+  if (d.kup) return formular('unterlagen', o, d.kup);
+  if (d.kbes) return formular('besichtigung', o, null, d.kbes);
+  if (d.kmiet) return formular('mietdaten', o, null, d.kmiet);
+  if (d.weg) { b.disabled = true; try { await send(o.id, { typ: 'anzeige_weg', ref: d.weg }); aktualisieren(true); } catch (x) { toast(x.message, false); b.disabled = false; } return; }
+  if (d.file) {
+    b.disabled = true;
+    try {
+      const u = await getFile(ctx.sess.sb, d.file, ctx.sess.threads[tidOf(o.id)].k, d.type);
+      if (d.type?.startsWith('image/')) lightbox(u);
+      else { const a = document.createElement('a'); a.href = u; a.download = d.name; a.target = '_blank'; a.rel = 'noopener'; document.body.append(a); a.click(); a.remove(); }
+    } catch (x) { toast(x.message, false); }
+    b.disabled = false;
+  }
 }
+/** „+ Datei“ in der Checkliste: sofort hochladen und dem Punkt zuordnen. */
+async function dateiGewaehlt(e) {
+  const i = e.target.closest?.('[data-kfile]'); if (!i || !i.files.length) return;
+  const o = objOf(ctx.oid), k = stand(o.id).kontakte.find((x) => x.kid === i.dataset.kfile), files = [...i.files], art = i.dataset.art;
+  i.value = ''; if (!k) return;
+  const lab = i.closest('label'); if (lab) { lab.classList.add('busy'); lab.firstChild.textContent = 'Lädt …'; }
+  try { await dokHinzu(o.id, k, files, art); toast(`${files.length > 1 ? files.length + ' Dateien' : 'Datei'} bei „${DOK_L[art]}“ abgelegt.`); }
+  catch (x) { toast(x.message, false); }
+  aktualisieren(true);
+}
+
+/* ---------- Alle Unterlagen eines Interessenten als ZIP (ohne Kompression, Dateien sind schon komprimiert) ---------- */
+const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let j = 0; j < 8; j++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+const crc32 = (b) => { let c = 0xffffffff; for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
+export function zipBlob(dateien) {
+  const enc = new TextEncoder(), jetzt = new Date(), teile = [], zentral = []; let off = 0;
+  const zeit = (jetzt.getHours() << 11) | (jetzt.getMinutes() << 5) | (jetzt.getSeconds() >> 1), datum = ((jetzt.getFullYear() - 1980) << 9) | ((jetzt.getMonth() + 1) << 5) | jetzt.getDate();
+  for (const { name, bytes } of dateien) {
+    const n = enc.encode(name), crc = crc32(bytes), h = new DataView(new ArrayBuffer(30)), c = new DataView(new ArrayBuffer(46));
+    h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true); h.setUint16(10, zeit, true); h.setUint16(12, datum, true);
+    h.setUint32(14, crc, true); h.setUint32(18, bytes.length, true); h.setUint32(22, bytes.length, true); h.setUint16(26, n.length, true);
+    c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true); c.setUint16(12, zeit, true); c.setUint16(14, datum, true);
+    c.setUint32(16, crc, true); c.setUint32(20, bytes.length, true); c.setUint32(24, bytes.length, true); c.setUint16(28, n.length, true); c.setUint32(42, off, true);
+    teile.push(h, n, bytes); zentral.push(c, n); off += 30 + n.length + bytes.length;
+  }
+  const groesse = zentral.reduce((a, x) => a + x.byteLength, 0), e = new DataView(new ArrayBuffer(22));
+  e.setUint32(0, 0x06054b50, true); e.setUint16(8, dateien.length, true); e.setUint16(10, dateien.length, true); e.setUint32(12, groesse, true); e.setUint32(16, off, true);
+  return new Blob([...teile, ...zentral, e], { type: 'application/zip' });
+}
+const dateiname = (s) => String(s).replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, ' ').trim().slice(0, 120);
+async function zipLaden(o, kid, btn) {
+  const k = stand(o.id).kontakte.find((x) => x.kid === kid); if (!k?.dateien?.length) return;
+  const tk = ctx.sess.threads[tidOf(o.id)].k, label = btn.textContent, nr = Object.fromEntries(DOKS.map(([key], i) => [key, String(i + 1).padStart(2, '0')])), schon = new Set(), out = [];
+  btn.disabled = true;
+  try {
+    for (const [i, f] of k.dateien.entries()) {
+      btn.textContent = `Lädt ${i + 1}/${k.dateien.length} …`;
+      const u = await getFile(ctx.sess.sb, f.p, tk, f.t), bytes = new Uint8Array(await (await fetch(u)).arrayBuffer());
+      let name = dateiname(`${nr[f.k] ?? '07'} ${DOK_L[f.k] ?? 'Sonstiges'} – ${f.n}`);
+      for (let j = 2; schon.has(name.toLowerCase()); j++) name = name.replace(/(\.[^.]+)?$/, (m) => ` (${j})${m}`);
+      schon.add(name.toLowerCase()); out.push({ name, bytes });
+    }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(zipBlob(out)); a.download = dateiname(`Unterlagen ${k.name} – ${o.titel}${o.lage ? ' ' + o.lage : ''}`) + '.zip';
+    document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    toast(`${out.length} Unterlagen als ZIP geladen.`);
+  } catch (x) { toast('ZIP konnte nicht erstellt werden: ' + (x.message || x), false); }
+  btn.disabled = false; btn.textContent = label;
+}
+
 /** Fotos erst beim Anzeigen laden und entschlüsseln. */
 function hydrate() {
   const tid = tidOf(ctx.oid), k = ctx.sess.threads[tid]?.k;
@@ -366,19 +600,83 @@ export function zahl(v) {
   const n = Number(x); return Number.isFinite(n) ? n : NaN;
 }
 const lokal = (t) => new Date(t - new Date(t).getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-function formular(art, o, ref) {
-  const d = dlg('sheet', 'sheet'), s = stand(o.id), md = s.md ?? {}, b = ref ? s.bes.find((x) => x.id === ref) : null;
+const neueId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const MAX_DOKS = 60;
+/** Felder eines Interessenten – jeder gespeicherte Eintrag enthält den vollständigen Stand. Leere Werte fallen weg. */
+const KFELD = ['kid', 'name', 'tel', 'mail', 'personen', 'einzug', 'quelle', 'stand', 'grund', 'text', 'dateien', 'geprueft'];
+function kSnap(k, neu = {}) {
+  const x = {};
+  for (const f of KFELD) { const v = f in neu ? neu[f] : k?.[f]; if (v != null && v !== '' && !(Array.isArray(v) && !v.length) && !(typeof v === 'object' && !Array.isArray(v) && !Object.keys(v).length)) x[f] = v; }
+  if (x.stand !== 'absage') delete x.grund;
+  return x;
+}
+const sendKontakt = (oid, k, neu) => send(oid, { typ: 'kontakt', ...kSnap(k, neu) });
+/** Ändern sich die Dateien eines Punkts, gilt er wieder als ungeprüft. */
+function pruefAnpassen(k, neu) {
+  const x = { ...(k?.geprueft ?? {}) }, ps = (l, key) => (l ?? []).filter((f) => f.k === key).map((f) => f.p).join();
+  for (const key of Object.keys(x)) if (ps(k?.dateien, key) !== ps(neu, key)) delete x[key];
+  return x;
+}
+/** Dateien zu einem Interessenten hinzufügen (Checkliste oder Sammel-Upload). */
+async function dokHinzu(oid, k, files, art) {
+  if ((k.dateien?.length ?? 0) + files.length > MAX_DOKS) throw new Error(`Höchstens ${MAX_DOKS} Unterlagen pro Interessent.`);
+  const dateien = [...(k.dateien ?? []), ...await upload(oid, files, art)];
+  await sendKontakt(oid, k, { dateien, geprueft: pruefAnpassen(k, dateien), stand: k.stand === 'anfrage' || k.stand === 'besichtigung' ? 'unterlagen' : k.stand });
+}
+/** Ergebnis einer Besichtigung auf die verknüpften Interessenten übertragen. */
+async function kontakteNachziehen(oid, kids, ergebnis, grund) {
+  if (!kids?.length) return;
+  const s = stand(oid);
+  for (const kid of kids) {
+    const k = s.kontakte.find((x) => x.kid === kid); if (!k) continue;
+    const neu = ergebnis === 'absage' && k.stand !== 'absage' ? { stand: 'absage', grund }
+      : ergebnis === 'zusage' && k.stand !== 'zusage' ? { stand: 'zusage' }
+        : (ergebnis === 'geplant' || ergebnis === 'interesse') && k.stand === 'anfrage' ? { stand: 'besichtigung' } : null;
+    if (neu) await sendKontakt(oid, k, neu);
+  }
+}
+
+function formular(art, o, ref, kidVorwahl) {
+  const d = dlg('sheet', 'sheet'), s = stand(o.id), b = art === 'ergebnis' ? s.bes.find((x) => x.id === ref) : null;
+  const k = (art === 'kontakt' || art === 'unterlagen') && ref ? s.kontakte.find((x) => x.kid === ref) : null;
+  const mk = art === 'mietdaten' && kidVorwahl ? s.kontakte.find((x) => x.kid === kidVorwahl) : null;
+  const md = mk ? { ...(s.md ?? {}), mieter: mk.name, kontakt: [mk.tel, mk.mail].filter(Boolean).join(' · '), personen: mk.personen, beginn: mk.einzug ? Date.parse(mk.einzug) : s.md?.beginn, dateien: mk.dateien ?? [], kid: mk.kid } : (s.md ?? {});
   const jetzt = new Date(); jetzt.setMinutes(Math.round(jetzt.getMinutes() / 15) * 15, 0, 0);
-  const ergSel = (v) => `<label class="f"><span>Ergebnis</span><select name="ergebnis" id="ergSel">${Object.entries(ERG).map(([k, x]) => `<option value="${k}"${v === k ? ' selected' : ''}>${x.l}</option>`).join('')}</select></label>
-    <label class="f" id="grundF"><span>Absagegrund</span><select name="grund"><option value="">– bitte wählen –</option>${GRUENDE.map((g) => `<option${b?.grund === g ? ' selected' : ''}>${esc(g)}</option>`).join('')}</select></label>`;
+  const opt = (l, v) => l.map((x) => `<option${x === v ? ' selected' : ''}>${esc(x)}</option>`).join('');
+  const ergSel = (v) => `<label class="f"><span>Ergebnis</span><select name="ergebnis" id="ergSel">${Object.entries(ERG).map(([key, x]) => `<option value="${key}"${v === key ? ' selected' : ''}>${x.l}</option>`).join('')}</select></label>
+    <label class="f" id="grundF"><span>Absagegrund</span><select name="grund"><option value="">– bitte wählen –</option>${opt(GRUENDE, b?.grund)}</select></label>`;
+  const kChk = (sel) => (s.aktiv.length ? `<fieldset class="f wide vm-chk"><legend>Interessenten (optional)</legend>${s.aktiv.map((x) => `<label><input type="checkbox" name="kids" value="${esc(x.kid)}"${sel.includes(x.kid) ? ' checked' : ''}> ${esc(x.name)}</label>`).join('')}</fieldset>` : '');
+  const dokFelder = (pflicht) => `<label class="f"><span>Art der Unterlagen</span><select name="art"><option value="auto">Automatisch (nach Dateiname)</option>${DOKS.map(([key, l]) => `<option value="${key}">${l}</option>`).join('')}</select></label>
+    <label class="f"><span>${pflicht ? 'Dateien (PDF oder Foto)' : 'Unterlagen hinzufügen (optional)'}</span><input name="files" type="file" accept="application/pdf,image/*" multiple${pflicht ? ' required' : ''}></label>
+    <ul class="vm-vor wide hidden" id="vor" aria-live="polite"></ul>`;
+  const quellen = [...new Set([...s.anz.map((a) => a.portal || portalOf(a.url)), ...QUELLEN])];
   const F = {
     besichtigung: ['Besichtigung eintragen', `<label class="f"><span>Datum und Uhrzeit</span><input name="datum" type="datetime-local" required value="${lokal(jetzt.getTime())}"></label>
       <label class="f"><span>Anzahl Interessenten</span><input name="anzahl" type="number" min="0" max="99" step="1" value="1" required></label>
+      ${kChk(kidVorwahl ? [kidVorwahl] : [])}
       ${ergSel('geplant')}
-      <label class="f wide"><span>Notiz (z. B. Namen, Eindruck, Rückfragen)</span><textarea name="text" rows="3" maxlength="1500"></textarea></label>`],
-    ergebnis: ['Ergebnis eintragen', `<p class="hint wide">Besichtigung ${b ? `${tag(b.datum)}, ${uhr(b.datum)} Uhr${b.anzahl ? ' · ' + num(b.anzahl) + ' Interessent' + (Number(b.anzahl) === 1 ? '' : 'en') : ''}` : ''}</p>${ergSel(b?.ergebnis === 'geplant' ? 'interesse' : b?.ergebnis)}
+      <label class="f wide"><span>Notiz (z. B. Eindruck, Rückfragen)</span><textarea name="text" rows="3" maxlength="1500"></textarea></label>`],
+    ergebnis: ['Ergebnis eintragen', `<p class="hint wide">Besichtigung ${b ? `${tag(b.datum)}, ${uhr(b.datum)} Uhr${b.anzahl ? ' · ' + num(b.anzahl) + ' Interessent' + (Number(b.anzahl) === 1 ? '' : 'en') : ''}${namenText(b.namen)}` : ''}</p>${ergSel(b?.ergebnis === 'geplant' ? 'interesse' : b?.ergebnis)}
+      ${b?.namen.length ? '<p class="hint wide">Zusage oder Absage wird auch beim Interessenten vermerkt.</p>' : ''}
       <label class="f wide"><span>Notiz</span><textarea name="text" rows="3" maxlength="1500"></textarea></label>`],
-    mietdaten: ['Mietdaten übermitteln', `<label class="f"><span>Mieter (Name)</span><input name="mieter" maxlength="120" value="${esc(md.mieter || '')}"></label>
+    kontakt: [k ? 'Interessent bearbeiten' : 'Interessent anlegen', `<label class="f"><span>Name</span><input name="kname" required maxlength="120" value="${esc(k?.name || '')}" autocomplete="off" placeholder="z. B. Anna Müller"></label>
+      <label class="f"><span>Telefon</span><input name="tel" type="tel" maxlength="40" value="${esc(k?.tel || '')}" autocomplete="off"></label>
+      <label class="f"><span>E-Mail</span><input name="mail" type="email" maxlength="160" value="${esc(k?.mail || '')}" autocomplete="off"></label>
+      <label class="f"><span>Personen im Haushalt</span><input name="personen" type="number" min="1" max="20" value="${esc(k?.personen ?? '')}"></label>
+      <label class="f"><span>Einzug ab</span><input name="einzug" type="date" value="${esc(k?.einzug || '')}"></label>
+      <label class="f"><span>Gefunden über</span><select name="quelle"><option value="">–</option>${opt(quellen, k?.quelle)}</select></label>
+      <label class="f"><span>Stand</span><select name="stand" id="kStand">${Object.entries(KSTAND).map(([key, x]) => `<option value="${key}"${(k?.stand ?? 'anfrage') === key ? ' selected' : ''}>${x.l}</option>`).join('')}</select></label>
+      <label class="f" id="kGrundF"><span>Absagegrund</span><select name="grund"><option value="">– bitte wählen –</option>${opt(GRUENDE, k?.grund)}</select></label>
+      <label class="f wide"><span>Notiz (Beruf, Haustiere, Eindruck …)</span><textarea name="text" rows="2" maxlength="1500">${esc(k?.text || '')}</textarea></label>
+      ${dokFelder(false)}
+      ${k?.dateien?.length ? `<fieldset class="f wide vm-chk vm-keep"><legend>Vorhandene Unterlagen – Haken entfernen zum Löschen</legend>${k.dateien.map((f, i) => `<label><input type="checkbox" name="keep" value="${i}" checked> ${esc(f.n)} <small>${esc(DOK_L[f.k] ?? '')}</small></label>`).join('')}</fieldset>` : ''}
+      ${k ? '<p class="wide"><button type="button" class="linkbtn vm-del" data-a="kdel">Interessent entfernen</button></p>' : ''}`],
+    unterlagen: ['Unterlagen hochladen', `<label class="f"><span>Interessent</span><select name="kid" id="uKid">${s.kontakte.map((x) => `<option value="${esc(x.kid)}"${x.kid === ref ? ' selected' : ''}>${esc(x.name)}${x.stand === 'absage' ? ' (abgesagt)' : ''}</option>`).join('')}<option value="">+ Neuer Interessent …</option></select></label>
+      <label class="f" id="uNeu"><span>Name des neuen Interessenten</span><input name="neuname" maxlength="120" autocomplete="off"></label>
+      ${dokFelder(true)}
+      <p class="hint wide">Mehrere Dateien auf einmal: Die Art wird am Dateinamen erkannt (z. B. „Schufa.pdf“, „Gehaltsnachweis_Oktober.pdf“) – die Vorschau zeigt die Zuordnung. Passt etwas nicht, oben die Art wählen. Einzelne Punkte gehen auch direkt in der Checkliste mit „+ Datei“.</p>`],
+    mietdaten: ['Mietdaten übermitteln', `${mk ? `<p class="hint wide">Übernommen von Interessent <b>${esc(mk.name)}</b>${mk.dateien?.length ? ` – mit ${mk.dateien.length} Unterlage${mk.dateien.length > 1 ? 'n' : ''}` : ''}. Bitte Miete und Beginn prüfen.</p>` : ''}
+      <label class="f"><span>Mieter (Name)</span><input name="mieter" maxlength="120" value="${esc(md.mieter || '')}"></label>
       <label class="f"><span>Kontakt (Telefon / E-Mail)</span><input name="kontakt" maxlength="160" value="${esc(md.kontakt || '')}"></label>
       <label class="f"><span>Personen im Haushalt</span><input name="personen" type="number" min="0" max="20" value="${esc(md.personen ?? '')}"></label>
       <label class="f"><span>Mietbeginn</span><input name="beginn" type="date" value="${md.beginn ? new Date(md.beginn).toISOString().slice(0, 10) : ''}"></label>
@@ -386,21 +684,33 @@ function formular(art, o, ref) {
       <label class="f"><span>Nebenkosten (€)</span><input name="nk" inputmode="decimal" value="${esc(md.nk ?? o.nk ?? '')}"></label>
       <label class="f"><span>Kaution (€)</span><input name="kaution" inputmode="decimal" value="${esc(md.kaution ?? o.kaution ?? '')}"></label>
       <label class="f wide"><span>Notiz (z. B. Staffelmiete, Haustiere, Besonderheiten)</span><textarea name="text" rows="3" maxlength="2000">${esc(md.text || '')}</textarea></label>
-      <label class="f wide"><span>Unterlagen (Selbstauskunft, Schufa, Einkommensnachweise, Ausweis – PDF oder Foto)</span><input name="files" type="file" accept="application/pdf,image/*" multiple></label>
-      ${md.dateien?.length ? `<p class="hint wide">Bereits übermittelt: ${md.dateien.map((f) => esc(f.n)).join(', ')} – bleiben erhalten.</p>` : ''}`],
+      <label class="f wide"><span>Weitere Unterlagen (Mietvertrag, Übergabeprotokoll … – PDF oder Foto)</span><input name="files" type="file" accept="application/pdf,image/*" multiple></label>
+      ${md.dateien?.length ? `<p class="hint wide">Bereits dabei: ${md.dateien.map((f) => esc(f.n)).join(', ')} – bleiben erhalten.</p>` : ''}`],
     anzeige: ['Anzeige-Link hinzufügen', `<label class="f wide"><span>Link zur Anzeige</span><input name="url" type="url" required placeholder="https://www.immobilienscout24.de/expose/…" maxlength="600"></label>
       <label class="f wide"><span>Bezeichnung (optional)</span><input name="text" maxlength="120" placeholder="z. B. ImmoScout24 – Premium bis 30.11."></label>`],
   }[art];
-  d.innerHTML = `<form class="panel form" id="vmForm"><div class="sh-h"><h2>${F[0]}</h2><button type="button" class="btn ghost sm" data-a="close">Abbrechen</button></div><div class="grid">${F[1]}</div>
-    <p class="lg-err hidden" id="vmErr" role="alert"></p><div class="acts sticky-save"><button class="btn fill">Speichern</button></div></form>`;
-  const ergS = d.querySelector('#ergSel'), grundF = d.querySelector('#grundF');
-  const zeigGrund = () => { if (grundF) grundF.hidden = ergS.value !== 'absage'; };
-  ergS?.addEventListener('change', zeigGrund); zeigGrund();
-  d.onclick = (e) => { if (e.target.closest('[data-a=close]')) d.close(); };
-  d.querySelector('#vmForm').onsubmit = async (e) => {
+  d.innerHTML = `<form class="panel form" id="vmForm" novalidate><div class="sh-h"><h2>${F[0]}</h2><button type="button" class="btn ghost sm" data-a="close">Abbrechen</button></div><div class="grid">${F[1]}</div>
+    <p class="lg-err hidden" id="vmErr" role="alert"></p><div class="acts sticky-save"><button class="btn fill">${art === 'unterlagen' ? 'Hochladen' : 'Speichern'}</button></div></form>`;
+  const form = d.querySelector('#vmForm');
+  // Absagegrund nur bei Absage zeigen
+  const zeig = (sel, feld, wert) => { const a = d.querySelector(sel), g = d.querySelector(feld); if (!a || !g) return; const f = () => { g.hidden = a.value !== wert; }; a.addEventListener('change', f); f(); };
+  zeig('#ergSel', '#grundF', 'absage'); zeig('#kStand', '#kGrundF', 'absage'); zeig('#uKid', '#uNeu', '');
+  // Mehr angehakte Interessenten als Anzahl → Anzahl mitziehen
+  form.querySelectorAll('[name=kids]').forEach((c) => c.addEventListener('change', () => { const n = form.querySelectorAll('[name=kids]:checked').length; if (form.anzahl && Number(form.anzahl.value) < n) form.anzahl.value = n; }));
+  // Vorschau: welche Datei als welche Unterlage abgelegt wird
+  const vor = d.querySelector('#vor');
+  const vorschau = () => { const l = [...(form.files?.files ?? [])]; vor.classList.toggle('hidden', !l.length); vor.innerHTML = l.map((f) => `<li><span>${esc(f.name)}</span><b>${esc(DOK_L[form.art.value === 'auto' ? dokArt(f.name) : form.art.value])}</b></li>`).join(''); };
+  if (vor) { form.files.addEventListener('change', vorschau); form.art.addEventListener('change', vorschau); }
+  d.onclick = async (e) => {
+    if (e.target.closest('[data-a=close]')) d.close();
+    if (e.target.closest('[data-a=kdel]') && k && await confirmBox({ title: `${k.name} entfernen?`, text: 'Der Interessent verschwindet aus der Liste. Im Chat-Verlauf bleibt vermerkt, dass er entfernt wurde.', ok: 'Entfernen', danger: true })) {
+      try { await send(o.id, { typ: 'kontakt_weg', ref: k.kid }); d.close(); toast('Interessent entfernt.'); aktualisieren(true); } catch (x) { toast(x.message, false); }
+    }
+  };
+  form.onsubmit = async (e) => {
     e.preventDefault();
-    const f = e.target, btn = f.querySelector('.sticky-save .btn'), err = f.querySelector('#vmErr');
-    const fehler = (t) => { err.textContent = t; err.classList.remove('hidden'); btn.disabled = false; btn.textContent = 'Speichern'; };
+    const f = e.target, btn = f.querySelector('.sticky-save .btn'), err = f.querySelector('#vmErr'), label = btn.textContent;
+    const fehler = (t) => { err.textContent = t; err.classList.remove('hidden'); btn.disabled = false; btn.textContent = label; };
     btn.disabled = true; btn.textContent = 'Wird gespeichert …'; err.classList.add('hidden');
     try {
       const text = f.text?.value.trim() || undefined;
@@ -408,23 +718,45 @@ function formular(art, o, ref) {
         const ergebnis = f.ergebnis.value, grund = ergebnis === 'absage' ? f.grund.value : '';
         if (ergebnis === 'absage' && !grund) return fehler('Bitte einen Absagegrund wählen.');
         if (art === 'besichtigung') {
-          const datum = new Date(f.datum.value).getTime();
+          const datum = new Date(f.datum.value).getTime(), kids = [...f.querySelectorAll('[name=kids]:checked')].map((x) => x.value);
           if (!Number.isFinite(datum)) return fehler('Bitte Datum und Uhrzeit angeben.');
-          await send(o.id, { typ: 'besichtigung', datum, anzahl: Number(f.anzahl.value) || 0, ergebnis, grund: grund || undefined, text });
-        } else await send(o.id, { typ: 'ergebnis', ref, ergebnis, grund: grund || undefined, text });
+          await send(o.id, { typ: 'besichtigung', datum, anzahl: Number(f.anzahl.value) || 0, ergebnis, grund: grund || undefined, text, kids: kids.length ? kids : undefined });
+          await kontakteNachziehen(o.id, kids, ergebnis, grund);
+        } else {
+          await send(o.id, { typ: 'ergebnis', ref, ergebnis, grund: grund || undefined, text });
+          await kontakteNachziehen(o.id, b?.kids, ergebnis, grund);
+        }
+      } else if (art === 'kontakt') {
+        const name = f.kname.value.trim(), mail = f.mail.value.trim(), st = f.stand.value, grund = st === 'absage' ? f.grund.value : '';
+        if (!name) return fehler('Bitte den Namen eingeben.');
+        if (mail && !mailOk(mail)) return fehler('Die E-Mail-Adresse sieht nicht vollständig aus.');
+        if (st === 'absage' && !grund) return fehler('Bitte einen Absagegrund wählen.');
+        const keep = k ? [...f.querySelectorAll('[name=keep]:checked')].map((x) => k.dateien[Number(x.value)]).filter(Boolean) : [], neu = [...f.files.files];
+        if (keep.length + neu.length > MAX_DOKS) return fehler(`Höchstens ${MAX_DOKS} Unterlagen pro Interessent.`);
+        const dateien = [...keep, ...(neu.length ? await upload(o.id, neu, f.art.value) : [])];
+        // Neue Unterlagen bei Anfrage/Besichtigung → „Unterlagen da“, sofern der Stand nicht bewusst geändert wurde
+        const stNeu = neu.length && st === (k?.stand ?? 'anfrage') && (st === 'anfrage' || st === 'besichtigung') ? 'unterlagen' : st;
+        await sendKontakt(o.id, k, { kid: k?.kid ?? neueId(), name, tel: f.tel.value.trim(), mail, personen: f.personen.value ? Number(f.personen.value) : '', einzug: f.einzug.value, quelle: f.quelle.value, stand: stNeu, grund, text: text ?? '', dateien, geprueft: pruefAnpassen(k, dateien) });
+      } else if (art === 'unterlagen') {
+        const neu = [...f.files.files];
+        if (!neu.length) return fehler('Bitte mindestens eine Datei auswählen.');
+        let kk = s.kontakte.find((x) => x.kid === f.kid.value);
+        if (!kk) { const name = f.neuname.value.trim(); if (!name) return fehler('Bitte den Namen des Interessenten eingeben.'); kk = { kid: neueId(), name, stand: 'anfrage' }; }
+        await dokHinzu(o.id, kk, neu, f.art.value);
       } else if (art === 'mietdaten') {
-        const w = {}; for (const k of ['kaltmiete', 'nk', 'kaution']) { w[k] = zahl(f[k].value); if (Number.isNaN(w[k])) return fehler('Bitte Beträge als Zahl eingeben, z. B. 650 oder 1.250,50.'); }
+        const w = {}; for (const key of ['kaltmiete', 'nk', 'kaution']) { w[key] = zahl(f[key].value); if (Number.isNaN(w[key])) return fehler('Bitte Beträge als Zahl eingeben, z. B. 650 oder 1.250,50.'); }
         const neu = [...f.files.files], dateien = [...(md.dateien ?? []), ...(neu.length ? await upload(o.id, neu) : [])];
-        await send(o.id, { typ: 'mietdaten', mieter: f.mieter.value.trim(), kontakt: f.kontakt.value.trim(), personen: f.personen.value ? Number(f.personen.value) : undefined, beginn: f.beginn.value ? Date.parse(f.beginn.value) : undefined, ...w, text, dateien: dateien.length ? dateien : undefined });
+        await send(o.id, { typ: 'mietdaten', mieter: f.mieter.value.trim(), kontakt: f.kontakt.value.trim(), personen: f.personen.value ? Number(f.personen.value) : undefined, beginn: f.beginn.value ? Date.parse(f.beginn.value) : undefined, ...w, text, dateien: dateien.length ? dateien : undefined, kid: md.kid || undefined });
+        if (mk && mk.stand !== 'zusage') await sendKontakt(o.id, mk, { stand: 'zusage' });
       } else if (art === 'anzeige') {
         const url = sicherUrl(f.url.value.trim()); if (!url) return fehler('Bitte einen gültigen Link mit https:// eingeben.');
         await send(o.id, { typ: 'anzeige', url, portal: portalOf(url), text });
       }
-      d.close(); toast('Gespeichert.'); aktualisieren(true);
+      d.close(); toast(art === 'unterlagen' ? 'Unterlagen hochgeladen.' : 'Gespeichert.'); aktualisieren(true);
     } catch (x) { fehler(x.message || String(x)); }
   };
   d.showModal();
-  d.querySelector('input:not([type=hidden]),select,textarea')?.focus();
+  d.querySelector('input:not([type=hidden]):not([type=checkbox]),select,textarea')?.focus();
 }
 
 /* ---------- Live: neue Einträge holen ---------- */

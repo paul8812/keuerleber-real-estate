@@ -72,7 +72,7 @@ function pObjekte() {
 function pTeam() {
   return `<section class="panel"><div class="ph"><h2>Zugänge</h2><button class="btn fill sm" data-a="madd">+ Zugang</button></div>
     <ul class="rows">${S.team.map((m) => `<li><div><b>${esc(m.name)}</b><small>${esc(m.rolle || 'ohne Rolle')}${m.id === ctx.sess.id ? ' · das sind Sie' : ''}</small></div>
-      <span class="acts"><button class="btn ghost sm" data-a="mlink" data-id="${esc(m.id)}">Zugang senden</button><button class="btn ghost sm" data-a="medit" data-id="${esc(m.id)}">Name &amp; Rolle</button><button class="btn ghost sm" data-a="mpw" data-id="${esc(m.id)}">Passwort ändern</button>${m.id === ctx.sess.id ? '' : `<button class="btn ghost sm" data-a="mdel" data-id="${esc(m.id)}">Entfernen</button>`}</span></li>`).join('')}</ul>
+      <span class="acts"><button class="btn ghost sm" data-a="mshow" data-id="${esc(m.id)}">Passwort zeigen</button><button class="btn ghost sm" data-a="mlink" data-id="${esc(m.id)}">Zugang senden</button><button class="btn ghost sm" data-a="medit" data-id="${esc(m.id)}">Name &amp; Rolle</button><button class="btn ghost sm" data-a="mpw" data-id="${esc(m.id)}">Passwort ändern</button>${m.id === ctx.sess.id ? '' : `<button class="btn ghost sm" data-a="mdel" data-id="${esc(m.id)}">Entfernen</button>`}</span></li>`).join('')}</ul>
     <p class="hint">Alle Zugänge haben die gleichen Rechte und sehen alle Objekte, Chats und Unterlagen. Die Rolle (z. B. Vermieter, Vermittler) steht im Chat bei jeder Nachricht.</p></section>`;
 }
 function pEinst() {
@@ -98,6 +98,20 @@ async function aktion(e) {
   if (a === 'madd') return editZugang(null);
   if (a === 'medit') return editZugang(id);
   if (a === 'mlink') { const m = S.team.find((x) => x.id === id), l = linkFor(m), t = `Hallo ${m.name}, hier ist dein Zugang zur Vermietungs-Plattform:\n${l}\n(Den Link nicht weitergeben – er enthält das Passwort.)`; try { await navigator.clipboard.writeText(t); toast('Zugangstext kopiert – jetzt z. B. per WhatsApp schicken.'); } catch { await askBox({ title: 'Zugang', label: 'Link (enthält das Passwort)', value: l, ok: 'Schließen' }); } return; }
+  if (a === 'mshow') {
+    const m = S.team.find((x) => x.id === id), neu = B?.team?.find((x) => x.id === id)?.code !== m.code, d = dlg('mini', 'mini');
+    d.innerHTML = `<div class="mini-b"><h3>Passwort von ${esc(m.name)}</h3>
+      <p class="vm-pw"><code id="pwT">${esc(m.code)}</code><button type="button" class="btn ghost sm" data-c="pw">Kopieren</button></p>
+      <p class="hint">${neu ? '<b>Noch nicht gültig:</b> Das Passwort wurde geändert oder neu angelegt und gilt erst nach dem Veröffentlichen.' : 'Anmelden auf keuerleber-immobilien.de/vermietung/ mit diesem Passwort – oder direkt mit dem Zugangslink, der das Passwort schon enthält.'}</p>
+      <div class="acts"><button type="button" class="btn ghost sm" data-c="link">Zugangslink kopieren</button><button type="button" class="btn fill sm" data-c="zu">Schließen</button></div></div>`;
+    d.onclick = async (x) => {
+      const c = x.target.closest('[data-c]')?.dataset.c; if (!c) return;
+      if (c === 'zu') return d.close();
+      try { await navigator.clipboard.writeText(c === 'pw' ? m.code : linkFor(m)); toast(c === 'pw' ? 'Passwort kopiert.' : 'Zugangslink kopiert.'); }
+      catch { const r = document.createRange(); r.selectNodeContents(d.querySelector('#pwT')); getSelection().removeAllRanges(); getSelection().addRange(r); toast('Kopieren nicht möglich – Passwort ist markiert.', false); }
+    };
+    return d.showModal();
+  }
   if (a === 'mpw') { const m = S.team.find((x) => x.id === id), n = await askBox({ title: `Neues Passwort für ${m.name}`, label: 'Passwort', ok: 'Ändern', hint: `Mindestens ${MIN_PW} Zeichen. Gilt nach dem Veröffentlichen.`, check: (v) => (v.length < MIN_PW ? `Mindestens ${MIN_PW} Zeichen.` : codeTaken(v, m.id) ? 'Dieses Passwort wird schon verwendet.' : '') }); if (n) { m.code = n; adminRender(); toast('Passwort geändert – bitte veröffentlichen.'); } return; }
   if (a === 'mdel') { const m = S.team.find((x) => x.id === id); if (await confirmBox({ title: 'Zugang entfernen?', text: `„${m.name}“ kann sich nach dem Veröffentlichen nicht mehr anmelden.`, ok: 'Entfernen', danger: true })) { S.team = S.team.filter((x) => x.id !== id); adminRender(); } return; }
   if (a === 'sql') { const d = dlg('sheet', 'sheet'); d.innerHTML = `<div class="panel form"><div class="sh-h"><h2>Einrichtungs-Skript</h2><button class="btn ghost sm" data-a="close">Schließen</button></div><p class="hint">In Supabase links „SQL Editor“ → „New query“ → einfügen → „Run“. Einmal genügt (auch für den Handwerkerbereich).</p><textarea readonly rows="16" class="code">${esc(SQL)}</textarea><div class="acts"><button class="btn fill sm" id="cp">Kopieren</button></div></div>`; d.onclick = (x) => { if (x.target.closest('[data-a=close]')) d.close(); }; d.querySelector('#cp').onclick = async () => { try { await navigator.clipboard.writeText(SQL); toast('Skript kopiert.'); } catch { d.querySelector('textarea').select(); } }; return d.showModal(); }
