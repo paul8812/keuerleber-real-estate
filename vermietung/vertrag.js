@@ -14,8 +14,8 @@ async function laden() {
     });
   }
   const hol = async (p) => { const r = await fetch(new URL(p, import.meta.url), { cache: 'force-cache' }); if (!r.ok) throw new Error(`Datei ${p} fehlt (${r.status}).`); return r.arrayBuffer(); };
-  const [reg, semi, logo] = await Promise.all([hol('./vendor/fonts/Inter-Regular.ttf'), hol('./vendor/fonts/Inter-SemiBold.ttf'), hol('./logo-weiss.png')]);
-  LIBS = { P, reg, semi, logo };
+  const [reg, semi, logo, logoD] = await Promise.all([hol('./vendor/fonts/Inter-Regular.ttf'), hol('./vendor/fonts/Inter-SemiBold.ttf'), hol('./logo-weiss.png'), hol('./logo-dunkel.png')]);
+  LIBS = { P, reg, semi, logo, logoD };
   return LIBS;
 }
 
@@ -48,13 +48,13 @@ async function zuschnitt(src, w, h) {
  * @returns Uint8Array (PDF)
  */
 export async function vertragPdf(d, x = {}) {
-  const { P, reg, semi, logo } = await laden();
+  const { P, reg, semi, logo, logoD } = await laden();
   const pdf = await P.PDFDocument.create();
   pdf.registerFontkit(self.fontkit);
   const R = await pdf.embedFont(reg, { subset: true }), B = await pdf.embedFont(semi, { subset: true });
-  const LOGO = await pdf.embedPng(logo);
+  const LOGO = await pdf.embedPng(logo), LOGOD = await pdf.embedPng(logoD);
   const C = { navy: hex(P, '#2c3e50'), gold: hex(P, '#c39a57'), goldHell: hex(P, '#e3cfa6'), karte: hex(P, '#f6f5f1'), goldKachel: hex(P, '#f4ead8'), linie: hex(P, '#e2ddd2'), ink: hex(P, '#1f2730'), grau: hex(P, '#6b7480'), weiss: P.rgb(1, 1, 1), gruen: hex(P, '#3f8f5c'), rot: hex(P, '#b5534a'), hellgrau: hex(P, '#c9ced4') };
-  const ML = 58, W = A4[0] - ML * 2, UNTEN = 64;
+  const ML = 62, W = A4[0] - ML * 2, UNTEN = 74;
   const objZeile = [d.adresse, d.geschoss].filter(Boolean).join(' · ');
   const mieterNamen = [d.vname, d.vname2].filter(Boolean);
   const seiten = [];
@@ -69,14 +69,13 @@ export async function vertragPdf(d, x = {}) {
   /* ---------- Fließtext mit Umbruch und Seitenwechsel ---------- */
   const S = { p: null, y: 0 };
   function kopfVertrag(p) {
-    p.drawRectangle({ x: 0, y: A4[1] - 54, width: A4[0], height: 54, color: C.navy });
-    p.drawRectangle({ x: 0, y: A4[1] - 56.5, width: A4[0], height: 2.5, color: C.gold });
-    const lh = 27, lw = lh * LOGO.width / LOGO.height; p.drawImage(LOGO, { x: ML, y: A4[1] - 41, width: lw, height: lh });
-    const z1 = 'MIETVERTRAG FÜR WOHNRAUM', z2 = kuerzen(objZeile, R, 9, 300);
-    t(p, z1, A4[0] - ML - breite(z1, B, 7.5), A4[1] - 25, { font: B, size: 7.5, color: C.goldHell });
-    t(p, z2, A4[0] - ML - breite(z2, R, 9), A4[1] - 38, { size: 9, color: C.weiss });
+    const lh = 24, lw = lh * LOGOD.width / LOGOD.height; p.drawImage(LOGOD, { x: ML, y: A4[1] - 50, width: lw, height: lh });
+    const z1 = 'Mietvertrag für Wohnraum', z2 = kuerzen(objZeile, R, 8, 300);
+    t(p, z1, A4[0] - ML - breite(z1, B, 8.5), A4[1] - 34, { font: B, size: 8.5, color: C.navy });
+    t(p, z2, A4[0] - ML - breite(z2, R, 8), A4[1] - 46, { size: 8, color: C.grau });
+    p.drawRectangle({ x: ML, y: A4[1] - 60, width: W, height: 1.2, color: C.gold });
   }
-  function neueSeite() { S.p = pdf.addPage(A4); seiten.push(S.p); kopfVertrag(S.p); S.y = A4[1] - 88; }
+  function neueSeite() { S.p = pdf.addPage(A4); seiten.push(S.p); kopfVertrag(S.p); S.y = A4[1] - 84; }
   const platz = (h) => { if (!S.p || S.y - h < UNTEN) neueSeite(); };
 
   function umbruch(runs, size, max) {
@@ -96,7 +95,7 @@ export async function vertragPdf(d, x = {}) {
     for (const k of tok) {
       if (k.br) { raus(); continue; }
       if (k.sp) { if (z.length) leer = true; continue; }
-      if (k.gap) { if (z.length) { z.push({ sp: true, w: k.w }); zw += k.w; } leer = false; continue; }
+      if (k.gap) { if (z.length) { z.push({ sp: true, w: k.w, fest: true }); zw += k.w; } leer = false; continue; }
       const extra = (leer ? spw : 0) + k.w;
       if (zw + extra > max && z.length) { raus(); }
       if (!k.box && k.w > max) { // sehr langes Wort (z. B. Link) zeichenweise trennen
@@ -109,10 +108,13 @@ export async function vertragPdf(d, x = {}) {
     if (z.length) zeilen.push(z);
     return zeilen;
   }
-  function zeichneZeile(p, z, xx, base, size, farbe) {
+  function zeichneZeile(p, z, xx, base, size, farbe, block = 0) {
+    // Blocksatz: Restbreite auf die Wortabstände verteilen (nicht bei letzter Zeile oder zu großen Lücken)
+    const luecken = z.filter((k) => k.sp).length, zw = z.reduce((a, k) => a + k.w, 0);
+    const extra = block && luecken ? (block - zw) / luecken : 0, nutzen = extra > 0 && extra < size * 0.9;
     let cx = xx;
     for (const k of z) {
-      if (k.sp) { cx += k.w; continue; }
+      if (k.sp) { cx += k.w + (nutzen && !k.fest ? extra : 0); continue; }
       if (k.box) {
         const b = size * 0.78; cx += 1.5; p.drawRectangle({ x: cx, y: base - 1, width: b, height: b, borderColor: C.ink, borderWidth: 0.7, color: k.on ? C.goldKachel : undefined });
         if (k.on) { p.drawLine({ start: { x: cx + 1.6, y: base + 0.6 }, end: { x: cx + b - 1.6, y: base - 1 + b - 1.6 }, thickness: 1, color: C.navy }); p.drawLine({ start: { x: cx + 1.6, y: base - 1 + b - 1.6 }, end: { x: cx + b - 1.6, y: base + 0.6 }, thickness: 1, color: C.navy }); }
@@ -122,19 +124,46 @@ export async function vertragPdf(d, x = {}) {
     }
   }
   function absatz(runs, o = {}) {
-    const size = o.size ?? 9.3, lh = size * (o.lh ?? 1.5), xx = ML + (o.einzug ?? 0), max = (o.breite ?? W) - (o.einzug ?? 0);
-    const zeilen = umbruch(runs, size, max);
-    if (o.zusammen) platz(zeilen.length * lh + 2);
-    for (const z of zeilen) { platz(lh); zeichneZeile(S.p, z, xx, S.y - size * 0.8, size, o.farbe ?? C.ink); S.y -= lh; }
-    S.y -= o.nach ?? 6.5;
+    const size = o.size ?? 9.6, lh = size * (o.lh ?? 1.45), xx = ML + (o.einzug ?? 0), max = (o.breite ?? W) - (o.einzug ?? 0);
+    const zeilen = umbruch(runs, size, max), block = o.block !== false && !runs.some((r) => r.box !== undefined || r.gap);
+    if (o.zusammen || zeilen.length <= 3) platz(zeilen.length * lh + 2);
+    else {
+      const passt = Math.floor((S.y - UNTEN) / lh);
+      if (passt < 2) neueSeite();
+      else if (zeilen.length - passt === 1) zeilen.splice(passt - 1, 0, null); // keine einzelne Zeile auf der neuen Seite
+    }
+    zeilen.forEach((z, i) => {
+      if (z === null) { neueSeite(); return; }
+      platz(lh);
+      const letzte = i === zeilen.length - 1 || zeilen[i + 1] === null;
+      zeichneZeile(S.p, z, xx, S.y - size * 0.8, size, o.farbe ?? C.ink, block && !letzte ? max : 0); S.y -= lh;
+    });
+    S.y -= o.nach ?? 6;
   }
   const A = (s) => absatz([{ t: s }]);
+  /** Zeile mit Beschriftung links (für Ankreuz-Angaben in § 1) */
+  function reihe(label, runs) {
+    platz(17); t(S.p, label, ML, S.y - 9.6 * 0.8, { size: 9.6, color: C.grau });
+    absatz(runs, { einzug: 118, block: false, nach: 5 });
+  }
+  /** Kleine Tabelle in heller Karte: [[Bezeichnung, Wert, fett?]] – Werte rechtsbündig */
+  function tabelle(zeilen, o = {}) {
+    const zh = 17, h = zeilen.length * zh + 12, w = o.breite ?? W * 0.62, x0 = ML + (o.einzug ?? 0);
+    platz(h + 8); S.y -= 2;
+    rund(S.p, x0, S.y - h, w, h, 5, { color: C.karte, borderColor: C.linie, borderWidth: 0.7 });
+    zeilen.forEach(([l, v, fett], i) => {
+      const y = S.y - 8 - (i + 1) * zh + 5;
+      if (fett) { S.p.drawLine({ start: { x: x0 + 10, y: y + zh - 3 }, end: { x: x0 + w - 10, y: y + zh - 3 }, thickness: 0.8, color: C.gold }); }
+      t(S.p, l, x0 + 12, y, { size: 9.3, font: fett ? B : R, color: fett ? C.navy : C.ink });
+      const vv = sauber(v); t(S.p, vv, x0 + w - 12 - breite(vv, fett ? B : B, fett ? 10 : 9.3), y, { size: fett ? 10 : 9.3, font: B, color: fett ? C.navy : C.ink });
+    });
+    S.y -= h + 10;
+  }
   function para(nr, titel) {
-    platz(70); S.y -= 9;
-    t(S.p, `§ ${nr}`, ML, S.y - 10, { font: B, size: 10.5, color: C.gold });
-    t(S.p, titel, ML + 36, S.y - 10, { font: B, size: 10.5, color: C.navy });
-    S.p.drawLine({ start: { x: ML, y: S.y - 16 }, end: { x: ML + W, y: S.y - 16 }, thickness: 0.5, color: C.linie });
-    S.y -= 26;
+    platz(78); S.y -= 12;
+    t(S.p, `§ ${nr}`, ML, S.y - 10, { font: B, size: 11, color: C.gold });
+    t(S.p, titel, ML + 38, S.y - 10, { font: B, size: 11, color: C.navy });
+    S.y -= 24;
   }
   /** Formularfeld: Wert über einer Linie, darunter klein die Beschriftung */
   function feld(p, xx, yy, w, wert, cap) {
@@ -143,16 +172,22 @@ export async function vertragPdf(d, x = {}) {
     p.drawLine({ start: { x: xx, y: yy - 4 }, end: { x: xx + w, y: yy - 4 }, thickness: 0.6, color: C.hellgrau });
     if (cap) t(p, cap, xx + 1, yy - 12.5, { size: 7, color: C.grau });
   }
-  function unterschriftZeile(links, rechts) {
-    platz(64); S.y -= 34;
-    const lw = 180, rx = ML + 220;
-    feld(S.p, ML, S.y, lw, links, 'Ort, Datum');
-    S.p.drawLine({ start: { x: rx, y: S.y - 4 }, end: { x: ML + W, y: S.y - 4 }, thickness: 0.6, color: C.hellgrau });
-    t(S.p, rechts, rx + 1, S.y - 12.5, { size: 7, color: C.grau });
-    S.y -= 22;
+  /** Unterschriftsblock: Ort/Datum und Unterschrift, mehrere Blöcke nebeneinander */
+  function unterschriften(liste, ort) {
+    const spalten = 2, bw = (W - 30) / 2, bh = 92;
+    for (let i = 0; i < liste.length; i += spalten) {
+      platz(bh + 10);
+      liste.slice(i, i + spalten).forEach((rolle, j) => {
+        const x0 = ML + j * (bw + 30);
+        feld(S.p, x0, S.y - 26, bw, ort, 'Ort, Datum');
+        S.p.drawLine({ start: { x: x0, y: S.y - 74 }, end: { x: x0 + bw, y: S.y - 74 }, thickness: 0.8, color: C.ink });
+        t(S.p, kuerzen(rolle, R, 7.5, bw), x0 + 1, S.y - 84, { size: 7.5, color: C.grau });
+      });
+      S.y -= bh + 8;
+    }
   }
   function zustimmung(text) {
-    platz(40); S.y -= 18;
+    platz(44); S.y -= 20;
     t(S.p, text, ML, S.y, { font: B, size: 9 });
     const xx = ML + breite(text, B, 9) + 14;
     t(S.p, 'X', xx, S.y, { font: B, size: 10, color: C.navy });
@@ -255,23 +290,29 @@ export async function vertragPdf(d, x = {}) {
 
   /* ===================== Mietvertrag ===================== */
   neueSeite();
-  t(S.p, 'Mietvertrag für Wohnraum', ML, S.y - 18, { font: B, size: 20, color: C.navy });
-  S.y -= 46;
+  t(S.p, 'Mietvertrag für Wohnraum', ML, S.y - 20, { font: B, size: 22, color: C.navy });
+  t(S.p, kuerzen([d.adresse, d.geschoss, d.seite ? d.seite[0].toUpperCase() + d.seite.slice(1) : ''].filter(Boolean).join(' · '), R, 10, W), ML, S.y - 38, { size: 10, color: C.grau });
+  S.y -= 64;
 
   // Vertragsparteien
-  const partei = (wort, name, cap, anschrift, tel, mail, rolle, name2) => {
-    platz(name2 ? 150 : 118);
-    const xx = ML + 52, w = W - 52;
-    t(S.p, wort, ML, S.y - 10, { size: 9.5, color: C.grau });
-    let yy = S.y - 10;
-    feld(S.p, xx, yy, w * 0.58, name, cap); t(S.p, rolle, xx + w * 0.58 + 14, yy, { size: 8, color: C.grau }); yy -= 30;
-    if (name2 !== undefined) { feld(S.p, xx, yy, w * 0.58, name2, '2. Mieter: Name, Vorname'); yy -= 30; }
+  const partei = (wort, kopf, name, anschrift, tel, mail, rolle, name2) => {
+    const reihen = name2 ? 4 : 3, h = 30 + reihen * 30;
+    platz(h + 30);
+    t(S.p, wort, ML, S.y - 10, { size: 9.6, color: C.grau }); S.y -= 20;
+    rund(S.p, ML, S.y - h, W, h, 6, { color: C.karte, borderColor: C.linie, borderWidth: 0.7 });
+    const xx = ML + 14, w = W - 28;
+    t(S.p, kopf, xx, S.y - 17, { font: B, size: 7.5, color: C.gold });
+    t(S.p, rolle, ML + W - 14 - breite(rolle, R, 7.5), S.y - 17, { size: 7.5, color: C.grau });
+    let yy = S.y - 40;
+    feld(S.p, xx, yy, w, name, 'Name, Vorname'); yy -= 30;
+    if (name2) { feld(S.p, xx, yy, w, name2, '2. Mieter: Name, Vorname'); yy -= 30; }
     feld(S.p, xx, yy, w, anschrift, 'Anschrift'); yy -= 30;
-    feld(S.p, xx, yy, w * 0.46, tel, 'Telefon'); feld(S.p, xx + w * 0.52, yy, w * 0.48, mail, 'E-Mail'); yy -= 34;
-    S.y = yy;
+    feld(S.p, xx, yy, w * 0.42, tel, 'Telefon'); feld(S.p, xx + w * 0.47, yy, w * 0.53, mail, 'E-Mail');
+    S.y -= h + 8;
   };
-  partei('zwischen', d.mvName, 'Name, Vorname', d.mvAnschrift, d.mvTel, d.mvMail, '– nachfolgend Vermieter genannt –');
-  partei('und', d.vname, 'Name, Vorname', d.anschrift, d.tel, d.mail, mieterNamen.length > 1 ? '– nachfolgend Mieter genannt –' : '– nachfolgend Mieter genannt –', d.vname2 ? d.vname2 : undefined);
+  partei('zwischen', 'VERMIETER', d.mvName, d.mvAnschrift, d.mvTel, d.mvMail, '– nachfolgend Vermieter genannt –');
+  partei('und', d.vname2 ? 'MIETER' : 'MIETER', d.vname, d.anschrift, d.tel, d.mail, '– nachfolgend Mieter genannt –', d.vname2 || '');
+  S.y -= 4;
   A('wird folgender Mietvertrag für Wohnraum geschlossen:');
 
   // § 1
@@ -279,19 +320,21 @@ export async function vertragPdf(d, x = {}) {
   A('Vermietet werden die Mieträume im Haus:');
   platz(34); S.y -= 12; feld(S.p, ML, S.y, W, d.adresse, 'Straße, Postleitzahl, Ort'); S.y -= 26;
   const seite = String(d.seite || '').toLowerCase();
-  absatz([{ t: 'im Geschoss: ' }, { t: oder(d.geschoss, '________'), b: true }, { gap: 26 }, { t: 'Links ' }, { box: seite === 'links' }, { gap: 16 }, { t: 'Rechts ' }, { box: seite === 'rechts' }, { gap: 16 }, { t: 'Mitte ' }, { box: seite === 'mitte' }]);
+  reihe('im Geschoss:', [{ t: oder(d.geschoss, '________'), b: true }, { gap: 22 }, { t: 'Links ' }, { box: seite === 'links' }, { gap: 16 }, { t: 'Rechts ' }, { box: seite === 'rechts' }, { gap: 16 }, { t: 'Mitte ' }, { box: seite === 'mitte' }]);
   const zi = Number(d.zimmer);
-  if (Number.isInteger(zi) && zi >= 1 && zi <= 5) absatz([{ t: 'Anzahl der Zimmer:  ' }, ...[1, 2, 3, 4, 5].flatMap((n) => [{ gap: 12 }, { t: `${n} ` }, { box: zi === n }])]);
-  else absatz([{ t: 'Anzahl der Zimmer: ' }, { t: d.zimmer ? String(d.zimmer).replace('.', ',') : '____', b: true }]);
-  absatz([{ t: 'mit ' }, ...AUSST.flatMap(([k, l], i) => [...(i ? [{ gap: 13 }] : []), { t: `${l} ` }, { box: !!d.ausst?.[k] }])]);
-  absatz([{ t: 'Stellplatz ' }, { box: d.stp === 'Stellplatz' }, { gap: 16 }, { t: 'Garage ' }, { box: d.stp === 'Garage' }, { gap: 16 }, { t: 'Carport ' }, { box: d.stp === 'Carport' }, { gap: 26 }, { t: 'Nummer: ' }, { t: oder(d.stpNr, '______'), b: true }], { nach: 9 });
+  if (Number.isInteger(zi) && zi >= 1 && zi <= 5) reihe('Anzahl der Zimmer:', [1, 2, 3, 4, 5].flatMap((n, i) => [...(i ? [{ gap: 16 }] : []), { t: `${n} ` }, { box: zi === n }]));
+  else reihe('Anzahl der Zimmer:', [{ t: d.zimmer ? String(d.zimmer).replace('.', ',') : '____', b: true }]);
+  reihe('mit:', AUSST.slice(0, 4).flatMap(([k, l], i) => [...(i ? [{ gap: 16 }] : []), { t: `${l} ` }, { box: !!d.ausst?.[k] }]));
+  reihe('', AUSST.slice(4).flatMap(([k, l], i) => [...(i ? [{ gap: 16 }] : []), { t: `${l} ` }, { box: !!d.ausst?.[k] }]));
+  reihe('Fahrzeug:', [{ t: 'Stellplatz ' }, { box: d.stp === 'Stellplatz' }, { gap: 16 }, { t: 'Garage ' }, { box: d.stp === 'Garage' }, { gap: 16 }, { t: 'Carport ' }, { box: d.stp === 'Carport' }, { gap: 22 }, { t: 'Nummer: ' }, { t: oder(d.stpNr, '______'), b: true }]);
+  S.y -= 4;
   absatz([{ t: 'Die Wohnfläche beträgt ca. ' }, { t: d.flaeche ? qm(d.flaeche) : '______', b: true }, { t: ' Quadratmeter.' }], { nach: 2 });
   absatz([{ t: 'Die Nutzfläche beträgt ca. ' }, { t: d.nutzflaeche ? qm(d.nutzflaeche) : '______', b: true }, { t: ' Quadratmeter.' }], { nach: 9 });
   A('Die Vermietung erfolgt ausschließlich zu Wohnzwecken.');
-  A('Dem Mieter werden vom Vermieter folgende Schlüssel ausgehändigt:');
   {
     const sl = schluesselListe(d.schluessel); while (sl.length < 4) sl.push({ n: '', art: '' });
-    const reihen = Math.ceil(sl.length / 2); platz(reihen * 28 + 6);
+    const reihen = Math.ceil(sl.length / 2); platz(reihen * 30 + 30);
+    A('Dem Mieter werden vom Vermieter folgende Schlüssel ausgehändigt:');
     for (let r = 0; r < reihen; r++) {
       S.y -= 14;
       for (let c = 0; c < 2; c++) { const s = sl[r * 2 + c]; if (!s) continue; const xx = ML + c * (W / 2 + 6); feld(S.p, xx, S.y, 46, s.n ? `${s.n}` : '', 'Anzahl'); feld(S.p, xx + 56, S.y, W / 2 - 74, s.art, 'Art des Schlüssels'); }
@@ -311,12 +354,12 @@ export async function vertragPdf(d, x = {}) {
   A('Über die Betriebskosten und die Vorauszahlungen wird einmal im Jahr durch den Vermieter abgerechnet. Kommt es zu einem Mieterwechsel, so muss durch den Vermieter keine Zwischenabrechnung erstellt werden. Bei einer Erhöhung der Betriebskosten kann der Vermieter diese innerhalb des gesetzlichen Rahmens auf den Mieter umlegen und die monatlichen Vorauszahlungen anpassen.');
   absatz([{ t: 'Die monatlich mit der Miete zu entrichtende Betriebskostenvorauszahlung beträgt ' }, { t: oder(eur(d.nk), '__________ €'), b: true }, { t: '.' }]);
   absatz([{ t: 'Die insgesamt inklusive der Betriebskostenvorauszahlung zu entrichtende Miete beträgt ' }, { t: d.kalt !== '' && d.nk !== '' ? eur(gesamt(d)) : '__________ €', b: true }, { t: '.' }]);
+  tabelle([['Kaltmiete', oder(eur(d.kalt), '________ €')], ['Garage / Stellplatz / Carport', d.stpKosten ? eur(d.stpKosten) : '–'], ['Küche und Mobiliar', d.kuecheKosten ? eur(d.kuecheKosten) : '–'], ['Betriebskostenvorauszahlung', oder(eur(d.nk), '________ €')], ['Monatlich gesamt', d.kalt !== '' && d.nk !== '' ? eur(gesamt(d)) : '________ €', true]]);
 
   // § 3
   para(3, 'Zahlung des Mietzinses und Nebenkosten');
   A('Die Zahlung des Mietzinses und der Nebenkosten hat ab Beginn der Mietzeit monatlich im Voraus zu erfolgen. Die Zahlung muss bis spätestens zum dritten Werktag des Monats auf dem im Folgenden genannten Konto des Vermieters eingehen:');
-  for (const [l, v] of [['Bank:', d.bank], ['IBAN:', d.iban ? ibanSchoen(d.iban) : ''], ['BIC:', d.bic]]) absatz([{ t: l + ' ' }, { t: oder(v), b: true }], { einzug: 24, nach: 1.5 });
-  S.y -= 6;
+  tabelle([['Bank', oder(d.bank)], ['IBAN', d.iban ? ibanSchoen(d.iban) : LEER], ['BIC', oder(d.bic, '__________')]], { breite: W * 0.78 });
   A('Ausschlaggebend ist der Zeitpunkt, an dem die Wertstellung auf dem Konto des Vermieters zu verzeichnen ist.');
   A('Auf Verlangen des Vermieters ist die gesamte Miete durch Teilnahme am SEPA-Lastschriftverfahren während der gesamten Laufzeit des Vertrages zu zahlen. Der Mieter hat deshalb für eine ausreichende Deckung in Höhe der zu leistenden Zahlungen auf dem Konto zu sorgen. Bei nicht eingelösten Lastschriften und dadurch entstandenen Kosten werden diese dem Mieter auferlegt. Der Vermieter ist berechtigt bei verspäteter Zahlung Mahnkosten und Verzugszinsen zu erheben.');
 
@@ -428,24 +471,27 @@ export async function vertragPdf(d, x = {}) {
   A('Sollten Klauseln aus diesem Vertrag nebst Anlagen unwirksam sein oder werden, so sind sich die Parteien darüber einig, dass die übrigen Klauseln aus dem Vertrag ihre Gültigkeit behalten sollen. Die unwirksame Klausel wird dann durch eine solche ersetzt, die dem wirtschaftlich gewollten Inhalt in rechtlich zulässiger Weise entspricht.');
 
   // § 20
-  platz(String(d.vereinbarungen || '').trim() ? 110 : 190);
+  // § 20 und Unterschriften gehören auf dieselbe Seite
+  const unterschriftH = Math.ceil((1 + Math.max(1, mieterNamen.length)) / 2) * 100 + 20;
+  platz((String(d.vereinbarungen || '').trim() ? 40 + umbruch([{ t: String(d.vereinbarungen) }], 9.6, W).length * 14 : 4 * 22 + 10) + 50 + unterschriftH);
   para(20, 'Individuelle Vereinbarungen');
   if (String(d.vereinbarungen || '').trim()) absatz([{ t: String(d.vereinbarungen).trim(), b: false }], { nach: 10 });
-  else { platz(5 * 22); for (let i = 0; i < 5; i++) { S.y -= 20; S.p.drawLine({ start: { x: ML, y: S.y }, end: { x: ML + W, y: S.y }, thickness: 0.6, color: C.hellgrau }); } S.y -= 10; }
+  else { platz(4 * 22); for (let i = 0; i < 4; i++) { S.y -= 20; S.p.drawLine({ start: { x: ML, y: S.y }, end: { x: ML + W, y: S.y }, thickness: 0.6, color: C.hellgrau }); } S.y -= 10; }
 
   // Unterschriften
-  const ortDatum = d.ort ? `${d.ort}, ` : '';
-  platz(170);
-  unterschriftZeile(ortDatum, `Vermieter${d.mvName ? ': ' + d.mvName : ''}`);
-  for (const n of mieterNamen.length ? mieterNamen : ['']) unterschriftZeile(ortDatum, `Mieter/in${n ? ': ' + n : ''}`);
+  S.y -= 10;
+  unterschriften([`Vermieter${d.mvName ? ' – ' + d.mvName : ''}`, ...(mieterNamen.length ? mieterNamen : ['']).map((n) => `Mieter/in${n ? ' – ' + n : ''}`)], d.ort ? `${d.ort}, ` : '');
 
-  /* ---------- Fußzeilen ---------- */
+  /* ---------- Fußzeilen (auf Vertragsseiten mit Paraphen) ---------- */
   const n = seiten.length;
   seiten.forEach((p, i) => {
-    p.drawLine({ start: { x: 36, y: 40 }, end: { x: A4[0] - 36, y: 40 }, thickness: 0.6, color: C.linie });
-    const links = i === 0 && d.deckblatt ? 'Norderfranken Haus und Grund GmbH · Am Gewerbegebiet 5 · 95185 Gattendorf' : kuerzen(`Mietvertrag für Wohnraum · ${objZeile}${mieterNamen.length ? ' · ' + mieterNamen.join(' und ') : ''}`, R, 7, 420);
-    t(p, links, 36, 27, { size: 7, color: C.grau, font: i === 0 && d.deckblatt ? B : R });
-    const s = `Seite ${i + 1} / ${n}`; t(p, s, A4[0] - 36 - breite(s, B, 7), 27, { size: 7, font: B, color: C.grau });
+    const deck = i === 0 && d.deckblatt, m = deck ? 36 : ML;
+    p.drawLine({ start: { x: m, y: 44 }, end: { x: A4[0] - m, y: 44 }, thickness: 0.6, color: C.linie });
+    const s2 = `Seite ${i + 1} von ${n}`; t(p, s2, A4[0] - m - breite(s2, B, 7.5), 30, { size: 7.5, font: B, color: C.grau });
+    if (deck) { t(p, 'Norderfranken Haus und Grund GmbH · Am Gewerbegebiet 5 · 95185 Gattendorf', m, 30, { size: 7, color: C.grau, font: B }); return; }
+    t(p, kuerzen(`Mietvertrag · ${objZeile}`, R, 7, 210), m, 30, { size: 7, color: C.grau });
+    const px = m + 228; t(p, 'Paraphe Vermieter', px, 30, { size: 6.5, color: C.grau }); p.drawLine({ start: { x: px + 58, y: 29 }, end: { x: px + 98, y: 29 }, thickness: 0.6, color: C.hellgrau });
+    t(p, 'Mieter', px + 106, 30, { size: 6.5, color: C.grau }); p.drawLine({ start: { x: px + 128, y: 29 }, end: { x: px + 168, y: 29 }, thickness: 0.6, color: C.hellgrau });
   });
 
   pdf.setTitle(`Mietvertrag ${objZeile}${mieterNamen.length ? ' – ' + mieterNamen.join(' und ') : ''}`);
