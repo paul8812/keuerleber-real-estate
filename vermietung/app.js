@@ -327,24 +327,48 @@ function checkliste(k) {
       <div class="vm-cl-t"><b>${esc(l)}</b><small>${txt}</small>${fs.length ? `<div class="vm-files">${fs.map(fileBtn).join('')}</div>` : ''}</div>
       <span class="vm-cl-a">${up(key)}${fs.length ? `<button class="btn sm${pr ? ' ghost' : ' vm-pr'}" data-kpr="${esc(k.kid)}" data-art="${key}" aria-pressed="${!!pr}">${pr ? 'Zurücknehmen' : '✓ Geprüft'}</button>` : ''}</span></li>`;
   };
-  return `<details class="vm-cl-d" data-det="cl-${esc(k.kid)}"${auf('cl-' + k.kid, k.stand !== 'absage')}><summary><span>Unterlagen-Checkliste</span><b class="${z === CHECK.length ? 'ok-t' : ''}">${z}/${CHECK.length} da</b>${gz ? `<b class="ok-t">${gz}/${CHECK.length} geprüft</b>` : ''}</summary>
+  return `<div class="vm-cl-d"><div class="vm-cl-h"><span>Unterlagen-Checkliste</span><b class="${z === CHECK.length ? 'ok-t' : ''}">${z}/${CHECK.length} da</b>${gz ? `<b class="ok-t">${gz}/${CHECK.length} geprüft</b>` : ''}</div>
     <ul class="vm-cl">${CHECK.map(zeile).join('')}
       <li class="vm-cl-x"><span class="vm-cl-i" aria-hidden="true">+</span><div class="vm-cl-t"><b>Weitere Unterlagen</b><small>${weitere.length ? `${weitere.length} Datei${weitere.length > 1 ? 'en' : ''}` : 'optional (z. B. Arbeitsvertrag, Bürgschaft)'}</small>${weitere.length ? `<div class="vm-files">${weitere.map(fileBtn).join('')}</div>` : ''}</div><span class="vm-cl-a">${up('sonstiges')}</span></li>
-    </ul></details>`;
+    </ul></div>`;
 }
 
-function kontaktHtml(k) {
+/** Detailansicht eines Interessenten (eigenes Fenster): Kontakt, Checkliste, seine Besichtigungen, Aktionen */
+function kontaktHtml(k, s) {
   const ks = KSTAND[k.stand] ?? KSTAND.anfrage, tel = telHref(k.tel);
   const meta = [tel ? `<a href="${esc(tel)}">${esc(k.tel)}</a>` : esc(k.tel || ''), mailOk(k.mail) ? `<a href="mailto:${esc(k.mail)}">${esc(k.mail)}</a>` : esc(k.mail || ''),
     k.personen ? `${num(k.personen)} ${Number(k.personen) === 1 ? 'Person' : 'Personen'}` : '', k.einzug ? `Einzug ab ${dt(Date.parse(k.einzug))}` : '', k.quelle ? `über ${esc(k.quelle)}` : ''].filter(Boolean);
-  return `<li class="vm-k${k.stand === 'absage' ? ' weg' : ''}" style="--c:${ks.c}">
-    <div class="vm-k-h"><b>${esc(k.name)}</b><span class="vm-erg" style="--c:${ks.c}">${esc(ks.l)}</span><small>seit ${dt(k.erstellt)}</small></div>
+  const bs = s.bes.filter((b) => b.kids.includes(k.kid)).reverse();
+  return `<div class="vm-k vm-kd" style="--c:${ks.c}">
+    <div class="sh-h vm-kd-h"><div><span class="eyebrow">Interessent · seit ${dt(k.erstellt)}</span><h2>${esc(k.name)} <span class="vm-erg" style="--c:${ks.c}">${esc(ks.l)}</span></h2></div><button type="button" class="btn ghost sm" data-a="kzu">Schließen</button></div>
     ${meta.length ? `<p class="vm-k-m">${meta.map((x) => `<span>${x}</span>`).join('')}</p>` : ''}
     ${k.stand === 'absage' ? `<p class="vm-grund">Absagegrund: <b>${esc(k.grund || 'ohne Angabe')}</b></p>` : ''}
     ${k.text ? `<p class="vm-k-t">${esc(k.text)}</p>` : ''}
+    <div class="vm-k-a">${k.stand === 'zusage' || k.stand === 'favorit' ? `<button class="btn fill sm" data-kmiet="${esc(k.kid)}">Als Mieter übernehmen</button>` : ''}${k.stand !== 'absage' ? `<button class="btn ghost sm" data-kbes="${esc(k.kid)}">+ Besichtigung</button>` : ''}<button class="btn ghost sm" data-k="${esc(k.kid)}">Bearbeiten</button></div>
     ${checkliste(k)}
-    <div class="vm-k-a">${k.dateien?.length ? `<button class="btn sm" data-kzip="${esc(k.kid)}">Alle Unterlagen laden (ZIP)</button>` : ''}<button class="btn ghost sm" data-kup="${esc(k.kid)}">Mehrere hochladen</button>${k.stand !== 'absage' ? `<button class="btn ghost sm" data-kbes="${esc(k.kid)}">Besichtigung</button>` : ''}${k.stand === 'zusage' || k.stand === 'favorit' ? `<button class="btn sm" data-kmiet="${esc(k.kid)}">Als Mieter übernehmen</button>` : ''}<button class="btn ghost sm" data-k="${esc(k.kid)}">Bearbeiten</button></div>
-  </li>`;
+    <div class="vm-k-a">${k.dateien?.length ? `<button class="btn sm" data-kzip="${esc(k.kid)}">Alle Unterlagen laden (ZIP)</button>` : ''}<button class="btn ghost sm" data-kup="${esc(k.kid)}">Mehrere Dateien auf einmal hochladen</button></div>
+    ${bs.length ? `<div class="vm-kd-b"><h3 class="sub-h">Besichtigungen</h3><ul>${bs.map((b) => `<li><b>${tag(b.datum)}, ${uhr(b.datum)} Uhr</b><span class="vm-erg" style="--c:${ERG[b.ergebnis]?.c}">${esc(ERG[b.ergebnis]?.l ?? b.ergebnis)}</span>${b.ergebnis === 'absage' ? `<em class="vm-bg">${esc(b.grund || '')}</em>` : ''}${b.fb ? `<small>${esc(b.fb)}</small>` : ''}</li>`).join('')}</ul></div>` : ''}
+  </div>`;
+}
+
+function kZeile(k, s) {
+  const ks = KSTAND[k.stand] ?? KSTAND.anfrage, z = dokZahl(k), gz = geprueftZahl(k), lb = s.bes.filter((b) => b.kids.includes(k.kid)).at(-1);
+  return `<tr class="vm-klick${k.stand === 'absage' ? ' weg' : ''}" data-kopen="${esc(k.kid)}" tabindex="0" role="button" aria-label="${esc(k.name)} öffnen">
+    <td class="n"><b>${esc(k.name)}</b>${k.tel || k.mail ? `<small>${esc(k.tel || k.mail)}</small>` : ''}</td>
+    <td class="e"><span class="vm-erg" style="--c:${ks.c}">${esc(ks.l)}</span>${k.stand === 'absage' && k.grund ? `<small class="vm-bg">${esc(k.grund)}</small>` : ''}</td>
+    <td class="u"><span class="vm-prog${z === CHECK.length ? ' voll' : ''}"><i style="width:${Math.round((z / CHECK.length) * 100)}%"></i></span><small>${z}/${CHECK.length} da${gz ? ` · <b class="ok-t">${gz} geprüft</b>` : ''}</small></td>
+    <td class="b">${lb ? `<b>${tag(lb.datum)}</b><small style="color:${ERG[lb.ergebnis]?.c}">${esc(ERG[lb.ergebnis]?.l ?? '')}</small>` : '<span class="vm-mut">–</span>'}</td>
+    <td class="a"><span class="vm-tp" aria-hidden="true">›</span></td></tr>`;
+}
+
+function kontaktOeffnen(kid) {
+  const o = objOf(ctx.oid), s = stand(o.id), k = s.kontakte.find((x) => x.kid === kid), d = dlg('kdet', 'sheet');
+  if (!k) { if (d.open) d.close(); return; }
+  d.dataset.kid = kid; d.innerHTML = `<div class="panel form">${kontaktHtml(k, s)}</div>`;
+  d.onclick = (e) => { if (e.target.closest('[data-a=kzu]') || e.target === d) return d.close(); klick(e); };
+  d.onchange = dateiGewaehlt;
+  if (!d.open) d.showModal();
+  hydrate();
 }
 
 function infoHtml(o, s) {
@@ -376,8 +400,9 @@ function infoHtml(o, s) {
   </section>`;
 
   const kontakte = `<section class="panel vm-sec"><div class="ph"><h2>Interessenten${s.aktiv.length ? ` <small class="vm-anz">${s.aktiv.length}</small>` : ''}</h2><button class="btn fill sm" data-act="kontakt">+ Interessent</button></div>
-    ${s.aktiv.length ? `<ul class="vm-ks">${s.aktiv.map(kontaktHtml).join('')}</ul>` : '<p class="hint">Noch keine Interessenten. Kontakt anlegen – danach je Interessent die Checkliste füllen: Selbstauskunft, 3 Gehaltsnachweise, Mietschuldenfreiheit, Ausweis, Haftpflicht, Schufa.</p>'}
-    ${abgesagt.length ? `<details class="vm-det2" data-det="abgesagt"${auf('abgesagt')}><summary>Abgesagt (${abgesagt.length})</summary><ul class="vm-ks">${abgesagt.map(kontaktHtml).join('')}</ul></details>` : ''}</section>`;
+    ${s.kontakte.length ? `<table class="vm-btab vm-ktab"><thead><tr><th>Name</th><th>Stand</th><th>Unterlagen</th><th>Letzte Besichtigung</th><th><span class="sr">Öffnen</span></th></tr></thead>
+      <tbody>${[...s.aktiv, ...abgesagt].map((k) => kZeile(k, s)).join('')}</tbody></table><p class="hint vm-tipp">Zeile antippen: Kontakt, Unterlagen-Checkliste und Besichtigungen der Person.</p>`
+      : '<p class="hint">Noch keine Interessenten. Mit „+ Interessent“ anlegen – oder einfach eine Besichtigung mit Namen eintragen, dann wird der Interessent automatisch angelegt.</p>'}</section>`;
 
   const besichtigungen = `<section class="panel vm-sec"><div class="ph"><h2>Besichtigungen${s.bes.length ? ` <small class="vm-anz">${s.bes.length}</small>` : ''}</h2><button class="btn fill sm" data-act="besichtigung">+ Besichtigung</button></div>
     ${s.bes.length ? `<table class="vm-btab"><thead><tr><th>Datum</th><th>Name</th><th>Ergebnis</th><th>Absagegrund / Feedback</th><th><span class="sr">Aktion</span></th></tr></thead>
@@ -474,6 +499,7 @@ function renderObjekt() {
   });
   app.querySelector('.vm-obj').addEventListener('click', klick);
   app.querySelector('.vm-obj').addEventListener('change', dateiGewaehlt);
+  app.querySelector('.vm-obj').addEventListener('keydown', (e) => { const r = e.target.closest?.('[data-kopen]'); if (r && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); kontaktOeffnen(r.dataset.kopen); } });
   // Auf-/Zuklappen merken, damit es bei neuen Einträgen nicht zurückspringt
   document.getElementById('info').addEventListener('toggle', (e) => { const k = e.target.dataset?.det; if (k) (ctx.auf ??= {})[k] = e.target.open; }, true);
   const files = document.getElementById('chatFiles');
@@ -505,6 +531,7 @@ function aktualisieren(eigene = false) {
   const feed = document.getElementById('feed'); if (!feed) return renderObjekt();
   feed.innerHTML = feedHtml(s);
   if (!document.getElementById('sheet')?.open) { const info = document.getElementById('info'); if (info) info.innerHTML = infoHtml(o, s); }
+  const kd = document.getElementById('kdet'); if (kd?.open && !document.getElementById('sheet')?.open) kontaktOeffnen(kd.dataset.kid);
   const sel = document.getElementById('stSel'); if (sel) { sel.value = s.st; sel.disabled = false; }
   hydrate();
   if (unten || eigene) zumEnde(true); else document.getElementById('neuNach')?.classList.remove('hidden');
@@ -515,7 +542,8 @@ function aktualisieren(eigene = false) {
 async function klick(e) {
   const m = e.target.closest('[data-menu]');
   if (m) { const dd = m.closest('.dropdown'), zu = dd.classList.contains('offen'); menuZu(); if (!zu) { dd.classList.add('offen'); m.setAttribute('aria-expanded', 'true'); dd.querySelector('[role=menuitem]')?.focus(); } return; }
-  const b = e.target.closest('[data-act],[data-erg],[data-weg],[data-file],[data-k],[data-kup],[data-kbes],[data-kmiet],[data-kpr],[data-kzip]'); if (!b || b.closest('.vm-seg')) return;
+  const b = e.target.closest('[data-act],[data-erg],[data-weg],[data-file],[data-k],[data-kup],[data-kbes],[data-kmiet],[data-kpr],[data-kzip],[data-kopen]'); if (!b || b.closest('.vm-seg')) return;
+  if (b.dataset.kopen) return kontaktOeffnen(b.dataset.kopen);
   menuZu();
   const o = objOf(ctx.oid), d = b.dataset;
   if (d.kpr) {
