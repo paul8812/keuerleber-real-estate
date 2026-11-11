@@ -2,6 +2,7 @@
 // dazu Besichtigungen (mit Absagegründen), Anzeigen-Links, Mietdaten mit Unterlagen und der Vermietungsstand.
 // Alles Inhaltliche ist Ende-zu-Ende verschlüsselt; der Speicherdienst sieht nur Zufallskennungen und Chiffretext.
 import { openObjekte, openSlot } from './pkg.js';
+import { AUSST, SEITEN, STP, fehlt as vFehlt, gesamt as vGesamt, ibanOk, ibanSchoen, vertragsdaten, vertragsname } from './mvfelder.js';
 import { neuester, verOf } from './quelle.js';
 import { fetchEvents, getFile, postEvent, putFile } from '../handwerker/store.js';
 import { ago, confirmBox, dlg, dt, dtm, esc, logo, lsGet, lsSet, shrinkImage, themaWechseln, toast } from '../handwerker/ui.js';
@@ -46,6 +47,7 @@ export const DOKS = [
   ['haftpflicht', 'Nachweis Privathaftpflicht', 'Haftpflicht', 1],
   ['schufa', 'Schufa-Auskunft', 'Schufa', 1],
   ['sonstiges', 'Weitere Unterlagen', 'Sonstiges', 0],
+  ['mietvertrag', 'Mietvertrag', 'Mietvertrag', 0],
 ];
 const DOK_L = Object.fromEntries(DOKS.map(([k, , kurz]) => [k, kurz]));
 const CHECK = DOKS.filter((x) => x[3]);
@@ -347,6 +349,8 @@ function kontaktHtml(k, s) {
     ${k.text ? `<p class="vm-k-t">${esc(k.text)}</p>` : ''}
     <div class="vm-k-a">${k.stand === 'zusage' || k.stand === 'favorit' ? `<button class="btn fill sm" data-kmiet="${esc(k.kid)}">Als Mieter übernehmen</button>` : ''}${k.stand !== 'absage' ? `<button class="btn ghost sm" data-kbes="${esc(k.kid)}">+ Besichtigung</button>` : ''}<button class="btn ghost sm" data-k="${esc(k.kid)}">Bearbeiten</button></div>
     ${checkliste(k)}
+    <div class="vm-mv"><div><h3 class="sub-h">Mietvertrag</h3><p class="hint">${(() => { const f = vFehlt(vertragsdaten(objOf(ctx.oid), k, ctx.obj)); return f.length ? `Für einen vollständigen Vertrag fehlen noch ${f.length} Angabe${f.length > 1 ? 'n' : ''}.` : 'Alle Angaben für den Vertrag sind da.'; })()}</p>
+      ${dokListe(k, 'mietvertrag').length ? `<div class="vm-files">${dokListe(k, 'mietvertrag').slice(-3).reverse().map(fileBtn).join('')}</div>` : ''}</div><button class="btn fill sm" data-kvertrag="${esc(k.kid)}">Mietvertrag erstellen</button></div>
     <div class="vm-k-a">${k.dateien?.length ? `<button class="btn sm" data-kzip="${esc(k.kid)}">Alle Unterlagen laden (ZIP)</button>` : ''}<button class="btn ghost sm" data-kup="${esc(k.kid)}">Mehrere Dateien auf einmal hochladen</button></div>
     ${bs.length ? `<div class="vm-kd-b"><h3 class="sub-h">Besichtigungen</h3><ul>${bs.map((b) => `<li><b>${tag(b.datum)}, ${uhr(b.datum)} Uhr</b><span class="vm-erg" style="--c:${ERG[b.ergebnis]?.c}">${esc(ERG[b.ergebnis]?.l ?? b.ergebnis)}</span>${b.ergebnis === 'absage' ? `<em class="vm-bg">${esc(b.grund || '')}</em>` : ''}${b.fb ? `<small>${esc(b.fb)}</small>` : ''}</li>`).join('')}</ul></div>` : ''}
   </div>`;
@@ -441,7 +445,7 @@ function eintrag(e) {
   if (e.typ === 'besichtigung_weg') { const b = evOf(e.tid).find((x) => x.id === e.ref); return sys(`Besichtigung${b ? ` vom ${esc(tag(b.datum))}` : ''} gelöscht`); }
   if (e.typ === 'mietdaten') return sys(`Mietdaten übermittelt${e.mieter ? ': <b>' + esc(e.mieter) + '</b>' : ''}${e.dateien?.length ? ` · ${e.dateien.length} Unterlage${e.dateien.length > 1 ? 'n' : ''}` : ''}`);
   if (e.typ === 'kontakt') {
-    const alt = evOf(e.tid).filter((x) => x.typ === 'kontakt' && x.kid === e.kid && x.rid < e.rid).at(-1), nd = (e.dateien?.length ?? 0) - (alt?.dateien?.length ?? 0), ks = KSTAND[e.stand];
+    const ohneMv = (l) => (l ?? []).filter((f) => f.k !== 'mietvertrag').length, alt = evOf(e.tid).filter((x) => x.typ === 'kontakt' && x.kid === e.kid && x.rid < e.rid).at(-1), nd = ohneMv(e.dateien) - ohneMv(alt?.dateien), ks = KSTAND[e.stand];
     const t = [];
     if (!alt) t.push(`Interessent angelegt: <b>${esc(e.name)}</b>`);
     if (nd > 0) t.push(`${alt ? `<b>${esc(e.name)}</b>: ` : ''}${nd} Unterlage${nd > 1 ? 'n' : ''} hochgeladen`);
@@ -451,8 +455,11 @@ function eintrag(e) {
       if (pr.length) t.push(`<b>${esc(e.name)}</b>: ${pr.map((x) => esc(DOK_L[x] ?? x)).join(', ')} <b style="color:var(--gut)">geprüft ✓</b>`);
       if (zur.length) t.push(`<b>${esc(e.name)}</b>: Prüfung zurückgenommen (${zur.map((x) => esc(DOK_L[x] ?? x)).join(', ')})`);
     }
+    if (!t.length && alt && JSON.stringify(alt.vertrag ?? null) !== JSON.stringify(e.vertrag ?? null)) t.push(`Vertragsdaten für <b>${esc(e.name)}</b> gespeichert`);
+    if (!t.length && alt && ohneMv(alt.dateien) === ohneMv(e.dateien) && (alt.dateien?.length ?? 0) !== (e.dateien?.length ?? 0)) return '';
     return sys(t.join(' · ') || `Interessent <b>${esc(e.name)}</b> aktualisiert`);
   }
+  if (e.typ === 'vertrag') return sys(`Mietvertrag erstellt${e.name ? ' für <b>' + esc(e.name) + '</b>' : ''}${e.fehlt ? ` <small>(Entwurf – ${e.fehlt} Angaben offen)</small>` : ''}`);
   if (e.typ === 'kontakt_weg') { const n = kName(e.tid, e.ref); return sys(`Interessent entfernt${n ? ': <b>' + esc(n) + '</b>' : ''}`); }
   if (e.typ !== 'chat') return '';
   return `<li class="bub ${mine(e) ? 'me' : 'h'}" style="--c:${mine(e) ? 'var(--rand)' : 'var(--gold)'}"><div class="bh"><b>${esc(wer)}</b>${rolle}<small>${dtm(e.at)}</small></div>${e.text ? `<p>${esc(e.text)}</p>` : ''}${dateienHtml(e.dateien)}</li>`;
@@ -543,8 +550,9 @@ function aktualisieren(eigene = false) {
 async function klick(e) {
   const m = e.target.closest('[data-menu]');
   if (m) { const dd = m.closest('.dropdown'), zu = dd.classList.contains('offen'); menuZu(); if (!zu) { dd.classList.add('offen'); m.setAttribute('aria-expanded', 'true'); dd.querySelector('[role=menuitem]')?.focus(); } return; }
-  const b = e.target.closest('[data-act],[data-erg],[data-weg],[data-file],[data-k],[data-kup],[data-kbes],[data-kmiet],[data-kpr],[data-kzip],[data-kopen]'); if (!b || b.closest('.vm-seg')) return;
+  const b = e.target.closest('[data-act],[data-erg],[data-weg],[data-file],[data-k],[data-kup],[data-kbes],[data-kmiet],[data-kpr],[data-kzip],[data-kopen],[data-kvertrag]'); if (!b || b.closest('.vm-seg')) return;
   if (b.dataset.kopen) return kontaktOeffnen(b.dataset.kopen);
+  if (b.dataset.kvertrag) { menuZu(); return vertragFormular(objOf(ctx.oid), b.dataset.kvertrag); }
   menuZu();
   const o = objOf(ctx.oid), d = b.dataset;
   if (d.kpr) {
@@ -647,7 +655,7 @@ const lokal = (t) => new Date(t - new Date(t).getTimezoneOffset() * 60000).toISO
 const neueId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const MAX_DOKS = 60;
 /** Felder eines Interessenten – jeder gespeicherte Eintrag enthält den vollständigen Stand. Leere Werte fallen weg. */
-const KFELD = ['kid', 'name', 'tel', 'mail', 'personen', 'einzug', 'quelle', 'stand', 'grund', 'text', 'dateien', 'geprueft'];
+const KFELD = ['kid', 'name', 'tel', 'mail', 'personen', 'einzug', 'quelle', 'stand', 'grund', 'text', 'dateien', 'geprueft', 'vname', 'vname2', 'anschrift', 'vertrag'];
 function kSnap(k, neu = {}) {
   const x = {};
   for (const f of KFELD) { const v = f in neu ? neu[f] : k?.[f]; if (v != null && v !== '' && !(Array.isArray(v) && !v.length) && !(typeof v === 'object' && !Array.isArray(v) && !Object.keys(v).length)) x[f] = v; }
@@ -665,7 +673,7 @@ function pruefAnpassen(k, neu) {
 async function dokHinzu(oid, k, files, art) {
   if ((k.dateien?.length ?? 0) + files.length > MAX_DOKS) throw new Error(`Höchstens ${MAX_DOKS} Unterlagen pro Interessent.`);
   const dateien = [...(k.dateien ?? []), ...await upload(oid, files, art)];
-  await sendKontakt(oid, k, { dateien, geprueft: pruefAnpassen(k, dateien), stand: k.stand === 'anfrage' || k.stand === 'besichtigung' ? 'unterlagen' : k.stand });
+  await sendKontakt(oid, k, { dateien, geprueft: pruefAnpassen(k, dateien), stand: art !== 'mietvertrag' && (k.stand === 'anfrage' || k.stand === 'besichtigung') ? 'unterlagen' : k.stand });
 }
 /** Interessent zum Namen aus der Besichtigung finden. Gibt es keinen, wird der bisher verknüpfte umbenannt
  *  (z. B. „Frau Linda“ → „Frau Linda Narr“) – nur ohne bisherigen wird ein neuer angelegt. */
@@ -728,6 +736,10 @@ function formular(art, o, ref, kidVorwahl) {
       <label class="f"><span>Stand</span><select name="stand" id="kStand">${Object.entries(KSTAND).map(([key, x]) => `<option value="${key}"${(k?.stand ?? 'anfrage') === key ? ' selected' : ''}>${x.l}</option>`).join('')}</select></label>
       <label class="f" id="kGrundF"><span>Absagegrund</span><select name="grund"><option value="">– bitte wählen –</option>${opt(GRUENDE, k?.grund)}</select></label>
       <label class="f wide"><span>Notiz (Beruf, Haustiere, Eindruck …)</span><textarea name="text" rows="2" maxlength="1500">${esc(k?.text || '')}</textarea></label>
+      <h3 class="sub-h wide vm-fh">Für den Mietvertrag</h3>
+      <label class="f"><span>Name im Vertrag (Name, Vorname)</span><input name="vname" maxlength="120" value="${esc(k?.vname || '')}" placeholder="${esc(vertragsname(k?.name) || 'Müller, Anna')}" autocomplete="off"></label>
+      <label class="f"><span>2. Mieter (Name, Vorname) – optional</span><input name="vname2" maxlength="120" value="${esc(k?.vname2 || '')}" autocomplete="off"></label>
+      <label class="f wide"><span>Bisherige Anschrift</span><input name="anschrift" maxlength="200" value="${esc(k?.anschrift || '')}" placeholder="Straße Nr., PLZ Ort" autocomplete="off"></label>
       ${dokFelder(false)}
       ${k?.dateien?.length ? `<fieldset class="f wide vm-chk vm-keep"><legend>Vorhandene Unterlagen – Haken entfernen zum Löschen</legend>${k.dateien.map((f, i) => `<label><input type="checkbox" name="keep" value="${i}" checked> ${esc(f.n)} <small>${esc(DOK_L[f.k] ?? '')}</small></label>`).join('')}</fieldset>` : ''}
       ${k ? '<p class="wide"><button type="button" class="linkbtn vm-del" data-a="kdel">Interessent entfernen</button></p>' : ''}`],
@@ -754,6 +766,7 @@ function formular(art, o, ref, kidVorwahl) {
   const form = d.querySelector('#vmForm');
   // Absagegrund nur bei Absage zeigen
   const zeig = (sel, feld, wert) => { const a = d.querySelector(sel), g = d.querySelector(feld); if (!a || !g) return; const f = () => { g.hidden = a.value !== wert; }; a.addEventListener('change', f); f(); };
+  form.kname?.addEventListener('input', () => { if (form.vname) form.vname.placeholder = vertragsname(form.kname.value) || 'Müller, Anna'; });
   zeig('#ergSel', '#grundF', 'absage'); zeig('#kStand', '#kGrundF', 'absage'); zeig('#uKid', '#uNeu', '');
   // Vorschau: welche Datei als welche Unterlage abgelegt wird
   const vor = d.querySelector('#vor');
@@ -794,7 +807,7 @@ function formular(art, o, ref, kidVorwahl) {
         const dateien = [...keep, ...(neu.length ? await upload(o.id, neu, f.art.value) : [])];
         // Neue Unterlagen bei Anfrage/Besichtigung → „Unterlagen da“, sofern der Stand nicht bewusst geändert wurde
         const stNeu = neu.length && st === (k?.stand ?? 'anfrage') && (st === 'anfrage' || st === 'besichtigung') ? 'unterlagen' : st;
-        await sendKontakt(o.id, k, { kid: k?.kid ?? neueId(), name, tel: f.tel.value.trim(), mail, personen: f.personen.value ? Number(f.personen.value) : '', einzug: f.einzug.value, quelle: f.quelle.value, stand: stNeu, grund, text: text ?? '', dateien, geprueft: pruefAnpassen(k, dateien) });
+        await sendKontakt(o.id, k, { kid: k?.kid ?? neueId(), name, tel: f.tel.value.trim(), mail, personen: f.personen.value ? Number(f.personen.value) : '', einzug: f.einzug.value, quelle: f.quelle.value, stand: stNeu, grund, text: text ?? '', dateien, geprueft: pruefAnpassen(k, dateien), vname: f.vname.value.trim(), vname2: f.vname2.value.trim(), anschrift: f.anschrift.value.trim() });
       } else if (art === 'unterlagen') {
         const neu = [...f.files.files];
         if (!neu.length) return fehler('Bitte mindestens eine Datei auswählen.');
@@ -862,3 +875,99 @@ export async function paketPruefen() {
   showLogin();
   if (hash) { const i = hash.indexOf('.'); if (i > 0) { const pw = document.getElementById('pw'); pw.value = (() => { try { return decodeURIComponent(hash); } catch { return hash; } })(); pw.form.requestSubmit(); } }
 })();
+
+/* ---------- Mietvertrag erstellen (Daten aus Objekt + Interessent, fehlende Angaben ergänzen, PDF herunterladen) ---------- */
+function vertragFormular(o, kid) {
+  const s = stand(o.id), k = s.kontakte.find((x) => x.kid === kid); if (!k) return;
+  const d0 = vertragsdaten(o, k, ctx.obj), dlgEl = dlg('sheet', 'sheet');
+  const inp = (n, l, o2 = {}) => `<label class="f${o2.wide ? ' wide' : ''}"><span>${l}</span><input name="${n}" value="${esc(d0[n] ?? '')}"${o2.type ? ` type="${o2.type}"` : ''}${o2.mode ? ` inputmode="${o2.mode}"` : ''} maxlength="${o2.max ?? 200}" placeholder="${esc(o2.ph ?? '')}" autocomplete="off"></label>`;
+  const sel = (n, l, liste) => `<label class="f"><span>${l}</span><select name="${n}">${liste.map(([v, t]) => `<option value="${esc(v)}"${String(d0[n] ?? '') === v ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select></label>`;
+  const kopf = (t) => `<h3 class="sub-h wide vm-fh">${t}</h3>`;
+  dlgEl.innerHTML = `<form class="panel form" id="vtForm" novalidate><div class="sh-h"><div><span class="eyebrow">${esc(o.titel)}${o.lage ? ' · ' + esc(o.lage) : ''}</span><h2>Mietvertrag für ${esc(k.name)}</h2></div><button type="button" class="btn ghost sm" data-a="close">Abbrechen</button></div>
+    <div class="vm-fehlt wide" id="vtFehlt" aria-live="polite"></div>
+    <div class="grid">
+      ${kopf('Mieter')}
+      ${inp('vname', 'Name, Vorname', { ph: 'Müller, Anna' })}${inp('vname2', '2. Mieter (Name, Vorname) – optional')}
+      ${inp('anschrift', 'Bisherige Anschrift', { wide: true, ph: 'Straße Nr., PLZ Ort' })}${inp('tel', 'Telefon', { type: 'tel' })}${inp('mail', 'E-Mail', { type: 'email' })}
+      ${kopf('Vermieter')}
+      ${inp('mvName', 'Name, Vorname bzw. Firma', { ph: 'Sultanow, Sebastian' })}${inp('mvAnschrift', 'Anschrift', { ph: 'Straße Nr., PLZ Ort' })}${inp('mvTel', 'Telefon', { type: 'tel' })}${inp('mvMail', 'E-Mail', { type: 'email' })}
+      ${kopf('Wohnung (§ 1)')}
+      ${inp('adresse', 'Straße, PLZ, Ort', { wide: true })}${inp('geschoss', 'Geschoss', { ph: 'z. B. 2. OG, EG, DG' })}${sel('seite', 'Lage im Geschoss', SEITEN)}
+      ${inp('zimmer', 'Zimmer', { mode: 'decimal' })}${inp('flaeche', 'Wohnfläche (m²)', { mode: 'decimal' })}${inp('nutzflaeche', 'Nutzfläche (m², optional)', { mode: 'decimal' })}
+      <fieldset class="f wide vm-chk"><legend>Ausstattung</legend>${AUSST.map(([key, l]) => `<label><input type="checkbox" name="au_${key}"${d0.ausst?.[key] ? ' checked' : ''}> ${l}</label>`).join('')}</fieldset>
+      ${sel('stp', 'Stellplatz / Garage / Carport', STP.map((x) => [x, x || 'keiner']))}${inp('stpNr', 'Stellplatz-Nummer')}
+      <label class="f wide"><span>Schlüssel (je Zeile: Anzahl und Art)</span><textarea name="schluessel" rows="3" maxlength="400" placeholder="2 Haustür&#10;2 Wohnungstür&#10;1 Briefkasten">${esc(d0.schluessel || '')}</textarea></label>
+      ${kopf('Miete und Kaution (§ 2, § 5)')}
+      ${inp('kalt', 'Kaltmiete (€)', { mode: 'decimal' })}${inp('nk', 'Betriebskosten-Vorauszahlung (€)', { mode: 'decimal' })}
+      ${inp('stpKosten', 'Stellplatz / Garage (€ mtl.)', { mode: 'decimal' })}${inp('kuecheKosten', 'Küche / Mobiliar (€ mtl.)', { mode: 'decimal' })}
+      ${inp('kaution', 'Kaution (€)', { mode: 'decimal' })}<p class="f vm-summe" id="vtSumme"></p>
+      ${kopf('Mietkonto (§ 3)')}
+      ${inp('bank', 'Bank')}${inp('iban', 'IBAN', { ph: 'DE00 0000 0000 0000 0000 00' })}${inp('bic', 'BIC')}
+      ${kopf('Vertrag (§ 4, § 6, § 18, § 20)')}
+      ${inp('beginn', 'Mietbeginn', { type: 'date' })}${inp('kv', 'Kündigungsverzicht (Monate, 0 = keiner)', { mode: 'numeric' })}
+      ${inp('arbBis', 'Arbeiten des Vermieters bis (optional)', { type: 'date' })}${inp('arbWas', 'Welche Arbeiten (optional)', { ph: 'z. B. Bad streichen, Silikonfugen erneuern' })}
+      ${inp('hv', 'Hausverwaltung (leer = Absatz entfällt)', { wide: true })}
+      <label class="f wide"><span>Individuelle Vereinbarungen (§ 20)</span><textarea name="vereinbarungen" rows="3" maxlength="2500" placeholder="z. B. Haltung einer Katze gestattet. Einbauküche wird mitvermietet.">${esc(d0.vereinbarungen || '')}</textarea></label>
+      ${inp('ort', 'Ort für die Unterschrift', { ph: 'Hof' })}
+      <label class="f vm-chk1"><input type="checkbox" name="deckblatt"${d0.deckblatt ? ' checked' : ''}> Übersichtsseite vorne anfügen (Objekt, Parteien, Unterlagen)</label>
+    </div>
+    <p class="lg-err hidden" id="vtErr" role="alert"></p>
+    <div class="acts sticky-save"><button type="button" class="btn" data-a="nurspeichern">Nur speichern</button><button class="btn fill">PDF erstellen</button></div></form>`;
+  const form = dlgEl.querySelector('#vtForm');
+  const NUM = ['zimmer', 'flaeche', 'nutzflaeche', 'kalt', 'nk', 'stpKosten', 'kuecheKosten', 'kaution', 'kv'];
+  const lesen = () => {
+    const f = form, v = {};
+    for (const n of ['vname', 'vname2', 'anschrift', 'tel', 'mail', 'mvName', 'mvAnschrift', 'mvTel', 'mvMail', 'adresse', 'geschoss', 'seite', 'stp', 'stpNr', 'schluessel', 'bank', 'iban', 'bic', 'beginn', 'arbBis', 'arbWas', 'hv', 'vereinbarungen', 'ort']) v[n] = f[n].value.trim();
+    for (const n of NUM) { const z = zahl(f[n].value); v[n] = z == null ? '' : z; }
+    v.ausst = Object.fromEntries(AUSST.map(([key]) => [key, f['au_' + key].checked]));
+    v.deckblatt = f.deckblatt.checked;
+    if (v.iban) v.iban = ibanSchoen(v.iban);
+    return v;
+  };
+  const pruefen = () => {
+    const v = lesen(), fe = vFehlt(v), box = dlgEl.querySelector('#vtFehlt'), falsch = NUM.filter((n) => Number.isNaN(v[n]));
+    const ib = v.iban && !ibanOk(v.iban);
+    box.className = 'vm-fehlt wide ' + (fe.length || falsch.length || ib ? 'offen' : 'ok');
+    box.innerHTML = fe.length || falsch.length || ib
+      ? `<b>${fe.length ? `Für den Vertrag fehlt noch (${fe.length}):` : 'Bitte prüfen:'}</b> ${[...fe, ...falsch.map((n) => `${n} ist keine Zahl`), ib ? 'IBAN-Prüfziffer stimmt nicht' : ''].filter(Boolean).map(esc).join(' · ')}<small>Leere Felder erscheinen im PDF als Linie zum Ausfüllen von Hand.</small>`
+      : '<b>Alle Pflichtangaben sind da.</b> <small>Der Vertrag kann erstellt werden.</small>';
+    const sum = dlgEl.querySelector('#vtSumme'); sum.innerHTML = `<span>Monatlich gesamt</span><b>${v.kalt !== '' && v.nk !== '' && !Number.isNaN(v.kalt) && !Number.isNaN(v.nk) ? eur(vGesamt(v)) : '–'}</b>`;
+    form.querySelectorAll('input,select,textarea').forEach((el) => el.classList.toggle('vm-leer', fe.length > 0 && ['vname', 'anschrift', 'mvName', 'mvAnschrift', 'adresse', 'geschoss', 'zimmer', 'flaeche', 'kalt', 'nk', 'kaution', 'beginn', 'iban', 'bank'].includes(el.name) && !el.value.trim()));
+    return { v, fe, ok: !falsch.length };
+  };
+  form.addEventListener('input', pruefen); form.addEventListener('change', pruefen); pruefen();
+  const speichern = async (v) => {
+    const { deckblatt, ...rest } = v;
+    await sendKontakt(o.id, k, { vertrag: { ...rest, deckblatt }, vname: v.vname, vname2: v.vname2, anschrift: v.anschrift, tel: v.tel, mail: v.mail });
+  };
+  const fehler = (t) => { const e = dlgEl.querySelector('#vtErr'); e.textContent = t; e.classList.remove('hidden'); };
+  dlgEl.onclick = async (e) => {
+    if (e.target.closest('[data-a=close]')) return dlgEl.close();
+    const nur = e.target.closest('[data-a=nurspeichern]'); if (!nur) return;
+    const { v, ok } = pruefen(); if (!ok) return fehler('Bitte Beträge und Flächen als Zahl eingeben.');
+    nur.disabled = true; try { await speichern(v); dlgEl.close(); toast('Vertragsdaten gespeichert.'); aktualisieren(true); } catch (x) { fehler(x.message); nur.disabled = false; }
+  };
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const { v, fe, ok } = pruefen(); if (!ok) return fehler('Bitte Beträge und Flächen als Zahl eingeben.');
+    if (fe.length && !(await confirmBox({ title: 'Vertrag mit offenen Angaben erstellen?', text: `Es fehlen noch: ${fe.join(', ')}. Diese Stellen erscheinen im PDF als Linie zum Ausfüllen von Hand.`, ok: 'Trotzdem erstellen' }))) return;
+    const btn = form.querySelector('.sticky-save .fill'); btn.disabled = true; btn.textContent = 'PDF wird erstellt …';
+    try {
+      await speichern(v);
+      const kk = stand(o.id).kontakte.find((x) => x.kid === kid) ?? k;
+      const unterlagen = CHECK.map(([key, l, , min]) => { const fs = dokListe(kk, key), pr = kk.geprueft?.[key]; return { l, st: pr ? 'pr' : fs.length >= min ? 'ok' : fs.length ? 'teil' : 'fehlt', txt: pr ? `geprüft (${vorname(pr.n)})` : fs.length >= min ? 'liegt vor' : fs.length ? `${fs.length} von ${min}` : 'fehlt' }; });
+      const { vertragPdf } = await import('./vertrag.js');
+      const bytes = await vertragPdf(v, { titel: o.titel, lage: o.lage, ort: o.ort, bild: o.bild, unterlagen, erstellt: Date.now() });
+      const name = dateiname(`Mietvertrag ${o.titel}${v.geschoss ? ' ' + v.geschoss : ''} – ${(v.vname || k.name).replace(',', '')} ${new Date().toLocaleDateString('de-DE')}`) + '.pdf';
+      const file = new File([bytes], name, { type: 'application/pdf' });
+      // Herunterladen
+      const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+      // Beim Interessenten ablegen, damit beide ihn haben
+      btn.textContent = 'Wird abgelegt …';
+      try { await dokHinzu(o.id, kk, [file], 'mietvertrag'); } catch (x) { toast('PDF geladen, Ablage beim Interessenten fehlgeschlagen: ' + x.message, false); }
+      await send(o.id, { typ: 'vertrag', kid, name: v.vname || k.name, fehlt: fe.length || undefined });
+      dlgEl.close(); toast(fe.length ? `Vertrag als Entwurf erstellt (${fe.length} Angaben offen).` : 'Mietvertrag erstellt und beim Interessenten abgelegt.'); aktualisieren(true);
+    } catch (x) { fehler('PDF konnte nicht erstellt werden: ' + (x.message || x)); btn.disabled = false; btn.textContent = 'PDF erstellen'; }
+  };
+  dlgEl.showModal();
+}
