@@ -638,11 +638,14 @@ async function dokHinzu(oid, k, files, art) {
   const dateien = [...(k.dateien ?? []), ...await upload(oid, files, art)];
   await sendKontakt(oid, k, { dateien, geprueft: pruefAnpassen(k, dateien), stand: k.stand === 'anfrage' || k.stand === 'besichtigung' ? 'unterlagen' : k.stand });
 }
-/** Interessent zum Namen aus der Besichtigung finden – sonst neu anlegen (mit passendem Stand). */
-async function kontaktFuer(oid, name, ergebnis, grund) {
-  const gleich = (x) => x.trim().toLocaleLowerCase('de');
-  const k = stand(oid).kontakte.find((x) => gleich(x.name) === gleich(name));
+/** Interessent zum Namen aus der Besichtigung finden. Gibt es keinen, wird der bisher verknüpfte umbenannt
+ *  (z. B. „Frau Linda“ → „Frau Linda Narr“) – nur ohne bisherigen wird ein neuer angelegt. */
+async function kontaktFuer(oid, name, ergebnis, grund, bisher = []) {
+  const gleich = (x) => x.trim().toLocaleLowerCase('de'), s = stand(oid);
+  const k = s.kontakte.find((x) => gleich(x.name) === gleich(name));
   if (k) return k.kid;
+  const alt = bisher.length === 1 ? s.kontakte.find((x) => x.kid === bisher[0]) : null;
+  if (alt) { await sendKontakt(oid, alt, { name }); return alt.kid; }
   const kid = neueId();
   await sendKontakt(oid, null, { kid, name, stand: ergebnis === 'absage' ? 'absage' : ergebnis === 'zusage' ? 'zusage' : 'besichtigung', grund: ergebnis === 'absage' ? grund : '' });
   return kid;
@@ -748,7 +751,7 @@ function formular(art, o, ref, kidVorwahl) {
         if (ergebnis === 'absage' && !grund) return fehler('Bitte einen Absagegrund wählen.');
         const name = f.bname.value.trim(), feedback = f.feedback.value.trim(), datum = art === 'besichtigung' ? new Date(f.datum.value).getTime() : b?.datum;
         if (!Number.isFinite(datum)) return fehler('Bitte Datum und Uhrzeit angeben.');
-        const kid = name ? await kontaktFuer(o.id, name, ergebnis, grund) : '', kids = kid ? [kid] : [];
+        const kid = name ? await kontaktFuer(o.id, name, ergebnis, grund, art === 'ergebnis' ? b?.kids ?? [] : []) : '', kids = kid ? [kid] : [];
         if (art === 'besichtigung') await send(o.id, { typ: 'besichtigung', datum, anzahl: 1, ergebnis, grund: grund || undefined, name, feedback, kids: kids.length ? kids : undefined });
         else await send(o.id, { typ: 'ergebnis', ref, ergebnis, grund: grund || undefined, name, feedback, kids });
         await kontakteNachziehen(o.id, kids, ergebnis, grund);
