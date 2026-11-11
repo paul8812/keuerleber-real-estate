@@ -93,3 +93,10 @@ html:not(.rg-l) .rg-gate form{display:none}
 .rg-video{position:relative}.rg-vlock{position:absolute;inset:0 0 auto 0;aspect-ratio:16/9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:20px;border-radius:20px;background:rgba(8,8,8,.86);backdrop-filter:blur(6px);z-index:2}
 .rg-vlock[hidden]{display:none}.rg-vlock b{font-size:clamp(18px,2.4vw,24px);color:#fff}.rg-vlock span{font-size:14.5px;color:#b9b3a8;max-width:440px}
 .rg-vlock button{margin-top:6px;border:0;border-radius:99px;padding:12px 24px;font:inherit;font-weight:600;font-size:15px;color:#141210;background:linear-gradient(135deg,#d9c08a,#8a6d2e);cursor:pointer}
+/* Bedienung: Rückmeldung beim Drücken, sichtbarer Fokus */
+a,button,summary,label,input{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.btn,button,.rgx-card,.rgx-pills a,.rel a{transition:transform .15s cubic-bezier(.2,.7,.2,1),border-color .25s,background-color .25s,color .25s}
+.btn:active,button:active,.rgx-pills a:active,.rel a:active{transform:scale(.97)}
+:focus-visible{outline:2px solid #d9c08a;outline-offset:3px;border-radius:6px}
+input:focus-visible{outline:0}
+@media(max-width:820px){footer.f a{display:inline-block;padding:8px 0}.rel a{padding:11px 18px}}
