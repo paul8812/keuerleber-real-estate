@@ -219,8 +219,8 @@ export function header(sub = 'Mietobjekte') {
   const hell = document.documentElement.getAttribute('data-theme') === 'light';
   return `<header class="p-kopf"><div class="wrap p-in"><div class="brand">${logo('top-logo')}<div><h1>Vermietung</h1><small><b></b>${esc(sub)}</small></div></div>
     <div class="top-r"><span class="top-user">${esc(ctx.sess.n)}${ctx.sess.rolle ? ` <em class="rolle">${esc(ctx.sess.rolle)}</em>` : ''}</span>
-    ${ctx.view !== 'admin' ? '<button class="btn dark sm" id="toAdmin">Verwaltung</button>' : '<button class="btn dark sm" id="toStart">Zur Übersicht</button>'}
-    <button class="btn dark sm" id="logout">Abmelden</button>
+    ${ctx.view !== 'admin' ? '<button class="btn dark sm" id="toAdmin">Verwaltung</button>' : '<button class="btn dark sm" id="toStart"><span class="vm-lang">Zur </span>Übersicht</button>'}
+    <button class="btn dark sm" id="logout" aria-label="Abmelden"><svg class="vm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="vm-lang">Abmelden</span></button>
     <button class="thema" type="button" role="switch" aria-checked="${hell}" aria-label="Helle Darstellung"></button></div></div></header>`;
 }
 const wire = () => {
@@ -336,12 +336,13 @@ function checkliste(k) {
 /** Detailansicht eines Interessenten (eigenes Fenster): Kontakt, Checkliste, seine Besichtigungen, Aktionen */
 function kontaktHtml(k, s) {
   const ks = KSTAND[k.stand] ?? KSTAND.anfrage, tel = telHref(k.tel);
-  const meta = [tel ? `<a href="${esc(tel)}">${esc(k.tel)}</a>` : esc(k.tel || ''), mailOk(k.mail) ? `<a href="mailto:${esc(k.mail)}">${esc(k.mail)}</a>` : esc(k.mail || ''),
+  const meta = [esc(k.tel || ''), esc(k.mail || ''),
     k.personen ? `${num(k.personen)} ${Number(k.personen) === 1 ? 'Person' : 'Personen'}` : '', k.einzug ? `Einzug ab ${dt(Date.parse(k.einzug))}` : '', k.quelle ? `über ${esc(k.quelle)}` : ''].filter(Boolean);
   const bs = s.bes.filter((b) => b.kids.includes(k.kid)).reverse();
   return `<div class="vm-k vm-kd" style="--c:${ks.c}">
     <div class="sh-h vm-kd-h"><div><span class="eyebrow">Interessent · seit ${dt(k.erstellt)}</span><h2>${esc(k.name)} <span class="vm-erg" style="--c:${ks.c}">${esc(ks.l)}</span></h2></div><button type="button" class="btn ghost sm" data-a="kzu">Schließen</button></div>
     ${meta.length ? `<p class="vm-k-m">${meta.map((x) => `<span>${x}</span>`).join('')}</p>` : ''}
+    ${tel || mailOk(k.mail) ? `<div class="vm-k-a vm-kontakt">${tel ? `<a class="btn sm" href="${esc(tel)}">Anrufen</a>` : ''}${tel ? `<a class="btn ghost sm" href="${esc(tel.replace('tel:', 'sms:'))}">SMS</a>` : ''}${mailOk(k.mail) ? `<a class="btn ghost sm" href="mailto:${esc(k.mail)}">E-Mail</a>` : ''}</div>` : ''}
     ${k.stand === 'absage' ? `<p class="vm-grund">Absagegrund: <b>${esc(k.grund || 'ohne Angabe')}</b></p>` : ''}
     ${k.text ? `<p class="vm-k-t">${esc(k.text)}</p>` : ''}
     <div class="vm-k-a">${k.stand === 'zusage' || k.stand === 'favorit' ? `<button class="btn fill sm" data-kmiet="${esc(k.kid)}">Als Mieter übernehmen</button>` : ''}${k.stand !== 'absage' ? `<button class="btn ghost sm" data-kbes="${esc(k.kid)}">+ Besichtigung</button>` : ''}<button class="btn ghost sm" data-k="${esc(k.kid)}">Bearbeiten</button></div>
@@ -708,7 +709,7 @@ function formular(art, o, ref, kidVorwahl) {
     <ul class="vm-vor wide hidden" id="vor" aria-live="polite"></ul>`;
   const quellen = [...new Set([...s.anz.map((a) => a.portal || portalOf(a.url)), ...QUELLEN])];
   const F = {
-    besichtigung: ['Besichtigung eintragen', `<label class="f"><span>Datum und Uhrzeit</span><input name="datum" type="datetime-local" required value="${lokal(jetzt.getTime())}"></label>
+    besichtigung: ['Besichtigung eintragen', `<label class="f"><span>Datum und Uhrzeit</span><input name="datum" type="datetime-local" step="60" required value="${lokal(jetzt.getTime())}"></label>
       ${nameFeld(vorK?.name)}
       ${ergSel('geplant')}
       ${fbFeld('')}
