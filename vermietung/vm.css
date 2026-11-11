@@ -253,3 +253,88 @@ details.vm-det[open]>summary{margin-bottom:10px}
   .vm-todo button{grid-template-columns:66px minmax(0,1fr) auto}
   .vm-k-h small{margin-left:0}
 }
+
+/* ===================== iPhone / Touch ===================== */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{-webkit-tap-highlight-color:transparent}
+button,a,label,select,summary,[role=button],input[type=checkbox]{touch-action:manipulation}
+body:has(dialog[open]){overflow:hidden}
+.vm-ico{display:none;width:20px;height:20px}
+.vm-kontakt .btn{text-decoration:none}
+.vm-x{min-width:40px;min-height:40px;display:inline-flex;align-items:center;justify-content:center}
+@media (max-width:760px),(pointer:coarse){
+  /* iOS zoomt bei Schrift unter 16 px in Eingabefelder hinein */
+  input,select,textarea{font-size:16px!important}
+  input[type=date],input[type=datetime-local],input[type=time]{min-height:46px;-webkit-appearance:none;appearance:none;display:block;width:100%;text-align:left}
+  .vm-chk input,.vm-keep input{width:22px;height:22px;flex:none}
+  .vm-chk label{min-height:40px}
+  .linkbtn.vm-del,.linkbtn.back{display:inline-flex;align-items:center;min-height:44px}
+  details.vm-det>summary,.vm-det2>summary{min-height:44px}
+  .vm-links li{min-height:44px}
+  .vm-links a{display:inline-block;padding:10px 0}
+}
+@media (max-width:760px){
+  /* Kopfzeile in einer Zeile: Logo · Verwaltung · Abmelden-Symbol · Hell/Dunkel */
+  .p-in{flex-wrap:nowrap;padding-block:10px;padding-inline:max(14px,env(safe-area-inset-left)) max(14px,env(safe-area-inset-right))}
+  .brand>div{display:none}
+  .brand img,.brand svg{padding-right:0!important;border-right:0!important;max-height:36px;width:auto}
+  .top-r{flex-wrap:nowrap!important;gap:8px!important;width:auto!important;margin-left:auto}
+  .top-user{display:none!important}
+  .top-r .btn{min-height:40px;white-space:nowrap}
+  .p-kopf #logout{display:inline-flex;align-items:center;justify-content:center;min-width:40px;min-height:40px;padding:0!important;border:1px solid var(--rand)!important;border-radius:2px}
+  .p-kopf #logout .vm-ico{display:block}
+  .vm-lang{display:none}
+  .wrap{padding-inline:max(14px,env(safe-area-inset-left)) max(14px,env(safe-area-inset-right))}
+  .hw-main{padding-bottom:calc(28px + env(safe-area-inset-bottom))}
+  .held{margin:14px 0 10px}
+
+  /* Filter als wischbare Leiste statt fünf großer Kacheln */
+  .vm-kpis{display:flex!important;gap:8px;overflow-x:auto;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-inline:calc(-1 * max(14px,env(safe-area-inset-left)))!important;padding:2px max(14px,env(safe-area-inset-left)) 6px!important;scroll-padding-inline:max(14px,env(safe-area-inset-left))}
+  .vm-kpis::-webkit-scrollbar{display:none}
+  .vm-kpis .kt{flex:none;display:flex;align-items:center;gap:8px;min-height:44px;padding:8px 14px;scroll-snap-align:start;grid-column:auto!important}
+  .vm-kpis .kt small{font-size:10px;white-space:nowrap}
+  .vm-kpis .kt b{font-size:17px;line-height:1}
+
+  /* Objekt: flacheres Bild, kompakte Fakten */
+  .vm-back{margin:8px 0 0}
+  .vm-hero{aspect-ratio:16/9;max-height:210px}
+  .vm-fakten{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important}
+  .vm-fakten>div{padding:8px 9px!important;min-width:0}
+  .vm-fakten small{font-size:8.5px!important;letter-spacing:.12em!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+  .vm-fakten b{font-size:14px!important;white-space:nowrap}
+  .vm-seg{top:0!important;margin-inline:calc(-1 * max(14px,env(safe-area-inset-left)));border-left:0;border-right:0;border-radius:0;padding:6px max(14px,env(safe-area-inset-left))}
+  .vm-seg button{min-height:44px}
+
+  /* „+ Hinzufügen“ als Daumen-Knopf unten rechts, Menü als Blatt von unten */
+  .vm-obj[data-seg=objekt]{padding-bottom:84px}
+  .vm-acts .dropdown{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom));z-index:60}
+  .vm-acts .dropdown>[data-menu]{min-height:52px;padding:0 22px;border-radius:26px;font-size:12px;box-shadow:0 10px 28px -8px rgba(0,0,0,.6)}
+  .vm-acts .dropdown .dd-menu{position:fixed;left:8px;right:8px;top:auto;bottom:calc(80px + env(safe-area-inset-bottom));max-height:calc(100dvh - 140px);overflow:auto;border-radius:12px}
+  .vm-acts .dropdown .dd-menu [role=menuitem]{min-height:52px;padding:10px 16px}
+  .vm-acts .dropdown.offen::before{content:"";position:fixed;inset:0;background:var(--scrim);z-index:-1}
+
+  /* Chat: Eingabe über der Home-Leiste, Verlauf füllt den Bildschirm */
+  .vm-obj[data-seg=chat] .vm-feed{height:calc(100dvh - 250px - env(safe-area-inset-top) - env(safe-area-inset-bottom));min-height:240px}
+  .vm-comp{padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+  .vm-comp .btn{min-height:44px}
+
+  /* Fenster als Blatt von unten (volle Breite, über der Home-Leiste) */
+  dialog.sheet{width:100%!important;max-width:100%!important;margin:auto 0 0!important;max-height:calc(100dvh - env(safe-area-inset-top) - 10px)!important;border-radius:14px 14px 0 0!important;border-bottom:0!important;animation:vmHoch .22s cubic-bezier(.2,.8,.2,1)}
+  dialog.sheet .panel{max-height:calc(100dvh - env(safe-area-inset-top) - 10px)!important;padding-inline:16px}
+  dialog.sheet .sticky-save{padding-bottom:calc(30px + env(safe-area-inset-bottom))!important}
+  dialog.sheet .sticky-save .btn{min-height:50px;font-size:12px}
+  dialog.sheet .sh-h{position:sticky;top:-18px;z-index:4;background:var(--karte);margin-top:-18px;padding-top:14px;padding-bottom:10px;border-bottom:1px solid var(--rand2)}
+  dialog.sheet .sh-h::before{content:"";position:absolute;left:50%;top:5px;width:38px;height:4px;margin-left:-19px;border-radius:2px;background:var(--rand-h)}
+  dialog.sheet .vm-kd-h h2{font-size:19px}
+  dialog.mini{width:calc(100% - 28px)!important}
+  .vm-kd .vm-k-a .btn,.vm-kontakt .btn{min-height:44px;flex:1 1 auto}
+  .vm-cl-a .btn,.vm-cl-a .vm-up{min-height:42px}
+  .toast{left:14px;right:14px;max-width:none;bottom:calc(84px + env(safe-area-inset-bottom))}
+}
+@keyframes vmHoch{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){dialog.sheet{animation:none!important}}
+.vm-kd,.vm-kd>*{min-width:0;max-width:100%}
+.vm-k-m span{overflow-wrap:anywhere;min-width:0}
+.vm-kd-h{flex-wrap:wrap;gap:8px}
+dialog.sheet .panel{overflow-x:hidden}
+@media (max-width:420px){.vm-kontakt .btn{flex:1 1 0;padding-inline:6px}.vm-kd-h>button{margin-left:auto}}
