@@ -2,6 +2,7 @@
 import { openObjects, openSlot, sealFeedback, randomId } from './crypto.js';
 import { STAGES, stageOf, chains } from './fb.js';
 import { exportObjekte } from './export.js';
+import { neuester, verOf, sigOf } from './quelle.js';
 
 const app = document.getElementById('app');
 const KONTAKT = { firma: 'Norderfranken Haus und Grund GmbH', adresse: 'Am Gewerbegebiet 5 · 95185 Gattendorf', tel: '+49 160 3636997', telHref: '+491603636997', mail: 'info@norderfranken.de', web: 'www.norderfranken.de' };
@@ -79,13 +80,6 @@ document.addEventListener('keydown', (e) => { if (e.key === '/' && !/^(INPUT|TEX
 
 const ctx = { mode: 'karten', pkg: null, sess: null, data: null, view: 'start', filter: 'alle', sort: 'standard', q: '' };
 
-async function loadPackage() {
-  const r = await fetch('data.enc.json?t=' + Date.now(), { cache: 'no-store' });
-  if (!r.ok) throw new Error('Daten konnten nicht geladen werden (' + r.status + ')');
-  return r.json();
-}
-
-const sigOf = (pkg) => pkg.objekte.map((b) => b.b).join('|');
 
 function note(text) {
   document.getElementById('toast')?.remove();
@@ -106,15 +100,17 @@ async function reopen(pkg) {
   return true;
 }
 
-/** Holt den aktuellen Stand (z. B. wenn der Tab länger offen war) und aktualisiert die Übersicht. */
+/** Holt den aktuellen Stand (z. B. wenn der Tab länger offen war) und aktualisiert die Übersicht. Fällt nie auf einen älteren Stand zurück. */
 let lastCheck = Date.now();
-async function refreshData() {
+async function refreshData(neuZeichnen = true, direkt = false) {
   lastCheck = Date.now();
   if (!ctx.sess) return;
-  let pkg; try { pkg = await loadPackage(); } catch { return; }
-  if (sigOf(pkg) === ctx.sess.sig) return;
+  let pkg; try { pkg = await neuester(verOf(ctx.pkg), direkt); } catch { return; }
+  if (verOf(pkg) < verOf(ctx.pkg)) return; // Webseite hinkt noch hinterher – eigenen, neueren Stand behalten
+  const objekteNeu = sigOf(pkg) !== ctx.sess.sig;
+  if (!objekteNeu && verOf(pkg) === verOf(ctx.pkg)) return;
   if (!(await reopen(pkg))) return leaveAndReload('Ihr Zugang wurde geändert. Bitte neu anmelden.');
-  if (ctx.view === 'start' && !document.getElementById('ov')) {
+  if (neuZeichnen && objekteNeu && ctx.view === 'start' && !document.getElementById('ov')) {
     const y = window.scrollY; render(); window.scrollTo(0, y);
     note('Die Übersicht wurde aktualisiert.');
   }
@@ -434,7 +430,12 @@ function render() {
     if (!exportObjekte(visible(), kennzahlen, x.dataset.exp)) alert('Keine Objekte zum Exportieren – bitte Filter anpassen.');
   });
   document.getElementById('logout').addEventListener('click', logout);
-  document.getElementById('toAdmin')?.addEventListener('click', () => { ctx.view = 'admin'; render(); window.scrollTo(0, 0); });
+  document.getElementById('toAdmin')?.addEventListener('click', async (e) => {
+    e.currentTarget.disabled = true;
+    await refreshData(false, true); // Verwaltung immer auf dem neuesten Stand öffnen – direkt aus GitHub
+    if (!ctx.sess) return;
+    ctx.view = 'admin'; render(); window.scrollTo(0, 0);
+  });
 }
 
 /** Details einer Karte auf- oder zuklappen (offen = true erzwingt „auf“). */
@@ -680,7 +681,7 @@ function exposeHtml(o, p) {
 /* ---------- Start ---------- */
 (async () => {
   try {
-    ctx.pkg = await loadPackage();
+    ctx.pkg = await neuester();
   } catch (e) {
     app.innerHTML = `<main class="lg"><div class="lg-card"><h1>Nicht erreichbar</h1><p class="lg-sub">${esc(e.message)}. Bitte später erneut versuchen.</p></div></main>`;
     return;

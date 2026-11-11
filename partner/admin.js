@@ -3,10 +3,8 @@ import { buildPackage, newFeedbackKeys, openFeedback, openJson, openObjects, ope
 import { dashHtml } from './dash.js';
 import { STAGES } from './fb.js';
 import { esc, eur, pflege } from './app.js';
+import { REPO, FILE, TOKEN_KEY, ghToken, verOf, merke, vonSeite } from './quelle.js';
 
-const REPO = 'paul8812/keuerleber-real-estate';
-const FILE = 'partner/data.enc.json';
-const TOKEN_KEY = 'nf-partner-gh';
 const STEPS = ['Ankauf', 'Rückbau', 'Sanierung', 'Abnahme', 'Vermietung'];
 const MIN_PW = 12;
 const VS = { frei: 'Frei', reserviert: 'Reserviert', notar: 'Notartermin', verkauft: 'Verkauft' };
@@ -19,9 +17,16 @@ const EV = { list: [], at: 0, err: '', loading: false }; // entschlüsselte Rüc
 
 const clone = (x) => JSON.parse(JSON.stringify(x));
 const canon = (x) => JSON.stringify(x, (k, v) => (v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.keys(v).sort().map((i) => [i, v[i]])) : v));
-const token = () => { try { return localStorage.getItem(TOKEN_KEY) || ''; } catch { return ''; } };
+const token = ghToken;
+const pubToken = () => S?.gh?.token || token();
+const warte = (ms) => new Promise((r) => setTimeout(r, ms));
+// Bereitstellung nach dem Veröffentlichen: bis die Webseite (und damit jeder Partner) den neuen Stand zeigt
+const LIVE = { v: 0, seit: 0, stand: '' }; // stand: 'warte' | 'live' | 'langsam'
+const liveHint = () => (LIVE.stand === 'warte' ? '✓ Gespeichert. Wird bereitgestellt – Partner sehen es in ca. 1–2 Minuten …'
+  : LIVE.stand === 'live' ? '✓ Veröffentlicht und für alle Partner sichtbar.'
+  : LIVE.stand === 'langsam' ? '⚠ Gespeichert, aber GitHub stellt die Seite noch nicht bereit. <button type="button" class="linkbtn" data-a="redeploy">Erneut anstoßen</button>' : '');
 const linkFor = (p) => `${location.origin}${location.pathname}#${p.id}.${encodeURIComponent(p.code)}`;
-const snapshot = () => clone({ partners: S.partners, masters: S.masters, objekte: S.data.objekte, fb: S.fb, ev: S.ev, evx: S.evx });
+const snapshot = () => clone({ partners: S.partners, masters: S.masters, objekte: S.data.objekte, fb: S.fb, ev: S.ev, evx: S.evx, gh: S.gh });
 const byId = (a) => new Map(a.map((x) => [x.id, x]));
 const titel = (o) => `${o.strasse}${o.lage ? ' · ' + o.lage : ''}`;
 const nObj = (p) => p.objekte.filter((i) => S.data.objekte.some((o) => o.id === i)).length;
@@ -57,6 +62,7 @@ function changes() {
   }
   for (const b of B.objekte) if (!so.has(b.id)) out.push(`Objekt „${titel(b)}“ gelöscht`);
   if (canon(B.fb) !== canon(S.fb)) out.push(!B.fb ? 'Rückmeldekanal für Partner eingerichtet' : 'Token für Rückmeldungen geändert');
+  if (canon(B.gh ?? null) !== canon(S.gh ?? null)) out.push(!B.gh ? 'Veröffentlichungs-Token für alle Master hinterlegt' : !S.gh ? 'Zentraler Veröffentlichungs-Token entfernt' : 'Zentraler Veröffentlichungs-Token geändert');
   if (canon(B.evx ?? null) !== canon(S.evx)) out.push('Rückmeldungen bearbeitet oder entfernt');
   if ((B.ev?.length ?? 0) !== S.ev.length) out.push(`${S.ev.length > (B.ev?.length ?? 0) ? 'Rückmeldung erfasst' : 'Rückmeldung entfernt'} (manuell)`);
   const kept = B.objekte.filter((o) => so.has(o.id)).map((o) => o.id), now = S.data.objekte.filter((o) => bo.has(o.id)).map((o) => o.id);
@@ -144,7 +150,7 @@ export async function mount({ app, ctx, render, logout, header }) {
     try {
       const d = await openJson(ctx.sess.a, JSON.parse(raw));
       if (d.base !== S.base) throw new Error('veraltet');
-      Object.assign(S, { partners: d.s.partners, masters: d.s.masters, fb: d.s.fb, ev: d.s.ev, evx: d.s.evx, data: { objekte: d.s.objekte } });
+      Object.assign(S, { partners: d.s.partners, masters: d.s.masters, fb: d.s.fb, ev: d.s.ev, evx: d.s.evx, gh: d.s.gh ?? S.gh, data: { objekte: d.s.objekte } });
       S.restored = true;
     } catch {
       try { localStorage.removeItem(draftKey()); } catch { /* egal */ }
@@ -152,7 +158,7 @@ export async function mount({ app, ctx, render, logout, header }) {
     }
   }
   async function saveDraftNow() {
-    try { const snap = snapshot(); localStorage.setItem(draftKey(), JSON.stringify(await sealJson(ctx.sess.a, { base: S.base, s: { partners: snap.partners, masters: snap.masters, fb: snap.fb, ev: snap.ev, evx: snap.evx, objekte: snap.objekte } }))); S.draftOk = true; } catch { S.draftOk = false; }
+    try { const snap = snapshot(); localStorage.setItem(draftKey(), JSON.stringify(await sealJson(ctx.sess.a, { base: S.base, s: { partners: snap.partners, masters: snap.masters, fb: snap.fb, ev: snap.ev, evx: snap.evx, gh: snap.gh, objekte: snap.objekte } }))); S.draftOk = true; } catch { S.draftOk = false; }
   }
   function saveDraft() {
     clearTimeout(draftTimer);
@@ -161,7 +167,7 @@ export async function mount({ app, ctx, render, logout, header }) {
       try {
         if (!changes().length) { localStorage.removeItem(draftKey()); S.draftOk = true; return; }
         const snap = snapshot();
-        localStorage.setItem(draftKey(), JSON.stringify(await sealJson(ctx.sess.a, { base: S.base, s: { partners: snap.partners, masters: snap.masters, fb: snap.fb, ev: snap.ev, evx: snap.evx, objekte: snap.objekte } })));
+        localStorage.setItem(draftKey(), JSON.stringify(await sealJson(ctx.sess.a, { base: S.base, s: { partners: snap.partners, masters: snap.masters, fb: snap.fb, ev: snap.ev, evx: snap.evx, gh: snap.gh, objekte: snap.objekte } })));
         S.draftOk = true;
       } catch {
         S.draftOk = false;
@@ -173,10 +179,11 @@ export async function mount({ app, ctx, render, logout, header }) {
   if (S && S.owner !== ctx.sess.id) { S = B = null; Object.assign(EV, { list: [], at: 0, err: '', loading: false }); }
   if (!S) {
     const a = await openJson(ctx.sess.a, ctx.pkg.admin);
-    S = { partners: a.partners.map((p) => ({ ...p, objekte: p.objekte ?? [] })), masters: a.masters, fb: a.fb ?? null, ev: a.ev ?? [], evx: a.evx ?? { hide: [], edit: {} }, data: { objekte: clone(ctx.data.objekte) }, owner: ctx.sess.id, base: canon(ctx.pkg.admin) };
+    S = { partners: a.partners.map((p) => ({ ...p, objekte: p.objekte ?? [] })), masters: a.masters, fb: a.fb ?? null, ev: a.ev ?? [], evx: a.evx ?? { hide: [], edit: {} }, gh: a.gh ?? null, data: { objekte: clone(ctx.data.objekte) }, owner: ctx.sess.id, base: canon(ctx.pkg.admin) };
     B = snapshot();
     await restoreDraft();
   }
+  if (S.gh?.token && !token()) { try { localStorage.setItem(TOKEN_KEY, S.gh.token); } catch { /* privater Modus */ } }
   const codeTaken = (code, exceptId) => [...S.partners, ...S.masters].some((x) => x.code === code && x.id !== exceptId);
   const pwError = (code, exceptId) => (code.length < MIN_PW ? `Das Passwort braucht mindestens ${MIN_PW} Zeichen.` : codeTaken(code, exceptId) ? 'Dieses Passwort wird schon verwendet – bitte ein anderes wählen.' : '');
   const uniqueId = (base) => { let id = base; while (S.data.objekte.some((x) => x.id === id)) id += '-2'; return id; };
@@ -198,8 +205,8 @@ export async function mount({ app, ctx, render, logout, header }) {
       ${tab === 'dash' ? dashPanel() : tab === 'objekte' ? objektPanel() : tab === 'partner' ? partnerPanel() : teamPanel()}
     </main>
     <div class="admin-bar"><div class="wrap">
-      <span class="hint">${n ? `<b>● ${n} ${n === 1 ? 'Änderung' : 'Änderungen'}</b> – Partner sehen sie erst nach „Veröffentlichen“.` : '✓ Alles veröffentlicht.'}</span>
-      <div class="acts">${n ? '<button class="btn ghost sm" data-a="discard">Verwerfen</button>' : ''}<button class="btn fill sm" data-a="publish" ${n ? '' : 'disabled'}>Veröffentlichen${n ? ' (' + n + ')' : ''}</button></div>
+      <span class="hint" id="pubHint" role="status">${n ? `<b>● ${n} ${n === 1 ? 'Änderung' : 'Änderungen'}</b> – Partner sehen sie erst nach „Veröffentlichen“.` : liveHint() || '✓ Alles veröffentlicht.'}</span>
+      <div class="acts">${n ? '<button class="btn ghost sm" data-a="discard">Verwerfen</button>' : ''}<button class="btn fill sm" data-a="publish" ${n || !pubToken() ? '' : 'disabled'}>${n ? 'Veröffentlichen (' + n + ')' : pubToken() ? 'Veröffentlichen' : 'GitHub-Token einrichten'}</button></div>
     </div></div>`;
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
     if (tab === 'dash' && S.fb && !EV.loading && Date.now() - EV.at > 120000) loadEvents();
@@ -221,7 +228,7 @@ export async function mount({ app, ctx, render, logout, header }) {
     try {
       const out = [];
       for (let page = 1; page <= 40; page++) {
-        const r = await fetch(`https://api.github.com/repos/${REPO}/issues?state=all&per_page=100&page=${page}&sort=created&direction=asc`, { headers: { Authorization: 'Bearer ' + S.fb.token, Accept: 'application/vnd.github+json' } });
+        const r = await fetch(`https://api.github.com/repos/${REPO}/issues?state=all&per_page=100&page=${page}&sort=created&direction=asc`, { cache: 'no-store', headers: { Authorization: 'Bearer ' + S.fb.token, Accept: 'application/vnd.github+json' } });
         if (!r.ok) throw new Error(r.status === 401 || r.status === 403 ? 'Token ungültig oder ohne Recht „Issues“.' : r.status === 404 ? 'Repository nicht erreichbar (sind „Issues“ aktiviert?).' : 'GitHub meldet Fehler ' + r.status);
         const list = await r.json();
         for (const is of list) {
@@ -237,7 +244,7 @@ export async function mount({ app, ctx, render, logout, header }) {
   }
 
   async function checkToken(tk) {
-    const r = await fetch(`https://api.github.com/repos/${REPO}/issues?per_page=1`, { headers: { Authorization: 'Bearer ' + tk, Accept: 'application/vnd.github+json' } }).catch(() => null);
+    const r = await fetch(`https://api.github.com/repos/${REPO}/issues?per_page=1`, { cache: 'no-store', headers: { Authorization: 'Bearer ' + tk, Accept: 'application/vnd.github+json' } }).catch(() => null);
     if (!r) return 'Keine Verbindung zu GitHub.';
     return r.ok ? '' : r.status === 401 || r.status === 403 ? 'Token ungültig oder ohne Recht „Issues: Read and write“.' : r.status === 404 ? 'Repository nicht gefunden oder Issues nicht aktiviert.' : 'GitHub meldet Fehler ' + r.status;
   }
@@ -278,6 +285,7 @@ export async function mount({ app, ctx, render, logout, header }) {
   function teamPanel() {
     return `<section class="panel"><h2>Team (Master)</h2>
       <p class="hint">Master dürfen alles verwalten und sehen alle Objekte. Anmeldung mit dem eigenen Passwort (mind. ${MIN_PW} Zeichen).</p>
+      <p class="hint gh-z">${S.gh?.token ? '✓ <b>Veröffentlichen:</b> GitHub-Token ist zentral hinterlegt – alle Master können ohne eigenen Token veröffentlichen. <button type="button" class="linkbtn" data-a="ghdel">Entfernen</button>' : '<b>Veröffentlichen:</b> Noch kein zentraler Token. Beim nächsten „Veröffentlichen“ den GitHub-Token mit „Für alle Master hinterlegen“ eintragen – dann braucht kein anderer Master einen eigenen.'}</p>
       <ul class="rows">${S.masters.map((m) => `<li><div><b>${esc(m.name)}</b>${m.id === ctx.sess.id ? '<small>Das sind Sie</small>' : ''}</div>
         <div class="acts"><button class="btn ghost sm" data-a="mren" data-id="${esc(m.id)}">Umbenennen</button><button class="btn ghost sm" data-a="mpw" data-id="${esc(m.id)}">Passwort ändern</button>
         ${S.masters.length > 1 && m.id !== ctx.sess.id ? `<button class="btn ghost sm danger" data-a="mdel" data-id="${esc(m.id)}">Entfernen</button>` : ''}</div></li>`).join('')}</ul>
@@ -301,6 +309,12 @@ export async function mount({ app, ctx, render, logout, header }) {
     else if (a === 'share') openShare(id);
     else if (a === 'open') openPartner(id);
     else if (a === 'publish') openPublish();
+    else if (a === 'ghdel') { S.gh = null; draw(); saveDraft(); toast('Zentraler Token entfernt – bitte veröffentlichen.'); }
+    else if (a === 'redeploy') {
+      if (!pubToken()) return openPublish();
+      b.disabled = true; b.textContent = 'Stoße an …';
+      publish(pubToken()).then(() => { draw(); toast('Erneut angestoßen – wird bereitgestellt.'); }, (x) => { toast(x.message || String(x), false); draw(); });
+    }
     else if (a === 'up' || a === 'down') {
       const i = l.findIndex((o) => o.id === id), j = i + (a === 'up' ? -1 : 1);
       if (j >= 0 && j < l.length) { [l[i], l[j]] = [l[j], l[i]]; draw(); }
@@ -517,11 +531,38 @@ export async function mount({ app, ctx, render, logout, header }) {
   /* ---------- Veröffentlichen ---------- */
   async function buildNext() {
     const stand = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    return buildPackage({ stand, objekte: S.data.objekte, partners: S.partners, masters: S.masters, fb: S.fb, ev: S.ev, evx: S.evx });
+    const built = await buildPackage({ stand, objekte: S.data.objekte, partners: S.partners, masters: S.masters, fb: S.fb, ev: S.ev, evx: S.evx, gh: S.gh });
+    built.pkg.pub = Math.max(Date.now(), verOf(ctx.pkg) + 1); // Veröffentlichungszeitpunkt: steigt mit jeder Veröffentlichung
+    return built;
+  }
+
+  const REPO_NAME = REPO.split('/')[1];
+  const TK_UNGUELTIG = 'Der GitHub-Token wird nicht angenommen: abgelaufen, gelöscht oder nicht vollständig kopiert. Bitte den Token komplett neu einfügen.';
+  const TK_OHNE_RECHT = `Der Token darf nicht in „${REPO_NAME}“ schreiben. Auf GitHub beim Token unter „Repository access“ ${REPO_NAME} auswählen und bei „Contents“ „Read and write“ einstellen.`;
+  /** Prüft nur die Form (häufig: Leerzeichen, Name statt Token, nur ein Teil kopiert). Leer = in Ordnung. */
+  function tokenFormat(tk) {
+    if (/\s/.test(tk)) return 'Im Token stehen Leerzeichen oder Zeilenumbrüche – bitte nur den Token selbst einfügen.';
+    if (!/^(github_pat_|gh[pousr]_)/.test(tk)) return 'Das ist kein GitHub-Token. Er beginnt mit „github_pat_“ (oder „ghp_“) und wird auf GitHub nur einmal direkt nach „Generate token“ angezeigt.';
+    if (tk.length < 36) return 'Der Token ist zu kurz – wahrscheinlich nicht vollständig kopiert.';
+    return '';
+  }
+  /** Prüft Form und Gültigkeit bei GitHub. Leer = in Ordnung. */
+  async function checkPubToken(tk) {
+    if (!tk) return 'Bitte den GitHub-Token einfügen.';
+    const fmt = tokenFormat(tk); if (fmt) return fmt;
+    const r = await fetch(`https://api.github.com/repos/${REPO}`, { cache: 'no-store', headers: { Authorization: 'Bearer ' + tk, Accept: 'application/vnd.github+json' } }).catch(() => null);
+    if (!r) return 'Keine Verbindung zu GitHub – bitte Internetverbindung prüfen.';
+    if (r.status === 401) return TK_UNGUELTIG;
+    if (!r.ok) return r.status === 403 || r.status === 404 ? TK_OHNE_RECHT : 'GitHub meldet Fehler ' + r.status;
+    // Schreibrecht prüfen, ohne etwas zu schreiben: eine leere Anfrage wird von GitHub nie ausgeführt –
+    // ohne Schreibrecht kommt 403/404, mit Schreibrecht nur der Hinweis auf fehlende Angaben (422).
+    const w = await fetch(`https://api.github.com/repos/${REPO}/contents/${FILE}`, { method: 'PUT', cache: 'no-store', headers: { Authorization: 'Bearer ' + tk, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: '{}' }).catch(() => null);
+    if (w && (w.status === 403 || w.status === 404)) return TK_OHNE_RECHT;
+    return '';
   }
 
   function openPublish() {
-    const sheet = dlg('sheet', 'sheet'), ch = changes(), hasTk = !!token();
+    const sheet = dlg('sheet', 'sheet'), ch = changes(), zentral = !!S.gh?.token, hasTk = !!pubToken();
     const warn = S.partners.filter((p) => !nObj(p)).map((p) => `„${p.name}“ sieht noch kein Objekt.`);
     const nNew = S.partners.filter((p) => !B.partners.some((b) => b.id === p.id)).length;
     sheet.innerHTML = `<form class="panel form" id="pubForm">
@@ -531,9 +572,12 @@ export async function mount({ app, ctx, render, logout, header }) {
       ${warn.length ? `<p class="note">${warn.map(esc).join('<br>')}</p>` : ''}
       ${nNew ? '<p class="hint">Neue Partner können sich erst anmelden, wenn die Veröffentlichung durch ist (ca. 1–2 Minuten).</p>' : ''}
       <div class="tk">
-        ${hasTk ? '<p class="hint">✓ GitHub-Token ist in diesem Browser gespeichert. <button type="button" class="linkbtn" data-a="tkchange">Token ändern</button></p>' : `<p class="hint"><b>Einmalige Einrichtung:</b> Zum Veröffentlichen braucht diese Seite einen GitHub-Token (wird nur in diesem Browser gespeichert).</p>
+        ${hasTk ? `<p class="hint">✓ ${zentral ? 'GitHub-Token ist zentral hinterlegt – alle Master können veröffentlichen.' : 'GitHub-Token ist in diesem Browser gespeichert.'} <button type="button" class="linkbtn" data-a="tkchange">Token ändern</button></p>` : `<p class="hint"><b>Einmalige Einrichtung:</b> Zum Veröffentlichen braucht diese Seite einen GitHub-Token. Mit „Für alle Master hinterlegen“ wird er verschlüsselt mitveröffentlicht – dann braucht kein anderer Master einen eigenen.</p>
         <ol class="hint steps"><li>github.com → Einstellungen → Developer settings → Fine-grained tokens → „Generate new token“.</li><li>Repository: nur <b>keuerleber-real-estate</b>, Berechtigung <b>Contents: Read and write</b>.</li><li>Token hier einfügen.</li></ol>`}
-        <label class="f ${hasTk ? 'hidden' : ''}" id="tkWrap"><span>GitHub-Token</span><input type="password" id="gh" value="${esc(token())}" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+        <div class="tk-row ${hasTk ? 'hidden' : ''}" id="tkWrap"><label class="f"><span>GitHub-Token</span><input type="password" id="gh" value="${esc(token())}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="tkMsg"></label>
+          <button type="button" class="btn dark sm" data-a="tksave">Token prüfen &amp; speichern</button></div>
+        <label class="chk ${hasTk ? 'hidden' : ''}" id="tkAlleWrap"><input type="checkbox" id="tkAlle" checked> Für alle Master hinterlegen (verschlüsselt, nur Master können ihn lesen)</label>
+        <p class="hint hidden" id="tkMsg" role="status"></p>
       </div>
       <p class="lg-err hidden" id="pubErr" role="alert"></p>
       <div class="acts sticky-save"><button class="btn fill" id="pubGo" ${ch.length ? '' : 'disabled'}>Jetzt veröffentlichen</button><button type="button" class="btn ghost" data-a="file">Als Datei sichern</button></div></form>`;
@@ -542,7 +586,20 @@ export async function mount({ app, ctx, render, logout, header }) {
     sheet.onclick = async (e) => {
       const b = e.target.closest('[data-a]'); if (!b) return;
       if (b.dataset.a === 'close') sheet.close();
-      else if (b.dataset.a === 'tkchange') { sheet.querySelector('#tkWrap').classList.remove('hidden'); sheet.querySelector('#gh').focus(); }
+      else if (b.dataset.a === 'tkchange') { for (const w of ['#tkWrap', '#tkAlleWrap']) sheet.querySelector(w).classList.remove('hidden'); sheet.querySelector('#gh').value = ''; sheet.querySelector('#gh').focus(); }
+      else if (b.dataset.a === 'tksave') {
+        err(''); const tk = sheet.querySelector('#gh').value.trim(), msg = sheet.querySelector('#tkMsg');
+        b.disabled = true; b.textContent = 'Prüfe …';
+        const fehler = await checkPubToken(tk);
+        b.disabled = false; b.textContent = 'Token prüfen & speichern';
+        if (fehler) return err(fehler);
+        try { localStorage.setItem(TOKEN_KEY, tk); } catch { return err('Der Browser lässt das Speichern nicht zu (privater Modus?). Der Token gilt dann nur für diese Veröffentlichung.'); }
+        if (sheet.querySelector('#tkAlle').checked) { // für alle Master: kommt mit der nächsten Veröffentlichung verschlüsselt ins Paket
+          S.gh = { token: tk }; saveDraft(); sheet.close(); openPublish();
+          return toast('Token geprüft ✓ – wird mit „Jetzt veröffentlichen“ für alle Master hinterlegt.');
+        }
+        msg.textContent = '✓ Token gültig und in diesem Browser gespeichert. Ab jetzt reicht „Jetzt veröffentlichen“.'; msg.classList.remove('hidden');
+      }
       else if (b.dataset.a === 'file') {
         const { pkg } = await buildNext(), a = document.createElement('a');
         a.href = URL.createObjectURL(new Blob([JSON.stringify(pkg)], { type: 'application/json' })); a.download = 'data.enc.json'; a.click();
@@ -550,10 +607,13 @@ export async function mount({ app, ctx, render, logout, header }) {
     };
     sheet.querySelector('#pubForm').onsubmit = async (e) => {
       e.preventDefault(); err('');
-      const tk = sheet.querySelector('#gh').value.trim();
-      if (!tk) { sheet.querySelector('#tkWrap').classList.remove('hidden'); return err('Bitte zuerst den GitHub-Token eintragen (Anleitung oben).'); }
+      const offen = !sheet.querySelector('#tkWrap').classList.contains('hidden'), typed = sheet.querySelector('#gh').value.trim();
+      const tk = (offen && typed) || pubToken();
+      if (!tk) { sheet.querySelector('#tkWrap').classList.remove('hidden'); sheet.querySelector('#tkAlleWrap').classList.remove('hidden'); return err('Bitte zuerst den GitHub-Token eintragen (Anleitung oben).'); }
+      if (offen && typed && sheet.querySelector('#tkAlle').checked) S.gh = { token: typed };
+      const fmt = tokenFormat(tk); if (fmt) { sheet.querySelector('#tkWrap').classList.remove('hidden'); return err(fmt); }
       const go = sheet.querySelector('#pubGo'), force = go.dataset.force === '1'; go.disabled = true; go.textContent = 'Veröffentliche …';
-      try { await publish(tk, force); sheet.close(); draw(); toast('Veröffentlicht ✓ – Partner sehen es in ca. 1–2 Minuten.'); }
+      try { await publish(tk, force); sheet.close(); draw(); toast('Veröffentlicht ✓ – gespeichert und bestätigt. Partner sehen es in ca. 1–2 Minuten.'); }
       catch (x) {
         err(x.message || String(x)); go.disabled = false;
         if (x.stale) { go.dataset.force = '1'; go.textContent = 'Trotzdem überschreiben'; } else go.textContent = 'Jetzt veröffentlichen';
@@ -563,26 +623,55 @@ export async function mount({ app, ctx, render, logout, header }) {
   }
 
   async function publish(tk, force = false) {
-    const built = await buildNext();
-    const h = { Authorization: 'Bearer ' + tk, Accept: 'application/vnd.github+json' };
-    if (!force) {
-      // Wurde seit dem Öffnen von anderer Stelle veröffentlicht? Dann würde dieser Stand fremde Änderungen überschreiben.
-      const cur = await fetch(`https://api.github.com/repos/${REPO}/contents/${FILE}?ref=main`, { headers: { ...h, Accept: 'application/vnd.github.raw+json' } });
-      if (cur.status === 401 || cur.status === 403) throw new Error('GitHub-Token ungültig oder ohne Schreibrecht.');
-      if (cur.ok) {
-        let remote = null; try { remote = await cur.json(); } catch { /* unlesbar: nicht blockieren */ }
-        if (remote?.admin && canon(remote.admin) !== S.base) {
-          const x = new Error('Seit dem Öffnen dieser Seite wurde von anderer Stelle veröffentlicht (z. B. von einem zweiten Master). Wenn Sie jetzt veröffentlichen, gehen diese Änderungen verloren. Besser: Seite neu laden und die Änderungen erneut vornehmen – oder bewusst überschreiben.');
-          x.stale = true; throw x;
-        }
+    const built = await buildNext(), v = built.pkg.pub;
+    // Alle Abfragen ohne Browser-Zwischenspeicher: sonst sieht man bis zu 60 s einen alten Stand (→ falsche Konflikte, Überschreiben)
+    const api = (path, o = {}, ms = 60000) => {
+      const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), ms);
+      return fetch(`https://api.github.com/repos/${REPO}/${path}`, { cache: 'no-store', ...o, signal: ctl.signal, headers: { Authorization: 'Bearer ' + tk, Accept: 'application/vnd.github+json', ...o.headers } }).finally(() => clearTimeout(t));
+    };
+    const rechte = (r) => { if (r.status === 401) throw new Error(TK_UNGUELTIG); if (r.status === 403) throw new Error(TK_OHNE_RECHT); };
+    /** Was liegt gerade im Repository? sha und Inhalt gehören garantiert zusammen (Inhalt über die sha geladen). */
+    const stand = async () => {
+      const m = await api(`contents/${FILE}?ref=main`);
+      if (m.status === 404) return { sha: undefined, pkg: null };
+      rechte(m); if (!m.ok) throw new Error('GitHub meldet Fehler ' + m.status + ' – bitte gleich noch einmal versuchen.');
+      const { sha } = await m.json();
+      const b = await api(`git/blobs/${sha}`, { headers: { Accept: 'application/vnd.github.raw+json' } });
+      rechte(b); if (!b.ok) throw new Error('GitHub meldet Fehler ' + b.status + ' – bitte gleich noch einmal versuchen.');
+      let pkg = null; try { pkg = await b.json(); } catch { /* unlesbar: wie leer behandeln */ }
+      return { sha, pkg };
+    };
+    const fremd = (cur) => !force && cur.pkg?.admin && canon(cur.pkg.admin) !== S.base;
+    const konflikt = () => {
+      const x = new Error('Seit dem Öffnen dieser Seite wurde von anderer Stelle veröffentlicht (z. B. von einem zweiten Master). Wenn Sie jetzt veröffentlichen, gehen diese Änderungen verloren. Besser: Seite neu laden und die Änderungen erneut vornehmen – oder bewusst überschreiben.');
+      x.stale = true; return x;
+    };
+
+    let cur = await stand();
+    if (fremd(cur)) throw konflikt();
+    const content = toB64(new TextEncoder().encode(JSON.stringify(built.pkg)));
+    let ok = false;
+    for (let i = 0; i < 4 && !ok; i++) {
+      let r = null;
+      try { r = await api(`contents/${FILE}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: 'Partnerbereich aktualisiert', content, branch: 'main', ...(cur.sha ? { sha: cur.sha } : {}) }) }, 120000); }
+      catch { /* Verbindung abgebrochen oder Zeitüberschreitung – unten nachsehen, ob es trotzdem angekommen ist */ }
+      if (r?.ok) { ok = true; break; }
+      if (r) {
+        rechte(r);
+        if (r.status === 404) throw new Error(TK_OHNE_RECHT);
+        if (r.status === 413 || (r.status === 422 && /too large|size/i.test(await r.text().catch(() => '')))) throw new Error('Die Daten sind zu groß für GitHub (zu viele oder zu große Fotos/Unterlagen). Bitte große Dateien verkleinern und erneut veröffentlichen.');
       }
+      await warte(1000 * (i + 1));
+      cur = await stand();
+      if (verOf(cur.pkg) === v) { ok = true; break; } // war trotz Fehlermeldung angekommen
+      if (fremd(cur)) throw konflikt(); // jemand anderes war schneller – nicht überschreiben
     }
-    const meta = await fetch(`https://api.github.com/repos/${REPO}/contents/${FILE}?ref=main`, { headers: h });
-    if (meta.status === 401 || meta.status === 403) throw new Error('GitHub-Token ungültig oder ohne Schreibrecht.');
-    const sha = meta.ok ? (await meta.json()).sha : undefined;
-    const body = { message: 'Partnerbereich aktualisiert', content: toB64(new TextEncoder().encode(JSON.stringify(built.pkg))), branch: 'main', ...(sha ? { sha } : {}) };
-    const r = await fetch(`https://api.github.com/repos/${REPO}/contents/${FILE}`, { method: 'PUT', headers: { ...h, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    if (!r.ok) throw new Error(r.status === 409 ? 'Zwischenzeitlich wurde etwas anderes veröffentlicht – bitte Seite neu laden.' : 'GitHub meldet Fehler ' + r.status);
+    if (!ok) throw new Error('GitHub hat die Veröffentlichung gerade nicht angenommen. Ihre Änderungen sind nicht verloren – bitte in einer Minute noch einmal „Jetzt veröffentlichen“.');
+    // Gegenprobe: liegt jetzt wirklich dieser Stand (oder ein noch neuerer) im Repository?
+    const fin = await stand();
+    if (verOf(fin.pkg) < v) throw new Error('Die Veröffentlichung konnte nicht bestätigt werden. Ihre Änderungen sind nicht verloren – bitte noch einmal „Jetzt veröffentlichen“.');
+
+    merke(v);
     try { localStorage.setItem(TOKEN_KEY, tk); } catch { /* egal */ }
     // eigene Sitzung auf die neuen Schlüssel umstellen
     const me = S.masters.find((m) => m.id === ctx.sess.id);
@@ -593,6 +682,22 @@ export async function mount({ app, ctx, render, logout, header }) {
     try { sessionStorage.setItem('nf-partner-session', JSON.stringify(ctx.sess)); } catch { /* egal */ }
     S.base = canon(built.pkg.admin);
     B = snapshot();
+    clearTimeout(draftTimer); try { localStorage.removeItem(draftKey()); } catch { /* egal */ } S.draftOk = true;
+    liveVerfolgen(v);
+  }
+
+  /** Beobachtet, bis die Webseite den neuen Stand ausliefert – erst dann sehen ihn alle Partner. */
+  async function liveVerfolgen(v) {
+    Object.assign(LIVE, { v, seit: Date.now(), stand: 'warte' });
+    const zeigen = () => { const h = document.getElementById('pubHint'); if (h && !changes().length) h.innerHTML = liveHint(); };
+    zeigen();
+    while (LIVE.v === v && Date.now() - LIVE.seit < 15 * 60000) {
+      await warte(8000);
+      if (LIVE.v !== v) return; // inzwischen erneut veröffentlicht
+      let p = null; try { p = await vonSeite(); } catch { /* später erneut */ }
+      if (verOf(p) >= v) { LIVE.stand = 'live'; zeigen(); return toast('✓ Live – alle Partner sehen jetzt den neuen Stand.'); }
+      if (LIVE.stand === 'warte' && Date.now() - LIVE.seit > 6 * 60000) { LIVE.stand = 'langsam'; zeigen(); }
+    }
   }
 
   /* ---------- Objekt bearbeiten ---------- */
