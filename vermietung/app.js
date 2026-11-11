@@ -4,7 +4,7 @@
 import { openObjekte, openSlot } from './pkg.js';
 import { neuester, verOf } from './quelle.js';
 import { fetchEvents, getFile, postEvent, putFile } from '../handwerker/store.js';
-import { ago, dlg, dt, dtm, esc, logo, lsGet, lsSet, shrinkImage, themaWechseln, toast } from '../handwerker/ui.js';
+import { ago, confirmBox, dlg, dt, dtm, esc, logo, lsGet, lsSet, shrinkImage, themaWechseln, toast } from '../handwerker/ui.js';
 
 const app = document.getElementById('app');
 const SESSION = 'nf-vm-session';
@@ -91,8 +91,13 @@ export function stand(oid) {
   }
   const kontakte = [...kon.values()].sort((a, b) => (KRANG.indexOf(a.stand) - KRANG.indexOf(b.stand)) || (b.at - a.at));
   const kname = (id) => kon.get(id)?.name;
-  const upd = new Map(); for (const e of ev) if (e.typ === 'ergebnis') upd.set(e.ref, e);
-  const bes = ev.filter((e) => e.typ === 'besichtigung').map((b) => { const u = upd.get(b.id); return { ...(u ? { ...b, ergebnis: u.ergebnis, grund: u.grund, notiz2: u.text, von2: u.n } : b), namen: (b.kids ?? []).map(kname).filter(Boolean) }; }).sort((a, b) => a.datum - b.datum);
+  const upd = new Map(), bweg = new Set(); for (const e of ev) { if (e.typ === 'ergebnis') upd.set(e.ref, e); else if (e.typ === 'besichtigung_weg') bweg.add(e.ref); }
+  // Besichtigung: der jüngste Ergebnis-Eintrag gilt (Ergebnis, Grund, Name, Feedback); ältere Einträge mit „text“ bleiben lesbar
+  const bes = ev.filter((e) => e.typ === 'besichtigung' && !bweg.has(e.id)).map((b) => {
+    const u = upd.get(b.id), kids = u?.kids ?? b.kids ?? [], namen = kids.map(kname).filter(Boolean);
+    return { ...b, ergebnis: u?.ergebnis ?? b.ergebnis, grund: u ? u.grund : b.grund, kids, namen,
+      wer: namen.join(', ') || (u?.name ?? b.name) || '', fb: u && 'feedback' in u ? u.feedback : (u?.text || b.feedback || b.text || ''), von2: u?.n };
+  }).sort((a, b) => a.datum - b.datum);
   const weg = new Set(ev.filter((e) => e.typ === 'anzeige_weg').map((e) => e.ref));
   const anz = ev.filter((e) => e.typ === 'anzeige' && !weg.has(e.id));
   const md = ev.filter((e) => e.typ === 'mietdaten').at(-1);
@@ -255,7 +260,7 @@ function karte(o) {
         <div><small>Warmmiete</small><b>${o.nk != null && o.nk !== '' ? eur(warm(o)) : '–'}</b></div>
       </div>
       ${zahlen ? `<p class="vm-zahl">${zahlen}</p>` : ''}
-      ${s.naechste ? `<p class="vm-nx">Nächster Termin: <b>${tag(s.naechste.datum)}, ${uhr(s.naechste.datum)} Uhr</b>${namenText(s.naechste.namen)}</p>` : ''}
+      ${s.naechste ? `<p class="vm-nx">Nächster Termin: <b>${tag(s.naechste.datum)}, ${uhr(s.naechste.datum)} Uhr</b>${s.naechste.wer ? ' · ' + esc(s.naechste.wer) : ''}</p>` : ''}
       ${s.offen.length ? `<p class="vm-hinw">Ergebnis fehlt für ${s.offen.length} Besichtigung${s.offen.length > 1 ? 'en' : ''}</p>` : ''}
       ${s.absagen.length ? `<p class="vm-absz"><b>${s.absagen.length} ${s.absagen.length === 1 ? 'Absage' : 'Absagen'}:</b> ${gruendeText(s.gruende)}</p>` : ''}
       ${l ? `<p class="vm-last"><b>${esc(mine(l) ? 'Sie' : l.n)}:</b> ${esc(l.text || (l.dateien?.length ? 'Datei gesendet' : ''))} <small>${ago(l.at)}</small></p>` : ''}
@@ -274,7 +279,7 @@ function alsNaechstes(alle) {
   l.sort((a, b) => (b.offen - a.offen) || (a.t - b.t));
   return `<section class="panel vm-todo"><div class="ph"><h2>Als Nächstes</h2><small class="hint">${l.length} ${l.length === 1 ? 'Eintrag' : 'Einträge'}</small></div><ul>
     ${l.slice(0, 8).map(({ o, b, offen }) => `<li><button data-oid="${esc(o.id)}"><span class="vm-td"><b>${tag(b.datum)}</b><small>${uhr(b.datum)} Uhr</small></span>
-      <span class="vm-tm"><b>${esc(o.titel)}${o.lage ? ` · ${esc(o.lage)}` : ''}</b><small>${offen ? '<em class="vm-warn">Ergebnis eintragen</em> · ' : 'Besichtigung'}${b.anzahl ? ` · ${num(b.anzahl)} ${Number(b.anzahl) === 1 ? 'Interessent' : 'Interessenten'}` : ''}${namenText(b.namen)}</small></span><span class="vm-tp" aria-hidden="true">›</span></button></li>`).join('')}
+      <span class="vm-tm"><b>${esc(o.titel)}${o.lage ? ` · ${esc(o.lage)}` : ''}</b><small>${offen ? '<em class="vm-warn">Ergebnis eintragen</em>' : 'Besichtigung'}${b.wer ? ` · <b class="vm-wer">${esc(b.wer)}</b>` : ''}</small></span><span class="vm-tp" aria-hidden="true">›</span></button></li>`).join('')}
   </ul></section>`;
 }
 
@@ -305,6 +310,7 @@ function renderStart() {
 
 /* ---------- Objekt: Infos ---------- */
 const hat = (v) => v != null && v !== '';
+const vorname = (n) => String(n || '').trim().split(/\s+/)[0];
 const fileBtn = (f) => `<button class="vm-file" data-file="${esc(f.p)}" data-name="${esc(f.n)}" data-type="${esc(f.t)}"><b>${esc(f.n)}</b><small>${esc(DOK_L[f.k] ?? 'öffnen')}</small></button>`;
 const dateienHtml = (l) => (l?.length ? `<div class="vm-files">${l.map((f) => (f.t?.startsWith('image/') ? `<button class="foto" data-p="${esc(f.p)}" data-n="${esc(f.n)}" aria-label="Foto ${esc(f.n)} öffnen"><span>Foto lädt …</span></button>` : `<button class="vm-file" data-file="${esc(f.p)}" data-name="${esc(f.n)}" data-type="${esc(f.t)}"><b>${esc(f.n)}</b><small>öffnen</small></button>`)).join('')}</div>` : '');
 const auf = (k, std = false) => ((ctx.auf?.[k] ?? std) ? ' open' : '');
@@ -343,11 +349,17 @@ function kontaktHtml(k) {
 
 function infoHtml(o, s) {
   const max = Math.max(1, ...Object.values(s.gruende));
-  const row = (b) => `<li class="vm-b${b.ergebnis === 'absage' ? ' abs' : ''}"><div class="vm-b-d"><b>${tag(b.datum)}</b><small>${uhr(b.datum)} Uhr</small></div>
-      <div class="vm-b-m"><div class="vm-b-k"><span class="vm-erg" style="--c:${ERG[b.ergebnis]?.c}">${esc(ERG[b.ergebnis]?.l ?? b.ergebnis)}</span>${b.anzahl ? `<small>${num(b.anzahl)} ${Number(b.anzahl) === 1 ? 'Interessent' : 'Interessenten'}</small>` : ''}${b.namen.length ? `<small class="vm-b-n">${esc(b.namen.join(', '))}</small>` : ''}</div>
-      ${b.ergebnis === 'absage' ? `<p class="vm-grund">Absagegrund: <b>${esc(b.grund || 'ohne Angabe')}</b></p>` : ''}
-      ${b.text || b.notiz2 ? `<p>${esc([b.text, b.notiz2].filter(Boolean).join(' · '))}</p>` : ''}<small class="vm-von">${esc(b.n)}${b.von2 && b.von2 !== b.n ? ' · Ergebnis: ' + esc(b.von2) : ''}</small></div>
-      ${b.ergebnis === 'geplant' || b.ergebnis === 'interesse' ? `<button class="btn ghost sm" data-erg="${esc(b.id)}">Ergebnis</button>` : ''}</li>`;
+  const zeile = (b) => {
+    const zuk = b.datum > Date.now() && b.ergebnis === 'geplant', fehlt = !zuk && b.ergebnis === 'geplant';
+    const gf = b.ergebnis === 'absage' ? `<b class="vm-bg">${esc(b.grund || 'Grund fehlt')}</b>` : '';
+    const leer = zuk ? '<span class="vm-mut">Termin steht</span>' : fehlt ? '<span class="vm-warn">Ergebnis fehlt noch</span>' : '<span class="vm-mut">–</span>';
+    return `<tr class="${b.ergebnis === 'absage' ? 'abs' : zuk ? 'zuk' : ''}">
+      <td class="d"><b>${tag(b.datum)}</b><small>${uhr(b.datum)} Uhr</small></td>
+      <td class="n">${b.wer ? `<b>${esc(b.wer)}</b>` : '<span class="vm-mut">ohne Name</span>'}<small>von ${esc(vorname(b.n))}${b.von2 && b.von2 !== b.n ? ' · Ergebnis ' + esc(vorname(b.von2)) : ''}</small></td>
+      <td class="e"><span class="vm-erg" style="--c:${ERG[b.ergebnis]?.c}">${esc(ERG[b.ergebnis]?.l ?? b.ergebnis)}</span></td>
+      <td class="g">${gf}${b.fb ? `<p>${esc(b.fb)}</p>` : gf ? '' : leer}</td>
+      <td class="a"><button class="btn ${zuk || fehlt ? 'fill' : 'ghost'} sm" data-erg="${esc(b.id)}">${zuk || fehlt ? 'Ergebnis' : 'Ändern'}</button></td></tr>`;
+  };
   const md = s.md, abgesagt = s.kontakte.filter((k) => k.stand === 'absage');
 
   const blick = `<section class="panel vm-sec vm-blick"><div class="ph"><h2>Auf einen Blick</h2></div>
@@ -357,7 +369,7 @@ function infoHtml(o, s) {
       <div><small>Unterlagen komplett</small><b class="${s.komplett ? 'ok-t' : ''}">${s.komplett}</b>${s.geprueft ? `<em class="ok-t">${s.geprueft} geprüft</em>` : s.mitDoks > s.komplett ? `<em>${s.mitDoks - s.komplett} teilweise</em>` : ''}</div>
       <div><small>Absagen</small><b class="${s.absagen.length ? 'krit-t' : ''}">${s.absagen.length}</b></div>
     </div>
-    ${s.naechste ? `<p class="vm-next">Nächster Termin: <b>${tag(s.naechste.datum)}, ${uhr(s.naechste.datum)} Uhr</b>${s.naechste.anzahl ? ` · ${num(s.naechste.anzahl)} Interessent${Number(s.naechste.anzahl) === 1 ? '' : 'en'}` : ''}${namenText(s.naechste.namen)}</p>` : ''}
+    ${s.naechste ? `<p class="vm-next">Nächster Termin: <b>${tag(s.naechste.datum)}, ${uhr(s.naechste.datum)} Uhr</b>${s.naechste.wer ? ` · ${esc(s.naechste.wer)}` : ''}</p>` : ''}
     ${s.offen.length ? `<p class="vm-hinw">Bei ${s.offen.length} vergangenen Termin${s.offen.length > 1 ? 'en' : ''} fehlt noch das Ergebnis.</p>` : ''}
     ${s.absagen.length ? `<div class="vm-gruende"><h3 class="sub-h">Absagegründe</h3>${Object.entries(s.gruende).sort((a, b) => b[1] - a[1]).map(([g, n]) => `<div class="vm-g"><span>${esc(g)}</span><i style="width:${Math.round((n / max) * 100)}%"></i><b>${n}</b></div>`).join('')}
       <ul class="vm-abl">${s.absagen.slice(0, 4).map((a) => `<li><b>${esc(a.grund)}</b>${a.wer ? ` – ${esc(a.wer)}` : ''} <small>${dt(a.at)}</small></li>`).join('')}</ul></div>` : ''}
@@ -368,7 +380,8 @@ function infoHtml(o, s) {
     ${abgesagt.length ? `<details class="vm-det2" data-det="abgesagt"${auf('abgesagt')}><summary>Abgesagt (${abgesagt.length})</summary><ul class="vm-ks">${abgesagt.map(kontaktHtml).join('')}</ul></details>` : ''}</section>`;
 
   const besichtigungen = `<section class="panel vm-sec"><div class="ph"><h2>Besichtigungen${s.bes.length ? ` <small class="vm-anz">${s.bes.length}</small>` : ''}</h2><button class="btn fill sm" data-act="besichtigung">+ Besichtigung</button></div>
-    ${s.bes.length ? `<ul class="vm-bes">${[...s.bes].reverse().map(row).join('')}</ul>` : '<p class="hint">Noch keine Besichtigungen eingetragen.</p>'}</section>`;
+    ${s.bes.length ? `<table class="vm-btab"><thead><tr><th>Datum</th><th>Name</th><th>Ergebnis</th><th>Absagegrund / Feedback</th><th><span class="sr">Aktion</span></th></tr></thead>
+      <tbody>${[...s.bes].reverse().map(zeile).join('')}</tbody></table>` : '<p class="hint">Noch keine Besichtigungen. Mit „+ Besichtigung“ Datum, Name, Ergebnis und Feedback bzw. Absagegrund eintragen.</p>'}</section>`;
 
   const anzeigen = s.anz.length ? `<section class="panel vm-sec"><div class="ph"><h2>Anzeigen <small class="vm-anz">${s.anz.length}</small></h2><button class="btn ghost sm" data-act="anzeige">+ Anzeige-Link</button></div>
     <ul class="vm-links">${s.anz.map((a) => { const u = sicherUrl(a.url); return `<li><span class="chip2" style="--c:var(--gold)">${esc(a.portal || portalOf(a.url))}</span>${u ? `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(a.text || u.replace(/^https?:\/\/(www\.)?/, '').slice(0, 60))}</a>` : esc(a.url)}<small>seit ${dt(a.at)} · ${esc(a.n)}</small><button class="vm-x" data-weg="${esc(a.id)}" aria-label="Anzeige entfernen" title="Anzeige ist offline – entfernen">×</button></li>`; }).join('')}</ul></section>` : '';
@@ -396,8 +409,10 @@ function eintrag(e) {
   if (e.typ === 'status') return sys(`Status: <b style="color:${STATUS[e.status]?.c}">${esc(STATUS[e.status]?.l ?? e.status)}</b>${e.text ? ' – ' + esc(e.text) : ''}`);
   if (e.typ === 'anzeige') return sys(`Anzeige hinzugefügt: <b>${esc(e.portal || portalOf(e.url))}</b>`);
   if (e.typ === 'anzeige_weg') return sys('Anzeige entfernt');
-  if (e.typ === 'besichtigung') return sys(`Besichtigung ${esc(tag(e.datum))}, ${uhr(e.datum)} Uhr eingetragen${namen()} – <b style="color:${ERG[e.ergebnis]?.c}">${esc(ERG[e.ergebnis]?.l ?? '')}</b>${e.grund ? ' (' + esc(e.grund) + ')' : ''}`);
-  if (e.typ === 'ergebnis') { const b = evOf(e.tid).find((x) => x.id === e.ref); return sys(`Ergebnis${b ? ` Besichtigung ${esc(tag(b.datum))}` : ''}: <b style="color:${ERG[e.ergebnis]?.c}">${esc(ERG[e.ergebnis]?.l ?? '')}</b>${e.grund ? ' (' + esc(e.grund) + ')' : ''}`); }
+  const weg = (id) => evOf(e.tid).some((x) => x.typ === 'besichtigung_weg' && x.ref === id);
+  if (e.typ === 'besichtigung') return weg(e.id) ? '' : sys(`Besichtigung ${esc(tag(e.datum))}, ${uhr(e.datum)} Uhr eingetragen${e.name && !e.kids?.length ? ' · ' + esc(e.name) : namen()} – <b style="color:${ERG[e.ergebnis]?.c}">${esc(ERG[e.ergebnis]?.l ?? '')}</b>${e.grund ? ' (' + esc(e.grund) + ')' : ''}`);
+  if (e.typ === 'ergebnis') { if (weg(e.ref)) return ''; const b = evOf(e.tid).find((x) => x.id === e.ref); return sys(`Ergebnis${b ? ` Besichtigung ${esc(tag(b.datum))}` : ''}${e.name ? ' · ' + esc(e.name) : ''}: <b style="color:${ERG[e.ergebnis]?.c}">${esc(ERG[e.ergebnis]?.l ?? '')}</b>${e.grund ? ' (' + esc(e.grund) + ')' : ''}`); }
+  if (e.typ === 'besichtigung_weg') { const b = evOf(e.tid).find((x) => x.id === e.ref); return sys(`Besichtigung${b ? ` vom ${esc(tag(b.datum))}` : ''} gelöscht`); }
   if (e.typ === 'mietdaten') return sys(`Mietdaten übermittelt${e.mieter ? ': <b>' + esc(e.mieter) + '</b>' : ''}${e.dateien?.length ? ` · ${e.dateien.length} Unterlage${e.dateien.length > 1 ? 'n' : ''}` : ''}`);
   if (e.typ === 'kontakt') {
     const alt = evOf(e.tid).filter((x) => x.typ === 'kontakt' && x.kid === e.kid && x.rid < e.rid).at(-1), nd = (e.dateien?.length ?? 0) - (alt?.dateien?.length ?? 0), ks = KSTAND[e.stand];
@@ -623,6 +638,15 @@ async function dokHinzu(oid, k, files, art) {
   const dateien = [...(k.dateien ?? []), ...await upload(oid, files, art)];
   await sendKontakt(oid, k, { dateien, geprueft: pruefAnpassen(k, dateien), stand: k.stand === 'anfrage' || k.stand === 'besichtigung' ? 'unterlagen' : k.stand });
 }
+/** Interessent zum Namen aus der Besichtigung finden – sonst neu anlegen (mit passendem Stand). */
+async function kontaktFuer(oid, name, ergebnis, grund) {
+  const gleich = (x) => x.trim().toLocaleLowerCase('de');
+  const k = stand(oid).kontakte.find((x) => gleich(x.name) === gleich(name));
+  if (k) return k.kid;
+  const kid = neueId();
+  await sendKontakt(oid, null, { kid, name, stand: ergebnis === 'absage' ? 'absage' : ergebnis === 'zusage' ? 'zusage' : 'besichtigung', grund: ergebnis === 'absage' ? grund : '' });
+  return kid;
+}
 /** Ergebnis einer Besichtigung auf die verknüpften Interessenten übertragen. */
 async function kontakteNachziehen(oid, kids, ergebnis, grund) {
   if (!kids?.length) return;
@@ -645,20 +669,24 @@ function formular(art, o, ref, kidVorwahl) {
   const opt = (l, v) => l.map((x) => `<option${x === v ? ' selected' : ''}>${esc(x)}</option>`).join('');
   const ergSel = (v) => `<label class="f"><span>Ergebnis</span><select name="ergebnis" id="ergSel">${Object.entries(ERG).map(([key, x]) => `<option value="${key}"${v === key ? ' selected' : ''}>${x.l}</option>`).join('')}</select></label>
     <label class="f" id="grundF"><span>Absagegrund</span><select name="grund"><option value="">– bitte wählen –</option>${opt(GRUENDE, b?.grund)}</select></label>`;
-  const kChk = (sel) => (s.aktiv.length ? `<fieldset class="f wide vm-chk"><legend>Interessenten (optional)</legend>${s.aktiv.map((x) => `<label><input type="checkbox" name="kids" value="${esc(x.kid)}"${sel.includes(x.kid) ? ' checked' : ''}> ${esc(x.name)}</label>`).join('')}</fieldset>` : '');
+  const vorK = kidVorwahl ? s.kontakte.find((x) => x.kid === kidVorwahl) : null;
+  const nameFeld = (v) => `<label class="f"><span>Name des Interessenten</span><input name="bname" list="kListe" maxlength="120" value="${esc(v || '')}" autocomplete="off" placeholder="z. B. Frau Müller"><datalist id="kListe">${s.kontakte.map((x) => `<option value="${esc(x.name)}">`).join('')}</datalist></label>`;
+  const fbFeld = (v) => `<label class="f wide"><span>Feedback / Rückmeldung</span><textarea name="feedback" rows="3" maxlength="1500" placeholder="z. B. Wohnung gefällt, Küche etwas klein, schickt Unterlagen bis Freitag">${esc(v || '')}</textarea></label>`;
   const dokFelder = (pflicht) => `<label class="f"><span>Art der Unterlagen</span><select name="art"><option value="auto">Automatisch (nach Dateiname)</option>${DOKS.map(([key, l]) => `<option value="${key}">${l}</option>`).join('')}</select></label>
     <label class="f"><span>${pflicht ? 'Dateien (PDF oder Foto)' : 'Unterlagen hinzufügen (optional)'}</span><input name="files" type="file" accept="application/pdf,image/*" multiple${pflicht ? ' required' : ''}></label>
     <ul class="vm-vor wide hidden" id="vor" aria-live="polite"></ul>`;
   const quellen = [...new Set([...s.anz.map((a) => a.portal || portalOf(a.url)), ...QUELLEN])];
   const F = {
     besichtigung: ['Besichtigung eintragen', `<label class="f"><span>Datum und Uhrzeit</span><input name="datum" type="datetime-local" required value="${lokal(jetzt.getTime())}"></label>
-      <label class="f"><span>Anzahl Interessenten</span><input name="anzahl" type="number" min="0" max="99" step="1" value="1" required></label>
-      ${kChk(kidVorwahl ? [kidVorwahl] : [])}
+      ${nameFeld(vorK?.name)}
       ${ergSel('geplant')}
-      <label class="f wide"><span>Notiz (z. B. Eindruck, Rückfragen)</span><textarea name="text" rows="3" maxlength="1500"></textarea></label>`],
-    ergebnis: ['Ergebnis eintragen', `<p class="hint wide">Besichtigung ${b ? `${tag(b.datum)}, ${uhr(b.datum)} Uhr${b.anzahl ? ' · ' + num(b.anzahl) + ' Interessent' + (Number(b.anzahl) === 1 ? '' : 'en') : ''}${namenText(b.namen)}` : ''}</p>${ergSel(b?.ergebnis === 'geplant' ? 'interesse' : b?.ergebnis)}
-      ${b?.namen.length ? '<p class="hint wide">Zusage oder Absage wird auch beim Interessenten vermerkt.</p>' : ''}
-      <label class="f wide"><span>Notiz</span><textarea name="text" rows="3" maxlength="1500"></textarea></label>`],
+      ${fbFeld('')}
+      <p class="hint wide">Pro Interessent eine Besichtigung eintragen. Neue Namen werden automatisch als Interessent angelegt – dort sammelt ihr die Unterlagen.</p>`],
+    ergebnis: [b?.ergebnis === 'geplant' ? 'Ergebnis eintragen' : 'Besichtigung bearbeiten', `<p class="hint wide">Besichtigung am <b>${b ? `${tag(b.datum)}, ${uhr(b.datum)} Uhr` : ''}</b></p>
+      ${nameFeld(b?.wer)}
+      ${ergSel(b?.ergebnis === 'geplant' ? 'interesse' : b?.ergebnis)}
+      ${fbFeld(b?.fb)}
+      <p class="wide"><button type="button" class="linkbtn vm-del" data-a="bdel">Besichtigung löschen</button></p>`],
     kontakt: [k ? 'Interessent bearbeiten' : 'Interessent anlegen', `<label class="f"><span>Name</span><input name="kname" required maxlength="120" value="${esc(k?.name || '')}" autocomplete="off" placeholder="z. B. Anna Müller"></label>
       <label class="f"><span>Telefon</span><input name="tel" type="tel" maxlength="40" value="${esc(k?.tel || '')}" autocomplete="off"></label>
       <label class="f"><span>E-Mail</span><input name="mail" type="email" maxlength="160" value="${esc(k?.mail || '')}" autocomplete="off"></label>
@@ -695,8 +723,6 @@ function formular(art, o, ref, kidVorwahl) {
   // Absagegrund nur bei Absage zeigen
   const zeig = (sel, feld, wert) => { const a = d.querySelector(sel), g = d.querySelector(feld); if (!a || !g) return; const f = () => { g.hidden = a.value !== wert; }; a.addEventListener('change', f); f(); };
   zeig('#ergSel', '#grundF', 'absage'); zeig('#kStand', '#kGrundF', 'absage'); zeig('#uKid', '#uNeu', '');
-  // Mehr angehakte Interessenten als Anzahl → Anzahl mitziehen
-  form.querySelectorAll('[name=kids]').forEach((c) => c.addEventListener('change', () => { const n = form.querySelectorAll('[name=kids]:checked').length; if (form.anzahl && Number(form.anzahl.value) < n) form.anzahl.value = n; }));
   // Vorschau: welche Datei als welche Unterlage abgelegt wird
   const vor = d.querySelector('#vor');
   const vorschau = () => { const l = [...(form.files?.files ?? [])]; vor.classList.toggle('hidden', !l.length); vor.innerHTML = l.map((f) => `<li><span>${esc(f.name)}</span><b>${esc(DOK_L[form.art.value === 'auto' ? dokArt(f.name) : form.art.value])}</b></li>`).join(''); };
@@ -705,6 +731,9 @@ function formular(art, o, ref, kidVorwahl) {
     if (e.target.closest('[data-a=close]')) d.close();
     if (e.target.closest('[data-a=kdel]') && k && await confirmBox({ title: `${k.name} entfernen?`, text: 'Der Interessent verschwindet aus der Liste. Im Chat-Verlauf bleibt vermerkt, dass er entfernt wurde.', ok: 'Entfernen', danger: true })) {
       try { await send(o.id, { typ: 'kontakt_weg', ref: k.kid }); d.close(); toast('Interessent entfernt.'); aktualisieren(true); } catch (x) { toast(x.message, false); }
+    }
+    if (e.target.closest('[data-a=bdel]') && b && await confirmBox({ title: 'Besichtigung löschen?', text: `Die Besichtigung vom ${tag(b.datum)}${b.wer ? ` (${b.wer})` : ''} verschwindet aus der Liste und aus der Auswertung. Der Interessent selbst bleibt erhalten.`, ok: 'Löschen', danger: true })) {
+      try { await send(o.id, { typ: 'besichtigung_weg', ref: b.id }); d.close(); toast('Besichtigung gelöscht.'); aktualisieren(true); } catch (x) { toast(x.message, false); }
     }
   };
   form.onsubmit = async (e) => {
@@ -717,15 +746,12 @@ function formular(art, o, ref, kidVorwahl) {
       if (art === 'besichtigung' || art === 'ergebnis') {
         const ergebnis = f.ergebnis.value, grund = ergebnis === 'absage' ? f.grund.value : '';
         if (ergebnis === 'absage' && !grund) return fehler('Bitte einen Absagegrund wählen.');
-        if (art === 'besichtigung') {
-          const datum = new Date(f.datum.value).getTime(), kids = [...f.querySelectorAll('[name=kids]:checked')].map((x) => x.value);
-          if (!Number.isFinite(datum)) return fehler('Bitte Datum und Uhrzeit angeben.');
-          await send(o.id, { typ: 'besichtigung', datum, anzahl: Number(f.anzahl.value) || 0, ergebnis, grund: grund || undefined, text, kids: kids.length ? kids : undefined });
-          await kontakteNachziehen(o.id, kids, ergebnis, grund);
-        } else {
-          await send(o.id, { typ: 'ergebnis', ref, ergebnis, grund: grund || undefined, text });
-          await kontakteNachziehen(o.id, b?.kids, ergebnis, grund);
-        }
+        const name = f.bname.value.trim(), feedback = f.feedback.value.trim(), datum = art === 'besichtigung' ? new Date(f.datum.value).getTime() : b?.datum;
+        if (!Number.isFinite(datum)) return fehler('Bitte Datum und Uhrzeit angeben.');
+        const kid = name ? await kontaktFuer(o.id, name, ergebnis, grund) : '', kids = kid ? [kid] : [];
+        if (art === 'besichtigung') await send(o.id, { typ: 'besichtigung', datum, anzahl: 1, ergebnis, grund: grund || undefined, name, feedback, kids: kids.length ? kids : undefined });
+        else await send(o.id, { typ: 'ergebnis', ref, ergebnis, grund: grund || undefined, name, feedback, kids });
+        await kontakteNachziehen(o.id, kids, ergebnis, grund);
       } else if (art === 'kontakt') {
         const name = f.kname.value.trim(), mail = f.mail.value.trim(), st = f.stand.value, grund = st === 'absage' ? f.grund.value : '';
         if (!name) return fehler('Bitte den Namen eingeben.');
