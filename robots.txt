@@ -3,6 +3,7 @@ Allow: /
 Disallow: /crm/
 Disallow: /partner/
 Disallow: /handwerker/
+Disallow: /vermietung/
 Disallow: /signatur/
 Disallow: /visitenkarte/
 
