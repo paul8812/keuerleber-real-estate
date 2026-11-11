@@ -285,7 +285,7 @@ export async function mount({ app, ctx, render, logout, header }) {
   function teamPanel() {
     return `<section class="panel"><h2>Team (Master)</h2>
       <p class="hint">Master dürfen alles verwalten und sehen alle Objekte. Anmeldung mit dem eigenen Passwort (mind. ${MIN_PW} Zeichen).</p>
-      <p class="hint gh-z">${S.gh?.token ? '✓ <b>Veröffentlichen:</b> GitHub-Token ist zentral hinterlegt – alle Master können ohne eigenen Token veröffentlichen. <button type="button" class="linkbtn" data-a="ghdel">Entfernen</button>' : '<b>Veröffentlichen:</b> Noch kein zentraler Token. Beim nächsten „Veröffentlichen“ den GitHub-Token mit „Für alle Master hinterlegen“ eintragen – dann braucht kein anderer Master einen eigenen.'}</p>
+      <p class="hint gh-z">${S.gh?.token ? '✓ <b>Veröffentlichen:</b> GitHub-Token ist zentral hinterlegt – alle Master können ohne eigenen Token veröffentlichen. <button type="button" class="linkbtn" data-a="ghdel">Entfernen</button>' : token() ? '<b>Veröffentlichen:</b> Noch kein zentraler Token – andere Master brauchen bisher einen eigenen. <button type="button" class="btn fill sm" data-a="ghshare">Meinen Token für alle Master hinterlegen</button>' : '<b>Veröffentlichen:</b> Noch kein zentraler Token. Beim nächsten „Veröffentlichen“ den GitHub-Token mit „Für alle Master hinterlegen“ eintragen – dann braucht kein anderer Master einen eigenen.'}</p>
       <ul class="rows">${S.masters.map((m) => `<li><div><b>${esc(m.name)}</b>${m.id === ctx.sess.id ? '<small>Das sind Sie</small>' : ''}</div>
         <div class="acts"><button class="btn ghost sm" data-a="mren" data-id="${esc(m.id)}">Umbenennen</button><button class="btn ghost sm" data-a="mpw" data-id="${esc(m.id)}">Passwort ändern</button>
         ${S.masters.length > 1 && m.id !== ctx.sess.id ? `<button class="btn ghost sm danger" data-a="mdel" data-id="${esc(m.id)}">Entfernen</button>` : ''}</div></li>`).join('')}</ul>
@@ -309,6 +309,13 @@ export async function mount({ app, ctx, render, logout, header }) {
     else if (a === 'share') openShare(id);
     else if (a === 'open') openPartner(id);
     else if (a === 'publish') openPublish();
+    else if (a === 'ghshare') {
+      b.disabled = true; b.textContent = 'Prüfe Token …';
+      const fehler = await checkPubToken(token());
+      if (fehler) { draw(); return toast(fehler, false); }
+      S.gh = { token: token() }; draw(); saveDraft();
+      toast('Token geprüft ✓ – jetzt unten „Veröffentlichen“, dann gilt er für alle Master.');
+    }
     else if (a === 'ghdel') { S.gh = null; draw(); saveDraft(); toast('Zentraler Token entfernt – bitte veröffentlichen.'); }
     else if (a === 'redeploy') {
       if (!pubToken()) return openPublish();
@@ -576,11 +583,12 @@ export async function mount({ app, ctx, render, logout, header }) {
         <ol class="hint steps"><li>github.com → Einstellungen → Developer settings → Fine-grained tokens → „Generate new token“.</li><li>Repository: nur <b>keuerleber-real-estate</b>, Berechtigung <b>Contents: Read and write</b>.</li><li>Token hier einfügen.</li></ol>`}
         <div class="tk-row ${hasTk ? 'hidden' : ''}" id="tkWrap"><label class="f"><span>GitHub-Token</span><input type="password" id="gh" value="${esc(token())}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="tkMsg"></label>
           <button type="button" class="btn dark sm" data-a="tksave">Token prüfen &amp; speichern</button></div>
+        ${hasTk && !zentral ? '<label class="chk" id="tkTeilenWrap"><input type="checkbox" id="tkTeilen" checked> Diesen Token auch für alle Master hinterlegen (verschlüsselt)</label>' : ''}
         <label class="chk ${hasTk ? 'hidden' : ''}" id="tkAlleWrap"><input type="checkbox" id="tkAlle" checked> Für alle Master hinterlegen (verschlüsselt, nur Master können ihn lesen)</label>
         <p class="hint hidden" id="tkMsg" role="status"></p>
       </div>
       <p class="lg-err hidden" id="pubErr" role="alert"></p>
-      <div class="acts sticky-save"><button class="btn fill" id="pubGo" ${ch.length ? '' : 'disabled'}>Jetzt veröffentlichen</button><button type="button" class="btn ghost" data-a="file">Als Datei sichern</button></div></form>`;
+      <div class="acts sticky-save"><button class="btn fill" id="pubGo" ${ch.length || (hasTk && !zentral) ? '' : 'disabled'}>Jetzt veröffentlichen</button><button type="button" class="btn ghost" data-a="file">Als Datei sichern</button></div></form>`;
     sheet.onclose = () => draw();
     const err = (t) => { const p = sheet.querySelector('#pubErr'); p.textContent = t; p.classList.toggle('hidden', !t); };
     sheet.onclick = async (e) => {
@@ -611,6 +619,8 @@ export async function mount({ app, ctx, render, logout, header }) {
       const tk = (offen && typed) || pubToken();
       if (!tk) { sheet.querySelector('#tkWrap').classList.remove('hidden'); sheet.querySelector('#tkAlleWrap').classList.remove('hidden'); return err('Bitte zuerst den GitHub-Token eintragen (Anleitung oben).'); }
       if (offen && typed && sheet.querySelector('#tkAlle').checked) S.gh = { token: typed };
+      else if (!offen && sheet.querySelector('#tkTeilen')?.checked) S.gh = { token: tk };
+      if (!changes().length) { sheet.close(); return toast('Keine Änderungen zu veröffentlichen.'); }
       const fmt = tokenFormat(tk); if (fmt) { sheet.querySelector('#tkWrap').classList.remove('hidden'); return err(fmt); }
       const go = sheet.querySelector('#pubGo'), force = go.dataset.force === '1'; go.disabled = true; go.textContent = 'Veröffentliche …';
       try { await publish(tk, force); sheet.close(); draw(); toast('Veröffentlicht ✓ – gespeichert und bestätigt. Partner sehen es in ca. 1–2 Minuten.'); }
