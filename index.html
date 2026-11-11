@@ -2136,7 +2136,7 @@ footer{flex-wrap:wrap}
 #finder,#faq,#ueber-mich,#kontakt,#vorabliste,#drone-banner{content-visibility:auto;contain-intrinsic-size:auto 800px}
 @media(max-width:900px){#kp-grain{display:none!important}.hub-bar{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(8,8,8,.97)!important}}
 </style>
-<link rel="stylesheet" href="/design-v2.css?v=11">
+<link rel="stylesheet" href="/design-v2.css?v=12">
 </head>
 <body>
 <a class="skip-link" href="#hub-objekte">Zum Inhalt springen</a>
@@ -6288,7 +6288,9 @@ Object.assign(I18N.de,{"next_q1": "Wie funktioniert das Ganze?", "next_b1": "Zum
 /* Schwebende Knöpfe erst einblenden, wenn das Startbild verlassen ist */
 (function(){var h=document.querySelector('.hero');function f(){var g=h?h.offsetHeight*0.6:500;document.body.classList.toggle('v2-oben',window.scrollY<g);}addEventListener('scroll',f,{passive:true});f();})();
 </script>
-<script src="/consent.js" defer></script>
+<script>document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest(".btn-cu,.nav-cta,.hub-tab,.san-tab,.agb-accept-btn,.v2-bar a,.v2-bar button");if(b&&navigator.vibrate&&matchMedia("(pointer:coarse)").matches){try{navigator.vibrate(8)}catch(_){}}},{passive:true});</script>
+<script>(function(){var bs=[].slice.call(document.querySelectorAll(".hub-bar"));if(!bs.length)return;var t;function f(){bs.forEach(function(b){var top=parseFloat(getComputedStyle(b).top)||0;var r=b.getBoundingClientRect();b.classList.toggle("is-stuck",r.height>0&&Math.abs(r.top-top)<2)})}addEventListener("scroll",function(){if(t)return;t=requestAnimationFrame(function(){t=0;f()})},{passive:true});f()})();</script>
+<script src="/consent.js?v=2" defer></script>
 <script src="/lead-sync.js?v=2" defer></script>
 </body>
 </html>

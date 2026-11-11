@@ -82,6 +82,8 @@
   function start() {
     var c = read();
     if (c) { if (c.stat) load(); return; }
+    /* Ohne eingebundene Statistik gibt es nichts zu erlauben: kein Fenster. Über „Cookie-Einstellungen“ bleibt es erreichbar. */
+    if (!ga() && !PLAUSIBLE) return;
     if (window.gtag === undefined && ga()) { window.dataLayer = window.dataLayer || []; window.gtag = function () { window.dataLayer.push(arguments); }; window.gtag('consent', 'default', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'denied' }); }
     (function wait() { if (document.documentElement.classList.contains('intro-lock')) return setTimeout(wait, 400); setTimeout(function () { build(false); }, 700); })();
   }
