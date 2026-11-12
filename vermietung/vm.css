@@ -363,3 +363,19 @@ dialog.sheet .panel{overflow-x:hidden}
 .grid>.vm-fh,.grid>.vm-chk1,.grid>.vm-mvd{grid-column:1/-1}
 #vtForm .sticky-save{display:grid;grid-template-columns:1fr 1.5fr;gap:10px}
 #vtForm .sticky-save .btn{width:100%}
+/* Schlüssel: Art | Anzahl | Nummer */
+.vm-sl{display:grid;gap:6px;padding:8px 10px 10px;border:1px solid var(--rand2);border-radius:2px}
+.vm-sl legend{padding:0 4px;font:700 9.5px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.vm-sl-l{display:grid;gap:6px}
+.vm-sl-z{display:grid;grid-template-columns:minmax(0,1fr) 64px minmax(0,.9fr);gap:6px;align-items:center}
+.vm-sl-z input{width:100%;min-width:0}
+.vm-sl-z input[name$=_n]{text-align:center}
+.vm-sl-k span{font:700 9px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.vm-sl-k span:nth-child(2){text-align:center}
+.vm-sl-f{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}.vm-sl-f small{flex:1 1 220px;font-size:11px;color:var(--muted)}
+.grid>.vm-sl{grid-column:1/-1}
+/* Kaution aus Kaltmiete */
+.vm-kbtn-r{display:flex;gap:6px;flex-wrap:wrap}.vm-kbtn-r .btn{flex:1 1 0;white-space:nowrap}
+.vm-kbtn small,.vm-kzhint{font-size:11.5px;color:var(--ink2);margin:0;align-self:center}
+.vm-kbtn small.warn,.vm-kzhint.warn{color:var(--warn);font-weight:700}
+@media (max-width:760px),(pointer:coarse){.vm-sl-z input,.vm-kbtn-r .btn{min-height:44px}.vm-sl-z{grid-template-columns:minmax(0,1fr) 54px minmax(0,.8fr)}}

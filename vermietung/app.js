@@ -2,7 +2,7 @@
 // dazu Besichtigungen (mit Absagegründen), Anzeigen-Links, Mietdaten mit Unterlagen und der Vermietungsstand.
 // Alles Inhaltliche ist Ende-zu-Ende verschlüsselt; der Speicherdienst sieht nur Zufallskennungen und Chiffretext.
 import { openObjekte, openSlot } from './pkg.js';
-import { AUSST, SEITEN, STP, fehlt as vFehlt, gesamt as vGesamt, ibanOk, ibanSchoen, vertragsdaten, vertragsname } from './mvfelder.js';
+import { AUSST, SEITEN, STP, fehlt as vFehlt, gesamt as vGesamt, ibanOk, ibanSchoen, schluesselEditor, schluesselLesen, schluesselPlus, vertragsdaten, vertragsname } from './mvfelder.js';
 import { neuester, verOf } from './quelle.js';
 import { fetchEvents, getFile, postEvent, putFile } from '../handwerker/store.js';
 import { ago, confirmBox, dlg, dt, dtm, esc, logo, lsGet, lsSet, shrinkImage, themaWechseln, toast } from '../handwerker/ui.js';
@@ -57,7 +57,8 @@ const ERKENNEN = [['selbstauskunft', /selbst.?auskunft|mieterauskunft|auskunft.?
   ['einkommen', /gehalt|lohn|einkommen|verdienst|entgelt|abrechnung|rente|bafög|bafoeg|jobcenter|bescheid|kontoauszug/i]];
 export const dokArt = (name) => ERKENNEN.find(([, re]) => re.test(name))?.[0] ?? 'sonstiges';
 const dokListe = (k, key) => (k?.dateien ?? []).filter((f) => f.k === key);
-export const dokZahl = (k) => CHECK.filter(([key, , , min]) => dokListe(k, key).length >= min).length;
+/** Vollständig = genug Dateien hochgeladen oder als geprüft markiert (z. B. drei Gehaltsnachweise in einer PDF) */
+export const dokZahl = (k) => CHECK.filter(([key, , , min]) => k?.geprueft?.[key] || dokListe(k, key).length >= min).length;
 const geprueftZahl = (k) => CHECK.filter(([key]) => k?.geprueft?.[key]).length;
 const QUELLEN = ['Kleinanzeigen', 'ImmoScout24', 'Immowelt', 'Eigene Webseite', 'Empfehlung', 'Aushang', 'Telefon', 'Sonstiges'];
 const telHref = (t) => { const x = String(t || '').replace(/[^\d+]/g, ''); return x.replace(/\D/g, '').length >= 5 ? 'tel:' + x : ''; };
@@ -896,11 +897,12 @@ function vertragFormular(o, kid) {
       ${inp('zimmer', 'Zimmer', { mode: 'decimal' })}${inp('flaeche', 'Wohnfläche (m²)', { mode: 'decimal' })}${inp('nutzflaeche', 'Nutzfläche (m², optional)', { mode: 'decimal' })}
       <fieldset class="f wide vm-chk"><legend>Ausstattung</legend>${AUSST.map(([key, l]) => `<label><input type="checkbox" name="au_${key}"${d0.ausst?.[key] ? ' checked' : ''}> ${l}</label>`).join('')}</fieldset>
       ${sel('stp', 'Stellplatz / Garage / Carport', STP.map((x) => [x, x || 'keiner']))}${inp('stpNr', 'Stellplatz-Nummer')}
-      <label class="f wide"><span>Schlüssel (je Zeile: Anzahl und Art)</span><textarea name="schluessel" rows="3" maxlength="400" placeholder="2 Haustür&#10;2 Wohnungstür&#10;1 Briefkasten">${esc(d0.schluessel || '')}</textarea></label>
+      ${schluesselEditor(d0.schluessel, 'sl')}
       ${kopf('Miete und Kaution (§ 2, § 5)')}
       ${inp('kalt', 'Kaltmiete (€)', { mode: 'decimal' })}${inp('nk', 'Betriebskosten-Vorauszahlung (€)', { mode: 'decimal' })}
       ${inp('stpKosten', 'Stellplatz / Garage (€ mtl.)', { mode: 'decimal' })}${inp('kuecheKosten', 'Küche / Mobiliar (€ mtl.)', { mode: 'decimal' })}
-      ${inp('kaution', 'Kaution (€)', { mode: 'decimal' })}<p class="f vm-summe" id="vtSumme"></p>
+      ${inp('kaution', 'Kaution (€)', { mode: 'decimal' })}<div class="f vm-kbtn"><span>Kaution aus Kaltmiete</span><div class="vm-kbtn-r"><button type="button" class="btn ghost sm" data-kaution="2">2 Kaltmieten</button><button type="button" class="btn ghost sm" data-kaution="3">3 Kaltmieten</button></div><small id="vtKz"></small></div>
+      <p class="f vm-summe" id="vtSumme"></p>
       ${kopf('Mietkonto (§ 3)')}
       ${inp('bank', 'Bank')}${inp('iban', 'IBAN', { ph: 'DE00 0000 0000 0000 0000 00' })}${inp('bic', 'BIC')}
       ${kopf('Vertrag (§ 4, § 6, § 18, § 20)')}
@@ -917,9 +919,10 @@ function vertragFormular(o, kid) {
   const NUM = ['zimmer', 'flaeche', 'nutzflaeche', 'kalt', 'nk', 'stpKosten', 'kuecheKosten', 'kaution', 'kv'];
   const lesen = () => {
     const f = form, v = {};
-    for (const n of ['vname', 'vname2', 'anschrift', 'tel', 'mail', 'mvName', 'mvAnschrift', 'mvTel', 'mvMail', 'adresse', 'geschoss', 'seite', 'stp', 'stpNr', 'schluessel', 'bank', 'iban', 'bic', 'beginn', 'arbBis', 'arbWas', 'hv', 'vereinbarungen', 'ort']) v[n] = f[n].value.trim();
+    for (const n of ['vname', 'vname2', 'anschrift', 'tel', 'mail', 'mvName', 'mvAnschrift', 'mvTel', 'mvMail', 'adresse', 'geschoss', 'seite', 'stp', 'stpNr', 'bank', 'iban', 'bic', 'beginn', 'arbBis', 'arbWas', 'hv', 'vereinbarungen', 'ort']) v[n] = f[n].value.trim();
     for (const n of NUM) { const z = zahl(f[n].value); v[n] = z == null ? '' : z; }
     v.ausst = Object.fromEntries(AUSST.map(([key]) => [key, f['au_' + key].checked]));
+    v.schluessel = schluesselLesen(f, 'sl');
     v.deckblatt = f.deckblatt.checked;
     if (v.iban) v.iban = ibanSchoen(v.iban);
     return v;
@@ -927,9 +930,13 @@ function vertragFormular(o, kid) {
   const pruefen = () => {
     const v = lesen(), fe = vFehlt(v), box = dlgEl.querySelector('#vtFehlt'), falsch = NUM.filter((n) => Number.isNaN(v[n]));
     const ib = v.iban && !ibanOk(v.iban);
-    box.className = 'vm-fehlt wide ' + (fe.length || falsch.length || ib ? 'offen' : 'ok');
-    box.innerHTML = fe.length || falsch.length || ib
-      ? `<b>${fe.length ? `Für den Vertrag fehlt noch (${fe.length}):` : 'Bitte prüfen:'}</b> ${[...fe, ...falsch.map((n) => `${n} ist keine Zahl`), ib ? 'IBAN-Prüfziffer stimmt nicht' : ''].filter(Boolean).map(esc).join(' · ')}<small>Leere Felder erscheinen im PDF als Linie zum Ausfüllen von Hand.</small>`
+    // Kaution in Kaltmieten anzeigen; mehr als drei Kaltmieten sind nach § 551 BGB nicht zulässig
+    const kf = Number(v.kalt) > 0 && Number(v.kaution) > 0 ? Number(v.kaution) / Number(v.kalt) : 0, zuHoch = kf > 3.001;
+    dlgEl.querySelector('#vtKz').textContent = kf ? `= ${kf.toLocaleString('de-DE', { maximumFractionDigits: 2 })} Kaltmieten${zuHoch ? ' – höchstens 3 erlaubt (§ 551 BGB)' : ''}` : '';
+    dlgEl.querySelector('#vtKz').classList.toggle('warn', zuHoch);
+    box.className = 'vm-fehlt wide ' + (fe.length || falsch.length || ib || zuHoch ? 'offen' : 'ok');
+    box.innerHTML = fe.length || falsch.length || ib || zuHoch
+      ? `<b>${fe.length ? `Für den Vertrag fehlt noch (${fe.length}):` : 'Bitte prüfen:'}</b> ${[...fe, ...falsch.map((n) => `${n} ist keine Zahl`), ib ? 'IBAN-Prüfziffer stimmt nicht' : '', zuHoch ? 'Kaution über 3 Kaltmieten' : ''].filter(Boolean).map(esc).join(' · ')}<small>Leere Felder erscheinen im PDF als Linie zum Ausfüllen von Hand.</small>`
       : '<b>Alle Pflichtangaben sind da.</b> <small>Der Vertrag kann erstellt werden.</small>';
     const sum = dlgEl.querySelector('#vtSumme'); sum.innerHTML = `<span>Monatlich gesamt</span><b>${v.kalt !== '' && v.nk !== '' && !Number.isNaN(v.kalt) && !Number.isNaN(v.nk) ? eur(vGesamt(v)) : '–'}</b>`;
     form.querySelectorAll('input,select,textarea').forEach((el) => el.classList.toggle('vm-leer', fe.length > 0 && ['vname', 'anschrift', 'mvName', 'mvAnschrift', 'adresse', 'geschoss', 'zimmer', 'flaeche', 'kalt', 'nk', 'kaution', 'beginn', 'iban', 'bank'].includes(el.name) && !el.value.trim()));
@@ -943,6 +950,9 @@ function vertragFormular(o, kid) {
   const fehler = (t) => { const e = dlgEl.querySelector('#vtErr'); e.textContent = t; e.classList.remove('hidden'); };
   dlgEl.onclick = async (e) => {
     if (e.target.closest('[data-a=close]')) return dlgEl.close();
+    const plus = e.target.closest('[data-sl-plus]'); if (plus) return schluesselPlus(form, plus.dataset.slPlus);
+    const kb = e.target.closest('[data-kaution]');
+    if (kb) { const km = zahl(form.kalt.value); if (!km) { form.kalt.focus(); return fehler('Bitte zuerst die Kaltmiete eintragen.'); } form.kaution.value = String(Math.round(km * Number(kb.dataset.kaution) * 100) / 100).replace('.', ','); return pruefen(); }
     const nur = e.target.closest('[data-a=nurspeichern]'); if (!nur) return;
     const { v, ok } = pruefen(); if (!ok) return fehler('Bitte Beträge und Flächen als Zahl eingeben.');
     nur.disabled = true; try { await speichern(v); dlgEl.close(); toast('Vertragsdaten gespeichert.'); aktualisieren(true); } catch (x) { fehler(x.message); nur.disabled = false; }
@@ -955,7 +965,8 @@ function vertragFormular(o, kid) {
     try {
       await speichern(v);
       const kk = stand(o.id).kontakte.find((x) => x.kid === kid) ?? k;
-      const unterlagen = CHECK.map(([key, l, , min]) => { const fs = dokListe(kk, key), pr = kk.geprueft?.[key]; return { l, st: pr ? 'pr' : fs.length >= min ? 'ok' : fs.length ? 'teil' : 'fehlt', txt: pr ? `geprüft (${vorname(pr.n)})` : fs.length >= min ? 'liegt vor' : fs.length ? `${fs.length} von ${min}` : 'fehlt' }; });
+      // Im PDF steht nur, ob eine Unterlage vorliegt – nicht, wer sie geprüft hat
+      const unterlagen = CHECK.map(([key, l, , min]) => { const fs = dokListe(kk, key), da = kk.geprueft?.[key] || fs.length >= min; return { l, st: da ? 'ok' : fs.length ? 'teil' : 'fehlt', txt: da ? 'vorhanden' : fs.length ? `${fs.length} von ${min}` : 'fehlt' }; });
       const { vertragPdf } = await import('./vertrag.js');
       const bytes = await vertragPdf(v, { titel: o.titel, lage: o.lage, ort: o.ort, bild: o.bild, unterlagen, erstellt: Date.now() });
       const name = dateiname(`Mietvertrag ${o.titel}${v.geschoss ? ' ' + v.geschoss : ''} – ${(v.vname || k.name).replace(',', '')} ${new Date().toLocaleDateString('de-DE')}`) + '.pdf';
