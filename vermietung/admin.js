@@ -5,7 +5,7 @@ import { SQL, testConnection } from '../handwerker/store.js';
 import { ctx, header, go, relogin, ROLLEN, STATUS, eur, num, load } from './app.js';
 import { askBox, confirmBox, dlg, dt, esc, shrinkImage, toast } from '../handwerker/ui.js';
 import { randomCode, randomId, toB64 } from '../partner/crypto.js';
-import { AUSST, OBJ_FELDER, SEITEN, STP, UEBERNEHMBAR, ableiten, ibanOk, ibanSchoen, vorlageVon } from './mvfelder.js';
+import { AUSST, OBJ_FELDER, SEITEN, STP, UEBERNEHMBAR, ableiten, ibanOk, ibanSchoen, schluesselEditor, schluesselLesen, schluesselPlus, vorlageVon } from './mvfelder.js';
 
 const MIN_PW = 12;
 const app = document.getElementById('app');
@@ -134,7 +134,8 @@ function editObjekt(id) {
   const mvF = ([k, l, ph]) => {
     if (k === 'seite') return `<label class="f"><span>${l}</span><select name="mv_seite">${SEITEN.map(([v, t]) => `<option value="${v}"${(mv.seite ?? '') === v ? ' selected' : ''}>${v ? t : 'aus „Lage im Haus“'}</option>`).join('')}</select></label>`;
     if (k === 'stp') return `<label class="f"><span>${l}</span><select name="mv_stp">${STP.map((v) => `<option value="${v}"${(mv.stp ?? '') === v ? ' selected' : ''}>${v || 'keiner / aus Ausstattung'}</option>`).join('')}</select></label>`;
-    if (k === 'schluessel' || k === 'vereinbarungen') return `<label class="f wide"><span>${l}</span><textarea name="mv_${k}" rows="${k === 'schluessel' ? 4 : 2}" maxlength="2500" placeholder="${esc(ph)}">${esc(mv[k] ?? '')}</textarea></label>`;
+    if (k === 'schluessel') return schluesselEditor(mv.schluessel, 'mvsl');
+    if (k === 'vereinbarungen') return `<label class="f wide"><span>${l}</span><textarea name="mv_${k}" rows="2" maxlength="2500" placeholder="${esc(ph)}">${esc(mv[k] ?? '')}</textarea></label>`;
     const auto = k === 'geschoss' ? ab.geschoss : k === 'ort' ? ab.ort : '';
     return `<label class="f"><span>${l}</span><input name="mv_${k}" value="${esc(mv[k] ?? '')}" maxlength="200" placeholder="${esc(auto ? auto + ' (aus Objekt)' : ph)}" autocomplete="off"${['kv', 'stpKosten', 'kuecheKosten', 'nutzflaeche'].includes(k) ? ' inputmode="decimal"' : ''}></label>`;
   };
@@ -146,7 +147,7 @@ function editObjekt(id) {
     <label class="f"><span>PLZ und Ort</span><input name="ort" maxlength="60" value="${esc(o.ort || '')}"></label>
     <label class="f"><span>Art</span><select name="typ">${['Wohnung', 'Haus', 'WG-Zimmer', 'Gewerbe', 'Stellplatz / Garage'].map((t) => `<option${o.typ === t ? ' selected' : ''}>${t}</option>`).join('')}</select></label>
     ${zahlF('zimmer', 'Zimmer', o.zimmer, '0.5')}${zahlF('flaeche', 'Wohnfläche (m²)', o.flaeche)}
-    ${zahlF('kaltmiete', 'Kaltmiete (€)', o.kaltmiete)}${zahlF('nk', 'Nebenkosten-Vorauszahlung (€)', o.nk)}${zahlF('kaution', 'Kaution (€)', o.kaution)}
+    ${zahlF('kaltmiete', 'Kaltmiete (€)', o.kaltmiete)}${zahlF('nk', 'Nebenkosten-Vorauszahlung (€)', o.nk)}${zahlF('kaution', 'Kaution (€)', o.kaution)}<p class="f vm-kzhint" id="kzHint" aria-live="polite"></p>
     <label class="f"><span>Frei ab</span><input name="frei" type="date" value="${esc(o.frei || '')}"></label>
     ${id ? '' : `<label class="f"><span>Stand zu Beginn</span><select name="status0">${Object.entries(STATUS).filter(([k]) => k !== 'vermietet').map(([k, v]) => `<option value="${k}"${o.status0 === k ? ' selected' : ''}>${v.l}</option>`).join('')}</select></label>`}
     <label class="f wide"><span>Ausstattung (mit Komma getrennt)</span><input name="ausstattung" maxlength="400" value="${esc(o.ausstattung || '')}" placeholder="Balkon, Einbauküche, Stellplatz, Keller"></label>
@@ -160,7 +161,10 @@ function editObjekt(id) {
         <fieldset class="f wide vm-chk"><legend>Ausstattung laut Vertrag</legend>${AUSST.map(([k, l]) => `<label><input type="checkbox" name="mvau_${k}"${(typeof mv.ausst?.[k] === 'boolean' ? mv.ausst[k] : ab[k]) ? ' checked' : ''}> ${l}</label>`).join('')}</fieldset></div>
     </details>
     <p class="lg-err hidden" id="oErr" role="alert"></p><div class="acts sticky-save"><button class="btn fill">Übernehmen</button></div></form>`;
-  d.onclick = (e) => { if (e.target.closest('[data-a=close]')) d.close(); };
+  d.onclick = (e) => { if (e.target.closest('[data-a=close]')) d.close(); const p = e.target.closest('[data-sl-plus]'); if (p) schluesselPlus(d, p.dataset.slPlus); };
+  // Kaution in Kaltmieten anzeigen (üblich: 2, höchstens 3 nach § 551 BGB)
+  const kz = () => { const f = d.querySelector('#of'), km = Number(f.kaltmiete.value), ka = Number(f.kaution.value), h = d.querySelector('#kzHint'); const r = km > 0 && ka > 0 ? ka / km : 0; h.textContent = r ? `Kaution = ${r.toLocaleString('de-DE', { maximumFractionDigits: 2 })} Kaltmieten${r > 3.001 ? ' – höchstens 3 erlaubt' : ''}` : km > 0 ? `Leer lassen = 2 Kaltmieten (${(km * 2).toLocaleString('de-DE')} €) im Vertrag` : ''; h.classList.toggle('warn', r > 3.001); };
+  d.querySelector('#of').addEventListener('input', (e) => { if (['kaltmiete', 'kaution'].includes(e.target.name)) kz(); }); kz();
   d.querySelector('#mvVon')?.addEventListener('change', (e) => {
     const q = S.objekte.find((x) => x.id === e.target.value); if (!q) return;
     for (const k of UEBERNEHMBAR) { const el = d.querySelector(`[name=mv_${k}]`); if (el && q.mv?.[k] != null) el.value = q.mv[k]; }
@@ -178,6 +182,7 @@ function editObjekt(id) {
     if (nmv.iban) { if (!ibanOk(nmv.iban)) return toast('Die IBAN ist nicht gültig – bitte prüfen.', false); nmv.iban = ibanSchoen(nmv.iban); }
     for (const k of ['kv', 'stpKosten', 'kuecheKosten', 'nutzflaeche']) if (nmv[k] != null) { const z = Number(String(nmv[k]).replace(/\./g, '').replace(',', '.')); if (!Number.isFinite(z)) return toast(`„${OBJ_FELDER.find((x) => x[0] === k)[1]}“ bitte als Zahl.`, false); nmv[k] = z; }
     nmv.ausst = Object.fromEntries(AUSST.map(([k]) => [k, f[`mvau_${k}`].checked]));
+    const sl = schluesselLesen(f, 'mvsl'); if (sl.length) nmv.schluessel = sl;
     n.mv = nmv;
     if (!n.titel) return toast('Bitte Straße und Hausnummer eintragen.', false);
     if (!id) { let s = slug(n.titel + (n.lage ? '-' + n.lage : '')), i = 2; while (S.objekte.some((x) => x.id === s)) s = slug(n.titel) + '-' + i++; n.id = s; S.objekte.push(n); }
