@@ -352,7 +352,7 @@ function kontaktHtml(k, s) {
     ${checkliste(k)}
     <div class="vm-mv"><div><h3 class="sub-h">Mietvertrag</h3><p class="hint">${(() => { const f = vFehlt(vertragsdaten(objOf(ctx.oid), k, ctx.obj)); return f.length ? `Für einen vollständigen Vertrag fehlen noch ${f.length} Angabe${f.length > 1 ? 'n' : ''}.` : 'Alle Angaben für den Vertrag sind da.'; })()}</p>
       ${dokListe(k, 'mietvertrag').length ? `<div class="vm-files">${dokListe(k, 'mietvertrag').slice(-3).reverse().map(fileBtn).join('')}</div>` : ''}</div><button class="btn fill sm" data-kvertrag="${esc(k.kid)}">Mietvertrag erstellen</button></div>
-    <div class="vm-k-a">${k.dateien?.length ? `<button class="btn sm" data-kzip="${esc(k.kid)}">Alle Unterlagen laden (ZIP)</button>` : ''}<button class="btn ghost sm" data-kup="${esc(k.kid)}">Mehrere Dateien auf einmal hochladen</button></div>
+    <div class="vm-k-a">${k.dateien?.length ? `<button class="btn sm" data-kzip="${esc(k.kid)}">Alle Unterlagen als PDF</button>` : ''}<button class="btn ghost sm" data-kup="${esc(k.kid)}">Mehrere Dateien auf einmal hochladen</button></div>
     ${bs.length ? `<div class="vm-kd-b"><h3 class="sub-h">Besichtigungen</h3><ul>${bs.map((b) => `<li><b>${tag(b.datum)}, ${uhr(b.datum)} Uhr</b><span class="vm-erg" style="--c:${ERG[b.ergebnis]?.c}">${esc(ERG[b.ergebnis]?.l ?? b.ergebnis)}</span>${b.ergebnis === 'absage' ? `<em class="vm-bg">${esc(b.grund || '')}</em>` : ''}${b.fb ? `<small>${esc(b.fb)}</small>` : ''}</li>`).join('')}</ul></div>` : ''}
   </div>`;
 }
@@ -593,41 +593,27 @@ async function dateiGewaehlt(e) {
   aktualisieren(true);
 }
 
-/* ---------- Alle Unterlagen eines Interessenten als ZIP (ohne Kompression, Dateien sind schon komprimiert) ---------- */
-const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let j = 0; j < 8; j++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
-const crc32 = (b) => { let c = 0xffffffff; for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
-export function zipBlob(dateien) {
-  const enc = new TextEncoder(), jetzt = new Date(), teile = [], zentral = []; let off = 0;
-  const zeit = (jetzt.getHours() << 11) | (jetzt.getMinutes() << 5) | (jetzt.getSeconds() >> 1), datum = ((jetzt.getFullYear() - 1980) << 9) | ((jetzt.getMonth() + 1) << 5) | jetzt.getDate();
-  for (const { name, bytes } of dateien) {
-    const n = enc.encode(name), crc = crc32(bytes), h = new DataView(new ArrayBuffer(30)), c = new DataView(new ArrayBuffer(46));
-    h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true); h.setUint16(10, zeit, true); h.setUint16(12, datum, true);
-    h.setUint32(14, crc, true); h.setUint32(18, bytes.length, true); h.setUint32(22, bytes.length, true); h.setUint16(26, n.length, true);
-    c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true); c.setUint16(12, zeit, true); c.setUint16(14, datum, true);
-    c.setUint32(16, crc, true); c.setUint32(20, bytes.length, true); c.setUint32(24, bytes.length, true); c.setUint16(28, n.length, true); c.setUint32(42, off, true);
-    teile.push(h, n, bytes); zentral.push(c, n); off += 30 + n.length + bytes.length;
-  }
-  const groesse = zentral.reduce((a, x) => a + x.byteLength, 0), e = new DataView(new ArrayBuffer(22));
-  e.setUint32(0, 0x06054b50, true); e.setUint16(8, dateien.length, true); e.setUint16(10, dateien.length, true); e.setUint32(12, groesse, true); e.setUint32(16, off, true);
-  return new Blob([...teile, ...zentral, e], { type: 'application/zip' });
-}
+/* ---------- Alle Unterlagen eines Interessenten als EINE PDF ---------- */
 const dateiname = (s) => String(s).replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, ' ').trim().slice(0, 120);
 async function zipLaden(o, kid, btn) {
   const k = stand(o.id).kontakte.find((x) => x.kid === kid); if (!k?.dateien?.length) return;
-  const tk = ctx.sess.threads[tidOf(o.id)].k, label = btn.textContent, nr = Object.fromEntries(DOKS.map(([key], i) => [key, String(i + 1).padStart(2, '0')])), schon = new Set(), out = [];
+  const tk = ctx.sess.threads[tidOf(o.id)].k, label = btn.textContent, rang = Object.fromEntries(DOKS.map(([key], i) => [key, i])), out = [];
+  // Reihenfolge wie die Checkliste: Selbstauskunft, Gehalt, Mietschulden, Ausweis, Haftpflicht, Schufa, Sonstiges, Mietvertrag
+  const liste = k.dateien.map((f, i) => ({ f, i })).sort((a, b) => (rang[a.f.k] ?? 6) - (rang[b.f.k] ?? 6) || a.i - b.i).map((x) => x.f);
   btn.disabled = true;
   try {
-    for (const [i, f] of k.dateien.entries()) {
-      btn.textContent = `Lädt ${i + 1}/${k.dateien.length} …`;
-      const u = await getFile(ctx.sess.sb, f.p, tk, f.t), bytes = new Uint8Array(await (await fetch(u)).arrayBuffer());
-      let name = dateiname(`${nr[f.k] ?? '07'} ${DOK_L[f.k] ?? 'Sonstiges'} – ${f.n}`);
-      for (let j = 2; schon.has(name.toLowerCase()); j++) name = name.replace(/(\.[^.]+)?$/, (m) => ` (${j})${m}`);
-      schon.add(name.toLowerCase()); out.push({ name, bytes });
+    for (const [i, f] of liste.entries()) {
+      btn.textContent = `Lädt ${i + 1}/${liste.length} …`;
+      const u = await getFile(ctx.sess.sb, f.p, tk, f.t);
+      out.push({ name: f.n, type: f.t, bytes: new Uint8Array(await (await fetch(u)).arrayBuffer()) });
     }
-    const a = document.createElement('a'); a.href = URL.createObjectURL(zipBlob(out)); a.download = dateiname(`Unterlagen ${k.name} – ${o.titel}${o.lage ? ' ' + o.lage : ''}`) + '.zip';
+    btn.textContent = 'Fügt zusammen …';
+    const titel = dateiname(`Unterlagen ${k.name} – ${o.titel}${o.lage ? ' ' + o.lage : ''}`);
+    const { sammelPdf } = await import('./sammelpdf.js'), { bytes, fehler } = await sammelPdf(out, titel);
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' })); a.download = titel + '.pdf';
     document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000);
-    toast(`${out.length} Unterlagen als ZIP geladen.`);
-  } catch (x) { toast('ZIP konnte nicht erstellt werden: ' + (x.message || x), false); }
+    toast(fehler.length ? `PDF geladen – ${fehler.length} Datei(en) konnten nicht eingefügt werden: ${fehler.join(', ')}` : `${out.length} Unterlagen als eine PDF geladen.`, !fehler.length);
+  } catch (x) { toast('PDF konnte nicht erstellt werden: ' + (x.message || x), false); }
   btn.disabled = false; btn.textContent = label;
 }
 
