@@ -901,7 +901,7 @@ function vertragFormular(o, kid) {
       ${kopf('Miete und Kaution (§ 2, § 5)')}
       ${inp('kalt', 'Kaltmiete (€)', { mode: 'decimal' })}${inp('nk', 'Betriebskosten-Vorauszahlung (€)', { mode: 'decimal' })}
       ${inp('stpKosten', 'Stellplatz / Garage (€ mtl.)', { mode: 'decimal' })}${inp('kuecheKosten', 'Küche / Mobiliar (€ mtl.)', { mode: 'decimal' })}
-      ${inp('kaution', 'Kaution (€)', { mode: 'decimal' })}<div class="f vm-kbtn"><span>Kaution aus Kaltmiete</span><div class="vm-kbtn-r"><button type="button" class="btn ghost sm" data-kaution="2">2 Kaltmieten</button><button type="button" class="btn ghost sm" data-kaution="3">3 Kaltmieten</button></div><small id="vtKz"></small></div>
+      ${inp('kaution', 'Kaution (€)', { mode: 'decimal' })}<div class="f vm-kbtn"><span>Kaution aus Kaltmiete</span><div class="vm-kbtn-r"><button type="button" class="btn ghost sm" data-kaution="2">2 KM</button><button type="button" class="btn ghost sm" data-kaution="2.5">2,5 KM</button><button type="button" class="btn ghost sm" data-kaution="3">3 KM</button></div><small id="vtKz"></small></div>
       <p class="f vm-summe" id="vtSumme"></p>
       ${kopf('Mietkonto (§ 3)')}
       ${inp('bank', 'Bank')}${inp('iban', 'IBAN', { ph: 'DE00 0000 0000 0000 0000 00' })}${inp('bic', 'BIC')}
@@ -911,7 +911,6 @@ function vertragFormular(o, kid) {
       ${inp('hv', 'Hausverwaltung (leer = Absatz entfällt)', { wide: true })}
       <label class="f wide"><span>Individuelle Vereinbarungen (§ 20)</span><textarea name="vereinbarungen" rows="3" maxlength="2500" placeholder="z. B. Haltung einer Katze gestattet. Einbauküche wird mitvermietet.">${esc(d0.vereinbarungen || '')}</textarea></label>
       ${inp('ort', 'Ort für die Unterschrift', { ph: 'Hof' })}
-      <label class="f vm-chk1"><input type="checkbox" name="deckblatt"${d0.deckblatt ? ' checked' : ''}> Übersichtsseite vorne anfügen (Objekt, Parteien, Unterlagen)</label>
     </div>
     <p class="lg-err hidden" id="vtErr" role="alert"></p>
     <div class="acts sticky-save"><button type="button" class="btn" data-a="nurspeichern">Nur speichern</button><button class="btn fill">PDF erstellen</button></div></form>`;
@@ -923,7 +922,7 @@ function vertragFormular(o, kid) {
     for (const n of NUM) { const z = zahl(f[n].value); v[n] = z == null ? '' : z; }
     v.ausst = Object.fromEntries(AUSST.map(([key]) => [key, f['au_' + key].checked]));
     v.schluessel = schluesselLesen(f, 'sl');
-    v.deckblatt = f.deckblatt.checked;
+    v.deckblatt = false;
     if (v.iban) v.iban = ibanSchoen(v.iban);
     return v;
   };

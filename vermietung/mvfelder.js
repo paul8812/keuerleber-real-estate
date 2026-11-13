@@ -79,10 +79,10 @@ export function vertragsdaten(o, k, objekte = []) {
     zimmer: w('zimmer', o?.zimmer), flaeche: w('flaeche', o?.flaeche), nutzflaeche: w('nutzflaeche', mv.nutzflaeche), ausst,
     stp: w('stp', mv.stp, ab.stp), stpNr: w('stpNr', mv.stpNr), stpKosten: w('stpKosten', mv.stpKosten), kuecheKosten: w('kuecheKosten', mv.kuecheKosten),
     schluessel: w('schluessel', mv.schluessel),
-    kalt: w('kalt', o?.kaltmiete), nk: w('nk', o?.nk), kaution: w('kaution', o?.kaution, Number(w('kalt', o?.kaltmiete)) ? Number(w('kalt', o?.kaltmiete)) * 2 : ''),
+    kalt: w('kalt', o?.kaltmiete), nk: w('nk', o?.nk), kaution: w('kaution', o?.kaution, Number(w('kalt', o?.kaltmiete)) ? Math.round(Number(w('kalt', o?.kaltmiete)) * 250) / 100 : ''),
     beginn: w('beginn', k?.einzug, o?.frei), kv: w('kv', mv.kv, vl.kv, ab.kv), arbBis: w('arbBis'), arbWas: w('arbWas'),
     vereinbarungen: w('vereinbarungen', mv.vereinbarungen), ort: w('ort', mv.ort, vl.ort, ab.ort),
-    deckblatt: v.deckblatt !== false,
+    deckblatt: false, // Übersichtsseite entfällt
   };
 }
 
