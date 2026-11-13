@@ -163,7 +163,7 @@ function editObjekt(id) {
     <p class="lg-err hidden" id="oErr" role="alert"></p><div class="acts sticky-save"><button class="btn fill">Übernehmen</button></div></form>`;
   d.onclick = (e) => { if (e.target.closest('[data-a=close]')) d.close(); const p = e.target.closest('[data-sl-plus]'); if (p) schluesselPlus(d, p.dataset.slPlus); };
   // Kaution in Kaltmieten anzeigen (üblich: 2, höchstens 3 nach § 551 BGB)
-  const kz = () => { const f = d.querySelector('#of'), km = Number(f.kaltmiete.value), ka = Number(f.kaution.value), h = d.querySelector('#kzHint'); const r = km > 0 && ka > 0 ? ka / km : 0; h.textContent = r ? `Kaution = ${r.toLocaleString('de-DE', { maximumFractionDigits: 2 })} Kaltmieten${r > 3.001 ? ' – höchstens 3 erlaubt' : ''}` : km > 0 ? `Leer lassen = 2 Kaltmieten (${(km * 2).toLocaleString('de-DE')} €) im Vertrag` : ''; h.classList.toggle('warn', r > 3.001); };
+  const kz = () => { const f = d.querySelector('#of'), km = Number(f.kaltmiete.value), ka = Number(f.kaution.value), h = d.querySelector('#kzHint'); const r = km > 0 && ka > 0 ? ka / km : 0; h.textContent = r ? `Kaution = ${r.toLocaleString('de-DE', { maximumFractionDigits: 2 })} Kaltmieten${r > 3.001 ? ' – höchstens 3 erlaubt' : ''}` : km > 0 ? `Leer lassen = 2,5 Kaltmieten (${(km * 2.5).toLocaleString('de-DE')} €) im Vertrag` : ''; h.classList.toggle('warn', r > 3.001); };
   d.querySelector('#of').addEventListener('input', (e) => { if (['kaltmiete', 'kaution'].includes(e.target.name)) kz(); }); kz();
   d.querySelector('#mvVon')?.addEventListener('change', (e) => {
     const q = S.objekte.find((x) => x.id === e.target.value); if (!q) return;
