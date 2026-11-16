@@ -293,3 +293,15 @@ li.task>input[type=checkbox],.ctask input[type=checkbox]{border-radius:50%}
 @media(max-width:700px){input[type=checkbox]{width:24px;height:24px;flex-basis:24px}
  .dashhead .actions{display:none}
  .fokus .ttl,.fokus .sub{white-space:normal!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}}
+
+/* Sync-Anzeige (oben rechts): grüner Punkt = live, Kreisel = speichert, grau = offline */
+.syncdot{display:inline-flex;align-items:center;gap:6px;min-width:14px;height:28px;padding:0 8px;margin-right:6px;border-radius:14px;border:1px solid var(--line,#2a2a2e);background:transparent;color:var(--mut,#a59f94);font-size:12px;line-height:1;cursor:pointer;white-space:nowrap}
+.syncdot::before{content:"";width:8px;height:8px;border-radius:50%;background:#7d7a75;flex:none}
+.syncdot.ok::before{background:var(--ok,#4caf7d);box-shadow:0 0 0 3px rgba(76,175,125,.18)}
+.syncdot.ok{padding:0 9px}
+.syncdot.busy::before{background:var(--gold,#c9a96e);animation:syncpuls 1s ease-in-out infinite}
+.syncdot.warn::before{background:#e0a07a}
+.syncdot.off{color:#e0a07a;border-color:rgba(224,160,122,.4)}
+.syncdot.off::before{background:#e0a07a}
+.syncdot.wait::before{background:#7d7a75;animation:syncpuls 1.4s ease-in-out infinite}
+@keyframes syncpuls{50%{opacity:.35}}

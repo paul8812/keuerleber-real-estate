@@ -31,6 +31,15 @@ create policy "eigene Daten" on public.records for all
 *Einstellungen → Cloud-Datenbank*: URL + Key eintragen → „Speichern & neu laden“ → mit dem angelegten Benutzer anmelden.
 Bereits lokal erfasste Daten: *Einstellungen → Lokale Daten in die Cloud hochladen*.
 
+### Live-Abgleich zwischen Geräten (Handy, Mac, Tablet)
+- Einmalig im SQL-Editor ausführen: `SYNC_SQL` aus `js/db.js` (steckt auch im „SQL kopieren“ der Ersteinrichtung). Es setzt die Änderungszeit serverseitig, legt einen Index an und gibt `records` und `website_anfragen` für Supabase Realtime frei.
+- Jedes Gerät hält einen eigenen Stand im Gerätespeicher (IndexedDB): Start ohne Warten, Lesen und Erfassen auch ohne Netz.
+- Speichern ist sofort sichtbar; eine Warteschlange schickt die Änderung zum Server – auch nach Funkloch oder wenn das Handy die App zwischendurch beendet. Beim Abmelden bleiben nur noch nicht gesendete Änderungen auf dem Gerät, bis sie raus sind.
+- Änderungen anderer Geräte, des Mail-Abgleichs und neue Website-Anfragen kommen per Realtime sofort an; nach Ruhezustand/Funkloch werden nur die Änderungen seitdem nachgeladen (plus Abgleich gelöschter Einträge).
+- Punkt oben rechts: grün = live, gold mit Zahl = wird gesendet, „Offline · n“ = n Änderungen warten auf Netz. Antippen = sofort abgleichen. Herunterziehen auf dem Handy = alles neu laden.
+- Gleicher Datensatz auf zwei Geräten gleichzeitig geändert: der zuletzt beim Server angekommene Stand gilt auf allen Geräten.
+- App-Dateien hält ein Service Worker (`sw.js`) für das Öffnen ohne Netz vor; online wird immer die aktuelle Fassung geladen.
+
 ## Sicherheit
 - Der Anon-Key ist öffentlich vorgesehen; Schutz erfolgt über Login + Row Level Security (jeder sieht nur eigene Zeilen).
 - Das GitHub-Repo ist öffentlich: **keine echten Kundendaten ins Repo committen** (nur Code). Daten liegen in Supabase.

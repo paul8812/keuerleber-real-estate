@@ -1,6 +1,6 @@
 // Automations-Engine: läuft im Browser (beim Öffnen, alle 5 Min., bei Fokus). Idempotent über task.auto-Schlüssel.
 import * as db from './db.js';
-import { today, addDays, daysBetween, fullName, toast } from './util.js';
+import { today, addDays, daysBetween, fullName, toast, idFor } from './util.js';
 import { matchesForProperty, lastContact } from './ui.js';
 import { PIPELINES } from './consts.js';
 import * as google from './google.js';
@@ -44,10 +44,12 @@ export async function run({ manual = false } = {}) {
   running = true; let n = 0;
   try {
     const cfg = ruleCfg(), t0 = today(), nm = id => fullName(db.get('contacts', id));
+    // Feste IDs aus dem Regel-Schlüssel: laufen die Regeln auf Handy und Mac gleichzeitig, entsteht dieselbe Aufgabe nur einmal
     const mk = async (key, titel, faellig, ref = {}, prio = 'normal') => {
-      if (db.all('tasks').some(t => t.auto === key)) return;
-      await db.save('tasks', { titel: '⚡ ' + titel, faellig, prio, done: false, auto: key, ...ref });
-      await db.log('system', `⚡ Automatisch: Aufgabe „${titel}“ erstellt`, ref); n++;
+      const id = idFor('auto', key);
+      if (db.get('tasks', id) || db.all('tasks').some(t => t.auto === key)) return;
+      await db.save('tasks', { id, titel: '⚡ ' + titel, faellig, prio, done: false, auto: key, ...ref });
+      await db.save('activities', { id: idFor('autolog', key), art: 'system', text: `⚡ Automatisch: Aufgabe „${titel}“ erstellt`, datum: new Date().toISOString(), ...ref }); n++;
     };
     const on = id => cfg[id].on, d = id => Number(cfg[id].days) || 0;
     const contacts = db.all('contacts'), props = db.all('properties'), deals = db.all('deals'), events = db.all('events');

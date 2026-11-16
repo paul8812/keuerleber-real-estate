@@ -45,10 +45,31 @@ function navBadges() {
   if (!b) { b = document.createElement('b'); b.className = 'nb'; a.appendChild(b); }
   b.textContent = n;
 }
-const rerender = debounce(() => { if (!document.querySelector('.modal-bg')) route(); else pending = true; }, 60);
+const tippt = () => { const a = document.activeElement; return !!a && main.contains(a) && (a.matches('input, textarea, select') || a.isContentEditable); };
+const rerender = debounce(() => { if (!document.querySelector('.modal-bg') && !tippt()) route(); else pending = true; }, 60);
+main.addEventListener('focusout', () => setTimeout(() => { if (pending && !document.querySelector('.modal-bg') && !tippt()) { pending = false; route(); } }, 120));
 let pending = false;
 new MutationObserver(() => { if (pending && !document.querySelector('.modal-bg')) { pending = false; route(); } }).observe(document.getElementById('modal-root'), { childList: true });
 
+// Sync-Anzeige oben rechts (auch auf dem Handy sichtbar): live · speichert · offline mit Anzahl ausstehender Änderungen
+function syncAnzeige() {
+  const top = document.querySelector('header.top'); if (!top || document.getElementById('syncdot')) return;
+  top.insertBefore(Object.assign(document.createElement('button'), { id: 'syncdot', type: 'button', className: 'syncdot' }), document.getElementById('quick'));
+  const el = document.getElementById('syncdot'), mode = document.getElementById('mode');
+  const zeit = t => t ? new Date(t).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) : '–';
+  db.onStatus(st => {
+    if (!st.cloud) { el.hidden = true; return; }
+    const off = !st.online, p = st.pending;
+    const [cls, txt, tip] = off ? ['off', p ? `Offline · ${p}` : 'Offline', `Kein Netz. ${p ? p + ' Änderung(en) werden gesendet, sobald wieder Netz da ist – auch nach Schließen der App.' : 'Du siehst den zuletzt geladenen Stand.'}`]
+      : st.error && p ? ['warn', `⟳ ${p}`, `Senden hakt (${st.error}) – neuer Versuch läuft automatisch.`]
+      : p || st.busy ? ['busy', p ? `⟳ ${p}` : '⟳', 'Speichert …']
+      : st.live ? ['ok', '', `Live verbunden – Änderungen von anderen Geräten erscheinen sofort. Zuletzt abgeglichen ${zeit(st.lastSync)}.`]
+      : ['wait', '', `Verbinde … (zuletzt abgeglichen ${zeit(st.lastSync)})`];
+    el.className = 'syncdot ' + cls; el.textContent = txt; el.title = tip; el.setAttribute('aria-label', tip);
+    if (mode) mode.textContent = '☁ ' + (off ? 'Offline' : st.live ? 'Live' : 'Cloud') + (p ? ` · ${p} ausstehend` : '');
+  });
+  el.onclick = async () => { toast(el.title); try { await db.resume({ force: true }); } catch { /* Anzeige zeigt den Fehler */ } };
+}
 function shell() {
   document.getElementById('nav').innerHTML = NAV.map(([k, l, ic]) => `<a href="#/${k}" data-k="${k}"><i>${ic}</i><span>${l}</span></a>`).join('');
   // Handy: Leiste unten mit den wichtigsten Bereichen
@@ -59,7 +80,7 @@ function shell() {
   document.getElementById('burger').onclick = e => { e.stopPropagation(); document.body.classList.toggle('nav-open'); };
   document.addEventListener('click', e => { if (document.body.classList.contains('nav-open') && !e.target.closest('#side')) document.body.classList.remove('nav-open'); });
   if (matchMedia('(max-width:700px)').matches) document.getElementById('gsearch').placeholder = 'Suchen …';
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && db.isCloud()) db.reload(); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') db.resume(); });
   document.getElementById('mode').textContent = db.isCloud() ? '☁ Cloud' : '💾 Lokal';
   if (!db.isCloud() && !document.getElementById('lokalhinweis')) main.insertAdjacentHTML('beforebegin', '<div id="lokalhinweis" class="lokalhinweis">💾 Dieses Gerät arbeitet im <b>lokalen Modus</b> – du siehst nicht die Daten aus der Cloud. <a href="?cloud=1">Zur Cloud wechseln und anmelden</a></div>');
   document.getElementById('quick').onclick = () => modal('Neu anlegen', html`<div class="full quickgrid">${[['anfrage', '📋 Anfrage einfügen'], ['contact', '☺ Kontakt'], ['property', '⌂ Objekt'], ['task', '✓ Aufgabe'], ['event', '▦ Termin'], ['note', '📝 Notiz'], ['call', '📞 Anruf festhalten'], ['beleg', '📷 Beleg fotografieren']].map(([k, l]) => html`<button type="button" class="btn big" data-k="${k}">${l}</button>`)}</div>`, {
@@ -80,12 +101,14 @@ function shell() {
   document.addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); sq.focus(); sq.select(); } if (e.key === 'Escape') { res.hidden = true; sq.blur(); } });
   db.onChange(rerender); db.onChange(navBadges);
   window.addEventListener('hashchange', route);
-  window.addEventListener('focus', () => db.isCloud() && db.reload());
+  window.addEventListener('focus', () => db.resume());
+  syncAnzeige();
   route(); auto.start(); anfragen.start(); idleWatch(); initMobil(); initAktionen(); initCrmPlus();
 }
 
 async function boot() {
   const r = await db.init();
+  if (r.offline) { const b = document.getElementById('login'); b.hidden = false; b.querySelector('.err').textContent = 'Keine Internetverbindung. Beim ersten Öffnen auf diesem Gerät braucht das CRM einmal Netz – danach geht es auch offline.'; return; }
   if (db.RECOVERY || db.AUTH_ERROR) history.replaceState(null, '', location.pathname + location.search);
   if (r.needsLogin) return loginScreen({ mfa: r.needsMfa });
   if (db.isCloud() && abgelaufen()) { await db.logout(); return; }
@@ -142,7 +165,7 @@ function loginScreen({ mfa = false } = {}) {
   const showSetup = () => {
     const sb = box.querySelector('.setup'); sb.hidden = false;
     sb.innerHTML = `<b>Einmalige Einrichtung der Datenbank</b><ol><li><a target="_blank" rel="noopener" href="${esc(db.SQL_URL())}">SQL-Editor in Supabase öffnen</a> (dort einloggen)</li><li><button type="button" class="btn" data-copy>SQL kopieren</button> und im Editor einfügen</li><li>Auf <b>Run</b> klicken, dann hier erneut anmelden</li></ol>`;
-    sb.querySelector('[data-copy]').onclick = async () => { await navigator.clipboard.writeText(db.SETUP_SQL); toast('SQL kopiert'); };
+    sb.querySelector('[data-copy]').onclick = async () => { await navigator.clipboard.writeText(db.SETUP_SQL + '\n\n' + db.SYNC_SQL); toast('SQL kopiert'); };
   };
   form.onsubmit = async e => {
     e.preventDefault(); err.textContent = ''; btn.disabled = true;
@@ -165,4 +188,9 @@ function loginScreen({ mfa = false } = {}) {
   box.querySelector('[data-local]').onclick = () => { if (confirm('Cloud-Verbindung trennen und lokal arbeiten?')) { db.setCfg({ off: true }); location.reload(); } };
 }
 boot();
-if ('serviceWorker' in navigator && location.protocol === 'https:') { /* bewusst kein SW: Daten sind live */ }
+// App-Dateien fürs Öffnen ohne Netz (Daten laufen über den Gerätespeicher, siehe db.js)
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  navigator.serviceWorker.register('sw.js').catch(e => console.warn('Service Worker', e));
+  // alle beim Start geladenen App-Dateien merken lassen (Module, Logos) → nächstes Öffnen klappt auch ohne Netz
+  navigator.serviceWorker.ready.then(r => setTimeout(() => r.active?.postMessage({ cache: [location.href.split('#')[0], ...performance.getEntriesByType('resource').map(e => e.name).filter(u => u.startsWith(location.origin))] }), 3000)).catch(() => {});
+}

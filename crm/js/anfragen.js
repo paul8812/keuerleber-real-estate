@@ -2,7 +2,7 @@
 // Hier wird sie abgeholt, als Kontakt + Vorgang + Verlauf angelegt (die Regeln „Neuer Interessent“ und
 // „Neue Pipeline-Phase“ erzeugen daraus die Aufgabe) und danach aus der Tabelle gelöscht.
 import * as db from './db.js';
-import { toast, today } from './util.js';
+import { toast, today, idFor, contactIdFor } from './util.js';
 
 let busy = false, started = false;
 export const status = { ok: null, fehler: '', zuletzt: null, neu: 0 };
@@ -28,31 +28,41 @@ async function verarbeite(row) {
   const notiz = [`Website-Anfrage (${a.betreff || a.art})`, a.wunsch && `Wunschzeit: ${a.wunsch}`, a.seite && `Seite: ${a.seite}`, a.text].filter(Boolean).join('\n');
   let c = known;
   if (!c) {
-    c = await db.save('contacts', { ...nameParts(a.name || a.email), email: a.email, tel: a.tel, kategorie: 'Interessent (Kauf)', quelle: 'Website', quelleSeite: a.seite, status: 'Aktiv', notiz });
-    await db.log('system', `🌐 Neue Website-Anfrage: ${a.betreff || a.art}`, { contactId: c.id });
+    // gleiche ID wie beim Mail-Abgleich (c- + sha1(E-Mail)) → derselbe Mensch wird nie zweimal angelegt
+    const id = a.email ? contactIdFor(a.email) : a.tel ? idFor('c', 'tel:' + digits(a.tel)) : idFor('c', 'wa:' + row.id);
+    c = db.get('contacts', id) || await db.save('contacts', { id, ...nameParts(a.name || a.email), email: a.email, tel: a.tel, kategorie: 'Interessent (Kauf)', quelle: 'Website', quelleSeite: a.seite, status: 'Aktiv', notiz });
+    await db.save('activities', { id: idFor('wa-neu', row.id), art: 'system', text: `🌐 Neue Website-Anfrage: ${a.betreff || a.art}`, datum: new Date().toISOString(), contactId: c.id });
   }
-  await db.log('notiz', `🌐 Website-Anfrage (${a.betreff || a.art})\n${notiz}`, { contactId: c.id });
+  await db.save('activities', { id: idFor('wa-notiz', row.id), art: 'notiz', text: `🌐 Website-Anfrage (${a.betreff || a.art})\n${notiz}`, datum: new Date().toISOString(), contactId: c.id });
   const nm = [c.vorname, c.nachname].filter(Boolean).join(' ') || a.email;
   if (a.art !== 'vorab' && !db.all('deals').some(d => d.contactId === c.id && d.board === 'vertrieb' && !['Abgeschlossen', 'Absage'].includes(d.stage))) {
-    const deal = await db.save('deals', { board: 'vertrieb', stage: 'Anfrage', titel: `Website-Anfrage: ${nm}`, contactId: c.id, stageAt: new Date().toISOString(), notiz: a.text });
-    await db.log('system', `Vorgang „${deal.titel}“ angelegt (Anfrage)`, { contactId: c.id, dealId: deal.id });
+    const deal = await db.save('deals', { id: idFor('wa-deal', row.id), board: 'vertrieb', stage: 'Anfrage', titel: `Website-Anfrage: ${nm}`, contactId: c.id, stageAt: new Date().toISOString(), notiz: a.text });
+    await db.save('activities', { id: idFor('wa-deallog', row.id), art: 'system', text: `Vorgang „${deal.titel}“ angelegt (Anfrage)`, datum: new Date().toISOString(), contactId: c.id, dealId: deal.id });
   }
   if (a.art === 'rueckruf' || known) {
     const titel = a.art === 'rueckruf' ? `📞 Rückruf: ${nm}${a.tel ? ' · ' + a.tel : ''}${a.wunsch && !/Egal/i.test(a.wunsch) ? ' (' + a.wunsch + ')' : ''}` : `Neue Website-Anfrage beantworten: ${nm}`;
-    await db.save('tasks', { titel, faellig: today(), prio: 'hoch', done: false, auto: 'wa:' + row.id, contactId: c.id, notiz: a.text });
+    await db.save('tasks', { id: idFor('wa-task', row.id), titel, faellig: today(), prio: 'hoch', done: false, auto: 'wa:' + row.id, contactId: c.id, notiz: a.text });
   }
 }
 
 export async function pull({ manual = false } = {}) {
-  const sb = db.client(); if (busy || !sb || !db.isCloud()) return 0;
+  const sb = db.client(); if (busy || !sb || !db.isCloud() || !db.syncState().synced || !navigator.onLine) return 0;   // erst wenn der Gerätestand mit dem Server abgeglichen ist
   busy = true; let n = 0;
   try {
     const { data, error } = await sb.from('website_anfragen').select('*').order('created_at', { ascending: true }).limit(50);
     if (error) { status.ok = false; status.fehler = /relation|schema cache|does not exist|PGRST205|42P01/i.test(error.message + error.code) ? 'nicht eingerichtet' : error.message; return 0; }
     status.ok = true; status.fehler = ''; status.zuletzt = new Date().toISOString();
     for (const row of data) {
-      try { await verarbeite(row); const r = await sb.from('website_anfragen').delete().eq('id', row.id); if (r.error) throw r.error; n++; }
-      catch (e) { console.error('Anfrage nicht verarbeitet', e); status.fehler = e.message; }
+      // Erst übernehmen (Zeile löschen und zurückbekommen), dann verarbeiten: Sind Handy und Mac gleichzeitig offen,
+      // bekommt nur eines der Geräte die Anfrage.
+      const r = await sb.from('website_anfragen').delete().eq('id', row.id).select('id');
+      if (r.error) { status.fehler = r.error.message; continue; }
+      if (!r.data?.length) continue;                       // ein anderes Gerät war schneller
+      try { await verarbeite(row); n++; }
+      catch (e) {
+        console.error('Anfrage nicht verarbeitet', e); status.fehler = e.message;
+        await sb.from('website_anfragen').insert({ id: row.id, created_at: row.created_at, quelle: row.quelle, betreff: row.betreff, daten: row.daten });   // zurücklegen
+      }
     }
     status.neu += n;
     if (n) toast(`🌐 ${n} neue Website-Anfrage${n > 1 ? 'n' : ''} im CRM`);
@@ -86,6 +96,15 @@ export async function selbsttest() {
 
 export function start() {
   if (started) return; started = true;
-  setTimeout(() => pull(), 2000); setInterval(() => pull(), 2 * 60000);
+  setInterval(() => pull(), 2 * 60000);
   window.addEventListener('focus', () => pull());
+  // Sobald der Abgleich steht: einmal holen und live auf neue Anfragen hören (kommt sofort statt erst beim nächsten Intervall)
+  let live = false;
+  db.onStatus(st => {
+    if (!st.synced || live) return;
+    live = true; pull();
+    const sb = db.client(); if (!sb) return;
+    let t = 0;
+    sb.channel('crm-anfragen').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'website_anfragen' }, () => { clearTimeout(t); t = setTimeout(() => pull(), 300 + Math.random() * 700); }).subscribe();
+  });
 }
