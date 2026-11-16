@@ -531,9 +531,11 @@ function setLocal(col, rec) {
 function dropLocal(id) { const c = colOf(id); if (c) data[c] = data[c].filter(r => r.id !== id); return !!c; }
 const same = (a, b) => { try { return JSON.stringify(a) === JSON.stringify(b); } catch { return false; } };
 
+let mitschnitt = null;   // während eines vollständigen Abgleichs eintreffende Live-Meldungen (danach erneut anwenden)
 /** Zeile vom Server übernehmen; true, wenn sich lokal etwas geändert hat */
 function applyRow(row) {
   if (!row?.id || row.collection === 'dateien' || !COLS.includes(row.collection)) return false;
+  if (mitschnitt) mitschnitt.push(['up', row]);
   if (row.updated_at && (!since || row.updated_at > since)) since = row.updated_at;
   srvU.set(row.id, row.updated_at || '');
   if (outbox.has(row.id)) { spaet.set(row.id, row); return false; }   // eigene, noch nicht übertragene Änderung hat Vorrang – vorerst
@@ -544,6 +546,7 @@ function applyRow(row) {
   return true;
 }
 function applyDelete(id) {
+  if (mitschnitt && id) mitschnitt.push(['del', id]);
   if (!id || outbox.has(id)) return false;
   srvU.delete(id);
   const hit = dropLocal(id);
@@ -576,7 +579,9 @@ async function fetchAll(cols = 'id,collection,data,updated_at') {
 }
 /** Vollständiger Abgleich (Start, „Aktualisieren“): Server-Stand + eigene ungesendete Änderungen */
 async function fullSync() {
-  const rows = await fetchAll();
+  mitschnitt = [];
+  let rows, live;
+  try { rows = await fetchAll(); } finally { live = mitschnitt; mitschnitt = null; }
   // Ein eingerichtetes CRM hat immer mindestens die Einstellungen. Leere Antwort = Zugang/Berechtigung stimmt nicht → nichts überschreiben
   if (!rows.length && COLS.some(c => data[c].length) && srvU.size) throw new Error('Server liefert keine Daten – bitte neu anmelden');
   const next = Object.fromEntries(COLS.map(c => [c, []]));
@@ -589,11 +594,14 @@ async function fullSync() {
   const changed = COLS.some(c => !same(next[c], data[c]));
   data = next;
   for (const [id, op] of outbox) { if (op.op === 'up') setLocal(op.col, op.rec); else dropLocal(id); }
+  // Was während des Ladens live kam, ist neuer als der geladene Stand
+  let nachgereicht = false;
+  for (const [art, x] of live) nachgereicht = (art === 'up' ? x.updated_at > (srvU.get(x.id) || '') && applyRow(x) : srvU.has(x) && applyDelete(x)) || nachgereicht;
   lastSyncAt = Date.now(); lastIdCheck = Date.now(); synced = true; lastErr = '';
   idbWrite('rec', rows.filter(r => COLS.includes(r.collection)).map(r => [r.id, { c: r.collection, d: r.data, u: r.updated_at || '' }]), [], true);
   idbWrite('meta', [['since', since], ['user', userId], ['at', lastSyncAt]]);
   await ensureDefaults();
-  if (changed) emit();
+  if (changed || nachgereicht) emit();
   setStatus();
 }
 /** Nur Änderungen seit dem letzten Stand (+ gelöschte Datensätze, höchstens alle 2 Min. geprüft) */
