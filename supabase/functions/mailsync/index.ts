@@ -17,7 +17,10 @@ const VERSION = "2.0 (Server)";
 const IMAP_HOST = Deno.env.get("MAILSYNC_IMAP_HOST") ?? "imap.strato.de";
 const IMAP_PORT = Number(Deno.env.get("MAILSYNC_IMAP_PORT") ?? "993");
 const SB_URL = Deno.env.get("SUPABASE_URL") ?? "";
-const SB_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+// Projekte mit den neuen API-Schlüsseln (sb_secret_…) liefern statt des alten service_role-JWT SUPABASE_SECRET_KEYS
+const SB_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || (() => {
+  try { return Object.values(JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}") as Record<string, string>)[0] ?? ""; } catch { return ""; }
+})();
 const MAX_PER_RUN = 25;
 const TZ = "Europe/Berlin";
 
@@ -688,7 +691,7 @@ class Run {
 
 async function rest(method: string, path: string, body?: unknown, headers: Rec = {}): Promise<any> {
   const r = await fetch(SB_URL + path, {
-    method, headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY, "Content-Type": "application/json", Accept: "application/json", ...headers },
+    method, headers: { apikey: SB_KEY, ...(SB_KEY.startsWith("sb_") ? {} : { Authorization: "Bearer " + SB_KEY }), "Content-Type": "application/json", Accept: "application/json", ...headers },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   const t = await r.text();
