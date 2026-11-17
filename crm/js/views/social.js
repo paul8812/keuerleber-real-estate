@@ -5,10 +5,12 @@ import { html, raw, esc, num, today, addDays, fmtDateShort, fullName } from '../
 
 // Kanalfarben: feste Zuordnung je Kanal (nie nach Rang), geprüft gegen die dunkle Fläche (#141416) – alle Prüfungen bestanden.
 export const KANAL = {
+  // ausBeitraegen: Aufrufe/Interaktionen je Tag aus den Beiträgen (nach Veröffentlichungstag) statt aus Konto-Werten –
+  // so zählen alle Kanäle gleich wie TikTok („Aufrufe der Beiträge aus dem Zeitraum“), auch rückwirkend.
   tiktok: { name: 'TikTok', farbe: '#00a9a2', glyph: '♪', profil: k => `https://www.tiktok.com/@${k}` },
-  instagram: { name: 'Instagram', farbe: '#c25485', glyph: '◎', profil: k => `https://www.instagram.com/${k}/` },
-  facebook: { name: 'Facebook', farbe: '#486fcc', glyph: 'f', profil: k => `https://www.facebook.com/${k}` },
-  linkedin: { name: 'LinkedIn', farbe: '#c38824', glyph: 'in', profil: k => `https://www.linkedin.com/company/${k}` },
+  instagram: { name: 'Instagram', farbe: '#c25485', glyph: '◎', ausBeitraegen: true, profil: k => `https://www.instagram.com/${k}/` },
+  facebook: { name: 'Facebook', farbe: '#486fcc', glyph: 'f', ausBeitraegen: true, profil: k => `https://www.facebook.com/${k}` },
+  linkedin: { name: 'LinkedIn', farbe: '#c38824', glyph: 'in', ausBeitraegen: true, profil: k => `https://www.linkedin.com/company/${k}` },
 };
 const REIHE = ['tiktok', 'instagram', 'facebook', 'linkedin'];
 export const SOCIAL_QUELLEN = ['TikTok', 'Instagram', 'Facebook', 'LinkedIn', 'Social Media'];
@@ -54,21 +56,28 @@ function followerReihe(kd, tage) {
   let i = 0, letzter = null;
   return tage.map(d => { while (i < bekannt.length && bekannt[i][0] <= d) letzter = bekannt[i++][1].follower; return letzter; });
 }
-const summe = (kd, tage, n) => tage.reduce((s, d) => s + (kd.tage.get(d)?.[n] || 0), 0);
 function kennzahlen(K, kanaele, von, bis) {
   const tage = tageZwischen(von, bis), vorher = addDays(von, -1);
-  let fEnde = 0, fStart = 0, fDa = false, aufrufe = 0, inter = 0;
-  const follower = tage.map(() => null), aufrufeTag = tage.map(() => 0);
+  let fEnde = 0, fStart = 0, fDa = false, fZu = false, zuwachs = 0, basis = 0, aufrufe = 0, inter = 0;
+  const follower = tage.map(() => null), aufrufeTag = tage.map(() => 0), zuwachsTag = tage.map(() => null), erstAb = [];
   for (const k of kanaele) {
     const kd = K[k]; if (!kd) continue;
     const f = followerReihe(kd, [vorher, ...tage]);
-    if (f[f.length - 1] != null) { fDa = true; fEnde += f[f.length - 1]; fStart += f[0] ?? f.find(x => x != null) ?? 0; }
-    f.slice(1).forEach((v, i) => { if (v != null) follower[i] = (follower[i] || 0) + v; });
-    aufrufe += summe(kd, tage, 'aufrufe'); inter += summe(kd, tage, 'interaktionen');
-    tage.forEach((d, i) => { aufrufeTag[i] += kd.tage.get(d)?.aufrufe || 0; });
+    if (f[f.length - 1] != null) {
+      fDa = true; fEnde += f[f.length - 1];
+      const i0 = f.findIndex(x => x != null), bekannt = [...kd.tage].filter(([d, t]) => t.follower != null && d >= vorher && d <= bis).length;
+      if (i0 > 0) erstAb.push([k, [vorher, ...tage][i0]]);              // Follower erst ab diesem Tag erfasst (Kanal später verbunden)
+      fStart += f[i0];
+      if (bekannt >= 2 || i0 === 0) { fZu = true; zuwachs += f[f.length - 1] - f[i0]; basis += f[i0]; }   // nur ein Wert: Zuwachs (noch) nicht ablesbar
+    }
+    f.slice(1).forEach((v, i) => { if (v != null) follower[i] = (follower[i] || 0) + v; if (v != null && f[i] != null) zuwachsTag[i] = (zuwachsTag[i] || 0) + v - f[i]; });
+    const ausPosts = KANAL[k].ausBeitraegen && kd.posts.length, proTag = new Map();
+    if (ausPosts) kd.posts.forEach(p => { const d = p.zeit.slice(0, 10), x = proTag.get(d) || { aufrufe: 0, interaktionen: 0 }; x.aufrufe += p.aufrufe; x.interaktionen += p.inter; proTag.set(d, x); });
+    const wert = (d, n) => (ausPosts ? proTag.get(d)?.[n] : kd.tage.get(d)?.[n]) || 0;
+    tage.forEach((d, i) => { const a = wert(d, 'aufrufe'); aufrufe += a; inter += wert(d, 'interaktionen'); aufrufeTag[i] += a; });
   }
   const posts = kanaele.flatMap(k => K[k]?.posts || []).filter(p => p.zeit.slice(0, 10) >= von && p.zeit.slice(0, 10) <= bis);
-  return { tage, follower: fDa ? fEnde : null, folgerZuwachs: fDa ? fEnde - fStart : null, folgerStart: fStart, followerTag: follower, aufrufe, aufrufeTag, inter, er: aufrufe ? inter / aufrufe : null, posts };
+  return { tage, erstAb, follower: fDa ? fEnde : null, folgerZuwachs: fDa && fZu ? zuwachs : null, folgerBasis: basis, folgerStart: fStart, followerTag: follower, zuwachsTag, aufrufe, aufrufeTag, inter, er: aufrufe ? inter / aufrufe : null, posts };
 }
 const anfragenIm = (von, bis) => db.all('contacts').filter(c => SOCIAL_QUELLEN.includes(c.quelle) && (c.created || '').slice(0, 10) >= von && (c.created || '').slice(0, 10) <= bis);
 
@@ -135,7 +144,7 @@ export function render(el) {
 
     <section class="sm-grid">
       <div class="card sm-card sm-wide">
-        <div class="sm-ch"><div><h2>Follower-Entwicklung</h2><p class="muted small">${auswahl.length > 1 ? 'je Kanal' : KANAL[auswahl[0]].name} · letzte ${n} Tage</p></div>${legende(auswahl)}</div>
+        <div class="sm-ch"><div><h2>Follower-Entwicklung</h2><p class="muted small">${auswahl.length > 1 ? 'je Kanal' : KANAL[auswahl[0]].name} · letzte ${n} Tage${jetzt.erstAb.map(([k, d]) => ` · ${KANAL[k].name} erst ab ${fmtDateShort(d)} erfasst`).join('')}</p></div>${legende(auswahl)}</div>
         <div class="sm-chart" data-chart="follower" role="img" aria-label="Follower-Entwicklung"></div>
         ${folgerFakten(jetzt)}
         ${tabelle(['Tag', ...auswahl.map(k => KANAL[k].name)], jetzt.tage.map((d, i) => [fmtDateShort(d), ...auswahl.map(k => { const f = followerReihe(K[k], jetzt.tage)[i]; return f == null ? '–' : num(f); })]).reverse(), 'Follower als Tabelle')}
@@ -219,7 +228,7 @@ function tabelle(kopf, zeilen, titel) {
 }
 function folgerFakten(j) {
   const f = j.followerTag, tage = j.tage; let best = 0, bestTag = '';
-  f.forEach((v, i) => { const vor = i ? f[i - 1] : null; if (v != null && vor != null && v - vor > best) { best = v - vor; bestTag = tage[i]; } });
+  j.zuwachsTag.forEach((v, i) => { if (v != null && v > best) { best = v; bestTag = tage[i]; } });   // je Kanal gerechnet: ein neu verbundener Kanal ist kein „Sprung“
   if (j.folgerZuwachs == null) return '';
   return html`<div class="sm-fakten">
     <div><b>${j.folgerZuwachs >= 0 ? '+' : ''}${num(j.folgerZuwachs / tage.length, 1)}</b><span>Ø pro Tag</span></div>
@@ -268,7 +277,7 @@ function einsichten(posts, j, v, n) {
   }
   const proWoche = j.posts.length / (n / 7), vorWoche = v.posts.length / (n / 7);
   if (j.posts.length || v.posts.length) out.push(html`Du postest <b>${num(proWoche, 1)}× pro Woche</b>${v.posts.length ? html` (davor ${num(vorWoche, 1)}×)` : ''}.${proWoche < 3 ? ' Mehr Regelmäßigkeit (3–5×/Woche) bringt meist mehr Reichweite.' : ''}`);
-  if (j.folgerZuwachs != null && j.follower) { const basis = j.follower - j.folgerZuwachs; out.push(html`Follower <b>${j.folgerZuwachs >= 0 ? '+' : ''}${num(j.folgerZuwachs)}</b> in ${n} Tagen${basis > 0 ? html` – das sind <b>${j.folgerZuwachs >= 0 ? '+' : ''}${num(j.folgerZuwachs / basis * 100, 0)} %</b>` : ''}.`); }
+  if (j.folgerZuwachs != null && j.follower) { const basis = j.folgerBasis; out.push(html`Follower <b>${j.folgerZuwachs >= 0 ? '+' : ''}${num(j.folgerZuwachs)}</b> in ${n} Tagen${basis > 0 ? html` – das sind <b>${j.folgerZuwachs >= 0 ? '+' : ''}${num(j.folgerZuwachs / basis * 100, 0)} %</b>` : ''}.`); }
   return out.length ? out : [html`Sobald ein paar Beiträge Daten haben, stehen hier Muster: bester Wochentag, beste Uhrzeit, welche Themen ziehen.`];
 }
 function anfragenListe(anf) {
