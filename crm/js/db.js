@@ -1,6 +1,6 @@
 // Datenschicht: lokal (localStorage) oder Cloud (Supabase). Gleiche API für beide.
 import { uid, today, toast, idFor } from './util.js';
-export const COLS = ['contacts', 'properties', 'deals', 'tasks', 'events', 'activities', 'templates', 'settings', 'mails', 'sync', 'buchungen', 'rechnungen'];
+export const COLS = ['contacts', 'properties', 'deals', 'tasks', 'events', 'activities', 'templates', 'settings', 'mails', 'sync', 'buchungen', 'rechnungen', 'social'];
 const LS = 'kre-crm-data', CFG = 'kre-crm-cfg';
 // Supabase-Bibliothek liegt im eigenen Repository (kein fremdes CDN zur Laufzeit)
 const SB_LIB = new URL('../vendor/supabase.js?v=2.45.4', import.meta.url).href;
@@ -239,6 +239,33 @@ do $$ begin
     alter publication supabase_realtime add table public.website_anfragen;
   end if;
 end $$;`;
+// Social-Media-Zahlen: ein täglicher Abruf (Metricool) liefert sie über social_push() an – geschützt durch einen Zufallswert,
+// der nur diese eine Funktion öffnet. Gespeichert als Datensatz 'social-stats' und per Realtime sofort auf allen Geräten.
+export const SOCIAL_SQL = `create schema if not exists privat;
+create table if not exists privat.social (
+  id int primary key default 1 check (id = 1),
+  geheim text not null default replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', ''),
+  geaendert timestamptz not null default now()
+);
+alter table privat.social enable row level security;
+revoke all on privat.social from public, anon, authenticated;
+insert into privat.social (id) values (1) on conflict (id) do nothing;
+create or replace function public.social_push(p_geheim text, p_daten jsonb) returns text language plpgsql security definer set search_path = public, privat as $$
+declare u uuid; g text;
+begin
+  select geheim into g from privat.social where id = 1;
+  if g is null or coalesce(p_geheim, '') <> g then raise exception 'nicht erlaubt'; end if;
+  if coalesce(jsonb_typeof(p_daten), '') <> 'object' or coalesce(jsonb_typeof(p_daten->'kanaele'), '') <> 'object' then raise exception 'Datenformat: kanaele fehlt'; end if;
+  if octet_length(p_daten::text) > 600000 then raise exception 'Daten zu groß'; end if;
+  select user_id into u from public.records where id = 'main' and collection = 'settings' limit 1;
+  if u is null then raise exception 'CRM nicht eingerichtet'; end if;
+  insert into public.records (id, collection, data, user_id)
+  values ('social-stats', 'social', p_daten || jsonb_build_object('id', 'social-stats', 'empfangen', now()), u)
+  on conflict (id) do update set data = excluded.data, collection = excluded.collection, user_id = excluded.user_id;
+  return 'ok';
+end $$;
+revoke all on function public.social_push(text, jsonb) from public;
+grant execute on function public.social_push(text, jsonb) to anon, authenticated;`;
 // Website-Anfragen: Formulare der Website schreiben (nur einfügen!) in diese Tabelle, das CRM holt sie ab und löscht sie danach.
 export const ANFRAGEN_SQL = `create table if not exists public.website_anfragen (
   id uuid primary key default gen_random_uuid(),

@@ -92,3 +92,9 @@ Alle Regeln sind unter „Automationen“ einzeln abschaltbar.
 - Die KI erkennt Datum, Lieferant, Rechnungsnummer, Beträge je Steuersatz, Kategorie, Konto (SKR03-Vorschlag), Zahlart und das Objekt. Danach wird automatisch gebucht; der Beleg wird gespeichert (📎 in der Buchung).
 - Unsichere Belege oder Belege mit Hinweis (z. B. Bewirtung) landen unter „⚠ Zu prüfen“ und erzeugen eine Aufgabe. Doppelte Belege werden erkannt und übersprungen. Offene Eingangsrechnungen → Aufgabe „Rechnung bezahlen“; sie zählen erst nach Zahlung in der Übersicht (EÜR).
 - Kosten: ca. 1–2 Cent pro Beleg.
+
+### Social-Media-Dashboard (Menü „Social Media“)
+- Zahlen kommen aus **Metricool** (Marke „keuerleberimmobilien“). Eine geplante Aufgabe holt sie jeden Morgen um 05:47 Uhr und schickt sie über `social_push()` ins CRM (Datensatz `social/social-stats`, per Realtime sofort auf allen Geräten).
+- Server-Teil: `SOCIAL_SQL` in `js/db.js` (bereits eingerichtet). Der Zufallswert in `privat.social` öffnet nur diese eine Funktion.
+- Neue Kanäle (Instagram, Facebook, LinkedIn) einfach in Metricool verbinden – ab dem nächsten Morgen erscheinen sie im Dashboard.
+- Website-Anfragen merken sich die Herkunft (Bio-Link `?utm_source=tiktok` bzw. verweisende Seite, `lead-sync.js`); das CRM setzt daraus die Quelle (TikTok, Instagram …). So zählt der Trichter „Vom Aufruf zur Anfrage“.
