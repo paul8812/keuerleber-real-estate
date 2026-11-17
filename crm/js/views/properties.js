@@ -32,10 +32,10 @@ export function render(el, id) { id ? detail(el, id) : overview(el); }
 
 function overview(el) {
   el.innerHTML = html`<div class="head"><h1>Objekte <small id="pcount" class="muted"></small></h1><div class="actions"><button class="btn" data-exp>Export</button><button class="btn ${W.websiteAusstehend() ? 'primary' : ''}" data-pub>🌐 Website aktualisieren${W.websiteAusstehend() ? ' •' : ''}</button><button class="btn primary" data-new>+ Objekt</button></div></div>
-    <div class="filters"><input type="search" id="pq" placeholder="Suchen (Titel, Nr., Ort, PLZ) …" value="${q}">
-    <select id="ps"><option value="">Alle (ohne Archiv)</option>${OBJEKT_STATUS.map(s => html`<option ${s === st ? raw('selected') : ''}>${s}</option>`)}</select>
-    <select id="pa"><option value="">Alle Arten</option>${OBJEKT_ARTEN.map(s => html`<option ${s === art ? raw('selected') : ''}>${s}</option>`)}</select>
-    <select id="pv"><option value="">Kauf & Miete</option><option ${verm === 'Kauf' ? raw('selected') : ''}>Kauf</option><option ${verm === 'Miete' ? raw('selected') : ''}>Miete</option></select></div>
+    <div class="filters"><input type="search" id="pq" aria-label="Objekte durchsuchen" placeholder="Suchen (Titel, Nr., Ort, PLZ) …" value="${q}">
+    <select id="ps" aria-label="Status"><option value="">Alle (ohne Archiv)</option>${OBJEKT_STATUS.map(s => html`<option ${s === st ? raw('selected') : ''}>${s}</option>`)}</select>
+    <select id="pa" aria-label="Objektart"><option value="">Alle Arten</option>${OBJEKT_ARTEN.map(s => html`<option ${s === art ? raw('selected') : ''}>${s}</option>`)}</select>
+    <select id="pv" aria-label="Kauf oder Miete"><option value="">Kauf & Miete</option><option ${verm === 'Kauf' ? raw('selected') : ''}>Kauf</option><option ${verm === 'Miete' ? raw('selected') : ''}>Miete</option></select></div>
     <div id="plist"></div>`.s;
   list(el);
   el.querySelector('#pq').oninput = e => { q = e.target.value; list(el); };

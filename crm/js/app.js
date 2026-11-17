@@ -23,6 +23,7 @@ import { schnellerfassung } from './schnellerfassung.js';
 import { initMobil } from './mobil.js';
 import { initAktionen } from './aktionen.js';
 import { initCrmPlus } from './crmplus.js';
+import { initKontakt, kontaktErfassen } from './kontakt.js';
 import { belegeHochladen } from './views/finanzen.js';
 function belegFoto() { const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*,application/pdf'; i.multiple = true; i.onchange = () => { if (i.files.length) { location.hash = '#/finanzen'; setTimeout(() => belegeHochladen(i.files), 300); } }; i.click(); }
 
@@ -48,7 +49,9 @@ function navBadges() {
   b.textContent = n;
 }
 const tippt = () => { const a = document.activeElement; return !!a && main.contains(a) && (a.matches('input, textarea, select') || a.isContentEditable); };
-const rerender = debounce(() => { if (!document.querySelector('.modal-bg') && !tippt()) route(); else pending = true; }, 60);
+// Live-Änderungen: nicht neu zeichnen, solange ein Dialog offen ist, getippt wird oder die App im Hintergrund liegt (spart Akku) – danach einmal nachholen
+const rerender = debounce(() => { if (!document.hidden && !document.querySelector('.modal-bg') && !tippt()) route(); else pending = true; }, 60);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && pending && !document.querySelector('.modal-bg') && !tippt()) { pending = false; route(); } });
 main.addEventListener('focusout', () => setTimeout(() => { if (pending && !document.querySelector('.modal-bg') && !tippt()) { pending = false; route(); } }, 120));
 let pending = false;
 new MutationObserver(() => { if (pending && !document.querySelector('.modal-bg')) { pending = false; route(); } }).observe(document.getElementById('modal-root'), { childList: true });
@@ -85,27 +88,27 @@ function shell() {
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') db.resume(); });
   document.getElementById('mode').textContent = db.isCloud() ? '☁ Cloud' : '💾 Lokal';
   if (!db.isCloud() && !document.getElementById('lokalhinweis')) main.insertAdjacentHTML('beforebegin', '<div id="lokalhinweis" class="lokalhinweis">💾 Dieses Gerät arbeitet im <b>lokalen Modus</b> – du siehst nicht die Daten aus der Cloud. <a href="?cloud=1">Zur Cloud wechseln und anmelden</a></div>');
-  document.getElementById('quick').onclick = () => modal('Neu anlegen', html`<div class="full quickgrid">${[['anfrage', '📋 Anfrage einfügen'], ['contact', '☺ Kontakt'], ['property', '⌂ Objekt'], ['task', '✓ Aufgabe'], ['event', '▦ Termin'], ['note', '📝 Notiz'], ['call', '📞 Anruf festhalten'], ['beleg', '📷 Beleg fotografieren']].map(([k, l]) => html`<button type="button" class="btn big" data-k="${k}">${l}</button>`)}</div>`, {
-    onMount: (el, close) => el.querySelectorAll('[data-k]').forEach(b => b.onclick = () => { close(); ({ anfrage: () => schnellerfassung(), contact: () => contactForm({}, c => location.hash = '#/kontakte/' + c.id), property: () => propertyForm({}, p => location.hash = '#/objekte/' + p.id), task: () => taskForm(), event: () => eventForm(), note: () => activityForm(), call: () => activityForm({ art: 'anruf' }), beleg: belegFoto })[b.dataset.k](); }) });
+  document.getElementById('quick').onclick = () => modal('Neu anlegen', html`<div class="full quickgrid">${[['kontakt', '✓ Kontakt gehabt'], ['anfrage', '📋 Anfrage einfügen'], ['contact', '☺ Kontakt'], ['property', '⌂ Objekt'], ['task', '✓ Aufgabe'], ['event', '▦ Termin'], ['note', '📝 Notiz'], ['call', '📞 Anruf festhalten'], ['beleg', '📷 Beleg fotografieren']].map(([k, l]) => html`<button type="button" class="btn big" data-k="${k}">${l}</button>`)}</div>`, {
+    onMount: (el, close) => el.querySelectorAll('[data-k]').forEach(b => b.onclick = () => { close(); ({ kontakt: () => kontaktErfassen(), anfrage: () => schnellerfassung(), contact: () => contactForm({}, c => location.hash = '#/kontakte/' + c.id), property: () => propertyForm({}, p => location.hash = '#/objekte/' + p.id), task: () => taskForm(), event: () => eventForm(), note: () => activityForm(), call: () => activityForm({ art: 'anruf' }), beleg: belegFoto })[b.dataset.k](); }) });
   // globale Suche
   const sq = document.getElementById('gsearch'), res = document.getElementById('gresults');
   const search = () => {
     const q = sq.value.trim().toLowerCase(); if (q.length < 2) { res.hidden = true; return; }
     const hit = (arr, f) => arr.filter(x => f(x).toLowerCase().includes(q)).slice(0, 5);
     const C = hit(db.all('contacts'), c => [fullName(c), c.firma, c.email, c.tel, c.mobil, c.ort].join(' ')), P = hit(db.all('properties'), p => [p.titel, p.nr, p.ort, p.strasse].join(' ')), D = hit(db.all('deals'), d => d.titel || ''), T = hit(db.all('tasks'), t => t.titel || '');
-    const row = (h, ic, t, s) => `<a href="${h}"><i>${ic}</i><span>${esc(t)}<small>${esc(s || '')}</small></span></a>`;
-    const out = [...C.map(c => row('#/kontakte/' + c.id, '☺', fullName(c), c.kategorie + (c.ort ? ' · ' + c.ort : ''))), ...P.map(p => row('#/objekte/' + p.id, '⌂', p.titel, `${p.nr} · ${p.ort || ''}`)), ...D.map(d => row('#/pipeline', '▤', d.titel, d.stage)), ...T.map(t => row('#/aufgaben', '✓', t.titel, t.faellig || ''))];
+    const row = (h, ic, t, s, extra = '') => `<div class="gr"><a href="${h}"><i>${ic}</i><span>${esc(t)}<small>${esc(s || '')}</small></span></a>${extra}</div>`;
+    const out = [...C.map(c => row('#/kontakte/' + c.id, '☺', fullName(c), c.kategorie + (c.ort ? ' · ' + c.ort : ''), `<button type="button" class="grk" data-kg="${esc(c.id)}" title="Kontakt festhalten" aria-label="Kontakt mit ${esc(fullName(c))} festhalten">✓ Kontakt</button>`)), ...P.map(p => row('#/objekte/' + p.id, '⌂', p.titel, `${p.nr} · ${p.ort || ''}`)), ...D.map(d => row('#/pipeline', '▤', d.titel, d.stage)), ...T.map(t => row('#/aufgaben', '✓', t.titel, t.faellig || ''))];
     res.innerHTML = out.join('') || '<p class="muted pad">Keine Treffer</p>'; res.hidden = false;
   };
   sq.oninput = debounce(search, 120);
-  res.onclick = () => { res.hidden = true; sq.value = ''; };
+  res.addEventListener('click', () => { res.hidden = true; sq.value = ''; });
   document.addEventListener('click', e => { if (!e.target.closest('.search')) res.hidden = true; });
   document.addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); sq.focus(); sq.select(); } if (e.key === 'Escape') { res.hidden = true; sq.blur(); } });
   db.onChange(rerender); db.onChange(navBadges);
   window.addEventListener('hashchange', route);
   window.addEventListener('focus', () => db.resume());
   syncAnzeige();
-  route(); auto.start(); anfragen.start(); mailsort.start(); idleWatch(); initMobil(); initAktionen(); initCrmPlus();
+  route(); auto.start(); anfragen.start(); mailsort.start(); idleWatch(); initMobil(); initAktionen(); initCrmPlus(); initKontakt();
 }
 
 async function boot() {

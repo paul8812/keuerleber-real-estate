@@ -70,7 +70,7 @@ function evKarte(e, konf) {
       <div class="sub"><span class="art">${e.art}</span>${c ? html` · ${cLink(c.id)}` : ''}${p ? html` · ${pLink(p.id)}` : ''}${ort && !p ? ' · ' + ort : ''}${e.source === 'google' ? ' · Google' : ''}</div></div>
     <span class="cact">${tel ? html`<a href="tel:${tel.replace(/[^0-9+]/g, '')}" title="Anrufen">📞</a>` : ''}${ort ? html`<a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(ort)}" title="Route">🧭</a>` : ''}<button type="button" data-akt="event:${e.id}" title="Weitere Aktionen">⋯</button></span></li>`;
 }
-function aufgabeZeile(t) { return html`<li class="ctask" data-task="${t.id}"><input type="checkbox" data-kdone="${t.id}"><span class="grow">${t.titel.replace(/^⚡ /, '')}</span>${t.contactId ? cLink(t.contactId) : ''}</li>`; }
+function aufgabeZeile(t) { return html`<li class="ctask" data-task="${t.id}"><input type="checkbox" data-kdone="${t.id}" aria-label="Erledigt: ${t.titel.replace(/^⚡ /, '')}"><span class="grow">${t.titel.replace(/^⚡ /, '')}</span>${t.contactId ? cLink(t.contactId) : ''}</li>`; }
 
 function agenda(evs) {
   const t0 = today(), tage = [], aufgaben = db.all('tasks').filter(t => !t.done && t.faellig);
@@ -134,7 +134,7 @@ export function render(el) {
   const woHeute = amTag(t0, evs), naechster = evs.filter(e => (e.datum > t0 || (e.datum === t0 && (e.start || '99') >= new Date().toTimeString().slice(0, 5)))).sort((a, b) => (a.datum + (a.start || '')).localeCompare(b.datum + (b.start || '')))[0];
   el.innerHTML = html`<div class="head"><div><h1>Kalender</h1><p class="muted">${woHeute.length ? `Heute ${woHeute.length} Termin${woHeute.length > 1 ? 'e' : ''}` : 'Heute frei'}${naechster ? ` · nächster: ${tagName(naechster.datum)}${naechster.start ? ' ' + naechster.start : ''} – ${naechster.titel}` : ''}</p></div>
       <div class="actions"><button class="btn" data-ics title="Alle Termine als .ics-Datei">Export</button><button class="btn primary" data-new>+ Termin</button></div></div>
-    <form class="schnell" data-schnell><input name="q" autocomplete="off" placeholder="Schnell eintragen: „Mo 14 Uhr Besichtigung Leopoldstraße mit Max Anleger“"><button class="btn primary">Eintragen</button><div class="schnellvor muted small" data-vor></div></form>
+    <form class="schnell" data-schnell><input name="q" autocomplete="off" aria-label="Termin schnell eintragen" placeholder="Schnell eintragen: „Mo 14 Uhr Besichtigung Leopoldstraße mit Max Anleger“"><button class="btn primary">Eintragen</button><div class="schnellvor muted small" data-vor></div></form>
     <div class="calbar"><div class="chips">${[['agenda', 'Agenda'], ['woche', 'Woche'], ['monat', 'Monat']].map(([k, l]) => html`<button class="chip ${k === ansicht ? 'on' : ''}" data-view="${k}">${l}</button>`)}</div>
       <div class="calnav"><button class="btn" data-p aria-label="zurück">‹</button><b>${titelZeile()}</b><button class="btn" data-n aria-label="weiter">›</button><button class="btn ghost" data-t>Heute</button></div>
       <label class="chk small"><input type="checkbox" data-biz ${nurGeschaeft ? raw('checked') : ''}> nur Geschäftliches</label>

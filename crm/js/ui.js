@@ -2,6 +2,7 @@
 import * as db from './db.js';
 import { html, raw, esc, fullName, initials, fmtDT, eur, num } from './util.js';
 import { AKTIVITAET_ARTEN, STATUS_FARBE } from './consts.js';
+import { letzterKontakt } from './kontakt.js';
 
 export const contactName = id => { const c = db.get('contacts', id); return c ? fullName(c) : ''; };
 export const propTitle = id => { const p = db.get('properties', id); return p ? p.titel : ''; };
@@ -39,7 +40,8 @@ export function matchScore(c, p) {
 export const matchesForProperty = p => db.all('contacts').filter(c => c.status !== 'Archiv').map(c => ({ c, m: matchScore(c, p) })).filter(x => x.m && x.m.score >= 60).sort((a, b) => b.m.score - a.m.score);
 export const matchesForContact = c => db.all('properties').filter(p => ['Aktiv', 'Vorbereitung', 'Reserviert'].includes(p.status)).map(p => ({ p, m: matchScore(c, p) })).filter(x => x.m && x.m.score >= 60).sort((a, b) => b.m.score - a.m.score);
 
-export const lastContact = id => db.all('activities').filter(a => a.contactId === id && a.art !== 'system').reduce((m, a) => a.datum > m ? a.datum : m, '');
+// schnell über einen Index (einmal je Datenstand), statt bei jedem Kontakt alle Einträge zu durchsuchen
+export const lastContact = id => letzterKontakt(id);
 // Kapitalanlagevertrieb: feste Vergütung je verkaufter Einheit, gezahlt vom Verkäufer/Bauträger (Käufer zahlt keine Provision)
 export const dealProvision = d => { if (d.board !== 'vertrieb') return 0; const s = db.settings(); const pr = d.propertyId ? db.get('properties', d.propertyId) : null; return Number(d.verguetung) || Number(pr?.verguetung) || Number(s.verguetung) || 8000; };
 export const preisM2 = p => p.preis && p.flaeche ? p.preis / p.flaeche : null;

@@ -3,11 +3,13 @@ import { exposeForm } from '../modellrechnung.js';
 import { html, raw, fullName, fmtDate, fmtDT, download, toCSV, parseCSV, toast, modal, sel, today, daysBetween, eur, confirmDlg } from '../util.js';
 import { KONTAKT_ARTEN, sl } from '../consts.js';
 import { contactForm, dealForm, taskForm, eventForm, activityForm } from '../forms.js';
-import { avatar, badge, empty, timeline, pLink, matchesForContact, lastContact, statusBadge, adresse } from '../ui.js';
+import { avatar, badge, empty, pLink, matchesForContact, statusBadge, adresse } from '../ui.js';
 import { taskRow, bindTasks } from './tasks.js';
 import { tempBadge, temperatur } from '../crmplus.js';
+import { frische, frischeTag, FRISCHE, kontaktErfassen, kontaktKarte, bindKontaktKarte, kontaktIndex } from '../kontakt.js';
 
-let q = '', art = '', status = 'Aktiv', sort = 'name', waehlen = false, sichtbar = [];
+let q = '', art = '', status = 'Aktiv', sort = 'name', fr = '', waehlen = false, sichtbar = [], mehr = 0;
+const SEITE = 150;   // Zeilen je Abschnitt – 400+ Kontakte auf einmal machen das Handy träge
 const wahl = new Set();
 
 function dupes() {
@@ -17,23 +19,28 @@ function dupes() {
 }
 
 function list(el) {
-  const s = q.toLowerCase();
-  let rows = db.all('contacts').filter(c => (!art || c.kategorie === art) && (!status || c.status === status) && (!s || [fullName(c), c.firma, c.email, c.tel, c.mobil, c.ort, c.tags, c.plz].join(' ').toLowerCase().includes(s)));
-  const key = { name: c => fullName(c).toLowerCase(), neu: c => '~' + (9e15 - Date.parse(c.created || 0)), kontakt: c => lastContact(c.id) || '0', follow: c => c.followup || '9999', heiss: c => String(1000 - (temperatur(c)?.s ?? -1)).padStart(4, '0') }[sort];
-  rows = rows.slice().sort((a, b) => String(key(a)).localeCompare(String(key(b)), 'de'));
+  const s = q.toLowerCase(), F = new Map();
+  const fx = c => { let f = F.get(c.id); if (!f) F.set(c.id, f = frische(c)); return f; };
+  let rows = db.all('contacts').filter(c => (!art || c.kategorie === art) && (!status || c.status === status) && (!s || [fullName(c), c.firma, c.email, c.tel, c.mobil, c.ort, c.tags, c.plz].join(' ').toLowerCase().includes(s)) && (!fr || fx(c).k === fr));
+  // Sortierschlüssel einmal je Kontakt berechnen (nicht bei jedem Vergleich – bei 400+ Kontakten spürbar)
+  const ix = kontaktIndex();
+  const key = { name: c => fullName(c).toLowerCase(), neu: c => '~' + (9e15 - Date.parse(c.created || 0)), kontakt: c => ix.get(c.id)?.last || '0', kontaktAlt: c => ix.get(c.id)?.last || '0', follow: c => c.followup || '9999', heiss: c => String(1000 - (temperatur(c)?.s ?? -1)).padStart(4, '0') }[sort] || (c => fullName(c).toLowerCase());
+  const K = new Map(rows.map(c => [c.id, String(key(c))]));
+  rows = rows.slice().sort((a, b) => K.get(a.id).localeCompare(K.get(b.id), 'de'));
   if (sort === 'kontakt') rows.reverse();
   sichtbar = rows.map(c => c.id);
   const box = c => waehlen ? html`<td class="wahl"><input type="checkbox" data-w="${c.id}" ${wahl.has(c.id) ? raw('checked') : ''} aria-label="auswählen"></td>` : '';
   el.querySelector('#clist').innerHTML = rows.length ? html`<table class="tbl ${waehlen ? 'waehlen' : ''}"><thead><tr>${waehlen ? raw('<th class="wahl"><input type="checkbox" data-wall aria-label="alle auswählen"></th>') : ''}<th></th><th>Name</th><th>Art</th><th>Kontakt</th><th>Ort</th><th>Letzter Kontakt</th><th>Wiedervorlage</th><th class="m-only"></th></tr></thead><tbody>
-    ${rows.slice(0, 300).map(c => { const lc = lastContact(c.id); const tel = (c.mobil || c.tel || '').replace(/[^\d+]/g, '');
-      return html`<tr data-id="${c.id}" class="${wahl.has(c.id) ? 'gew' : ''}">${box(c)}<td class="c-av">${avatar(c)}</td><td class="c-name"><b>${fullName(c)} ${tempBadge(c)}</b>${c.firma && c.nachname ? html`<div class="sub">${c.firma}</div>` : ''}<div class="sub m-only">${[c.kategorie, c.ort].filter(Boolean).join(' · ')}${c.followup && c.followup <= today() ? ' · ⏰ Wiedervorlage' : ''}</div></td><td class="c-art">${c.kategorie}</td><td class="c-kon">${c.mobil || c.tel || ''}<div class="sub">${c.email || ''}</div></td><td class="c-ort">${c.ort || ''}</td><td class="c-lc">${lc ? fmtDate(lc.slice(0, 10)) : '–'}</td><td class="c-wv ${c.followup && c.followup <= today() ? 'late' : ''}">${c.followup ? fmtDate(c.followup) : ''}</td><td class="c-call m-only">${!waehlen ? html`<button type="button" class="rowmehr" data-akt="contact:${c.id}" aria-label="Aktionen">⋯</button>` : ''}${!waehlen && tel ? html`<a href="tel:${tel}" aria-label="Anrufen">📞</a>` : !waehlen && c.email ? html`<a href="mailto:${c.email}" aria-label="E-Mail">✉</a>` : ''}</td></tr>`; })}</tbody></table>
-    ${rows.length > 300 ? html`<p class="muted pad">… ${rows.length - 300} weitere – Suche verfeinern</p>` : ''}`.s : html`<div class="pad">${empty('Keine Kontakte gefunden', 'Mit „+ Kontakt“ anlegen oder CSV importieren')}</div>`.s;
+    ${rows.slice(0, SEITE + mehr).map(c => { const tel = (c.mobil || c.tel || '').replace(/[^\d+]/g, '');
+      return html`<tr data-id="${c.id}" class="${wahl.has(c.id) ? 'gew' : ''}">${box(c)}<td class="c-av">${avatar(c)}</td><td class="c-name"><b>${fullName(c)} ${tempBadge(c)}</b>${c.firma && c.nachname ? html`<div class="sub">${c.firma}</div>` : ''}<div class="sub m-only">${[c.kategorie, c.ort].filter(Boolean).join(' · ')}</div><div class="sub m-only">${frischeTag(c, { kurz: true })}</div></td><td class="c-art">${c.kategorie}</td><td class="c-kon">${c.mobil || c.tel || ''}<div class="sub">${c.email || ''}</div></td><td class="c-ort">${c.ort || ''}</td><td class="c-lc">${frischeTag(c)}${!waehlen ? html`<button type="button" class="kplus" data-kg="${c.id}" title="Kontakt festhalten" aria-label="Kontakt mit ${fullName(c)} festhalten">＋</button>` : ''}</td><td class="c-wv ${c.followup && c.followup <= today() ? 'late' : ''}">${c.followup ? fmtDate(c.followup) : ''}</td><td class="c-call m-only">${!waehlen ? html`<button type="button" class="rowmehr" data-akt="contact:${c.id}" aria-label="Aktionen">⋯</button>` : ''}${!waehlen && tel ? html`<a href="tel:${tel}" aria-label="Anrufen">📞</a>` : !waehlen && c.email ? html`<a href="mailto:${c.email}" aria-label="E-Mail">✉</a>` : ''}</td></tr>`; })}</tbody></table>
+    ${rows.length > SEITE + mehr ? html`<div class="pad"><button type="button" class="btn ghost mehrlist" data-mehr>Weitere ${Math.min(SEITE, rows.length - SEITE - mehr)} von ${rows.length - SEITE - mehr} anzeigen</button></div>` : ''}`.s : html`<div class="pad">${empty('Keine Kontakte gefunden', 'Mit „+ Kontakt“ anlegen oder CSV importieren')}</div>`.s;
   el.querySelector('#ccount').textContent = rows.length + ' Kontakte';
   el.querySelectorAll('#clist tr[data-id]').forEach(tr => tr.onclick = e => {
     if (e.target.closest('a[href^="tel:"],a[href^="mailto:"]')) return;
     if (!waehlen) { location.hash = '#/kontakte/' + tr.dataset.id; return; }
     const id = tr.dataset.id; wahl.has(id) ? wahl.delete(id) : wahl.add(id); list(el);
   });
+  el.querySelector('#clist [data-mehr]')?.addEventListener('click', () => { mehr += SEITE; list(el); });
   const all = el.querySelector('[data-wall]');
   if (all) { const n = sichtbar.filter(id => wahl.has(id)).length; all.checked = n && n === sichtbar.length; all.indeterminate = n > 0 && n < sichtbar.length;
     all.onclick = e => { e.stopPropagation(); const an = e.target.checked; sichtbar.forEach(id => an ? wahl.add(id) : wahl.delete(id)); list(el); }; }
@@ -48,8 +55,9 @@ function leiste(el) {
   if (!waehlen) return;
   const n = wahl.size;
   bar.innerHTML = html`<b>${n} ausgewählt</b><span class="muted small">Tipp: „Alle auswählen“, dann die Kontakte, die bleiben sollen, wieder antippen.</span>
-    <div class="actions"><button class="btn" data-walle>${sichtbar.length && sichtbar.every(id => wahl.has(id)) ? 'Keine' : 'Alle'} auswählen</button><button class="btn" data-wa ${n ? '' : raw('disabled')}>📦 Archivieren</button><button class="btn danger" data-wd ${n ? '' : raw('disabled')}>🗑 Löschen</button><button class="btn ghost" data-wx>Fertig</button></div>`.s;
+    <div class="actions"><button class="btn" data-walle>${sichtbar.length && sichtbar.every(id => wahl.has(id)) ? 'Keine' : 'Alle'} auswählen</button><button class="btn" data-wk ${n ? '' : raw('disabled')}>✓ Kontakt festhalten</button><button class="btn" data-wa ${n ? '' : raw('disabled')}>📦 Archivieren</button><button class="btn danger" data-wd ${n ? '' : raw('disabled')}>🗑 Löschen</button><button class="btn ghost" data-wx>Fertig</button></div>`.s;
   bar.querySelector('[data-walle]').onclick = () => { const alle = sichtbar.every(id => wahl.has(id)); sichtbar.forEach(id => alle ? wahl.delete(id) : wahl.add(id)); list(el); };
+  bar.querySelector('[data-wk]').onclick = () => kontaktErfassen({ contactIds: [...wahl] });
   bar.querySelector('[data-wx]').onclick = () => { waehlen = false; wahl.clear(); overview(el); };
   bar.querySelector('[data-wa]').onclick = async () => {
     if (!(await confirmDlg(`${n} Kontakte ins Archiv verschieben? (Jederzeit über Status „Archiv“ wiederherstellbar)`))) return;
@@ -75,21 +83,26 @@ function importDlg() {
   });
 }
 
-export function render(el, id) { id ? detail(el, id) : overview(el); }
+export function render(el, id) {
+  if (id && id[0] === '~') { fr = FRISCHE.some(f => f[0] === id.slice(1)) ? id.slice(1) : id === '~nachfassen' ? 'ueber' : ''; status = 'Aktiv'; history.replaceState(null, '', '#/kontakte'); window._lastHash = '#/kontakte'; return overview(el); }
+  id ? detail(el, id) : overview(el);
+}
 
 function overview(el) {
-  el.innerHTML = html`<div class="head"><h1>Kontakte <small id="ccount" class="muted"></small></h1><div class="actions"><button class="btn ${waehlen ? 'primary' : ''}" data-sel>☑ Auswählen</button><button class="btn" data-dupe>Dubletten</button><button class="btn" data-imp>Import</button><button class="btn" data-exp>Export</button><button class="btn primary" data-new>+ Kontakt</button></div></div>
-    <div class="filters"><input type="search" id="cq" placeholder="Suchen (Name, Firma, E-Mail, Telefon, Ort, Tags) …" value="${q}">
-    <select id="ca"><option value="">Alle Arten</option>${KONTAKT_ARTEN.map(a => html`<option ${a === art ? raw('selected') : ''}>${a}</option>`)}</select>
-    <select id="cs">${['Aktiv', 'Ruhend', 'Archiv', ''].map(a => html`<option value="${a}" ${a === status ? raw('selected') : ''}>${a || 'Alle Status'}</option>`)}</select>
-    <select id="co">${[['name', 'Name A–Z'], ['neu', 'Neueste zuerst'], ['kontakt', 'Letzter Kontakt'], ['follow', 'Wiedervorlage'], ['heiss', '🔥 Heißeste zuerst']].map(([v, l]) => html`<option value="${v}" ${v === sort ? raw('selected') : ''}>${l}</option>`)}</select></div>
+  el.innerHTML = html`<div class="head"><h1>Kontakte <small id="ccount" class="muted"></small></h1><div class="actions"><button class="btn ${waehlen ? 'primary' : ''}" data-sel>☑ Auswählen</button><button class="btn" data-dupe>Dubletten</button><button class="btn" data-imp>Import</button><button class="btn" data-exp>Export</button><button class="btn primary kgbtn" data-kg="">✓ Kontakt gehabt</button><button class="btn primary" data-new>+ Kontakt</button></div></div>
+    <div class="filters cfilters"><input type="search" id="cq" aria-label="Kontakte durchsuchen" placeholder="Suchen (Name, Firma, E-Mail, Telefon, Ort, Tags) …" value="${q}">
+    <select id="ca" aria-label="Kontaktart"><option value="">Alle Arten</option>${KONTAKT_ARTEN.map(a => html`<option ${a === art ? raw('selected') : ''}>${a}</option>`)}</select>
+    <select id="cs" aria-label="Status">${['Aktiv', 'Ruhend', 'Archiv', ''].map(a => html`<option value="${a}" ${a === status ? raw('selected') : ''}>${a || 'Alle Status'}</option>`)}</select>
+    <select id="co" aria-label="Sortierung">${[['name', 'Name A–Z'], ['neu', 'Neueste zuerst'], ['kontakt', 'Letzter Kontakt (neueste)'], ['follow', 'Wiedervorlage'], ['kontaktAlt', 'Am längsten kein Kontakt'], ['heiss', '🔥 Heißeste zuerst']].map(([v, l]) => html`<option value="${v}" ${v === sort ? raw('selected') : ''}>${l}</option>`)}</select>
+    <select id="cf" aria-label="Kontakt-Frische"><option value="">Jede Kontakt-Frische</option>${FRISCHE.map(([v, l]) => html`<option value="${v}" ${v === fr ? raw('selected') : ''}>${l}</option>`)}</select></div>
     <div class="wahlbar card" id="wahlbar" hidden></div>
     <div class="card flush" id="clist"></div>`.s;
   list(el);
-  el.querySelector('#cq').oninput = e => { q = e.target.value; list(el); };
-  el.querySelector('#ca').onchange = e => { art = e.target.value; list(el); };
-  el.querySelector('#cs').onchange = e => { status = e.target.value; list(el); };
-  el.querySelector('#co').onchange = e => { sort = e.target.value; list(el); };
+  el.querySelector('#cq').oninput = e => { q = e.target.value; mehr = 0; list(el); };
+  el.querySelector('#ca').onchange = e => { art = e.target.value; mehr = 0; list(el); };
+  el.querySelector('#cs').onchange = e => { status = e.target.value; mehr = 0; list(el); };
+  el.querySelector('#co').onchange = e => { sort = e.target.value; mehr = 0; list(el); };
+  el.querySelector('#cf').onchange = e => { fr = e.target.value; mehr = 0; list(el); };
   el.querySelector('[data-sel]').onclick = () => { waehlen = !waehlen; wahl.clear(); overview(el); };
   el.querySelector('[data-new]').onclick = () => contactForm({}, c => location.hash = '#/kontakte/' + c.id);
   el.querySelector('[data-imp]').onclick = importDlg;
@@ -100,7 +113,6 @@ function overview(el) {
 function detail(el, id) {
   const c = db.get('contacts', id);
   if (!c) { el.innerHTML = html`<a href="#/kontakte" class="back">← Kontakte</a>${empty('Kontakt nicht gefunden')}`.s; return; }
-  const acts = db.all('activities').filter(a => a.contactId === id);
   const tasks = db.all('tasks').filter(t => t.contactId === id).sort((a, b) => (a.done - b.done) || (a.faellig || '').localeCompare(b.faellig || ''));
   const deals = db.all('deals').filter(d => d.contactId === id);
   const evs = db.all('events').filter(e => e.contactId === id).sort((a, b) => b.datum.localeCompare(a.datum));
@@ -111,6 +123,7 @@ function detail(el, id) {
   el.innerHTML = html`<a href="#/kontakte" class="back">← Kontakte</a>
     <div class="head"><div class="who">${avatar(c)}<div><h1>${fullName(c)} ${tempBadge(c)}</h1><p class="muted">${c.kategorie}${c.firma && c.nachname ? ' · ' + c.firma : ''} ${c.status !== 'Aktiv' ? badge(c.status, '#777') : ''}</p></div></div>
       <div class="actions">${c.email ? html`<a class="btn" href="mailto:${c.email}">E-Mail</a>` : ''}${phone ? html`<a class="btn" href="tel:${phone}">Anrufen</a><a class="btn" target="_blank" rel="noopener" href="https://wa.me/${phone.replace(/^0/, '49').replace('+', '')}">WhatsApp</a>` : ''}<button class="btn" data-modell>Exposé</button><button class="btn" data-edit>Bearbeiten</button><button class="btn" data-akt="contact:${c.id}" title="Weitere Aktionen">⋯ Mehr</button></div></div>
+    ${kontaktKarte(c)}
     <div class="split"><div>
       <section class="card"><h2>Stammdaten</h2>
         ${line('E-Mail', c.email, c.email && 'mailto:' + c.email)}${line('Telefon', c.tel, c.tel && 'tel:' + c.tel)}${line('Mobil', c.mobil, c.mobil && 'tel:' + c.mobil)}
@@ -124,9 +137,8 @@ function detail(el, id) {
     </div><div>
       <section class="card"><h2>Aufgaben <button class="mini" data-task>+</button></h2>${tasks.length ? html`<ul class="tasks">${tasks.map(taskRow)}</ul>` : html`<p class="muted">Keine Aufgaben</p>`}</section>
       <section class="card"><h2>Termine <button class="mini" data-event>+</button></h2>${evs.length ? html`<ul class="list">${evs.map(e => html`<li data-ev="${e.id}"><b class="when">${fmtDate(e.datum)}</b><div class="grow"><div class="ttl">${e.titel}</div><div class="sub">${e.art}${e.ort ? ' · ' + e.ort : ''}</div></div></li>`)}</ul>` : html`<p class="muted">Keine Termine</p>`}</section>
-      <section class="card"><h2>Verlauf <button class="mini" data-act>+ Eintrag</button></h2>${timeline(acts)}</section>
     </div></div>`.s;
-  bindTasks(el);
+  bindTasks(el); bindKontaktKarte(el, () => detail(el, id));
   el.querySelector('[data-edit]').onclick = () => contactForm(c);
   el.querySelector('[data-modell]').onclick = () => {
     const ps = db.all('properties').filter(p => !['Archiv', 'Verkauft / Vermietet'].includes(p.status)), tip = db.all('deals').find(d => d.contactId === c.id && d.propertyId)?.propertyId;

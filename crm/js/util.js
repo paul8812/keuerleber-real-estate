@@ -41,12 +41,18 @@ export const iso = d => { const z = new Date(d.getTime() - d.getTimezoneOffset()
 export const today = () => iso(new Date());
 export const addDays = (s, n) => { const d = new Date(s + 'T12:00:00'); d.setDate(d.getDate() + n); return iso(d); };
 export const daysBetween = (a, b) => Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 86400000);
-export const fmtDate = s => s ? new Date(s + 'T12:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
-export const fmtDateShort = s => s ? new Date(s + 'T12:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }) : '';
-export const fmtDT = ts => ts ? new Date(ts).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
-export const eur = n => (n === '' || n == null || isNaN(n)) ? '–' : new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
-export const eur2 = n => (n == null || isNaN(n)) ? '–' : new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(n);
-export const num = (n, d = 0) => (n === '' || n == null || isNaN(n)) ? '–' : new Intl.NumberFormat('de-DE', { maximumFractionDigits: d }).format(n);
+// Formatierer einmal anlegen statt bei jedem Aufruf (toLocale…String mit Optionen baut jedes Mal ein neues Intl-Objekt –
+// bei Listen mit Hunderten Zeilen kostete das am Handy spürbar Zeit)
+const F_DATE = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }), F_SHORT = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit' }),
+  F_DT = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }),
+  F_EUR = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }), F_EUR2 = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }), F_NUM = {};
+const ok = d => !isNaN(d.getTime());
+export const fmtDate = s => { if (!s) return ''; const d = new Date(s + 'T12:00:00'); return ok(d) ? F_DATE.format(d) : 'Invalid Date'; };
+export const fmtDateShort = s => { if (!s) return ''; const d = new Date(s + 'T12:00:00'); return ok(d) ? F_SHORT.format(d) : 'Invalid Date'; };
+export const fmtDT = ts => { if (!ts) return ''; const d = new Date(ts); return ok(d) ? F_DT.format(d) : 'Invalid Date'; };
+export const eur = n => (n === '' || n == null || isNaN(n)) ? '–' : F_EUR.format(n);
+export const eur2 = n => (n == null || isNaN(n)) ? '–' : F_EUR2.format(n);
+export const num = (n, d = 0) => (n === '' || n == null || isNaN(n)) ? '–' : (F_NUM[d] ||= new Intl.NumberFormat('de-DE', { maximumFractionDigits: d })).format(n);
 export const pct = (n, d = 1) => (n == null || isNaN(n)) ? '–' : num(n, d) + ' %';
 export const debounce = (f, ms = 200) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f(...a), ms); }; };
 export const initials = c => ((c.vorname || '')[0] || '') + ((c.nachname || c.firma || '')[0] || '');

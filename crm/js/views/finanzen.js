@@ -255,7 +255,7 @@ function buchungen() {
 
 export function render(el) {
   const TABS = [['uebersicht', 'Übersicht'], ['rechnungen', 'Rechnungen'], ['buchungen', 'Einnahmen & Ausgaben']];
-  el.innerHTML = html`<div class="head"><h1>Finanzen</h1><div class="actions"><select class="chipsel" data-jahr>${jahre().map(y => html`<option ${y === jahrSel ? raw('selected') : ''}>${y}</option>`)}</select>
+  el.innerHTML = html`<div class="head"><h1>Finanzen</h1><div class="actions"><select class="chipsel" data-jahr aria-label="Jahr">${jahre().map(y => html`<option ${y === jahrSel ? raw('selected') : ''}>${y}</option>`)}</select>
       <label class="btn primary">📷 Belege hochladen<input type="file" accept="image/*,application/pdf,.pdf,.heic" multiple data-belege hidden></label>
       <button class="btn" data-neu="ausgabe">+ Ausgabe</button><button class="btn" data-neu="einnahme">+ Einnahme</button><button class="btn" data-neu="rechnung">+ Rechnung</button></div></div>
     <p class="muted small kidrop">${KI.hasKey() ? '🤖 Fotos oder PDFs von Belegen hochladen oder hierher ziehen – die KI erkennt alles und verbucht automatisch.' : raw('🤖 Neu: Belege einfach fotografieren, die KI verbucht sie. <a class="lnk" href="#/einstellungen">Einmalig einrichten →</a>')}</p>
