@@ -1,0 +1,141 @@
+/* Fahrtenbuch */
+.fb .head{margin-bottom:14px}
+.fb .head .actions .chipsel{padding:9px 12px}
+.fb-tabs{margin-bottom:16px}
+.fb-n{display:inline-grid;place-items:center;min-width:19px;height:19px;padding:0 5px;margin-left:6px;border-radius:99px;background:var(--gold);color:#16120a;font-size:11px;font-weight:700}
+.fb .gold{color:var(--gold)}
+.fb .warn{color:var(--warn)}
+.fb .small{font-size:12.5px}
+.fb .btn.small{padding:6px 11px;font-size:13px;min-height:0}
+.fb-tipp{margin:-4px 0 12px}
+
+/* Live-Fahrt */
+.fb-live{display:flex;align-items:center;gap:12px;padding:12px 16px;margin-bottom:14px;border:1px solid rgba(91,191,138,.35);background:rgba(91,191,138,.08);border-radius:var(--r)}
+.fb-puls{width:10px;height:10px;border-radius:50%;background:var(--ok);flex:0 0 auto;box-shadow:0 0 0 0 rgba(91,191,138,.6);animation:fb-puls 1.8s infinite}
+@keyframes fb-puls{70%{box-shadow:0 0 0 10px rgba(91,191,138,0)}100%{box-shadow:0 0 0 0 rgba(91,191,138,0)}}
+
+/* Karten zum Benennen */
+.fb-karten{display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:14px}
+.fb-karte{margin:0;display:flex;flex-direction:column;gap:12px;border-left:3px solid var(--line2,var(--line));transition:border-color .2s}
+.fb-karte[data-art=geschaeftlich]{border-left-color:#c9a96e}.fb-karte[data-art=privat]{border-left-color:#8f98a3}.fb-karte[data-art=arbeitsweg]{border-left-color:#5fa8d3}
+.fb-kopf{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline}
+.fb-km{font-weight:600;color:var(--gold);white-space:nowrap}
+.fb-weg{list-style:none;position:relative;display:flex;flex-direction:column;gap:7px;padding-left:2px}
+.fb-weg li{display:flex;gap:10px;align-items:flex-start;position:relative;line-height:1.35}
+.fb-weg li:not(:last-child)::after{content:'';position:absolute;left:4px;top:13px;bottom:-9px;width:2px;background:linear-gradient(var(--line2,var(--line)),var(--line2,var(--line)));opacity:.8}
+.fb-weg li.zw{color:var(--mut);font-size:13px}
+.fb-dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto;margin-top:4px;border:2px solid var(--gold)}
+.fb-dot.b{background:var(--gold)}.fb-dot.z{width:8px;height:8px;margin-left:1px;border-color:var(--mut)}
+.fb-vor{display:flex;gap:6px;flex-wrap:wrap}
+.fb-v{font-size:13px;padding:6px 11px;text-align:left;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fb-v small{color:var(--mut);font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;margin-right:3px}
+.fb-arten{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.fb-arten button{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:10px 6px;cursor:pointer;font:inherit;font-size:13.5px;transition:background .15s,border-color .15s,transform .1s}
+.fb-arten button:hover{border-color:var(--a)}
+.fb-arten button.on{border-color:var(--a);background:color-mix(in srgb,var(--a) 18%,transparent);font-weight:600}
+.fb-arten button:active{transform:scale(.97)}
+.fb-felder{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fb-felder .f{margin:0}.fb-felder .fb-zweck,.fb-felder .full,.fb-mehr{grid-column:1/-1}
+.fb-mehr summary{cursor:pointer;color:var(--mut);font-size:13px;padding:2px 0}
+.fb-mehr[open] summary{margin-bottom:8px}
+.fb-fuss{display:flex;gap:8px;align-items:center}
+.fb-fuss .grow{flex:1}
+.fb-unten{margin-top:14px;text-align:center}
+.fb-leer{text-align:center;padding:36px 20px}
+.fb-leer-ic{width:54px;height:54px;border-radius:50%;margin:0 auto 12px;display:grid;place-items:center;font-size:24px;color:var(--ok);background:rgba(91,191,138,.12)}
+.fb-leer p{max-width:520px;margin:8px auto 0}
+
+/* Liste */
+.fb-strip{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+.fb-monat{margin-bottom:14px}
+.fb-monat>header{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:14px 18px 8px;flex-wrap:wrap}
+.fb-monat h3{font-size:15px}
+.fb-zeilen{list-style:none}
+.fb-zeilen li{display:grid;grid-template-columns:62px 1fr auto;gap:12px;align-items:center;padding:11px 18px;border-top:1px solid var(--line);cursor:pointer}
+.fb-zeilen li:hover,.fb-zeilen li:focus-visible{background:var(--panel2)}
+.fb-zeilen li.offen .fb-zw{color:var(--mut)}
+.fb-zt{display:flex;flex-direction:column;font-size:13px}.fb-zt span{color:var(--mut);font-size:12px}
+.fb-zm{min-width:0}.fb-zw{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fb-zm .muted{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fb-zr{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.fb-art{font-size:11px;padding:2px 8px;border-radius:99px;border:1px solid var(--a);color:var(--a);background:color-mix(in srgb,var(--a) 10%,transparent)}
+.fb-art.offen{--a:var(--warn)}
+.fb-lock,.fb-hist{font-style:normal;font-size:12px;opacity:.75}
+
+/* Detail */
+.fb-dkopf{display:flex;flex-direction:column;gap:8px}
+.fb-hinweis{background:rgba(201,169,110,.08);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:13px}
+.fb-historie h4{font-size:13px;margin-bottom:6px}.fb-historie ul{list-style:none;display:flex;flex-direction:column;gap:6px;font-size:13px}
+.fb-dakt{display:flex;flex-wrap:wrap;gap:8px}
+
+/* Kosten */
+.fb-warn{display:flex;gap:12px;align-items:flex-start;padding:12px 16px;margin-bottom:14px;border:1px solid rgba(224,168,74,.4);background:rgba(224,168,74,.08);border-radius:var(--r);font-size:13.5px;line-height:1.5}
+.fb-hero{display:grid;grid-template-columns:1fr 1.3fr;gap:18px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;margin-bottom:16px}
+.fb-hl{display:flex;flex-direction:column;gap:4px}
+.fb-big{font-family:'Cormorant Garamond',serif;font-size:46px;font-weight:600;color:var(--gold);line-height:1.05;letter-spacing:-.5px}
+.fb-vgl{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fb-m{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:2px;position:relative;transition:border-color .2s}
+.fb-m span{color:var(--mut);font-size:12px}.fb-m b{font-size:21px}.fb-m small{color:var(--mut);font-size:11.5px}
+.fb-m.sieg{border-color:var(--gold);background:rgba(201,169,110,.07)}
+.fb-m.sieg::after{content:'besser';position:absolute;top:-9px;right:10px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;background:var(--gold);color:#16120a;padding:1px 7px;border-radius:99px;font-weight:700}
+.fb-empf{grid-column:1/-1;color:var(--mut);margin-top:-4px}
+.fb-kh{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.fb-kh h3{font-size:15px}
+.fb-tbl{margin-top:10px;width:100%}.fb-tbl .r{text-align:right}
+.fb-zwei{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.fb-zwei .card{margin-bottom:16px}
+.fb-dl{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:13.5px}.fb-dl dt{color:var(--mut)}
+.fb-st{list-style:none;display:flex;flex-direction:column;gap:2px;margin-top:8px}
+.fb-st li{display:grid;grid-template-columns:90px auto 1fr auto;gap:10px;align-items:center;padding:6px 0;border-top:1px solid var(--line);font-size:13.5px}
+.fb-st li small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fb-rechts{margin-top:4px;line-height:1.5}
+
+/* Einrichten */
+.fb-setup{display:flex;flex-direction:column}
+.fb-schritt{display:grid;grid-template-columns:38px 1fr;gap:14px}
+.fb-schritt h3{font-size:16px;margin-bottom:4px}.fb-schritt p{margin-top:6px}
+.fb-nr{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--gold);color:var(--gold);font-weight:600}
+.fb-links{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.fb-link{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.fb-link span{grid-column:1/-1;font-size:12px;color:var(--mut)}
+.fb-link code{font-size:11.5px;word-break:break-all;color:var(--txt);opacity:.85}
+.fb-link code i{color:var(--gold);font-style:normal}
+.fb-anl,.fb-liste{padding-left:20px;display:flex;flex-direction:column;gap:6px;margin:10px 0;font-size:13.5px;line-height:1.5}
+
+@media(max-width:700px){
+  .fb .head{flex-direction:column}.fb .head .actions{width:100%}.fb .head .actions .btn{flex:1}
+  .fb-karten{grid-template-columns:1fr}
+  .fb-karte{padding:16px}
+  .fb-felder{grid-template-columns:1fr}
+  .fb-arten button{padding:12px 4px;font-size:13px}
+  .fb-fuss .btn{min-height:44px}
+  .fb-hero{grid-template-columns:1fr;padding:18px}
+  .fb-big{font-size:40px}
+  .fb-zwei{grid-template-columns:1fr}
+  .fb-zeilen li{grid-template-columns:48px 1fr;padding:11px 14px}
+  .fb-zr{grid-column:2;justify-content:flex-start}
+  .fb-monat>header{padding:12px 14px 6px}
+  .fb-tbl th:nth-child(3),.fb-tbl td:nth-child(3){display:none}
+}
+@media(prefers-reduced-motion:reduce){.fb-puls{animation:none}}
+
+/* Auto-Karte mit Foto */
+.fb-auto{display:grid;grid-template-columns:1fr 1.15fr;align-items:stretch;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:16px}
+.fb-auto-txt{padding:22px 24px;display:flex;flex-direction:column;gap:6px;justify-content:center}
+.fb-auto-k{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.fb-auto h2{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;line-height:1.05;margin:0}
+.fb-auto-z{display:grid;grid-template-columns:repeat(3,auto);justify-content:start;gap:6px 26px;margin:12px 0 6px}
+.fb-auto-z div{display:flex;flex-direction:column}.fb-auto-z b{font-size:19px;letter-spacing:-.3px}.fb-auto-z span{color:var(--mut);font-size:12px}
+.fb-auto-akt{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.fb-auto-bild{position:relative;margin:0;min-height:220px;background:#e9eef3}
+.fb-auto-bild img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 42%;display:block}
+.fb-auto-bild::before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,var(--panel) 0,rgba(0,0,0,0) 22%)}
+.fb-auto-bild figcaption{position:absolute;right:10px;bottom:8px;z-index:2;font-size:10px;color:rgba(20,20,20,.55)}
+@media(max-width:700px){
+  .fb-auto{grid-template-columns:1fr}
+  .fb-auto-bild{order:-1;min-height:0;aspect-ratio:16/9}
+  .fb-auto-bild::before{background:linear-gradient(0deg,var(--panel) 0,rgba(0,0,0,0) 30%)}
+  .fb-auto-txt{padding:4px 18px 18px}
+  .fb-auto h2{font-size:28px}
+  .fb-auto-z{grid-template-columns:repeat(3,1fr);gap:6px 12px}.fb-auto-z b{font-size:16px}
+}

@@ -17,7 +17,7 @@ export const WIEDERHOLUNG = [['', 'Keine'], ['daily', 'Täglich'], ['weekly', 'W
 export const BUNDESLAENDER = { 'Baden-Württemberg': 5, 'Bayern': 3.5, 'Berlin': 6, 'Brandenburg': 6.5, 'Bremen': 5.5, 'Hamburg': 5.5, 'Hessen': 6, 'Mecklenburg-Vorpommern': 6, 'Niedersachsen': 5, 'Nordrhein-Westfalen': 6.5, 'Rheinland-Pfalz': 5, 'Saarland': 6.5, 'Sachsen': 5.5, 'Sachsen-Anhalt': 5, 'Schleswig-Holstein': 6.5, 'Thüringen': 5 };
 export const NAV = [
   ['dashboard', 'Übersicht', '◧'], ['posteingang', 'Posteingang', '✉'], ['kontakte', 'Kontakte', '☺'], ['objekte', 'Objekte', '⌂'], ['pipeline', 'Pipeline', '▤'],
-  ['aufgaben', 'Aufgaben', '✓'], ['kalender', 'Kalender', '▦'], ['finanzen', 'Finanzen', '€'], ['automation', 'Automationen', '⚡'], ['vorlagen', 'Vorlagen', '✎'], ['rechner', 'Rechner', '∑'], ['statistik', 'Statistik', '◔'], ['social', 'Social Media', '◎'], ['einstellungen', 'Einstellungen', '⚙'],
+  ['aufgaben', 'Aufgaben', '✓'], ['kalender', 'Kalender', '▦'], ['finanzen', 'Finanzen', '€'], ['fahrten', 'Fahrtenbuch', '⇆'], ['automation', 'Automationen', '⚡'], ['vorlagen', 'Vorlagen', '✎'], ['rechner', 'Rechner', '∑'], ['statistik', 'Statistik', '◔'], ['social', 'Social Media', '◎'], ['einstellungen', 'Einstellungen', '⚙'],
 ];
 // Anzeigenamen der Einkaufs-Phasen für den Kapitalanlagevertrieb (gespeicherte Werte bleiben gleich – kompatibel mit Mail-Abgleich)
 export const STAGE_LABEL = { 'Neuer Lead': 'Neuer Kontakt', 'Bewertung / Besichtigung': 'Objektprüfung / Kalkulation', 'Angebot / Maklerauftrag': 'Vertriebsvereinbarung', 'Auftrag erhalten': 'Im Vertrieb' };
