@@ -1,6 +1,6 @@
 // Datenschicht: lokal (localStorage) oder Cloud (Supabase). Gleiche API für beide.
 import { uid, today, toast, idFor } from './util.js';
-export const COLS = ['contacts', 'properties', 'deals', 'tasks', 'events', 'activities', 'templates', 'settings', 'mails', 'sync', 'buchungen', 'rechnungen', 'social'];
+export const COLS = ['contacts', 'properties', 'deals', 'tasks', 'events', 'activities', 'templates', 'settings', 'mails', 'sync', 'buchungen', 'rechnungen', 'social', 'fahrten'];
 const LS = 'kre-crm-data', CFG = 'kre-crm-cfg';
 // Supabase-Bibliothek liegt im eigenen Repository (kein fremdes CDN zur Laufzeit)
 const SB_LIB = new URL('../vendor/supabase.js?v=2.45.4', import.meta.url).href;
@@ -266,6 +266,95 @@ begin
 end $$;
 revoke all on function public.social_push(text, jsonb) from public;
 grant execute on function public.social_push(text, jsonb) to anon, authenticated;`;
+// Fahrtenbuch: Das iPhone meldet beim Verbinden/Trennen von CarPlay (Kurzbefehl-Automation) Start und Ende einer Fahrt
+// über die Edge Function „fahrt“ → fahrt_punkt(). Geschützt durch einen Zufallswert, der nur diese Funktionen öffnet.
+// Die Fahrt landet als Datensatz in 'fahrten' und ist per Realtime sofort im CRM zum Benennen da.
+export const FAHRTEN_SQL = `create schema if not exists privat;
+create table if not exists privat.fahrt (
+  id int primary key default 1 check (id = 1),
+  geheim text not null default replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', ''),
+  geaendert timestamptz not null default now()
+);
+alter table privat.fahrt enable row level security;
+revoke all on privat.fahrt from public, anon, authenticated;
+insert into privat.fahrt (id) values (1) on conflict (id) do nothing;
+
+create or replace function public.fahrt_punkt(p_geheim text, p_art text, p_lat double precision, p_lon double precision, p_genau double precision default null, p_quelle text default 'carplay')
+returns jsonb language plpgsql security definer set search_path = public, privat as $$
+declare u uuid; g text; jetzt timestamptz := now(); pkt jsonb; nid text; o_id text; l_id text; l_data jsonb;
+begin
+  select geheim into g from privat.fahrt where id = 1;
+  if g is null or coalesce(p_geheim, '') <> g then raise exception 'nicht erlaubt'; end if;
+  if p_art not in ('start', 'ende') then raise exception 'art muss start oder ende sein'; end if;
+  if p_lat is null or p_lon is null or abs(p_lat) > 90 or abs(p_lon) > 180 or (p_lat = 0 and p_lon = 0) then raise exception 'Standort fehlt'; end if;
+  select user_id into u from public.records where id = 'main' and collection = 'settings' limit 1;
+  if u is null then raise exception 'CRM nicht eingerichtet'; end if;
+  perform pg_advisory_xact_lock(470811);
+  pkt := jsonb_build_object('zeit', jetzt, 'lat', round(p_lat::numeric, 6), 'lon', round(p_lon::numeric, 6), 'genau', round(p_genau::numeric));
+  select id into o_id from public.records where user_id = u and collection = 'fahrten' and data->>'status' = 'unterwegs'
+    order by data->'start'->>'zeit' desc limit 1;
+  if p_art = 'start' then
+    if o_id is not null then
+      -- Ende wurde nicht gemeldet: das Auto stand seitdem hier → Fahrt endet an diesem Punkt (Zeit unbekannt)
+      update public.records set data = data || jsonb_build_object('ende', pkt || jsonb_build_object('zeitUnbekannt', true), 'status', 'offen') where id = o_id;
+    else
+      -- Nur kurz getrennt (< 4 Min., z. B. Kabel/Bluetooth-Aussetzer)? → dieselbe Fahrt geht weiter
+      select id, data into l_id, l_data from public.records where user_id = u and collection = 'fahrten' and data->>'status' = 'offen' and data->'ende' ? 'zeit'
+        order by data->'ende'->>'zeit' desc limit 1;
+      if l_id is not null and coalesce((l_data->'ende'->>'zeitUnbekannt')::boolean, false) = false
+         and jetzt - (l_data->'ende'->>'zeit')::timestamptz < interval '4 minutes' then
+        update public.records set data = (data - 'ende') || jsonb_build_object('status', 'unterwegs', 'aussetzer', coalesce((data->>'aussetzer')::int, 0) + 1) where id = l_id;
+        return jsonb_build_object('ok', true, 'id', l_id, 'fortgesetzt', true);
+      end if;
+    end if;
+    nid := 'fahrt-' || gen_random_uuid();
+    insert into public.records (id, collection, data, user_id)
+    values (nid, 'fahrten', jsonb_build_object('id', nid, 'status', 'unterwegs', 'quelle', left(coalesce(p_quelle, 'carplay'), 20), 'start', pkt, 'erstellt', jetzt), u);
+    return jsonb_build_object('ok', true, 'id', nid, 'art', 'start');
+  end if;
+  if o_id is null then
+    -- Start fehlte: letzter bekannter Standort des Autos ist der Start
+    select data into l_data from public.records where user_id = u and collection = 'fahrten' and data->'ende' ? 'lat' and data->>'status' <> 'verworfen'
+      order by data->'ende'->>'zeit' desc limit 1;
+    nid := 'fahrt-' || gen_random_uuid();
+    insert into public.records (id, collection, data, user_id)
+    values (nid, 'fahrten', jsonb_build_object('id', nid, 'status', 'offen', 'quelle', left(coalesce(p_quelle, 'carplay'), 20), 'erstellt', jetzt, 'ende', pkt,
+      'start', coalesce((l_data->'ende') || jsonb_build_object('zeitUnbekannt', true), jsonb_build_object('zeitUnbekannt', true))), u);
+    return jsonb_build_object('ok', true, 'id', nid, 'art', 'ende', 'ohneStart', true, 'start', l_data->'ende');
+  end if;
+  update public.records set data = data || jsonb_build_object('ende', pkt, 'status', 'offen') where id = o_id returning data into l_data;
+  return jsonb_build_object('ok', true, 'id', o_id, 'art', 'ende', 'start', l_data->'start');
+end $$;
+
+-- Adressen/Strecke nachtragen (nur solange die Fahrt noch nicht erfasst ist, nur diese Felder)
+create or replace function public.fahrt_ergaenzen(p_geheim text, p_id text, p_daten jsonb) returns boolean language plpgsql security definer set search_path = public, privat as $$
+declare g text; d jsonb;
+begin
+  select geheim into g from privat.fahrt where id = 1;
+  if g is null or coalesce(p_geheim, '') <> g then raise exception 'nicht erlaubt'; end if;
+  select data into d from public.records where id = p_id and collection = 'fahrten' for update;
+  if d is null or d->>'status' not in ('unterwegs', 'offen') then return false; end if;
+  if p_daten ? 'startAdresse' and d ? 'start' then d := jsonb_set(d, '{start,adresse}', to_jsonb(left(p_daten->>'startAdresse', 200))); end if;
+  if p_daten ? 'endeAdresse' and d ? 'ende' then d := jsonb_set(d, '{ende,adresse}', to_jsonb(left(p_daten->>'endeAdresse', 200))); end if;
+  if jsonb_typeof(p_daten->'kmRoute') = 'number' then d := d || jsonb_build_object('kmRoute', least((p_daten->>'kmRoute')::numeric, 3000)); end if;
+  if jsonb_typeof(p_daten->'minRoute') = 'number' then d := d || jsonb_build_object('minRoute', least((p_daten->>'minRoute')::numeric, 3000)); end if;
+  update public.records set data = d where id = p_id;
+  return true;
+end $$;
+
+-- Für das CRM (angemeldet + 2FA): Zufallswert anzeigen bzw. erneuern
+create or replace function public.fahrt_geheim(p_neu boolean default false) returns text language plpgsql security definer set search_path = public, privat as $$
+declare g text;
+begin
+  if auth.uid() is null or not public.mfa_ok() or not exists (select 1 from public.records r where r.user_id = auth.uid() and r.id = 'main') then raise exception 'nicht berechtigt'; end if;
+  if p_neu then update privat.fahrt set geheim = replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', ''), geaendert = now() where id = 1; end if;
+  select geheim into g from privat.fahrt where id = 1;
+  return g;
+end $$;
+revoke all on function public.fahrt_punkt(text, text, double precision, double precision, double precision, text), public.fahrt_ergaenzen(text, text, jsonb), public.fahrt_geheim(boolean) from public;
+grant execute on function public.fahrt_punkt(text, text, double precision, double precision, double precision, text), public.fahrt_ergaenzen(text, text, jsonb) to anon, authenticated;
+grant execute on function public.fahrt_geheim(boolean) to authenticated;`;
+export async function fahrtGeheim(neu = false) { if (!sb) throw new Error('Keine Cloud-Datenbank verbunden'); const { data, error } = await sb.rpc('fahrt_geheim', { p_neu: neu }); if (error) throw error; return data; }
 // Website-Anfragen: Formulare der Website schreiben (nur einfügen!) in diese Tabelle, das CRM holt sie ab und löscht sie danach.
 export const ANFRAGEN_SQL = `create table if not exists public.website_anfragen (
   id uuid primary key default gen_random_uuid(),

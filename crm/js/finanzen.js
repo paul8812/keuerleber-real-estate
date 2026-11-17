@@ -2,6 +2,7 @@
 import * as db from './db.js';
 import { esc, eur2, fmtDate, today, addDays, fullName } from './util.js';
 import { adresse } from './ui.js';
+import { euerAnteil } from './fahrtenbuch.js';
 
 export const KAT_AUSGABE = ['Werbung & Portale', 'Fahrzeug & Fahrtkosten', 'Büro & Material', 'Software & IT', 'Telefon & Internet', 'Versicherungen', 'Steuerberater & Beratung', 'Fortbildung', 'Bewirtung', 'Bank & Gebühren', 'Fotografie & Homestaging', 'Gutachten & Energieausweis', 'Miete & Raumkosten', 'Reisekosten & Übernachtung', 'Porto & Versand', 'Beiträge & Gebühren', 'Geringwertige Wirtschaftsgüter (bis 800 € netto)', 'Anschaffung Anlagegut (über 800 € netto)', 'Sonstige Ausgaben'];
 export const KAT_EINNAHME = ['Vertriebsvergütung', 'Provision Käufer', 'Provision Verkäufer', 'Vermietungsprovision', 'Beratung', 'Sonstige Einnahmen'];
@@ -80,10 +81,14 @@ export async function alsBezahlt(re, datum = today()) {
 export function jahr(y) {
   const b = db.all('buchungen').filter(x => !x.offen && (x.datum || '').startsWith(String(y)));  // EÜR: erst bei Zahlung
   const sum = (arr, k) => r2(arr.reduce((s, x) => s + (Number(x[k]) || 0), 0));
-  const ein = b.filter(x => x.art === 'einnahme'), aus = b.filter(x => x.art === 'ausgabe');
-  const monate = Array.from({ length: 12 }, (_, i) => { const m = `${y}-${String(i + 1).padStart(2, '0')}`; return { m, ein: sum(ein.filter(x => x.datum.startsWith(m)), 'netto'), aus: sum(aus.filter(x => x.datum.startsWith(m)), 'netto') }; });
+  const ein = b.filter(x => x.art === 'einnahme'), ausAlle = b.filter(x => x.art === 'ausgabe');
+  // Privatauto mit Fahrtenbuch: Kfz-Belege sind keine direkten Betriebsausgaben – statt dessen die Fahrtkosten lt. Fahrtenbuch
+  const fb = euerAnteil(y), aus = fb ? ausAlle.filter(x => !fb.ausgeschlossen(x)) : ausAlle;
+  const monate = Array.from({ length: 12 }, (_, i) => { const m = `${y}-${String(i + 1).padStart(2, '0')}`; return { m, ein: sum(ein.filter(x => x.datum.startsWith(m)), 'netto'), aus: r2(sum(aus.filter(x => x.datum.startsWith(m)), 'netto') + (fb ? fb.monate[i].betrag : 0)) }; });
   const kat = {}; aus.forEach(x => { kat[x.kategorie || 'Sonstige Ausgaben'] = r2((kat[x.kategorie || 'Sonstige Ausgaben'] || 0) + (Number(x.netto) || 0)); });
-  return { einNetto: sum(ein, 'netto'), ausNetto: sum(aus, 'netto'), ust: sum(ein, 'ust'), vorsteuer: sum(aus, 'ust'), monate, kat, anzahl: b.length };
+  if (fb && fb.gesamt) kat['Fahrzeug & Fahrtkosten'] = r2((kat['Fahrzeug & Fahrtkosten'] || 0) + fb.gesamt);
+  const fahrtenbuch = fb ? { absetzbar: fb.gesamt, kfzBelege: sum(ausAlle.filter(x => fb.ausgeschlossen(x)), 'netto') } : null;
+  return { einNetto: sum(ein, 'netto'), ausNetto: r2(sum(aus, 'netto') + (fb ? fb.gesamt : 0)), ust: sum(ein, 'ust'), vorsteuer: sum(ausAlle, 'ust'), monate, kat, anzahl: b.length, fahrtenbuch };
 }
 
 export function bruttoZuNetto(brutto, satz) { const n = r2(Number(brutto) / (1 + Number(satz) / 100)); return { netto: n, ust: r2(Number(brutto) - n) }; }

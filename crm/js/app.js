@@ -16,6 +16,7 @@ import * as automation from './views/automation.js';
 import * as inbox from './views/inbox.js';
 import * as finanzen from './views/finanzen.js';
 import * as social from './views/social.js';
+import * as fahrten from './views/fahrten.js';
 import * as auto from './automation.js';
 import * as anfragen from './anfragen.js';
 import * as mailsort from './mailsort.js';
@@ -28,7 +29,7 @@ import { initKontakt, kontaktErfassen } from './kontakt.js';
 import { belegeHochladen } from './views/finanzen.js';
 function belegFoto() { const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*,application/pdf'; i.multiple = true; i.onchange = () => { if (i.files.length) { location.hash = '#/finanzen'; setTimeout(() => belegeHochladen(i.files), 300); } }; i.click(); }
 
-const VIEWS = { dashboard, posteingang: inbox, kontakte: contacts, objekte: properties, pipeline, aufgaben: tasks, kalender: calendar, finanzen, vorlagen: templates, automation, rechner: calc, statistik: stats, social, einstellungen: settings };
+const VIEWS = { dashboard, posteingang: inbox, kontakte: contacts, objekte: properties, pipeline, aufgaben: tasks, kalender: calendar, finanzen, vorlagen: templates, automation, rechner: calc, statistik: stats, social, fahrten, einstellungen: settings };
 const main = document.getElementById('main');
 
 function route() {
@@ -47,11 +48,13 @@ function route() {
   if (wechsel) uebergang(zeichnen, main); else zeichnen();   // Ansichtswechsel weich, Neuzeichnen nach Datenänderung sofort
 }
 function navBadges() {
-  const a = document.querySelector('#nav a[data-k="posteingang"]'); if (!a) return;
-  const n = inbox.newCount(); let b = a.querySelector('b.nb');
-  if (!n) { b && b.remove(); return; }
-  if (!b) { b = document.createElement('b'); b.className = 'nb'; a.appendChild(b); }
-  b.textContent = n;
+  for (const [k, n] of [['posteingang', inbox.newCount()], ['fahrten', fahrten.offenAnzahl()]]) {
+    const a = document.querySelector(`#nav a[data-k="${k}"]`); if (!a) continue;
+    let b = a.querySelector('b.nb');
+    if (!n) { b && b.remove(); continue; }
+    if (!b) { b = document.createElement('b'); b.className = 'nb'; a.appendChild(b); }
+    b.textContent = n;
+  }
 }
 const tippt = () => { const a = document.activeElement; return !!a && main.contains(a) && (a.matches('input, textarea, select') || a.isContentEditable); };
 // Live-Änderungen: nicht neu zeichnen, solange ein Dialog offen ist, getippt wird oder die App im Hintergrund liegt (spart Akku) – danach einmal nachholen

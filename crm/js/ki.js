@@ -67,6 +67,8 @@ Felder:
  "bezahlt": true | false        // true, wenn Kassenbon/Zahlung erkennbar, false bei offener Rechnung
  "propertyId": "…" | ""         // nur wenn der Beleg eindeutig zu einem dieser Objekte gehört (Adresse/Objekt genannt):
 ${objekte}
+ "kmStand": Zahl | null         // nur bei Fahrzeug-Belegen (Werkstatt, TÜV, Reifen): auf dem Beleg genannter Kilometerstand, sonst null
+ "liter": Zahl | null           // nur bei Tankbelegen: getankte Liter, sonst null
  "sicherheit": 0 bis 1          // wie sicher die Erkennung insgesamt ist
  "hinweis": "…" | ""            // z. B. bei Bewirtung „Anlass und Teilnehmer auf dem Beleg notieren (70 % abziehbar)“, unleserlich, kein Beleg, privat?
 }
@@ -127,6 +129,7 @@ export async function verbuchen(e, datei, name = '') {
       brutto, netto: F.r2(t.netto), ust: F.r2(t.ust), ustSatz: t.satz, zahlart: e.zahlart, propertyId: e.propertyId,
       beleg: e.rechnungsnr, belegId, belegBrutto: e.brutto, belegTeil: zeilen.length > 1 ? i + 1 : 0,
       ki: true, kiSicherheit: e.sicherheit, pruefen, hinweis: e.hinweis, offen: !e.bezahlt,
+      ...(i === 0 && Number(e.kmStand) > 0 ? { kmStand: Math.round(Number(e.kmStand)) } : {}), ...(i === 0 && Number(e.liter) > 0 ? { liter: Number(e.liter) } : {}),
     }));
   }
   return out;
