@@ -31,6 +31,15 @@ create policy "eigene Daten" on public.records for all
 *Einstellungen → Cloud-Datenbank*: URL + Key eintragen → „Speichern & neu laden“ → mit dem angelegten Benutzer anmelden.
 Bereits lokal erfasste Daten: *Einstellungen → Lokale Daten in die Cloud hochladen*.
 
+### Live-Abgleich zwischen Geräten (Handy, Mac, Tablet)
+- Einmalig im SQL-Editor ausführen: `SYNC_SQL` aus `js/db.js` (steckt auch im „SQL kopieren“ der Ersteinrichtung). Es setzt die Änderungszeit serverseitig, legt einen Index an und gibt `records` und `website_anfragen` für Supabase Realtime frei.
+- Jedes Gerät hält einen eigenen Stand im Gerätespeicher (IndexedDB): Start ohne Warten, Lesen und Erfassen auch ohne Netz.
+- Speichern ist sofort sichtbar; eine Warteschlange schickt die Änderung zum Server – auch nach Funkloch oder wenn das Handy die App zwischendurch beendet. Beim Abmelden bleiben nur noch nicht gesendete Änderungen auf dem Gerät, bis sie raus sind.
+- Änderungen anderer Geräte, des Mail-Abgleichs und neue Website-Anfragen kommen per Realtime sofort an; nach Ruhezustand/Funkloch werden nur die Änderungen seitdem nachgeladen (plus Abgleich gelöschter Einträge).
+- Punkt oben rechts: grün = live, gold mit Zahl = wird gesendet, „Offline · n“ = n Änderungen warten auf Netz. Antippen = sofort abgleichen. Herunterziehen auf dem Handy = alles neu laden.
+- Gleicher Datensatz auf zwei Geräten gleichzeitig geändert: der zuletzt beim Server angekommene Stand gilt auf allen Geräten.
+- App-Dateien hält ein Service Worker (`sw.js`) für das Öffnen ohne Netz vor; online wird immer die aktuelle Fassung geladen.
+
 ## Sicherheit
 - Der Anon-Key ist öffentlich vorgesehen; Schutz erfolgt über Login + Row Level Security (jeder sieht nur eigene Zeilen).
 - Das GitHub-Repo ist öffentlich: **keine echten Kundendaten ins Repo committen** (nur Code). Daten liegen in Supabase.
@@ -42,14 +51,14 @@ Bereits lokal erfasste Daten: *Einstellungen → Lokale Daten in die Cloud hochl
 - Google Kalender/Kontakte: Client-ID gemäß Anleitung in *Automationen → Google* erstellen, dort eintragen, „Kalender synchronisieren“ klicken. Die Anmeldung läuft direkt zwischen deinem Browser und Google.
 - Damit CRM-Termine in **Outlook** erscheinen: in Outlook unter Einstellungen → Konten das Google-Konto hinzufügen. Nach dem ersten Klick auf „Kalender synchronisieren“ gleicht das CRM alle 10 Minuten automatisch ab, solange es geöffnet ist.
 
-## E-Mail (Outlook / Strato) – Mail-Abgleich
-Läuft auf Pauls Mac im Ordner `~/crm-mailsync` (launchd, alle 3 Minuten, nur Python-Standardbibliothek). Er liest das Strato-Postfach per IMAP (nur lesend, Mails bleiben ungelesen) und schreibt mit Pauls CRM-Login in die `records`-Tabelle:
-- Website-Formulare (Kontakt, Objekt, Termin, Vorab-Liste, Renditerechner) und ImmoScout24/Immowelt/Kleinanzeigen → Kontakt, Vorgang, Aufgabe „Erstkontakt“ (gleicher Schlüssel wie die Regel „Neuer Interessent“), Terminwunsch als Termin „(angefragt)“.
+## E-Mail (Outlook / Strato) – Mail-Abgleich (Server)
+Läuft seit 22.10.2026 auf dem Server: Supabase Edge Function `mailsync` (Quelltext: `supabase/functions/mailsync/index.ts`), alle 3 Minuten aufgerufen von pg_cron (Job `crm-mailsync`). Unabhängig vom Mac. Liest das Strato-Postfach per IMAP (nur lesend, BODY.PEEK – Mails bleiben ungelesen) und schreibt mit dem Service-Schlüssel in `records`:
+- Website-Formulare (Kontakt, Objekt, Termin, Vorab-Liste, Renditerechner) und ImmoScout24/Immowelt/Kleinanzeigen → Kontakt, Vorgang, Aufgabe „Erstkontakt“, Terminwunsch als Termin „(angefragt)“. Website-Anfragen, die schon über `website_anfragen` kamen (lead-sync.js), werden nicht doppelt angelegt. Kam eine Website-Anfrage nur per Mail (lead-sync im Browser blockiert), schickt der Abgleich die Telegram-Nachricht selbst (`mailsync_push`, nur für Mails < 2 Std.).
 - Mail eines Kontakts → Verlauf + Aufgabe „Antworten“; gesendete Antwort → Verlauf, Antwort-Aufgaben werden erledigt.
-- Unbekannte Absender → Sammlung `mails` (Menü *Posteingang*). Status des Abgleichs → Sammlung `sync` (Datensatz `mailsync`).
-- Einrichten: im Ordner `crm-mailsync` doppelt auf „Einrichten.command“ klicken (Postfach- und CRM-Passwort eingeben; gespeichert wird nur das Postfach-Passwort und ein CRM-Token, in `~/.config/keuerleber-crm/zugang.json`, nur für Paul lesbar).
-- Der Abgleich hat eine eigene CRM-Anmeldung. „Abmelden“ im CRM (auch der Auto-Logout nach Inaktivität) meldet nur das jeweilige Gerät ab; „Auf allen Geräten abmelden“ und ein Passwortwechsel beenden auch die Anmeldung des Abgleichs → danach „Einrichten.command“ erneut starten. Die Karte unter *Automationen* warnt, wenn sich der Mac länger als 30 Minuten nicht gemeldet hat.
-- Keine Mail-Inhalte ins Repo: der Abgleich liegt bewusst außerhalb von `~/keuerleber-real-estate` (der Immo-Manager veröffentlicht diesen Ordner per `git add -A`).
+- Unbekannte Absender → Sammlung `mails` (Menü *Posteingang*). Status → Sammlung `sync` (Datensatz `mailsync`, `ort: "server"`).
+- Einrichtung (einmalig, schon erledigt): `mailsyncSQL()` aus `crm/js/db.js` im SQL-Editor ausführen (Tabelle `privat.mailsync`, RPCs, Cron-Job), Edge Function `mailsync` im Dashboard bereitstellen (Editor, JWT-Prüfung an). Danach im CRM *Automationen → E-Mail* das Strato-Passwort eintragen → „Server-Abgleich aktivieren“. Das Passwort liegt verschlüsselt im Supabase Vault (`mailsync_imap`); die Funktion holt es über `mailsync_start()` (nur `service_role`, geschützt durch den Zufallswert in `privat.mailsync.geheim`, Sperre gegen Doppelläufe).
+- Testen ohne echtes Postfach: Prüfstand mit falschem IMAP-Server und Supabase-Attrappe (siehe PR); die Logik entspricht 1:1 dem früheren `crm_mailsync.py`.
+- Der frühere Mac-Abgleich (`~/crm-mailsync`, launchd) ist abgelöst und kann mit „Entfernen.command“ gelöscht werden.
 
 ## Website-Anfragen direkt ins CRM
 - Alle Formulare der Website (Beratungs-Popup, Kontakt, Objekt, Termin, Vorab-Liste, Renditerechner) spiegeln jede Anfrage zusätzlich per `lead-sync.js` in die Supabase-Tabelle `website_anfragen` (nur Einfügen für `anon`; lesen/löschen nur der CRM-Inhaber). Die Mail über Web3Forms bleibt als Sicherheit bestehen.
@@ -83,3 +92,9 @@ Alle Regeln sind unter „Automationen“ einzeln abschaltbar.
 - Die KI erkennt Datum, Lieferant, Rechnungsnummer, Beträge je Steuersatz, Kategorie, Konto (SKR03-Vorschlag), Zahlart und das Objekt. Danach wird automatisch gebucht; der Beleg wird gespeichert (📎 in der Buchung).
 - Unsichere Belege oder Belege mit Hinweis (z. B. Bewirtung) landen unter „⚠ Zu prüfen“ und erzeugen eine Aufgabe. Doppelte Belege werden erkannt und übersprungen. Offene Eingangsrechnungen → Aufgabe „Rechnung bezahlen“; sie zählen erst nach Zahlung in der Übersicht (EÜR).
 - Kosten: ca. 1–2 Cent pro Beleg.
+
+### Social-Media-Dashboard (Menü „Social Media“)
+- Zahlen kommen aus **Metricool** (Marke „keuerleberimmobilien“). Eine geplante Aufgabe holt sie jeden Morgen um 05:47 Uhr und schickt sie über `social_push()` ins CRM (Datensatz `social/social-stats`, per Realtime sofort auf allen Geräten).
+- Server-Teil: `SOCIAL_SQL` in `js/db.js` (bereits eingerichtet). Der Zufallswert in `privat.social` öffnet nur diese eine Funktion.
+- Neue Kanäle (Instagram, Facebook, LinkedIn) einfach in Metricool verbinden – ab dem nächsten Morgen erscheinen sie im Dashboard.
+- Website-Anfragen merken sich die Herkunft (Bio-Link `?utm_source=tiktok` bzw. verweisende Seite, `lead-sync.js`); das CRM setzt daraus die Quelle (TikTok, Instagram …). So zählt der Trichter „Vom Aufruf zur Anfrage“.

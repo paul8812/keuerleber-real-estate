@@ -1,5 +1,5 @@
 export const KONTAKT_ARTEN = ['Eigentümer', 'Interessent (Kauf)', 'Interessent (Miete)', 'Käufer', 'Verkäufer', 'Mieter', 'Vermieter', 'Investor', 'Bauträger / Verkäufer', 'Partner / Dienstleister', 'Notar', 'Bank / Finanzierer', 'Handwerker', 'Sonstige'];
-export const QUELLEN = ['Empfehlung', 'Website', 'ImmoScout24', 'Immowelt', 'Kleinanzeigen', 'Social Media', 'Kaltakquise', 'Netzwerk', 'Bestandskunde', 'Flyer / Brief', 'Sonstige'];
+export const QUELLEN = ['Empfehlung', 'Website', 'ImmoScout24', 'Immowelt', 'Kleinanzeigen', 'TikTok', 'Instagram', 'Facebook', 'LinkedIn', 'Social Media', 'Kaltakquise', 'Netzwerk', 'Bestandskunde', 'Flyer / Brief', 'Sonstige'];
 export const OBJEKT_ARTEN = ['Eigentumswohnung', 'Einfamilienhaus', 'Mehrfamilienhaus', 'Doppelhaushälfte', 'Reihenhaus', 'Wohn- & Geschäftshaus', 'Grundstück', 'Gewerbe', 'Garage / Stellplatz', 'Sonstiges'];
 export const OBJEKT_STATUS = ['Akquise', 'Vorbereitung', 'Aktiv', 'Reserviert', 'Notartermin', 'Verkauft / Vermietet', 'Archiv'];
 export const STATUS_FARBE = { 'Akquise': '#8a7bd8', 'Vorbereitung': '#5fa8d3', 'Aktiv': '#5bbf8a', 'Reserviert': '#e0a84a', 'Notartermin': '#e07a4a', 'Verkauft / Vermietet': '#c9a96e', 'Archiv': '#777' };
@@ -17,7 +17,7 @@ export const WIEDERHOLUNG = [['', 'Keine'], ['daily', 'Täglich'], ['weekly', 'W
 export const BUNDESLAENDER = { 'Baden-Württemberg': 5, 'Bayern': 3.5, 'Berlin': 6, 'Brandenburg': 6.5, 'Bremen': 5.5, 'Hamburg': 5.5, 'Hessen': 6, 'Mecklenburg-Vorpommern': 6, 'Niedersachsen': 5, 'Nordrhein-Westfalen': 6.5, 'Rheinland-Pfalz': 5, 'Saarland': 6.5, 'Sachsen': 5.5, 'Sachsen-Anhalt': 5, 'Schleswig-Holstein': 6.5, 'Thüringen': 5 };
 export const NAV = [
   ['dashboard', 'Übersicht', '◧'], ['posteingang', 'Posteingang', '✉'], ['kontakte', 'Kontakte', '☺'], ['objekte', 'Objekte', '⌂'], ['pipeline', 'Pipeline', '▤'],
-  ['aufgaben', 'Aufgaben', '✓'], ['kalender', 'Kalender', '▦'], ['finanzen', 'Finanzen', '€'], ['automation', 'Automationen', '⚡'], ['vorlagen', 'Vorlagen', '✎'], ['rechner', 'Rechner', '∑'], ['statistik', 'Statistik', '◔'], ['einstellungen', 'Einstellungen', '⚙'],
+  ['aufgaben', 'Aufgaben', '✓'], ['kalender', 'Kalender', '▦'], ['finanzen', 'Finanzen', '€'], ['automation', 'Automationen', '⚡'], ['vorlagen', 'Vorlagen', '✎'], ['rechner', 'Rechner', '∑'], ['statistik', 'Statistik', '◔'], ['social', 'Social Media', '◎'], ['einstellungen', 'Einstellungen', '⚙'],
 ];
 // Anzeigenamen der Einkaufs-Phasen für den Kapitalanlagevertrieb (gespeicherte Werte bleiben gleich – kompatibel mit Mail-Abgleich)
 export const STAGE_LABEL = { 'Neuer Lead': 'Neuer Kontakt', 'Bewertung / Besichtigung': 'Objektprüfung / Kalkulation', 'Angebot / Maklerauftrag': 'Vertriebsvereinbarung', 'Auftrag erhalten': 'Im Vertrieb' };

@@ -9,6 +9,34 @@ export function html(strings, ...vals) {
   return new Raw(out);
 }
 export const uid = () => (crypto.randomUUID ? crypto.randomUUID() : 'id-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10));
+// SHA-1 (synchron, wie im Mail-Abgleich auf dem Server) – für feste IDs: Legen zwei Geräte gleichzeitig denselben
+// Datensatz an, entsteht dieselbe ID und damit kein Doppel.
+export function sha1(s) {
+  const msg = new TextEncoder().encode(String(s));
+  const buf = new Uint8Array(((msg.length + 9 + 63) >> 6) << 6);
+  buf.set(msg); buf[msg.length] = 0x80;
+  const dv = new DataView(buf.buffer), bits = msg.length * 8;
+  dv.setUint32(buf.length - 4, bits >>> 0); dv.setUint32(buf.length - 8, Math.floor(bits / 2 ** 32));
+  let h0 = 0x67452301, h1 = 0xefcdab89, h2 = 0x98badcfe, h3 = 0x10325476, h4 = 0xc3d2e1f0;
+  const w = new Uint32Array(80);
+  for (let off = 0; off < buf.length; off += 64) {
+    for (let i = 0; i < 16; i++) w[i] = dv.getUint32(off + i * 4);
+    for (let i = 16; i < 80; i++) { const x = w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16]; w[i] = (x << 1) | (x >>> 31); }
+    let a = h0, b = h1, c = h2, d = h3, e = h4;
+    for (let i = 0; i < 80; i++) {
+      const f = i < 20 ? (b & c) | (~b & d) : i < 40 ? b ^ c ^ d : i < 60 ? (b & c) | (b & d) | (c & d) : b ^ c ^ d;
+      const k = i < 20 ? 0x5a827999 : i < 40 ? 0x6ed9eba1 : i < 60 ? 0x8f1bbcdc : 0xca62c1d6;
+      const t = (((a << 5) | (a >>> 27)) + f + e + k + w[i]) >>> 0;
+      e = d; d = c; c = ((b << 30) | (b >>> 2)) >>> 0; b = a; a = t;
+    }
+    h0 = (h0 + a) >>> 0; h1 = (h1 + b) >>> 0; h2 = (h2 + c) >>> 0; h3 = (h3 + d) >>> 0; h4 = (h4 + e) >>> 0;
+  }
+  return [h0, h1, h2, h3, h4].map(x => x.toString(16).padStart(8, '0')).join('');
+}
+/** feste ID aus einem fachlichen Schlüssel, z. B. idFor('auto', 'ni:c-123') → 'auto-…' */
+export const idFor = (prefix, key) => prefix + '-' + sha1(key).slice(0, 20);
+/** Kontakt-ID aus der E-Mail-Adresse – dasselbe Schema wie der Mail-Abgleich (c- + sha1(adresse)[:20]) */
+export const contactIdFor = email => 'c-' + sha1(String(email).trim().toLowerCase()).slice(0, 20);
 export const iso = d => { const z = new Date(d.getTime() - d.getTimezoneOffset() * 60000); return z.toISOString().slice(0, 10); };
 export const today = () => iso(new Date());
 export const addDays = (s, n) => { const d = new Date(s + 'T12:00:00'); d.setDate(d.getDate() + n); return iso(d); };
