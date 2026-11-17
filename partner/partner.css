@@ -725,3 +725,7 @@ dialog.mini{width:min(440px,100% - 32px);margin:auto}
 #tkMsg{color:var(--gut)}
 .gh-z{margin-top:6px;padding:8px 10px;border:1px solid var(--rand2);border-left:2px solid var(--gold);border-radius:2px;background:var(--senke)}
 #tkAlleWrap{margin-top:6px}
+/* Angemeldet bleiben */
+.lg-merk{display:flex !important;align-items:flex-start;gap:9px;font:400 12.5px/1.4 var(--sans) !important;letter-spacing:0 !important;text-transform:none !important;color:var(--ink2,inherit) !important;cursor:pointer;margin-top:2px}
+.lg-merk input{width:16px !important;height:16px !important;min-height:0 !important;margin:1px 0 0;accent-color:var(--gold,#c9a96e);flex:none}
+.lg-merk small{display:block;color:var(--muted);font-size:11px}

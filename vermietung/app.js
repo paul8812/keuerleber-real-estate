@@ -4,11 +4,14 @@
 import { openObjekte, openSlot } from './pkg.js';
 import { AUSST, SEITEN, STP, fehlt as vFehlt, gesamt as vGesamt, ibanOk, ibanSchoen, schluesselEditor, schluesselLesen, schluesselPlus, vertragsdaten, vertragsname } from './mvfelder.js';
 import { neuester, verOf } from './quelle.js';
+import { auffrischen, gemerkt, merken, merkenFeld, vergessen } from '../partner/merken.js';
 import { fetchEvents, getFile, postEvent, putFile } from '../handwerker/store.js';
 import { ago, confirmBox, dlg, dt, dtm, esc, logo, lsGet, lsSet, shrinkImage, themaWechseln, toast } from '../handwerker/ui.js';
 
 const app = document.getElementById('app');
 const SESSION = 'nf-vm-session';
+const MERK = 'nf-vm-merken', MERK_TAGE = 30; // Vermietung: alle 30 Tage
+let merkWunsch = true;
 export const ctx = { pkg: null, sess: null, obj: [], ev: [], last: 0, view: 'start', oid: null, filter: 'alle', loading: false, err: '', admin: null, seg: 'objekt' };
 
 document.addEventListener('click', (e) => { if (e.target.closest('.thema')) themaWechseln(); });
@@ -178,6 +181,7 @@ async function upload(oid, files, art = '') {
 /* ---------- Anmeldung ---------- */
 async function enter(payload, code, id) {
   ctx.sess = { ...payload, code, id };
+  if (merkWunsch) merken(MERK, { id, code }, MERK_TAGE); else vergessen(MERK);
   ctx.obj = await openObjekte(payload, ctx.pkg);
   ctx.ev = []; ctx.last = 0;
   try { sessionStorage.setItem(SESSION, JSON.stringify(ctx.sess)); } catch { /* egal */ }
@@ -185,11 +189,12 @@ async function enter(payload, code, id) {
   ctx.view = 'start'; render(); await load(); render();
 }
 function logout() {
+  vergessen(MERK);
   try { sessionStorage.removeItem(SESSION); } catch { /* egal */ }
   ctx.sess = null; ctx.ev = []; ctx.admin = null;
   history.replaceState(null, '', location.pathname); showLogin();
 }
-export function relogin(sess, obj) { ctx.sess = sess; ctx.obj = obj; try { sessionStorage.setItem(SESSION, JSON.stringify(sess)); } catch { /* egal */ } }
+export function relogin(sess, obj) { ctx.sess = sess; ctx.obj = obj; try { sessionStorage.setItem(SESSION, JSON.stringify(sess)); } catch { /* egal */ } auffrischen(MERK, { id: sess.id, code: sess.code }); }
 
 function showLogin(msg = '', busy = false) {
   app.innerHTML = `<main class="lg"><div class="lg-card">${logo('lg-logo')}
@@ -197,12 +202,14 @@ function showLogin(msg = '', busy = false) {
     <p class="lg-sub">Vertraulicher Bereich für Vermieter und Vermittler. Bitte Passwort eingeben.</p>
     <form class="lg-form" id="loginForm" autocomplete="off"><label for="pw">Passwort</label>
       <input id="pw" type="password" autocomplete="current-password" required maxlength="200" ${busy ? 'disabled' : ''}>
+      ${merkenFeld('Auf diesem Gerät 30 Tage angemeldet bleiben')}
       ${msg ? `<p class="lg-err" role="alert">${esc(msg)}</p>` : ''}
       <button class="btn fill" ${busy ? 'disabled' : ''}>${busy ? 'Prüfe …' : 'Anmelden'}</button></form></div></main>`;
   document.getElementById('pw').focus();
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     let code = document.getElementById('pw').value.trim(), only = null;
+    merkWunsch = document.getElementById('merk')?.checked !== false;
     const dot = code.indexOf('.');
     if (dot > 0 && ctx.pkg.slots.some((s) => s.id === code.slice(0, dot))) { only = code.slice(0, dot); code = code.slice(dot + 1); }
     showLogin('', true);
@@ -853,10 +860,13 @@ export async function paketPruefen() {
   try { ctx.pkg = await neuester(0, true); } catch (e) { app.innerHTML = `<main class="lg"><div class="lg-card"><h1>Nicht erreichbar</h1><p class="lg-sub">${esc(e.message)}. Bitte später erneut versuchen.</p></div></main>`; return; }
   const hash = location.hash.slice(1);
   if (!hash) {
-    const s = (() => { try { return JSON.parse(sessionStorage.getItem(SESSION) || 'null'); } catch { return null; } })();
+    // laufende Sitzung in diesem Tab, sonst der auf diesem Gerät gemerkte Zugang (30 Tage)
+    const s = (() => { try { return JSON.parse(sessionStorage.getItem(SESSION) || 'null'); } catch { return null; } })() || await gemerkt(MERK);
     if (s?.id && s.code) {
       const slot = ctx.pkg.slots.find((x) => x.id === s.id), payload = slot && await openSlot(s.code, slot, ctx.pkg.iter);
       if (payload) { ctx.sess = { ...payload, code: s.code, id: s.id }; ctx.obj = await openObjekte(payload, ctx.pkg).catch(() => []); render(); await load(); render(); return; }
+      vergessen(MERK); try { sessionStorage.removeItem(SESSION); } catch { /* egal */ }
+      showLogin('Ihr Zugang wurde geändert. Bitte neu anmelden.'); return;
     }
   }
   showLogin();

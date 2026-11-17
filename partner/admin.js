@@ -4,6 +4,7 @@ import { dashHtml } from './dash.js';
 import { STAGES } from './fb.js';
 import { esc, eur, pflege } from './app.js';
 import { REPO, FILE, TOKEN_KEY, ghToken, verOf, merke, vonSeite } from './quelle.js';
+import { auffrischen } from './merken.js';
 
 const STEPS = ['Ankauf', 'Rückbau', 'Sanierung', 'Abnahme', 'Vermietung'];
 const MIN_PW = 12;
@@ -690,6 +691,7 @@ export async function mount({ app, ctx, render, logout, header }) {
     ctx.sess = { ...payload, code: me.code, id: ctx.sess.id, sig: built.pkg.objekte.map((b) => b.b).join('|') };
     ctx.data = pflege(await openObjects(ctx.sess, built.pkg));
     try { sessionStorage.setItem('nf-partner-session', JSON.stringify(ctx.sess)); } catch { /* egal */ }
+    auffrischen('nf-partner-merken', { id: ctx.sess.id, code: me.code });
     S.base = canon(built.pkg.admin);
     B = snapshot();
     clearTimeout(draftTimer); try { localStorage.removeItem(draftKey()); } catch { /* egal */ } S.draftOk = true;
