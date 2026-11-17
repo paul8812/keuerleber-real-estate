@@ -3,6 +3,10 @@ import { openObjects, openSlot, sealFeedback, randomId } from './crypto.js';
 import { STAGES, stageOf, chains } from './fb.js';
 import { exportObjekte } from './export.js';
 import { neuester, verOf, sigOf } from './quelle.js';
+import { merken, gemerkt, vergessen, merkenFeld } from './merken.js';
+
+const MERK = 'nf-partner-merken'; // Master 90 Tage, Partner 30 Tage
+let merkWunsch = true;
 
 const app = document.getElementById('app');
 const KONTAKT = { firma: 'Norderfranken Haus und Grund GmbH', adresse: 'Am Gewerbegebiet 5 · 95185 Gattendorf', tel: '+49 160 3636997', telHref: '+491603636997', mail: 'info@norderfranken.de', web: 'www.norderfranken.de' };
@@ -118,8 +122,9 @@ async function refreshData(neuZeichnen = true, direkt = false) {
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && Date.now() - lastCheck > 60000) refreshData(); });
 setInterval(() => { if (document.visibilityState === 'visible' && ctx.sess && Date.now() - lastCheck > 300000) refreshData(); }, 60000);
 
-async function enter(payload, code, id) {
+async function enter(payload, code, id, ausGemerkt = false) {
   ctx.sess = { ...payload, code, id, sig: sigOf(ctx.pkg) };
+  if (!ausGemerkt) { if (merkWunsch) merken(MERK, { id, code }, payload.r === 'admin' ? 90 : 30); else vergessen(MERK); }
   const seen = lsGet('nf-seen-' + id);
   ctx.seen = seen ?? Date.now(); // erster Besuch: nichts als „neu“ markieren
   lsSet('nf-seen-' + id, Date.now());
@@ -136,6 +141,7 @@ const FLASH = 'nf-flash';
 const takeFlash = () => { try { const m = sessionStorage.getItem(FLASH) || ''; sessionStorage.removeItem(FLASH); return m; } catch { return ''; } };
 /** Meldet ab und lädt die Seite neu: So verschwinden auch alle entschlüsselten Daten (inkl. Verwaltungsstand) aus dem Speicher. */
 function leaveAndReload(msg = '') {
+  vergessen(MERK);
   try { sessionStorage.removeItem(SESSION); sessionStorage.removeItem('nf-seen-ctx'); if (msg) sessionStorage.setItem(FLASH, msg); } catch { /* egal */ }
   ctx.sess = ctx.data = null;
   location.replace(location.pathname);
@@ -153,6 +159,7 @@ function showLogin(msg = '', busy = false) {
     <form class="lg-form" id="loginForm" autocomplete="off">
       <label for="pw">Zugangscode oder Passwort</label>
       <input id="pw" type="password" autocomplete="current-password" required maxlength="200" ${busy ? 'disabled' : ''}>
+      ${merkenFeld('Auf diesem Gerät angemeldet bleiben <small>(Partner 30 Tage, Master 90 Tage)</small>')}
       ${msg ? `<p class="lg-err" role="alert">${esc(msg)}</p>` : ''}
       <button class="btn fill" ${busy ? 'disabled' : ''}>${busy ? 'Prüfe …' : 'Anmelden'}</button>
     </form>
@@ -163,6 +170,7 @@ function showLogin(msg = '', busy = false) {
   f.addEventListener('submit', async (e) => {
     e.preventDefault();
     let code = cleanCode(document.getElementById('pw').value);
+    merkWunsch = document.getElementById('merk')?.checked !== false;
     let only = null;
     const dot = code.indexOf('.');
     if (dot > 0 && ctx.pkg.slots.some((s) => s.id === code.slice(0, dot))) { only = code.slice(0, dot); code = code.slice(dot + 1); }
@@ -711,5 +719,15 @@ function exposeHtml(o, p) {
       return render();
     }
   } catch { try { sessionStorage.removeItem(SESSION); } catch { /* egal */ } }
-  showLogin(takeFlash());
+  // 3) auf diesem Gerät gemerkter Zugang (Master 90 Tage, Partner 30 Tage)
+  const flash = takeFlash();
+  const g = flash ? null : await gemerkt(MERK);
+  if (g?.id && g.code) {
+    app.innerHTML = '<main class="lg"><div class="lg-card"><p class="lg-sub">Anmeldung wird wiederhergestellt …</p></div></main>';
+    const slot = ctx.pkg.slots.find((s) => s.id === g.id), payload = slot && await openSlot(g.code, slot, ctx.pkg.iter);
+    if (payload) return enter(payload, g.code, g.id, true);
+    vergessen(MERK);
+    return showLogin('Ihr Zugang wurde geändert. Bitte neu anmelden.');
+  }
+  showLogin(flash);
 })();
