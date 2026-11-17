@@ -18,6 +18,7 @@ import * as finanzen from './views/finanzen.js';
 import * as social from './views/social.js';
 import * as auto from './automation.js';
 import * as anfragen from './anfragen.js';
+import * as mailsort from './mailsort.js';
 import { schnellerfassung } from './schnellerfassung.js';
 import { initMobil } from './mobil.js';
 import { initAktionen } from './aktionen.js';
@@ -104,7 +105,7 @@ function shell() {
   window.addEventListener('hashchange', route);
   window.addEventListener('focus', () => db.resume());
   syncAnzeige();
-  route(); auto.start(); anfragen.start(); idleWatch(); initMobil(); initAktionen(); initCrmPlus();
+  route(); auto.start(); anfragen.start(); mailsort.start(); idleWatch(); initMobil(); initAktionen(); initCrmPlus();
 }
 
 async function boot() {

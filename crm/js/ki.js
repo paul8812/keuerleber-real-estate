@@ -23,6 +23,14 @@ async function api(body) {
   }
   return j;
 }
+/** Kurze Text-Frage, Antwort als JSON (für Sortierung u. Ä.) – schnelles, günstiges Modell */
+export const MODELL_SCHNELL = 'claude-haiku-5-5';
+export async function jsonFrage(system, text, { model = MODELL_SCHNELL, max_tokens = 1500 } = {}) {
+  const j = await api({ model, max_tokens, system, messages: [{ role: 'user', content: text }] });
+  const txt = (j.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
+  const m = txt.match(/[[{][\s\S]*[\]}]/); if (!m) throw new Error('KI-Antwort nicht lesbar');
+  return JSON.parse(m[0]);
+}
 export async function testKey() { await api({ model: MODELL, max_tokens: 5, messages: [{ role: 'user', content: 'Antworte nur mit OK.' }] }); return true; }
 
 // Datei → { media_type, data(base64), dataUrl (für die Ablage) }; Fotos werden verkleinert

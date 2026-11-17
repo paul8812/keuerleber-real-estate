@@ -412,3 +412,9 @@ li.task>input[type=checkbox],.ctask input[type=checkbox]{border-radius:50%}
  .sm-top{grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:62%;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px;margin:0 -2px}.sm-top .sm-post{scroll-snap-align:start}
  .sm-kz{flex-wrap:wrap}.sm-kz .mini{margin-left:46px}
 }
+
+/* Posteingang: Ordner */
+.ordnerchips{margin-top:-4px}.ordnerchips .chip{display:inline-flex;align-items:center}.ordnerchips .chip small{color:var(--mut);margin-left:6px;font-size:11px}.ordnerchips .chip.on small{color:var(--gold)}
+.ghostchip{background:none;border-style:dashed;color:var(--mut)}.ghostchip:hover{color:var(--gold);border-color:var(--gold)}
+.ordnerwahl{margin-top:4px}.ordnerwahl select{max-width:320px}
+.ordnerchips .chip i.kd{background:var(--k);padding:0;width:8px;height:8px;margin:0 7px 0 0;border-radius:50%;font-size:0}

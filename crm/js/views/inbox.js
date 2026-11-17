@@ -4,10 +4,12 @@ import * as db from '../db.js';
 import { html, raw, fmtDT, toast, fullName, modal, sel } from '../util.js';
 import { contactForm, taskForm } from '../forms.js';
 import { cLink, empty, badge, contactOpts, contactName } from '../ui.js';
+import { ORDNER, verschieben, sortieren, absenderKey } from '../mailsort.js';
+import * as ki from '../ki.js';
 
 const FILTERS = [['neu', 'Neu'], ['bearbeitet', 'Bearbeitet'], ['alle', 'Alle']];
 const TYP = { anfrage: ['Anfrage', '#5bbf8a'], kontakt: ['Kontakt', '#5fa8d3'], unbekannt: ['Unbekannt', '#e0a84a'] };
-let filter = 'neu';
+let filter = 'neu', ordnerFilter = 'alle';
 
 export const mails = () => db.all('mails') || [];
 export const newCount = () => mails().filter(m => m.status === 'neu').length;
@@ -33,6 +35,8 @@ function detail(m) {
     <div class="full mailhead"><div><b>${m.vonName || m.vonAdresse}</b> ${m.vonName ? html`<span class="muted">&lt;${m.vonAdresse}&gt;</span>` : ''}</div>
       <div class="muted small">${fmtDT(m.datum)}${m.an ? ' · an ' + m.an : ''}${m.contactId ? html` · ${cLink(m.contactId)}` : ''}</div>
       ${m.anhaenge?.length ? html`<div class="muted small">📎 ${m.anhaenge.join(', ')}</div>` : ''}</div>
+    <label class="f full ordnerwahl"><span>Ordner ${m.ordnerVon === 'ki' ? '(von der KI sortiert)' : m.ordnerVon === 'hand' ? '(von dir sortiert)' : m.ordnerVon ? '(automatisch sortiert)' : ''}</span>
+      <select data-ordner>${Object.entries(ORDNER).map(([k, o]) => html`<option value="${k}" ${k === (m.ordner || '') ? raw('selected') : ''}>${o.name}</option>`)}${m.ordner ? '' : html`<option value="" selected>– noch nicht sortiert –</option>`}</select></label>
     <div class="full mailtxt">${m.text || '(kein Text)'}</div>
     <div class="full actions wrap">
       <a class="btn primary" href="${replyHref(m)}" data-a="reply">↩ In Outlook antworten</a>
@@ -50,22 +54,38 @@ function detail(m) {
     reopen: async () => { close(); await setStatus(m, 'neu'); },
   };
   el.querySelectorAll('[data-a]').forEach(b => b.addEventListener('click', () => act[b.dataset.a]()));
+  el.querySelector('[data-ordner]')?.addEventListener('change', async e => {
+    const o = e.target.value; if (!o) return;
+    const mit = await verschieben(m, o), wer = absenderKey(m).replace(/^(domain|adresse):/, '');
+    toast(`In „${ORDNER[o].name}“ verschoben${wer ? ` – Mails von ${wer} landen ab jetzt automatisch dort` : ''}${mit ? ` (${mit} weitere umsortiert)` : ''}`);
+  });
 }
 
 export function render(el, arg) {
   const all = mails().slice().sort((a, b) => (b.datum || '').localeCompare(a.datum || ''));
   // archiv = ältere Mails unbekannter Absender aus der rückwirkenden Übernahme (nur unter „Alle“)
-  const list = all.filter(m => filter === 'alle' ? true : filter === 'neu' ? m.status === 'neu' : !['neu', 'ignoriert', 'archiv'].includes(m.status));
+  const nachStatus = all.filter(m => filter === 'alle' ? true : filter === 'neu' ? m.status === 'neu' : !['neu', 'ignoriert', 'archiv'].includes(m.status));
+  const zahl = k => nachStatus.filter(m => (m.ordner || '') === k).length, unsortiert = nachStatus.filter(m => !m.ordner).length;
+  if (ordnerFilter !== 'alle' && !zahl(ordnerFilter)) ordnerFilter = 'alle';
+  const list = ordnerFilter === 'alle' ? nachStatus : nachStatus.filter(m => m.ordner === ordnerFilter);
   const st = db.get('sync', 'mailsync');
   el.innerHTML = html`<div class="head"><div><h1>Posteingang</h1><p class="muted">Mails aus deinem Outlook-Postfach. Anfragen und Mails bekannter Kontakte ordnet der Abgleich automatisch zu und legt Aufgaben an – hier entscheidest du über den Rest.</p></div></div>
     <div class="chips">${FILTERS.map(([k, l]) => html`<button class="chip ${k === filter ? 'on' : ''}" data-f="${k}">${l}${k === 'neu' && newCount() ? html` <i>${newCount()}</i>` : ''}</button>`)}
+      <button class="chip ghostchip" data-sort title="Alle automatisch sortierten Mails neu einordnen (von Hand sortierte bleiben)">⟳ Neu sortieren</button>
       <span class="muted small syncinfo">${st ? (st.error ? html`⚠️ ${st.error}` : html`Zuletzt abgeglichen: ${fmtDT(st.lastOk || st.lastRun)}`) : 'Mail-Abgleich noch nicht eingerichtet'}</span></div>
+    <div class="chips ordnerchips" role="group" aria-label="Ordner"><button class="chip ${ordnerFilter === 'alle' ? 'on' : ''}" data-o="alle">Alle <small>${nachStatus.length}</small></button>${Object.entries(ORDNER).filter(([k]) => zahl(k)).map(([k, o]) => html`<button class="chip ${ordnerFilter === k ? 'on' : ''}" data-o="${k}"><i class="kd" style="--k:${o.farbe}"></i>${o.name} <small>${zahl(k)}</small></button>`)}${unsortiert ? html`<span class="muted small">${unsortiert} werden gerade sortiert …</span>` : ''}</div>
     <div class="card">${list.length ? html`<ul class="list mails">${list.map(m => { const [tl, tc] = TYP[m.typ] || TYP.unbekannt; return html`<li data-m="${m.id}" class="${m.status === 'neu' ? 'unread' : ''}">
         <b class="when">${fmtDT(m.datum).slice(0, 8)}</b>
         <div class="grow"><div class="ttl">${(m.typ === 'anfrage' && m.contactId && contactName(m.contactId)) || m.vonName || m.vonAdresse} <span class="muted">· ${m.typ === 'anfrage' ? `Anfrage über ${m.quelle || 'Website'}` : m.betreff || '(ohne Betreff)'}</span></div>
           <div class="sub">${m.typ === 'anfrage' ? m.betreff : html`${m.contactId ? html`${cLink(m.contactId)} · ` : ''}${snippet(m)}`}</div></div>
-        ${badge(tl, tc)}</li>`; })}</ul>` : empty(filter === 'neu' ? 'Keine neuen Mails' : 'Noch keine Mails', st ? '' : 'Den Mail-Abgleich richtest du einmal auf deinem Mac ein (Automationen → E-Mail).')}</div>`.s;
+        ${m.ordner && ORDNER[m.ordner] ? badge(ORDNER[m.ordner].name, ORDNER[m.ordner].farbe) : badge(tl, tc)}</li>`; })}</ul>` : empty(filter === 'neu' ? 'Keine neuen Mails' : 'Noch keine Mails', st ? '' : 'Den Mail-Abgleich richtest du einmal auf deinem Mac ein (Automationen → E-Mail).')}</div>`.s;
   el.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { filter = b.dataset.f; render(el); });
+  el.querySelectorAll('[data-o]').forEach(b => b.onclick = () => { ordnerFilter = b.dataset.o; render(el); });
+  el.querySelector('[data-sort]')?.addEventListener('click', async e => {
+    const b = e.currentTarget; b.disabled = true; b.textContent = '⟳ sortiere …';
+    try { const n = await sortieren({ nurNeue: false }); toast(n ? `${n} Mails sortiert${ki.hasKey() ? '' : ' (ohne KI-Schlüssel nur nach Stichwörtern)'}` : 'Alles schon sortiert'); }
+    catch (err) { toast('Sortieren fehlgeschlagen: ' + err.message, 'err'); } finally { b.disabled = false; b.textContent = '⟳ Neu sortieren'; }
+  });
   el.querySelectorAll('[data-m]').forEach(li => li.onclick = e => { if (!e.target.closest('a')) detail(db.get('mails', li.dataset.m)); });
   if (arg && db.get('mails', arg)) detail(db.get('mails', arg));
 }
