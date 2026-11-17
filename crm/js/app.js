@@ -21,6 +21,7 @@ import * as anfragen from './anfragen.js';
 import * as mailsort from './mailsort.js';
 import { schnellerfassung } from './schnellerfassung.js';
 import { initMobil } from './mobil.js';
+import { initHaptik, uebergang } from './haptik.js';
 import { initAktionen } from './aktionen.js';
 import { initCrmPlus } from './crmplus.js';
 import { belegeHochladen } from './views/finanzen.js';
@@ -36,9 +37,13 @@ function route() {
   document.querySelectorAll('#nav a, #tabbar a').forEach(a => a.classList.toggle('on', a.dataset.k === key));
   navBadges();
   document.body.classList.remove('nav-open');
-  const y = window.scrollY;
-  try { view.render(main, arg); } catch (e) { console.error(e); main.innerHTML = `<div class="card"><h2>Fehler</h2><pre>${esc(e.stack || e.message)}</pre></div>`; }
-  window.scrollTo(0, location.hash === window._lastHash ? y : 0); window._lastHash = location.hash;
+  const y = window.scrollY, gleich = location.hash === window._lastHash, wechsel = !!window._lastHash && !gleich;
+  const zeichnen = () => {
+    try { view.render(main, arg); } catch (e) { console.error(e); main.innerHTML = `<div class="card"><h2>Fehler</h2><pre>${esc(e.stack || e.message)}</pre></div>`; }
+    window.scrollTo(0, gleich ? y : 0);
+  };
+  window._lastHash = location.hash;
+  if (wechsel) uebergang(zeichnen, main); else zeichnen();   // Ansichtswechsel weich, Neuzeichnen nach Datenänderung sofort
 }
 function navBadges() {
   const a = document.querySelector('#nav a[data-k="posteingang"]'); if (!a) return;
@@ -105,7 +110,7 @@ function shell() {
   window.addEventListener('hashchange', route);
   window.addEventListener('focus', () => db.resume());
   syncAnzeige();
-  route(); auto.start(); anfragen.start(); mailsort.start(); idleWatch(); initMobil(); initAktionen(); initCrmPlus();
+  route(); auto.start(); anfragen.start(); mailsort.start(); idleWatch(); initHaptik(); initMobil(); initAktionen(); initCrmPlus();
 }
 
 async function boot() {

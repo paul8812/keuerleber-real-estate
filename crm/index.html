@@ -13,6 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Keuerleber CRM">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="css/haptik.css">
 </head>
 <body>
 <div id="login" hidden>
@@ -38,6 +39,8 @@
     <main id="main"></main>
   </div>
 </div>
+<!-- Platzhalter beim Start, bis Anmeldung oder App erscheint (verschwindet per CSS, siehe css/haptik.css) -->
+<div id="boot" aria-busy="true" aria-label="CRM wird geladen"><div class="bt-top"><i></i><i></i><i></i></div><div class="bt-h"></div><div class="bt-card"><i></i><i></i><i></i></div><div class="bt-card"><i></i><i></i></div><div class="bt-card"><i></i><i></i><i></i></div><div class="bt-tab"><i></i><i></i><i></i><i></i><i></i></div></div>
 <div id="modal-root"></div><div id="toast-root"></div>
 <noscript>Bitte JavaScript aktivieren.</noscript>
 <script type="module" src="js/app.js"></script>
