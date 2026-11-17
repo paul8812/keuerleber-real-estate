@@ -1,5 +1,5 @@
 import * as db from '../db.js';
-import { html, raw, eur, num, pct, daysBetween, today } from '../util.js';
+import { html, raw, eur, num, pct, daysBetween, today, addDays } from '../util.js';
 import { PIPELINES, OBJEKT_STATUS, STATUS_FARBE } from '../consts.js';
 import { dealProvision, empty } from '../ui.js';
 
@@ -19,13 +19,14 @@ export function render(el) {
   const avgDays = sold.length ? Math.round(sold.reduce((s, p) => s + daysBetween(p.eingestelltAm, (p.updated || '').slice(0, 10) || today()), 0) / sold.length) : null;
   const volWon = wonV.reduce((s, d) => s + (d.wert || 0), 0);
   const lostReasons = Object.entries(deals.filter(d => d.verlustGrund).reduce((a, d) => { a[d.verlustGrund] = (a[d.verlustGrund] || 0) + 1; return a; }, {})).sort((a, b) => b[1] - a[1]);
-  const t0 = today(), vor7 = new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10), tasks = db.all('tasks'), events = db.all('events');
+  const t0 = today(), vor7 = addDays(t0, -7), tasks = db.all('tasks'), events = db.all('events');
   const seiten = Object.entries(contacts.filter(c => c.quelle === 'Website' && c.quelleSeite).reduce((a, c) => { const k = c.quelleSeite === '/' ? 'Startseite' : c.quelleSeite; a[k] = (a[k] || 0) + 1; return a; }, {})).sort((a, b) => b[1] - a[1]);
   const neuK = contacts.filter(c => (c.created || '') >= vor7), neuW = neuK.filter(c => c.quelle === 'Website').length;
   const offen = tasks.filter(t => !t.done), ueber = offen.filter(t => t.faellig && t.faellig < t0).length;
-  const naechste = events.filter(e => e.datum >= t0 && e.datum <= new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10)).length;
+  const naechste = events.filter(e => e.datum >= t0 && e.datum <= addDays(t0, 7)).length;
+  const gespr = db.all('activities').filter(a => a.contactId && ['anruf', 'meeting', 'whatsapp', 'email', 'besichtigung'].includes(a.art) && new Date(a.datum) >= new Date(vor7 + 'T00:00:00'));
   const offenV = deals.filter(d => d.board === 'vertrieb' && ![PIPELINES.vertrieb.won, PIPELINES.vertrieb.lost].includes(d.stage)).length;
-  const bericht = `Wochenbericht Keuerleber Immobilien (bis ${t0.split('-').reverse().join('.')})\n\n• Neue Kontakte: ${neuK.length} (davon über die Website: ${neuW})\n• Offene Vertriebs-Vorgänge: ${offenV}\n• Offene Aufgaben: ${offen.length} (überfällig: ${ueber})\n• Termine in den nächsten 7 Tagen: ${naechste}\n• Abgeschlossen (gesamt): ${wonV.length}`;
+  const bericht = `Wochenbericht Keuerleber Immobilien (bis ${t0.split('-').reverse().join('.')})\n\n• Neue Kontakte: ${neuK.length} (davon über die Website: ${neuW})\n• Kontakte gehabt: ${gespr.length} (mit ${new Set(gespr.map(a => a.contactId)).size} Personen)\n• Offene Vertriebs-Vorgänge: ${offenV}\n• Offene Aufgaben: ${offen.length} (überfällig: ${ueber})\n• Termine in den nächsten 7 Tagen: ${naechste}\n• Abgeschlossen (gesamt): ${wonV.length}`;
   el.innerHTML = html`<div class="head"><h1>Statistik</h1></div>
     <div class="kpis"><div class="kpi"><b>${eur(rev.reduce((s, r) => s + r[1], 0))}</b><span>Vergütung ${year}</span></div><div class="kpi"><b>${eur(volWon)}</b><span>Verkaufsvolumen (gesamt)</span></div>
       <div class="kpi"><b>${won + lost ? pct(won / (won + lost) * 100, 0) : '–'}</b><span>Akquise-Erfolgsquote</span></div><div class="kpi"><b>${avgDays != null ? avgDays + ' Tage' : '–'}</b><span>Ø Vermarktungsdauer</span></div></div>

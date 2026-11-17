@@ -20,7 +20,8 @@ export async function completeTask(t, done = true, frage = false) {
 }
 
 const FILTERS = [['heute', 'Heute & überfällig'], ['woche', 'Diese Woche'], ['offen', 'Alle offenen'], ['erledigt', 'Erledigt']];
-let filter = 'heute', prio = '';
+let filter = 'heute', prio = '', mehr = 0;
+const SEITE = 150;   // so viele Aufgaben auf einmal zeichnen – große Listen bleiben am Handy flüssig
 
 // Schnellaktionen direkt in der Aufgabe: anrufen, mailen, auf morgen schieben
 function quick(t) {
@@ -30,7 +31,7 @@ function quick(t) {
 export function taskRow(t) {
   const late = !t.done && t.faellig && t.faellig < today();
   const auto = /^⚡ /.test(t.titel || '');
-  return html`<li class="task ${t.done ? 'done' : ''} ${late ? 'late' : ''} ${auto ? 'auto' : ''}"><input type="checkbox" data-done="${t.id}" ${t.done ? html`checked` : ''}>
+  return html`<li class="task ${t.done ? 'done' : ''} ${late ? 'late' : ''} ${auto ? 'auto' : ''}"><input type="checkbox" data-done="${t.id}" ${t.done ? html`checked` : ''} aria-label="${t.done ? 'Wieder öffnen' : 'Erledigt'}: ${(t.titel || '').replace(/^⚡ /, '')}">
     <div class="grow" data-edit="${t.id}"><div class="ttl">${(t.titel || '').replace(/^⚡ /, '')}</div><div class="sub">${t.faellig ? (late ? 'überfällig seit ' : '') + fmtDate(t.faellig) : 'ohne Datum'}${auto ? html` · <span class="autotag" title="Vom CRM automatisch angelegt">automatisch</span>` : ''}${t.contactId ? html` · ${cLink(t.contactId)}` : ''}${t.propertyId && db.get('properties', t.propertyId) ? html` · ${pLink(t.propertyId)}` : ''}${t.wiederholung ? ' · ↻' : ''}</div></div>
     ${t.prio === 'hoch' ? badge('hoch', '#e06a5a') : t.prio === 'niedrig' ? badge('niedrig', '#777') : ''}${t.done ? '' : quick(t)}</li>`;
 }
@@ -83,15 +84,18 @@ export function render(el) {
   const t0 = today(), wEnd = addDays(t0, 7);
   let list = db.all('tasks').filter(t => !prio || t.prio === prio);
   list = list.filter(t => filter === 'erledigt' ? t.done : !t.done && (filter === 'offen' || (filter === 'heute' ? (t.faellig && t.faellig <= t0) : (t.faellig && t.faellig <= wEnd))));
-  list.sort((a, b) => (a.faellig || '9999').localeCompare(b.faellig || '9999') || (a.prio === 'hoch' ? -1 : 1));
+  if (filter === 'erledigt') list.sort((a, b) => (b.doneAt || b.updated || '').localeCompare(a.doneAt || a.updated || ''));   // zuletzt erledigte zuerst
+  else list.sort((a, b) => (a.faellig || '9999').localeCompare(b.faellig || '9999') || (b.prio === 'hoch') - (a.prio === 'hoch'));
+  const zeig = list.slice(0, SEITE + mehr);
   const open = db.all('tasks').filter(t => !t.done);
   el.innerHTML = html`<div class="head"><h1>Aufgaben</h1><div class="actions"><button class="btn ghost" data-aufr title="Automatisch angelegte Aufgaben gesammelt löschen">🧹 Aufräumen</button><button class="btn primary" data-new>+ Aufgabe</button></div></div>
     <div class="chips">${FILTERS.map(([k, l]) => html`<button class="chip ${k === filter ? 'on' : ''}" data-f="${k}">${l}${k === 'heute' ? html` <i>${open.filter(t => t.faellig && t.faellig <= t0).length}</i>` : ''}</button>`)}
-      <select data-prio class="chipsel"><option value="">Alle Prioritäten</option>${PRIOS.map(([v, l]) => html`<option value="${v}" ${v === prio ? html`selected` : ''}>${l}</option>`)}</select></div>
-    <div class="card">${list.length ? html`<ul class="tasks">${list.map(taskRow)}</ul>` : empty('Keine Aufgaben in dieser Ansicht 🎉')}</div>`.s;
+      <select data-prio class="chipsel" aria-label="Priorität"><option value="">Alle Prioritäten</option>${PRIOS.map(([v, l]) => html`<option value="${v}" ${v === prio ? html`selected` : ''}>${l}</option>`)}</select></div>
+    <div class="card">${list.length ? html`<ul class="tasks">${zeig.map(taskRow)}</ul>${list.length > zeig.length ? html`<button type="button" class="btn ghost mehrlist" data-mehr>Weitere ${Math.min(SEITE, list.length - zeig.length)} von ${list.length - zeig.length} anzeigen</button>` : ''}` : empty('Keine Aufgaben in dieser Ansicht 🎉')}</div>`.s;
   el.querySelector('[data-new]').onclick = () => taskForm();
   el.querySelector('[data-aufr]').onclick = aufraeumen;
-  el.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { filter = b.dataset.f; render(el); });
-  el.querySelector('[data-prio]').onchange = e => { prio = e.target.value; render(el); };
+  el.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { filter = b.dataset.f; mehr = 0; render(el); });
+  el.querySelector('[data-prio]').onchange = e => { prio = e.target.value; mehr = 0; render(el); };
+  el.querySelector('[data-mehr]')?.addEventListener('click', () => { mehr += SEITE; render(el); });
   bindTasks(el);
 }

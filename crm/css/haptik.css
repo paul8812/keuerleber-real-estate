@@ -1,0 +1,119 @@
+/* Haptik & Bediengefühl – ergänzt style.css (wird danach geladen). Siehe js/haptik.js und js/mobil.js. */
+
+/* ---------- Kein Text-Markieren / Callout auf Bedienelementen ---------- */
+button,.btn,.chip,label.chk,#tabbar,#nav a,.msheet,.tquick,.fact,.wischunter{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.touch li.task,.touch ul.mails li[data-m],.touch #clist tr[data-id],.touch .fokus li{-webkit-user-select:none;user-select:none}
+
+/* ---------- Sofortiges Druck-Feedback ---------- */
+.btn,.chip,.tquick a,.tquick button,.fact a,.fact button,.rowmehr,.cact a,.cact button,#burger,.syncdot,.x{transition:transform .14s cubic-bezier(.2,.8,.2,1),background-color .14s,border-color .14s,opacity .14s}
+@media(hover:none){
+  .btn:active,.chip:active,.tquick a:active,.tquick button:active,.fact a:active,.fact button:active,.rowmehr:active,.cact a:active,.cact button:active,#burger:active,.mini:active{transform:scale(.95);transition-duration:.04s}
+  .btn:active{filter:brightness(1.18)}.btn.primary:active{filter:brightness(.92)}
+  .modal .x:active{transform:scale(.9);transition-duration:.04s}
+  /* Listenzeilen: heller hinterlegen solange der Finger drauf ist */
+  ul.mails li[data-m],#clist tr[data-id],.fokus li,a.pcard,#gresults a,.list li{transition:background-color .2s}
+  ul.mails li[data-m]:active,#clist tr[data-id]:active,.fokus li:active,#gresults a:active,.list li[data-edit]:active{background-color:rgba(201,169,110,.08);transition-duration:.03s}
+  a.pcard:active{transform:scale(.985);transition:transform .05s}
+  .msheet button:active{background:#26262a}
+}
+
+/* ---------- Trefferflächen ≥ 44 px am Handy ---------- */
+@media(max-width:700px){
+  .btn{min-height:44px}.calnav .btn{min-width:44px}.chip{min-height:40px}
+  .tquick a,.tquick button{width:44px;height:44px}
+  .fact a,.fact button{min-width:44px;min-height:44px}
+  .modal .x{min-width:44px;min-height:44px;font-size:24px}
+  #syncdot{min-height:32px;min-width:32px}
+}
+
+/* ---------- Tab-Leiste ---------- */
+@media(max-width:700px){
+  #tabbar{view-transition-name:tabbar;padding-top:4px;box-shadow:0 -8px 24px rgba(0,0,0,.35)}
+  #tabbar a,#tabbar button{position:relative;min-height:48px;justify-content:center;-webkit-tap-highlight-color:transparent;transition:color .2s}
+  #tabbar a i,#tabbar button i{transition:transform .18s cubic-bezier(.3,1.5,.5,1)}
+  #tabbar a:active i,#tabbar button:active i{transform:scale(.84);transition-duration:.05s}
+  #tabbar a.on i{transform:translateY(-1px)}
+  #tabbar a.on span{font-weight:600}
+  #tabbar a::before{content:'';position:absolute;top:-4px;left:50%;width:22px;height:3px;margin-left:-11px;border-radius:0 0 3px 3px;background:var(--gold);transform:scaleX(0);transition:transform .22s cubic-bezier(.2,.8,.2,1)}
+  #tabbar a.on::before{transform:scaleX(1)}
+  #tabbar [data-tabneu] i{box-shadow:0 4px 14px rgba(201,169,110,.35)}
+}
+
+/* ---------- Ansichtswechsel ---------- */
+/* Mac: View Transition (Kopf und Tab-Leiste bleiben stehen). Touch: nur Einblenden von main, blockiert keine Eingaben. */
+header.top{view-transition-name:kopf}#side{view-transition-name:seite}
+::view-transition-old(root),::view-transition-new(root){animation-duration:.18s;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
+::view-transition-old(root){animation-name:vtAus}
+::view-transition-new(root){animation-name:vtEin}
+@keyframes vtAus{to{opacity:0}}
+@keyframes vtEin{from{opacity:0;transform:translateY(6px)}}
+main.einblenden{animation:vtEin .2s cubic-bezier(.2,.8,.2,1)}
+
+/* ---------- Bottom-Sheets (Modals am Handy) ---------- */
+@media(max-width:700px){
+  .modal-bg{--zieh:1;background:rgba(0,0,0,calc(.7 * var(--zieh)));animation:bgEin .22s ease-out}
+  .modal-bg>.modal{animation:sheetEin .32s cubic-bezier(.2,.9,.25,1);will-change:transform}
+  .modal-bg.zu{animation:bgAus .22s ease-in forwards}
+  .modal-bg.zu>.modal{animation:sheetAus .22s cubic-bezier(.4,0,1,1) forwards}
+  .modal>header::before{width:36px;background:rgba(237,232,224,.28)}
+  .modal .mbody{overscroll-behavior-y:contain}
+  .mbody footer{padding-bottom:calc(4px + env(safe-area-inset-bottom))}
+}
+@keyframes bgEin{from{background:rgba(0,0,0,0)}}
+@keyframes bgAus{to{background:rgba(0,0,0,0)}}
+@keyframes sheetEin{from{transform:translateY(100%)}}
+@keyframes sheetAus{to{transform:translateY(100%)}}
+.msheet{touch-action:pan-y}
+.msheet-bg .msheet{transition:transform .26s cubic-bezier(.2,.9,.25,1)}
+.msheet-bg.weg .msheet{transition-timing-function:cubic-bezier(.4,0,1,1)}
+#haptik{display:none}
+
+/* ---------- Wischen in Listen ---------- */
+.touch ul.mails li[data-m]{touch-action:pan-y;position:relative;background:var(--panel)}
+.touch li.task.wischt,.touch ul.mails li.wischt{z-index:1;will-change:transform}
+.touch ul:has(>.wischunter){overflow-x:clip}
+.wischunter{position:absolute;left:0;right:0;z-index:0;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-radius:10px;background:color-mix(in srgb,var(--farbe,transparent) 22%,var(--panel2));color:var(--txt);font-weight:600;font-size:14px;transition:background-color .15s;pointer-events:none}
+.wischunter .wl,.wischunter .wr{opacity:.35;transform:scale(.9);transition:opacity .15s,transform .2s cubic-bezier(.3,1.5,.5,1)}
+.wischunter[data-seite=r] .wr,.wischunter[data-seite=l] .wl{visibility:hidden}
+.wischunter.scharf{background:var(--farbe)}.wischunter.scharf .wl,.wischunter.scharf .wr{opacity:1;transform:scale(1.06);color:#111}
+
+/* ---------- Toasts ---------- */
+.toast{animation:toastEin .28s cubic-bezier(.2,.9,.25,1)}
+.toast.mitaktion{display:flex;align-items:center;gap:14px;pointer-events:auto}
+.toast .tbtn{background:none;border:0;color:var(--gold);font:inherit;font-weight:600;padding:8px 4px;margin:-8px -4px -8px 0;min-height:40px;cursor:pointer}
+.toast .tbtn:active{opacity:.6}
+@keyframes toastEin{from{opacity:0;transform:translateY(10px) scale(.97)}}
+@media(max-width:700px){@keyframes toastEin{from{opacity:0;transform:translateY(-12px) scale(.97)}}.toast.out{transform:translateY(-8px)}#toast-root{padding:0 env(safe-area-inset-right) 0 env(safe-area-inset-left)}}
+
+/* ---------- Ziehen zum Aktualisieren ---------- */
+#ptr{transition:opacity .15s;box-shadow:0 6px 18px rgba(0,0,0,.4)}
+#ptr.bereit{border-color:var(--gold)}
+
+/* ---------- Platzhalter beim Start (statt schwarzer Fläche, bis Anmeldung/App da ist) ---------- */
+#boot{position:fixed;inset:0;z-index:5;background:var(--bg);padding:calc(env(safe-area-inset-top) + 14px) 18px 0 calc(216px + 28px);display:flex;flex-direction:column;gap:16px;overflow:hidden;animation:bootEin .3s .15s both}
+#login:not([hidden])~#boot,#app:not([hidden])~#boot{display:none}
+#boot i,.bt-h{display:block;border-radius:8px;background:linear-gradient(90deg,var(--panel) 0%,#202024 40%,var(--panel) 80%);background-size:300% 100%;animation:skel 1.3s ease-in-out infinite}
+.bt-top{display:flex;gap:12px;align-items:center}.bt-top i{height:40px;flex:1}.bt-top i:first-child{flex:0 0 40px}.bt-top i:last-child{flex:0 0 90px}
+.bt-h{height:30px;width:42%;margin-top:10px}
+.bt-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:12px}
+.bt-card i{height:13px}.bt-card i:nth-child(1){width:38%;height:11px}.bt-card i:nth-child(2){width:86%}.bt-card i:nth-child(3){width:64%}
+.bt-tab{display:none}
+@media(max-width:700px){
+  #boot{padding:calc(env(safe-area-inset-top) + 10px) 14px 0}
+  .bt-tab{display:grid;grid-template-columns:repeat(5,1fr);gap:18px;position:fixed;left:0;right:0;bottom:0;padding:12px 24px calc(14px + env(safe-area-inset-bottom));background:rgba(14,14,16,.96);border-top:1px solid var(--line)}
+  #boot .bt-tab i{height:26px;border-radius:50%;width:26px;justify-self:center}
+}
+@keyframes skel{from{background-position:100% 0}to{background-position:0 0}}
+@keyframes bootEin{from{opacity:0}}
+
+/* ---------- Safe-Area (Querformat / Home-Bildschirm-App) ---------- */
+@media(max-width:900px){
+  #content{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+}
+
+/* ---------- Weniger Bewegung ---------- */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+  ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}
+  #boot i,.bt-h{animation:none}
+}

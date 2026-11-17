@@ -1,4 +1,5 @@
 // Helfer: Escaping, Formatierung, Modals, Formulare
+import { haptik } from './haptik.js';
 export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 class Raw { constructor(s) { this.s = s; } toString() { return this.s; } }
 export const raw = s => new Raw(s);
@@ -41,21 +42,38 @@ export const iso = d => { const z = new Date(d.getTime() - d.getTimezoneOffset()
 export const today = () => iso(new Date());
 export const addDays = (s, n) => { const d = new Date(s + 'T12:00:00'); d.setDate(d.getDate() + n); return iso(d); };
 export const daysBetween = (a, b) => Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 86400000);
-export const fmtDate = s => s ? new Date(s + 'T12:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
-export const fmtDateShort = s => s ? new Date(s + 'T12:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }) : '';
-export const fmtDT = ts => ts ? new Date(ts).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
-export const eur = n => (n === '' || n == null || isNaN(n)) ? '–' : new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
-export const eur2 = n => (n == null || isNaN(n)) ? '–' : new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(n);
-export const num = (n, d = 0) => (n === '' || n == null || isNaN(n)) ? '–' : new Intl.NumberFormat('de-DE', { maximumFractionDigits: d }).format(n);
+// Formatierer einmal anlegen statt bei jedem Aufruf (toLocale…String mit Optionen baut jedes Mal ein neues Intl-Objekt –
+// bei Listen mit Hunderten Zeilen kostete das am Handy spürbar Zeit)
+const F_DATE = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }), F_SHORT = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit' }),
+  F_DT = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }),
+  F_EUR = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }), F_EUR2 = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }), F_NUM = {};
+const ok = d => !isNaN(d.getTime());
+export const fmtDate = s => { if (!s) return ''; const d = new Date(s + 'T12:00:00'); return ok(d) ? F_DATE.format(d) : 'Invalid Date'; };
+export const fmtDateShort = s => { if (!s) return ''; const d = new Date(s + 'T12:00:00'); return ok(d) ? F_SHORT.format(d) : 'Invalid Date'; };
+export const fmtDT = ts => { if (!ts) return ''; const d = new Date(ts); return ok(d) ? F_DT.format(d) : 'Invalid Date'; };
+export const eur = n => (n === '' || n == null || isNaN(n)) ? '–' : F_EUR.format(n);
+export const eur2 = n => (n == null || isNaN(n)) ? '–' : F_EUR2.format(n);
+export const num = (n, d = 0) => (n === '' || n == null || isNaN(n)) ? '–' : (F_NUM[d] ||= new Intl.NumberFormat('de-DE', { maximumFractionDigits: d })).format(n);
 export const pct = (n, d = 1) => (n == null || isNaN(n)) ? '–' : num(n, d) + ' %';
 export const debounce = (f, ms = 200) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f(...a), ms); }; };
 export const initials = c => ((c.vorname || '')[0] || '') + ((c.nachname || c.firma || '')[0] || '');
 export const fullName = c => c ? ([c.anrede && c.anrede !== 'Firma' ? '' : '', c.vorname, c.nachname].filter(Boolean).join(' ') || c.firma || '(ohne Name)') : '';
 
-export function toast(msg, kind = '') {
+/** Hinweis unten/oben. Mit aktion = { label: 'Rückgängig', fn } bekommt er einen Knopf und bleibt etwas länger stehen. */
+export function toast(msg, kind = '', aktion = null) {
   const root = document.getElementById('toast-root');
   const el = document.createElement('div'); el.className = 'toast ' + kind; el.textContent = msg;
-  root.appendChild(el); setTimeout(() => el.classList.add('out'), 2600); setTimeout(() => el.remove(), 3100);
+  const dauer = aktion ? 5000 : 2600;
+  let t1, t2; const weg = () => { clearTimeout(t1); clearTimeout(t2); el.classList.add('out'); setTimeout(() => el.remove(), 400); };
+  if (aktion) {
+    el.classList.add('mitaktion'); el.setAttribute('role', 'status');
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'tbtn'; b.textContent = aktion.label || 'Rückgängig';
+    b.onclick = async () => { b.disabled = true; haptik('mittel'); weg(); try { await aktion.fn(); } catch (e) { console.error(e); toast('Rückgängig fehlgeschlagen', 'err'); } };
+    el.appendChild(b);
+  }
+  if (kind === 'err') haptik('fehler');
+  root.appendChild(el); t1 = setTimeout(() => el.classList.add('out'), dauer); t2 = setTimeout(() => el.remove(), dauer + 500);
+  return { weg };
 }
 
 // ---------- Formularfelder ----------
@@ -85,24 +103,31 @@ export function modal(title, body, { onSave, saveLabel = 'Speichern', wide = fal
   const root = document.getElementById('modal-root');
   const el = document.createElement('div'); el.className = 'modal-bg';
   el.innerHTML = `<div class="modal ${wide ? 'wide' : ''}" role="dialog" aria-modal="true"><header><h3>${esc(title)}</h3><button type="button" class="x" data-close aria-label="Schließen">×</button></header><form class="mbody"><div class="grid">${body.s}</div><footer>${danger ? `<button type="button" class="btn danger left" data-danger>${esc(danger.label)}</button>` : ''}<button type="button" class="btn ghost" data-close>Abbrechen</button>${onSave ? `<button class="btn primary">${esc(saveLabel)}</button>` : ''}</footer></form></div>`;
-  let zu = false; const close = () => { if (zu) return; zu = true; el.remove(); document.removeEventListener('keydown', onKey); scrollSperre(false); };
+  let zu = false; const close = () => { if (zu) return; zu = true; document.removeEventListener('keydown', onKey); scrollSperre(false); wegAnimiert(el); };
   const onKey = e => { if (e.key === 'Escape') close(); };
   document.addEventListener('keydown', onKey);
   el.addEventListener('mousedown', e => { if (e.target === el) close(); });
   el.querySelectorAll('[data-close]').forEach(b => b.onclick = close);
   const form = el.querySelector('form');
-  form.onsubmit = async e => { e.preventDefault(); if (!onSave) return; const r = await onSave(collect(form), close, form); if (r !== false) close(); };
-  if (danger) el.querySelector('[data-danger]').onclick = async () => { if (await confirmDlg(danger.confirm || 'Wirklich löschen?')) { await danger.fn(); close(); } };
+  form.onsubmit = async e => { e.preventDefault(); if (!onSave) return; const r = await onSave(collect(form), close, form); if (r !== false) { haptik('erfolg'); close(); } };
+  if (danger) el.querySelector('[data-danger]').onclick = async () => { haptik('mittel'); if (await confirmDlg(danger.confirm || 'Wirklich löschen?')) { haptik('warnung'); await danger.fn(); close(); } };
   root.appendChild(el); scrollSperre(true);
   onMount && onMount(el, close);
   const first = el.querySelector('input:not([type=checkbox]),select,textarea'); if (first && matchMedia('(hover:hover)').matches) first.focus();  // am Handy keine Tastatur sofort aufklappen
   return { el, close };
 }
+// Am Handy gleitet das Bottom-Sheet nach unten weg; sonst (und bei reduzierter Bewegung) sofort entfernen
+function wegAnimiert(el) {
+  if (!matchMedia('(max-width:700px)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches) return el.remove();
+  el.classList.add('zu'); el.style.pointerEvents = 'none';
+  let fertig = false; const ende = () => { if (!fertig) { fertig = true; el.remove(); } };
+  el.addEventListener('animationend', e => { if (e.target === el) ende(); }); setTimeout(ende, 260);
+}
 export function confirmDlg(msg) {
   return new Promise(res => {
     const root = document.getElementById('modal-root'); const el = document.createElement('div'); el.className = 'modal-bg';
     el.innerHTML = `<div class="modal small"><div class="mbody"><p class="confirm">${esc(msg)}</p><footer><button class="btn ghost" data-n>Abbrechen</button><button class="btn primary" data-y>Ja</button></footer></div></div>`;
-    const done = v => { el.remove(); scrollSperre(false); res(v); };
+    const done = v => { wegAnimiert(el); scrollSperre(false); res(v); };
     el.querySelector('[data-n]').onclick = () => done(false); el.querySelector('[data-y]').onclick = () => done(true);
     root.appendChild(el); scrollSperre(true); el.querySelector('[data-y]').focus();
   });

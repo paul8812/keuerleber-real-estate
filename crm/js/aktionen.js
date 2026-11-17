@@ -10,6 +10,7 @@ import { entwurfDialog } from './entwurf.js';
 import { exposeForm } from './modellrechnung.js';
 import { adresse } from './ui.js';
 import { whatsapp, vcard, naechsterSchritt, offeneVorgaenge } from './crmplus.js';
+import { kontaktErfassen } from './kontakt.js';
 
 const nummer = c => (c?.mobil || c?.tel || '').replace(/[^\d+]/g, '');
 const wa = n => 'https://wa.me/' + n.replace(/^00/, '').replace(/^\+/, '').replace(/^0/, '49');
@@ -31,7 +32,7 @@ function nachAnruf() {
   if (Date.now() - t < 3000) return;   // gleich abgebrochen
   const c = db.get('contacts', cid); if (!c) return;
   sheet([
-    ['✅ Erreicht – Gesprächsnotiz', () => activityForm({ contactId: c.id, art: 'anruf' })],
+    ['✅ Erreicht – Gespräch festhalten', () => kontaktErfassen({ contactIds: [c.id], art: 'anruf' })],
     ['📵 Nicht erreicht – morgen erneut', async () => { await db.log('anruf', 'Anruf – nicht erreicht', { contactId: c.id }); await db.save('tasks', { titel: 'Erneut anrufen: ' + fullName(c), faellig: addDays(today(), 1), prio: 'normal', contactId: c.id, done: false }); toast('Aufgabe für morgen angelegt'); }],
     ['📞 Rückruf vereinbart – Termin', () => eventForm({ titel: 'Rückruf ' + fullName(c), art: 'Sonstiges', contactId: c.id })],
     ['💬 Nicht erreicht – WhatsApp schreiben', async () => { await db.log('anruf', 'Anruf – nicht erreicht', { contactId: c.id }); whatsapp(c); }],
@@ -52,7 +53,7 @@ export function kontaktAktionen(c) {
   const n = nummer(c), a = adresse(c), L = [];
   if (n) L.push(['📞 Anrufen', () => { anrufStart(c.id); oeffne('tel:' + n); }, false, 1], ['💬 WhatsApp', () => whatsapp(c), false, 1], ['✉️ SMS', () => oeffne('sms:' + n), false, 1]);
   if (c.email) L.push(['📧 E-Mail', () => oeffne('mailto:' + c.email), false, 1]);
-  L.push(['📝 Notiz / Gespräch festhalten', () => activityForm({ contactId: c.id })],
+  L.push(['✓ Kontakt gehabt', () => kontaktErfassen({ contactIds: [c.id] }), false, 1], ['📝 Notiz festhalten', () => activityForm({ contactId: c.id })],
     ...(offeneVorgaenge(c.id).length ? [['🧭 Nächster Schritt planen', () => naechsterSchritt(c)]] : []),
     ['✓ Aufgabe anlegen', () => taskForm({ contactId: c.id, titel: '' })],
     ['▦ Termin anlegen', () => eventForm({ titel: 'Termin ' + fullName(c), contactId: c.id })],
@@ -92,7 +93,7 @@ export function terminAktionen(e) {
   if (c && nummer(c)) L.push(['📞 ' + fullName(c) + ' anrufen', () => { anrufStart(c.id); oeffne('tel:' + nummer(c)); }], ['💬 WhatsApp', () => whatsapp(c)]);
   if (ort) L.push(['🧭 Route', () => oeffne(route(ort))]);
   if (c && c.email && e.datum >= today()) L.push(['✉ Terminbestätigung prüfen & senden', () => entwurfDialog({ ohneAufgabe: true, auto: 'tb:' + e.id, contactId: c.id, propertyId: e.propertyId, titel: 'Terminbestätigung' })]);
-  if (e.datum <= today()) L.push(['✅ Hat stattgefunden – Notiz', () => activityForm({ contactId: e.contactId, propertyId: e.propertyId, art: e.art === 'Besichtigung' ? 'besichtigung' : 'meeting' })]);
+  if (e.datum <= today()) L.push(['✅ Hat stattgefunden – festhalten', () => e.contactId ? kontaktErfassen({ contactIds: [e.contactId], art: e.art === 'Besichtigung' ? 'besichtigung' : 'meeting' }) : activityForm({ propertyId: e.propertyId, art: e.art === 'Besichtigung' ? 'besichtigung' : 'meeting' })]);
   L.push(['⏩ Einen Tag später', async () => { await db.save('events', { ...e, datum: addDays(e.datum, 1) }); toast('Termin verschoben'); }]);
   if (c) L.push(['👤 Kontakt öffnen', () => { location.hash = '#/kontakte/' + c.id; }]);
   L.push(['✏️ Bearbeiten', () => eventForm(e)]);
