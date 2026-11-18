@@ -6,6 +6,7 @@ import * as FB from '../fahrtenbuch.js';
 import { html, raw, esc, modal, toast, today, fmtDate, fmtDT, eur, eur2, num, pct, fullName, confirmDlg, download, toCSV } from '../util.js';
 import { haptik } from '../haptik.js';
 import { belegAnsehen } from './finanzen.js';
+import * as OPEL from '../opelimport.js';
 
 const z = { tab: '', wahl: '', auswahl: false, gewaehlt: new Set(), jahr: today().slice(0, 4) };
 const FZEIT = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' });
@@ -49,6 +50,7 @@ export function render(el, arg) {
       <div class="actions">
         <select class="chipsel" id="fb-jahr" aria-label="Jahr">${jahre.map(j => html`<option ${j === z.jahr ? raw('selected') : ''}>${j}</option>`)}</select>
         <button type="button" class="btn" id="fb-neu">+ Fahrt eintragen</button>
+        <button type="button" class="btn" id="fb-opel" title="Fahrtberichte aus der myOpel-App übernehmen">⇪ myOpel</button>
         <button type="button" class="btn" id="fb-export">⤓ Export</button>
       </div>
     </div>
@@ -198,7 +200,7 @@ function detail(f) {
   const naechste = FB.alle().filter(x => x.id !== f.id && FB.beginn(x) > FB.beginn(f)).sort((a, b) => FB.beginn(a).localeCompare(FB.beginn(b)))[0];
   modal(erfasst ? 'Fahrt bearbeiten' : 'Fahrt benennen', html`
     <div class="full fb-dkopf">
-      <p><b>${tagLang(f)}</b> <span class="muted">· ${zeiten(f) || 'Uhrzeit offen'} · ${kmTxt(FB.km(f))} (${FB.kmQuelle(f)}) · ${hand ? 'von Hand eingetragen' : 'automatisch (CarPlay)'}${f.erfasstAm ? ' · benannt ' + fmtDT(f.erfasstAm) : ''}</span>${FB.kartenLink(f) ? raw(` · <a class="lnk" href="${esc(FB.kartenLink(f))}" target="_blank" rel="noopener">Karte</a>`) : ''}</p>
+      <p><b>${tagLang(f)}</b> <span class="muted">· ${zeiten(f) || 'Uhrzeit offen'} · ${kmTxt(FB.km(f))} (${FB.kmQuelle(f)}) · ${hand ? 'von Hand eingetragen' : f.quelle === 'opel' ? 'aus myOpel-Fahrtbericht' : 'automatisch (CarPlay)'}${f.opel && f.quelle !== 'opel' ? ' · mit myOpel abgeglichen' : ''}${f.erfasstAm ? ' · benannt ' + fmtDT(f.erfasstAm) : ''}</span>${FB.kartenLink(f) ? raw(` · <a class="lnk" href="${esc(FB.kartenLink(f))}" target="_blank" rel="noopener">Karte</a>`) : ''}</p>
       ${fest ? html`<p class="fb-hinweis">🔒 Festgeschrieben (älter als ${FB.FESTSCHREIBEN_TAGE} Tage). Du kannst trotzdem alles ändern – mit Grund, die Änderung wird protokolliert.</p>` : ''}
     </div>
     <p class="full fb-lbl">Bewertung</p>
@@ -489,6 +491,13 @@ function einrichten() {
       </div>
     </section>
     <section class="card fb-schritt">
+      <div class="fb-nr">⇪</div>
+      <div><h3>myOpel-Fahrtberichte übernehmen</h3>
+        <p class="muted">Die myOpel-App zeichnet jede Fahrt mit Tacho-Kilometerstand auf („Fahren“ → Fahrten / My Trip Report). Bericht für einen Zeitraum dort <b>teilen bzw. herunterladen</b> (oder Screenshots machen) und hier hochladen – das CRM ergänzt die CarPlay-Fahrten um den echten Kilometerstand und trägt Fahrten ohne Handy nach.</p>
+        <p><button type="button" class="btn small" data-opel>⇪ myOpel-Bericht importieren</button></p>
+      </div>
+    </section>
+    <section class="card fb-schritt">
       <div class="fb-nr">3</div>
       <div><h3>Belege & Kilometerstand</h3>
         <p class="muted">Tank- und Werkstattbelege einfach mit „📷 Beleg fotografieren“ erfassen – sie erscheinen unter „Auto & Kosten“. Einmal zum Jahresanfang den Kilometerstand eintragen.</p>
@@ -610,6 +619,45 @@ export function fahrtEintragen(vorlage = {}) {
   });
 }
 
+// ---------------------------------------------------------------- myOpel-Import
+const AKTION = { neu: ['Neu', 'neu'], ergaenzen: ['km-Stand ergänzt', 'erg'], doppelt: ['schon da', 'dop'] };
+export function opelImport() {
+  let plan = null;
+  modal('myOpel-Fahrtbericht importieren', html`
+    <ol class="full fb-anl small"><li>myOpel-App → <b>Fahren</b> → <b>Fahrten</b> (My Trip Report) → Zeitraum wählen (z. B. Monat)</li><li><b>Teilen / Herunterladen</b> und in „Dateien“ sichern – oder einfach Screenshots der Fahrtenliste machen</li><li>Hier auswählen (mehrere Dateien/Screenshots gehen auf einmal)</li></ol>
+    <label class="f full fb-drop"><span>Bericht (CSV, PDF oder Screenshots)</span><input type="file" name="dateien" multiple accept=".csv,.txt,.tsv,.json,.pdf,image/*,application/pdf,text/csv"></label>
+    <div class="full" id="fb-opel-vorschau"></div>`, {
+    wide: true, saveLabel: 'Auslesen',
+    onSave: async (_v, _close, form) => {
+      const box = form.querySelector('#fb-opel-vorschau'), knopf = form.querySelector('footer .btn.primary');
+      if (plan) {
+        try { const r = await OPEL.uebernehmen(plan.filter(o => o.aktion !== 'doppelt'));
+          toast(`myOpel: ${r.neu} neue Fahrt${r.neu === 1 ? '' : 'en'}, ${r.ergaenzt} ergänzt${r.staende ? `, ${r.staende} Kilometerstand${r.staende > 1 ? 'stände' : ''}` : ''}`, 'ok');
+          if (r.neu) { z.wahl = 'benennen'; }
+        } catch (e) { toast(e.message, 'err'); return false; }
+        return;
+      }
+      const files = [...form.querySelector('[name=dateien]').files];
+      if (!files.length) { toast('Bitte Bericht oder Screenshots auswählen', 'err'); return false; }
+      box.innerHTML = '<p class="muted">⏳ KI liest den Bericht …</p>'; knopf.disabled = true;
+      try {
+        const liste = await OPEL.auslesen(files);
+        if (!liste.length) { box.innerHTML = '<p class="warn">Keine Fahrten erkannt – bitte die Fahrtenliste (mit Datum, Uhrzeit und km) teilen oder abfotografieren.</p>'; return false; }
+        plan = OPEL.planen(liste);
+        const n = k => plan.filter(o => o.aktion === k).length;
+        box.innerHTML = String(html`<p><b>${plan.length} Fahrten erkannt</b> · ${n('neu')} neu · ${n('ergaenzen')} passen zu vorhandenen Fahrten (Kilometerstand wird ergänzt)${n('doppelt') ? ` · ${n('doppelt')} schon importiert` : ''}</p>
+          <div class="fb-opel-tbl"><table class="tbl"><thead><tr><th>Datum</th><th>Zeit</th><th>Strecke</th><th class="r">km</th><th class="r">km-Stand</th><th></th></tr></thead><tbody>
+          ${plan.map(o => html`<tr class="${AKTION[o.aktion][1]}"><td>${fmtDate(o.datum)}</td><td>${o.start}${o.ende ? '–' + o.ende : ''}</td><td>${o.von || '?'} → ${o.nach || '?'}</td><td class="r">${num(o.km, 1)}</td><td class="r">${o.kmStandEnde != null ? num(o.kmStandEnde) : '–'}</td><td><span class="fb-q ${AKTION[o.aktion][1] === 'neu' ? 'vertrag' : AKTION[o.aktion][1] === 'erg' ? 'beleg' : ''}">${AKTION[o.aktion][0]}</span></td></tr>`)}
+          </tbody></table></div>`);
+        knopf.textContent = plan.some(o => o.aktion !== 'doppelt') ? `${plan.filter(o => o.aktion !== 'doppelt').length} übernehmen` : 'Schließen';
+        if (!plan.some(o => o.aktion !== 'doppelt')) plan = [];
+      } catch (e) { box.innerHTML = String(html`<p class="warn">⚠️ ${e.message}</p>`); }
+      finally { knopf.disabled = false; }
+      return false;
+    },
+  });
+}
+
 // ---------------------------------------------------------------- Export (PDF zum Drucken + CSV)
 function exportMenue() {
   modal(`Fahrtenbuch ${z.jahr} exportieren`, html`<div class="full quickgrid">
@@ -672,6 +720,7 @@ function binden(el) {
   el.querySelectorAll('[data-massen]').forEach(b => b.onclick = () => bewertenDlg([...z.gewaehlt], b.dataset.massen));
   el.querySelectorAll('[data-artwahl]').forEach(b => b.onclick = e => { e.stopPropagation(); haptik('leicht'); bewertenDlg([b.dataset.artwahl]); });
   el.querySelector('#fb-export').onclick = exportMenue;
+  el.querySelectorAll('#fb-opel, [data-opel]').forEach(b => b.onclick = opelImport);
   el.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { haptik('leicht'); z.wahl = b.dataset.tab; if (location.hash !== '#/fahrten/' + z.wahl) history.replaceState(null, '', '#/fahrten/' + z.wahl); render(el); });
   el.querySelectorAll('#fb-auto, [data-autoform]').forEach(b => b.onclick = autoForm);
   el.querySelector('#fb-foto')?.addEventListener('click', fotoWaehlen);
