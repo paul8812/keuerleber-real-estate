@@ -191,3 +191,10 @@
   .fb-zeilen.auswahl .fb-zr{grid-column:3}
   .fb-listakt .btn{flex:1 1 auto}
 }
+
+/* myOpel-Import */
+.fb-opel-tbl{max-height:46vh;overflow:auto;border:1px solid var(--line);border-radius:10px;margin-top:8px}
+.fb-opel-tbl table{width:100%;font-size:13px}.fb-opel-tbl .r{text-align:right}
+.fb-opel-tbl tr.dop td{opacity:.5}
+.fb-drop input[type=file]{padding:14px;border:1px dashed var(--line2,var(--line));border-radius:10px;background:var(--panel2)}
+@media(max-width:700px){.fb-opel-tbl th:nth-child(2),.fb-opel-tbl td:nth-child(2),.fb-opel-tbl th:nth-child(5),.fb-opel-tbl td:nth-child(5){display:none}}

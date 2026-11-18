@@ -31,6 +31,14 @@ export async function jsonFrage(system, text, { model = MODELL_SCHNELL, max_toke
   const m = txt.match(/[[{][\s\S]*[\]}]/); if (!m) throw new Error('KI-Antwort nicht lesbar');
   return JSON.parse(m[0]);
 }
+/** Datei(en)/Text an die KI geben, Antwort als JSON (für Importe wie den myOpel-Fahrtbericht) */
+export async function dateiJson(system, inhalt, { model = MODELL, max_tokens = 8000, frage = 'Bitte als JSON zurückgeben.' } = {}) {
+  const block = d => typeof d === 'string' ? { type: 'text', text: d.slice(0, 120000) } : d.kind === 'pdf' ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: d.data } } : { type: 'image', source: { type: 'base64', media_type: d.media_type, data: d.data } };
+  const j = await api({ model, max_tokens, system, messages: [{ role: 'user', content: [...(Array.isArray(inhalt) ? inhalt : [inhalt]).map(block), { type: 'text', text: frage }] }] });
+  const txt = (j.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
+  const m = txt.match(/[[{][\s\S]*[\]}]/); if (!m) throw new Error('KI-Antwort nicht lesbar');
+  return JSON.parse(m[0]);
+}
 export async function testKey() { await api({ model: MODELL, max_tokens: 5, messages: [{ role: 'user', content: 'Antworte nur mit OK.' }] }); return true; }
 
 // Datei → { media_type, data(base64), dataUrl (für die Ablage) }; Fotos werden verkleinert
