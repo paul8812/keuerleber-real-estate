@@ -23,8 +23,106 @@ const ZUSATZ = /park|parkhaus|parkplatz|apcoa|contipark|easypark|parkster|maut|v
 export const PRESSEFOTO = 'https://www.carscoops.com/wp-content/uploads/2023/04/Vauxhall-Mokka-Black-Edition-main.jpg';
 export const fahrzeug = () => {
   const f = db.settings().fahrzeug || {};
-  return { name: 'Opel Mokka Black Edition', baujahr: '2023', antrieb: '130 PS · Automatik', kennzeichen: '', fotoId: '', vermoegen: 'privat', kaufpreis: '', kaufdatum: '', nutzungsdauer: 6, versicherung: '', steuer: '', sonstige: '', kmStaende: [], zuhause: null, betrieb: null, entfernungKm: '', ...f };
+  return { name: 'Opel Mokka Black Edition', baujahr: '2023', antrieb: '130 PS · Automatik', kennzeichen: '', fotoId: '', vermoegen: 'privat',
+    finanzierung: 'leasing', kaufpreis: '', kaufdatum: '', nutzungsdauer: 6, kmStaende: [], zuhause: null, betrieb: null, entfernungKm: '', kosten: {}, ...f,
+    leasing: { beginn: '', laufzeit: '', rate: '', sonderzahlung: '', freiKmJahr: '', kmUebernahme: '', mehrKmCt: '', minderKmCt: '', ...(f.leasing || {}) } };
 };
+
+// ---------------------------------------------------------------- Kostenplan (Vorgabe für Opel Mokka 1.2 DI Turbo Black Automatik)
+// Werte laut ADAC-Autokatalog bzw. Schätzung – bis Vertrag/Police eingetragen ist oder Belege kommen. Belege, deren Lieferant/Beschreibung
+// zum Stichwort passt, ersetzen im jeweiligen Jahr die Schätzung automatisch.
+export const RHYTHMUS = { monat: 'pro Monat', jahr: 'pro Jahr', '100km': 'je 100 km' };
+export const STANDARD_KOSTEN = [
+  { id: 'versicherung', name: 'Kfz-Versicherung (Vollkasko)', betrag: 1200, rhythmus: 'jahr', geschaetzt: true, stichwort: 'versicherung|police|huk|allianz|axa|devk|ergo|lvm|r\\+v|generali|vhv|signal iduna|cosmos|gothaer|zurich|württembergische|provinzial|sparkassen.?vers', hinweis: 'Beim Leasing Pflicht. Typklassen 19/19/22 – Beitrag aus deiner Police eintragen.' },
+  { id: 'steuer', name: 'Kfz-Steuer', betrag: 101, rhythmus: 'jahr', geschaetzt: false, stichwort: 'kfz.?steuer|kraftfahrzeugsteuer|hauptzollamt|zollamt', hinweis: 'Laut ADAC für 1.2 Turbo, 1.199 cm³, 132 g CO₂/km.' },
+  { id: 'kraftstoff', name: 'Kraftstoff (Super E10)', betrag: 11.7, rhythmus: '100km', geschaetzt: true, stichwort: 'tank|shell|aral|esso|\\bjet\\b|totalenergies|\\btotal\\b|agip|\\beni\\b|bft|avia|\\bomv\\b|orlen|\\bstar\\b|\\bhem\\b|raiffeisen|kraftstoff|benzin|super e|diesel', hinweis: '≈ 6,8 l/100 km im Alltag (WLTP 5,9) × 1,72 €/l. Tankbelege ersetzen die Schätzung.' },
+  { id: 'wartung', name: 'Inspektion & Verschleiß', betrag: 300, rhythmus: 'jahr', geschaetzt: true, stichwort: 'inspektion|werkstatt|autohaus|kundendienst|ölwechsel|oelwechsel|bremse|\\batu\\b|pit.?stop|euromaster|opel', hinweis: 'Auf 0 setzen, wenn ein Wartungspaket im Leasing enthalten ist.' },
+  { id: 'reifen', name: 'Reifen, Räderwechsel & Einlagerung', betrag: 150, rhythmus: 'jahr', geschaetzt: true, stichwort: 'reifen|räderwechsel|raederwechsel|radwechsel|einlagerung|vergölst|vergoelst', hinweis: 'Winterreifen beim Leasing meist selbst zu stellen.' },
+  { id: 'hu', name: 'HU/AU (TÜV)', betrag: 70, rhythmus: 'jahr', geschaetzt: true, stichwort: 'tüv|tuev|dekra|gtü|gtue|\\bkües\\b|hauptuntersuchung', hinweis: '≈ 140 € alle 2 Jahre; erste HU 3 Jahre nach Erstzulassung (bei Bj. 2023 also 2026).' },
+  { id: 'pflege', name: 'Wäsche & Pflege', betrag: 120, rhythmus: 'jahr', geschaetzt: true, stichwort: 'waschstra|autowäsche|autowaesche|waschanlage|car.?wash|waschpark|pflege', hinweis: '' },
+];
+const LEASING_WORT = /leasing|sonderzahlung|stellantis bank|opel bank|psa bank|leasys|ayvens|\bald\b|ca auto bank|santander consumer/i;
+/** Alle Kostenposten des Fahrzeugs: Leasingrate + Sonderzahlung (aus dem Vertrag) und der Kostenplan (Vorgabe + eigene Werte) */
+export function kostenPosten(fz = fahrzeug()) {
+  const L = fz.leasing || {}, out = [];
+  if (fz.finanzierung === 'leasing') {
+    out.push({ id: 'leasingrate', name: 'Leasingrate', betrag: zahl(L.rate) || 0, rhythmus: 'monat', vertrag: true, fehlt: !zahl(L.rate), hinweis: 'aus dem Leasingvertrag' });
+    if (zahl(L.sonderzahlung)) out.push({ id: 'sonderzahlung', name: `Sonderzahlung (verteilt auf ${zahl(L.laufzeit) || '?'} Monate)`, betrag: zahl(L.laufzeit) ? r2(zahl(L.sonderzahlung) / zahl(L.laufzeit)) : 0, rhythmus: 'monat', vertrag: true, hinweis: `einmalig ${new Intl.NumberFormat('de-DE', { maximumFractionDigits: 2 }).format(zahl(L.sonderzahlung))} €` });
+  }
+  for (const k of STANDARD_KOSTEN) { const e = (fz.kosten || {})[k.id] || {}; out.push({ ...k, ...e, betrag: zahl(e.betrag ?? k.betrag) ?? 0, geschaetzt: e.betrag != null ? !!e.geschaetzt : k.geschaetzt }); }
+  for (const e of Object.values(fz.kosten || {})) if (e.eigen && e.name) out.push({ stichwort: '', ...e, betrag: zahl(e.betrag) || 0 });
+  return out;
+}
+/** Beleg einem Kostenposten zuordnen (oder 'leasing' = durch den Vertrag abgedeckt, '' = sonstiger Kfz-Beleg) */
+export function postenFuer(b, posten = kostenPosten()) {
+  const t = `${b.lieferant || ''} ${b.beschreibung || ''}`;
+  if (fahrzeug().finanzierung === 'leasing' && LEASING_WORT.test(t)) return 'leasing';
+  for (const p of posten) if (p.stichwort && new RegExp(p.stichwort, 'i').test(t)) return p.id;
+  return '';
+}
+const tageZwischen = (a, b) => Math.max(0, Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 864e5) + 1);
+/** geplante Kosten eines Postens im Zeitraum [von, bis] bei km gefahrenen Kilometern */
+function planBetrag(p, von, bis, kmZ, fz) {
+  let v = von, b = bis;
+  if (p.vertrag) {   // Leasing nur innerhalb der Vertragslaufzeit
+    const L = fz.leasing || {};
+    if (L.beginn) { if (L.beginn > v) v = L.beginn; if (zahl(L.laufzeit)) { const e = new Date(L.beginn + 'T12:00:00'); e.setMonth(e.getMonth() + zahl(L.laufzeit)); const ende = addDays(iso(e), -1); if (ende < b) b = ende; } }
+  }
+  const tage = v <= b ? tageZwischen(v, b) : 0;
+  if (p.rhythmus === 'monat') return p.betrag * tage / 30.4375;
+  if (p.rhythmus === 'jahr') return p.betrag * tage / 365;
+  if (p.rhythmus === '100km') return p.betrag * (kmZ || 0) / 100;
+  return 0;
+}
+/** Kosten im Zeitraum: je Posten Belege (falls vorhanden) sonst Plan; dazu sonstige Kfz-Belege und ggf. AfA */
+export function kostenImZeitraum(von, bis, kmZ, fz = fahrzeug()) {
+  const posten = kostenPosten(fz);
+  const belege = (db.all('buchungen') || []).filter(b => istKfzBeleg(b) && !b.offen && !istZusatz(b) && b.datum >= von && b.datum <= bis);
+  const zu = new Map(); for (const b of belege) { const id = postenFuer(b, posten); if (!zu.has(id)) zu.set(id, []); zu.get(id).push(b); }
+  const zeilen = posten.map(p => {
+    const bel = zu.get(p.id) || [];
+    const betrag = bel.length ? bel.reduce((s, b) => s + kostenBetrag(b), 0) : planBetrag(p, von, bis, kmZ, fz);
+    return { ...p, wert: r2(betrag), quelle: bel.length ? 'Belege' : p.vertrag ? 'Vertrag' : p.geschaetzt ? 'Schätzung' : 'Vorgabe', belege: bel.length };
+  });
+  const sonstige = r2((zu.get('') || []).reduce((s, b) => s + kostenBetrag(b), 0));
+  const abgedeckt = r2((zu.get('leasing') || []).reduce((s, b) => s + kostenBetrag(b), 0));
+  const jahre = new Set([von.slice(0, 4), bis.slice(0, 4)]);
+  let afaW = 0; if (fz.finanzierung === 'kauf') for (const j of jahre) afaW += afa(j, fz) * Math.min(1, tageZwischen(von > `${j}-01-01` ? von : `${j}-01-01`, bis < `${j}-12-31` ? bis : `${j}-12-31`) / 365);
+  const summe = r2(zeilen.reduce((s, z) => s + z.wert, 0) + sonstige + afaW);
+  return { zeilen, sonstige, abgedeckt, afa: r2(afaW), summe };
+}
+/** Kostenplan: was das Auto im Monat / Jahr / je km kostet (bei erwarteter Jahresfahrleistung) */
+export function kostenplan(fz = fahrzeug(), kmJahr) {
+  const km = zahl(kmJahr) || zahl(fz.leasing?.freiKmJahr) || 15000;
+  const zeilen = kostenPosten(fz).map(p => {
+    const jahr = p.rhythmus === 'monat' ? p.betrag * 12 : p.rhythmus === 'jahr' ? p.betrag : p.betrag * km / 100;
+    return { ...p, jahr: r2(jahr), monat: r2(jahr / 12) };
+  });
+  const afaJ = fz.finanzierung === 'kauf' && zahl(fz.kaufpreis) ? r2(zahl(fz.kaufpreis) / (zahl(fz.nutzungsdauer) || 6)) : 0;
+  const jahr = r2(zeilen.reduce((s, z) => s + z.jahr, 0) + afaJ);
+  return { km, zeilen, afa: afaJ, jahr, monat: r2(jahr / 12), proKm: km ? jahr / km : 0, unvollstaendig: zeilen.some(z => z.fehlt) };
+}
+/** Leasing: Freikilometer im Blick – gefahren, erlaubt bis heute, Prognose bis Vertragsende, Mehr-/Minderkilometer */
+export function leasingStand(fz = fahrzeug(), heute = today()) {
+  const L = fz.leasing || {};
+  if (fz.finanzierung !== 'leasing' || !L.beginn || !zahl(L.laufzeit) || !zahl(L.freiKmJahr)) return null;
+  const e = new Date(L.beginn + 'T12:00:00'); e.setMonth(e.getMonth() + zahl(L.laufzeit)); const ende = iso(e);
+  const gesamtTage = tageZwischen(L.beginn, ende), bisher = Math.min(gesamtTage, tageZwischen(L.beginn, heute));
+  const frei = zahl(L.freiKmJahr) * zahl(L.laufzeit) / 12;
+  const st = kmStaende().filter(s => s.datum >= L.beginn), letzter = st[st.length - 1];
+  const start = zahl(L.kmUebernahme) ?? null;
+  let gefahren = null, quelle = '';
+  if (letzter && start != null) { gefahren = zahl(letzter.km) - start; quelle = `Kilometerstand ${letzter.datum}`; }
+  else { gefahren = r1(alle().filter(f => tag(f) >= L.beginn).reduce((s, f) => s + km(f), 0)); quelle = 'aufgezeichnete Fahrten'; }
+  const stichtag = letzter && start != null ? letzter.datum : heute;
+  const tageBisStand = Math.max(1, tageZwischen(L.beginn, stichtag));
+  const erlaubtBisher = Math.round(frei * Math.min(1, bisher / gesamtTage));
+  const prognose = Math.round(gefahren / tageBisStand * gesamtTage);
+  const diff = prognose - frei;
+  return { ende, frei: Math.round(frei), gefahren: Math.round(gefahren), quelle, erlaubtBisher, prognose, diff: Math.round(diff),
+    kosten: diff > 0 ? r2(diff * (zahl(L.mehrKmCt) || 0) / 100) : -r2(-diff * (zahl(L.minderKmCt) || 0) / 100),
+    anteilZeit: bisher / gesamtTage, anteilKm: frei ? gefahren / frei : 0, restMonate: Math.max(0, Math.round((gesamtTage - bisher) / 30.4)) };
+}
 export const fahrzeugSpeichern = async patch => db.saveSettings({ ...db.settings(), fahrzeug: { ...fahrzeug(), ...patch } });
 export const eingerichtet = () => !!db.settings().fahrzeug || (db.all('fahrten') || []).length > 0;
 
@@ -226,15 +324,17 @@ export function auswertung(j) {
   const laufend = belege.filter(b => !istZusatz(b)), zusatz = belege.filter(b => istZusatz(b));
   const kBelege = r2(laufend.reduce((s, b) => s + kostenBetrag(b), 0));
   const kZusatzAlle = r2(zusatz.reduce((s, b) => s + kostenBetrag(b), 0));
-  const kAfa = afa(j, fz), kFix = r2((zahl(fz.versicherung) || 0) + (zahl(fz.steuer) || 0) + (zahl(fz.sonstige) || 0));
-  const kGesamt = r2(kBelege + kAfa + kFix);
-  // Kosten je km nur mit Kilometerständen: Kosten im Zeitraum zwischen erstem und letztem Stand (AfA/Fixkosten anteilig)
-  // geteilt durch die laut Tacho gefahrenen km – sonst verzerrt (volle Jahres-AfA auf wenige aufgezeichnete km).
-  let proKm = 0, kostenZeitraum = 0, zeitraumTage = 0;
+  // Kosten im Jahr bis heute (bzw. ganzes Jahr, wenn vorbei): je Posten Belege oder Plan (Leasing, Versicherung, Steuer …)
+  const bisJ = String(j) < today().slice(0, 4) ? `${j}-12-31` : today();
+  const kJahr = kostenImZeitraum(`${j}-01-01`, bisJ, kmGesamt, fz);
+  const kAfa = kJahr.afa, kGesamt = kJahr.summe, kFix = 0;
+  // Kosten je km nur mit Kilometerständen: Kosten im Zeitraum zwischen erstem und letztem Stand geteilt durch die laut Tacho
+  // gefahrenen km – sonst verzerrt (fixe Kosten auf wenige aufgezeichnete km).
+  let proKm = 0, kostenZeitraum = 0, zeitraumTage = 0, kZeitraum = null;
   if (odo) {
-    zeitraumTage = Math.max(1, Math.round((new Date(odo.bis.datum + 'T12:00:00') - new Date(odo.von.datum + 'T12:00:00')) / 864e5));
-    const anteilJahr = Math.min(1, zeitraumTage / 365);
-    kostenZeitraum = r2(laufend.filter(b => b.datum >= odo.von.datum && b.datum <= odo.bis.datum).reduce((s, b) => s + kostenBetrag(b), 0) + (kAfa + kFix) * anteilJahr);
+    zeitraumTage = Math.max(1, tageZwischen(odo.von.datum, odo.bis.datum) - 1);
+    kZeitraum = kostenImZeitraum(odo.von.datum, odo.bis.datum, odo.km, fz);
+    kostenZeitraum = kZeitraum.summe;
     proKm = kostenZeitraum / odo.km;
   }
   const pauschal = r2(kmG * PAUSCHALE_KM), tatsaechlich = r2(kmG * proKm);
@@ -256,7 +356,7 @@ export function auswertung(j) {
     return { m, km: kmM, betrag: r2(kmM * satz + aw + zusatz.filter(b => b.datum.startsWith(m) && tageG.has(b.datum)).reduce((s, b) => s + kostenBetrag(b), 0)) };
   });
   return {
-    jahr: String(j), fahrten: F, kostenZeitraum, zeitraumTage, anzahl: F.length, erfasst: erf.length, offen: offen.length,
+    jahr: String(j), fahrten: F, kostenZeitraum, zeitraumTage, kJahr, kZeitraum, anzahl: F.length, erfasst: erf.length, offen: offen.length,
     kmG, kmP, kmA, kmOffen, kmErfasst, kmGesamt, nichtErfasst, odo, anteil,
     belege, laufend, zusatz, kBelege, kZusatzAlle, kZusatz, kAfa, kFix, kGesamt, proKm,
     pauschal, tatsaechlich, methode, satz, fahrtkosten, tage: tage.length, entf, arbeitsweg,

@@ -119,23 +119,48 @@
 }
 @media(prefers-reduced-motion:reduce){.fb-puls{animation:none}}
 
-/* Auto-Karte mit Foto */
-.fb-auto{display:grid;grid-template-columns:1fr 1.15fr;align-items:stretch;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:16px}
-.fb-auto-txt{padding:22px 24px;display:flex;flex-direction:column;gap:6px;justify-content:center}
+/* Auto-Karte mit Foto – Foto als eigenständige, abgerundete Kachel (kein Verlauf, ganzes Auto sichtbar) */
+.fb-auto{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:22px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 16px 16px 26px;margin-bottom:16px}
+.fb-auto-txt{display:flex;flex-direction:column;gap:6px;min-width:0}
 .fb-auto-k{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
-.fb-auto h2{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;line-height:1.05;margin:0}
-.fb-auto-z{display:grid;grid-template-columns:repeat(3,auto);justify-content:start;gap:6px 26px;margin:12px 0 6px}
-.fb-auto-z div{display:flex;flex-direction:column}.fb-auto-z b{font-size:19px;letter-spacing:-.3px}.fb-auto-z span{color:var(--mut);font-size:12px}
+.fb-auto h2{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:600;line-height:1.05;margin:0}
+.fb-auto-z{display:grid;grid-template-columns:repeat(3,auto);justify-content:start;gap:6px 28px;margin:14px 0 8px}
+.fb-auto-z div{display:flex;flex-direction:column}.fb-auto-z b{font-size:20px;letter-spacing:-.3px}.fb-auto-z span{color:var(--mut);font-size:12px}
 .fb-auto-akt{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
-.fb-auto-bild{position:relative;margin:0;min-height:220px;background:#e9eef3}
-.fb-auto-bild img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 42%;display:block}
-.fb-auto-bild::before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,var(--panel) 0,rgba(0,0,0,0) 22%)}
-.fb-auto-bild figcaption{position:absolute;right:10px;bottom:8px;z-index:2;font-size:10px;color:rgba(20,20,20,.55)}
+.fb-auto-bild{position:relative;margin:0;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#dfe5ec;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.fb-auto-bild img{width:100%;height:100%;object-fit:cover;object-position:50% 50%;display:block}
+.fb-auto-bild figcaption{position:absolute;right:10px;bottom:7px;font-size:10px;color:rgba(255,255,255,.85);text-shadow:0 1px 3px rgba(0,0,0,.6)}
 @media(max-width:700px){
-  .fb-auto{grid-template-columns:1fr}
-  .fb-auto-bild{order:-1;min-height:0;aspect-ratio:16/9}
-  .fb-auto-bild::before{background:linear-gradient(0deg,var(--panel) 0,rgba(0,0,0,0) 30%)}
-  .fb-auto-txt{padding:4px 18px 18px}
+  .fb-auto{grid-template-columns:1fr;padding:0;gap:0;overflow:hidden}
+  .fb-auto-bild{order:-1;border-radius:0;box-shadow:none}
+  .fb-auto-txt{padding:16px 18px 18px}
   .fb-auto h2{font-size:28px}
   .fb-auto-z{grid-template-columns:repeat(3,1fr);gap:6px 12px}.fb-auto-z b{font-size:16px}
+}
+
+/* Kostenplan */
+.fb-plan-top{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:6px 0 12px}
+.fb-plan-top div{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.fb-plan-top b{font-size:22px;letter-spacing:-.3px}.fb-plan-top span{color:var(--mut);font-size:12px}
+.fb-plan-tbl td{vertical-align:top}.fb-plan-tbl small{font-size:11.5px}
+.fb-plan-tbl tfoot td{font-weight:600;border-top:1px solid var(--line2,var(--line));padding-top:10px}
+.fb-plan-tbl tr.fehlt td:first-child{color:var(--warn)}
+.fb-q{display:inline-block;font-size:11px;padding:1px 8px;border-radius:99px;border:1px solid var(--line);color:var(--mut);white-space:nowrap}
+.fb-q.beleg{border-color:rgba(91,191,138,.5);color:var(--ok)}.fb-q.vertrag{border-color:rgba(201,169,110,.5);color:var(--gold)}.fb-q.schaetz{border-style:dashed}
+.fb-plan-fazit{margin-top:12px;line-height:1.55}
+.fb-krow{display:grid;grid-template-columns:1fr 110px 130px;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.fb-krow span{display:flex;flex-direction:column;font-size:14px}.fb-krow small{font-size:11.5px}
+.fb-krow input,.fb-krow select{width:100%}
+
+/* Leasing-Kilometer */
+.fb-lbar{position:relative;height:12px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);margin:10px 0 14px;overflow:visible}
+.fb-lbar b{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:var(--ok);transition:width .6s}
+.fb-lbar b.gelb{background:var(--warn)}.fb-lbar b.rot{background:#e07a5a}
+.fb-lzeit{position:absolute;top:-5px;bottom:-5px;width:2px;background:var(--txt);opacity:.7;z-index:1;border-radius:2px}
+.fb .rot{color:#e07a5a}.fb .gelb{color:var(--warn)}.fb .gruen{color:var(--ok)}
+.fb-warn-t{color:var(--warn)}
+@media(max-width:700px){
+  .fb-plan-top{grid-template-columns:1fr 1fr}.fb-plan-top div:last-child{grid-column:1/-1}
+  .fb-plan-tbl th:nth-child(4),.fb-plan-tbl td:nth-child(4),.fb-plan-tbl th:nth-child(2),.fb-plan-tbl td:nth-child(2){display:none}
+  .fb-krow{grid-template-columns:1fr 90px}.fb-krow select{grid-column:1/-1}
 }
