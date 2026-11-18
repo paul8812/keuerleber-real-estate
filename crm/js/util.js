@@ -86,6 +86,7 @@ export function collect(form) {
   const o = {};
   form.querySelectorAll('[name]').forEach(el => {
     if (el.type === 'checkbox') { if (el.name.endsWith('[]')) { const k = el.name.slice(0, -2); (o[k] ||= []); if (el.checked) o[k].push(el.value); } else o[el.name] = el.checked; }
+    else if (el.type === 'radio') { if (el.checked) o[el.name] = el.value; else if (!(el.name in o)) o[el.name] = ''; }
     else if (el.type === 'number') o[el.name] = el.value === '' ? '' : Number(el.value);
     else o[el.name] = el.value.trim ? el.value.trim() : el.value;
   });

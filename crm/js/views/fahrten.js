@@ -7,7 +7,7 @@ import { html, raw, esc, modal, toast, today, fmtDate, fmtDT, eur, eur2, num, pc
 import { haptik } from '../haptik.js';
 import { belegAnsehen } from './finanzen.js';
 
-const z = { tab: '', wahl: '', jahr: today().slice(0, 4) };
+const z = { tab: '', wahl: '', auswahl: false, gewaehlt: new Set(), jahr: today().slice(0, 4) };
 const FZEIT = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' });
 const FTAG = new Intl.DateTimeFormat('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
 const FMON = new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' });
@@ -48,7 +48,7 @@ export function render(el, arg) {
       <div><h1>Fahrtenbuch</h1><p class="muted">Privatauto, betrieblich mitgenutzt · Fahrten kommen automatisch über CarPlay</p></div>
       <div class="actions">
         <select class="chipsel" id="fb-jahr" aria-label="Jahr">${jahre.map(j => html`<option ${j === z.jahr ? raw('selected') : ''}>${j}</option>`)}</select>
-        <button type="button" class="btn" id="fb-neu">+ Fahrt nachtragen</button>
+        <button type="button" class="btn" id="fb-neu">+ Fahrt eintragen</button>
         <button type="button" class="btn" id="fb-export">⤓ Export</button>
       </div>
     </div>
@@ -107,7 +107,7 @@ async function fotoLaden(el) {
 
 // ---------------------------------------------------------------- Tab: Zu benennen
 function benennen(offen) {
-  if (!offen.length) return html`<div class="card fb-leer"><div class="fb-leer-ic">✓</div><h3>Alles benannt</h3><p class="muted">Neue Fahrten erscheinen hier automatisch, sobald du aussteigst (CarPlay getrennt). Du gibst nur noch an, ob privat oder geschäftlich und worum es ging.</p>${FB.eingerichtet() ? '' : html`<p><button type="button" class="btn primary" data-tab="einrichten">Automatik einrichten</button></p>`}</div>`;
+  if (!offen.length) return html`<div class="card fb-leer"><div class="fb-leer-ic">✓</div><h3>Alles benannt</h3><p class="muted">Neue Fahrten erscheinen hier automatisch, sobald du aussteigst (CarPlay getrennt). Du gibst nur noch an, ob privat oder geschäftlich und worum es ging.</p><p class="fb-leer-akt"><button type="button" class="btn primary" data-eintragen>+ Fahrt eintragen</button>${FB.eingerichtet() ? '' : html` <button type="button" class="btn" data-tab="einrichten">Automatik einrichten</button>`}</p></div>`;
   return html`<p class="muted small fb-tipp">${offen.length === 1 ? '1 Fahrt wartet' : offen.length + ' Fahrten warten'} auf Art und Anlass. Vorschläge kommen aus Kalender, Kontakten, Objekten und früheren Fahrten – antippen genügt.</p>
     <div class="fb-karten">${offen.map(karte)}</div>
     ${offen.length > 1 ? html`<p class="fb-unten"><button type="button" class="btn ghost" id="fb-allprivat">Alle übrigen als privat markieren</button></p>` : ''}`;
@@ -121,7 +121,7 @@ function karte(f) {
       <div class="fb-km" title="${FB.kmQuelle(f)}">${kmTxt(kmW)}${dauer(f) ? html`<span class="muted"> · ${dauer(f)}</span>` : ''}</div>
     </header>
     <ol class="fb-weg">
-      <li><i class="fb-dot a"></i><span>${FB.ortName(f.start, 'Start unbekannt')}</span></li>
+      <li><i class="fb-dot a"></i><span>${FB.vonText(f)}</span></li>
       ${(f.zwischenhalt || []).map(x => html`<li class="zw"><i class="fb-dot z"></i><span>${x}</span></li>`)}
       <li><i class="fb-dot b"></i><span><b>${FB.ortName(f.ende, 'Ziel unbekannt')}</b></span></li>
     </ol>
@@ -176,51 +176,97 @@ function liste() {
       <div class="kpi"><span>Fahrten</span><b>${A.anzahl}</b>${A.offen ? html`<span class="warn">${A.offen} offen</span>` : ''}</div>
       <div class="kpi"><span>Absetzbar ${z.jahr}</span><b class="gold">${eur2(A.absetzbar)}</b></div>
     </div>
-    ${!F.length ? html`<div class="card fb-leer"><p class="muted">Noch keine Fahrten in ${z.jahr}.</p></div>` : [...nachMonat].map(([m, arr]) => html`<section class="card flush fb-monat">
+    <div class="fb-listakt">
+      <button type="button" class="btn primary" data-eintragen>+ Fahrt eintragen</button>
+      ${F.length ? html`<button type="button" class="btn ghost" id="fb-auswahl">${z.auswahl ? 'Auswahl beenden' : '☑ Mehrere bewerten'}</button>` : ''}
+      ${z.auswahl ? html`<span class="muted small">${z.gewaehlt.size} ausgewählt</span>${z.gewaehlt.size ? html`${Object.entries(FB.ARTEN).map(([k, a]) => html`<button type="button" class="btn small" data-massen="${k}" style="--a:${a.farbe}">${a.icon} ${a.kurz}</button>`)}` : ''}` : ''}
+    </div>
+    ${!F.length ? html`<div class="card fb-leer"><p class="muted">Noch keine Fahrten in ${z.jahr}. Fahrten vor dem Start der Automatik einfach mit „+ Fahrt eintragen“ nachtragen.</p></div>` : [...nachMonat].map(([m, arr]) => html`<section class="card flush fb-monat">
       <header><h3>${FMON.format(new Date(m + '-15T12:00:00'))}</h3><span class="muted">${arr.length} Fahrten · ${kmTxt(arr.filter(f => f.art === 'geschaeftlich').reduce((s, f) => s + FB.km(f), 0))} geschäftlich</span></header>
-      <ul class="fb-zeilen">${arr.map(f => html`<li data-detail="${f.id}" tabindex="0" role="button" class="${f.status !== 'erfasst' ? 'offen' : ''}">
-        <div class="fb-zt"><b>${FB.tag(f).slice(8, 10)}.${FB.tag(f).slice(5, 7)}.</b><span>${f.start?.zeitUnbekannt || f.start?.zeitUngefaehr ? '' : uhr(f.start?.zeit)}</span></div>
-        <div class="fb-zm"><div class="fb-zw">${FB.ortName(f.start)} → ${f.ziel || FB.ortName(f.ende)}</div><div class="muted small">${f.zweck || (f.status === 'unterwegs' ? 'unterwegs …' : 'noch nicht benannt')}${f.partner ? ' · ' + f.partner : ''}</div></div>
-        <div class="fb-zr">${artBadge(f.status === 'erfasst' ? f.art : '')}<b>${kmTxt(FB.km(f))}</b>${FB.festgeschrieben(f) ? html`<i class="fb-lock" title="festgeschrieben">🔒</i>` : ''}${(f.historie || []).length ? html`<i class="fb-hist" title="geändert">✎</i>` : ''}</div>
+      <ul class="fb-zeilen ${z.auswahl ? 'auswahl' : ''}">${arr.map(f => html`<li data-detail="${f.id}" tabindex="0" role="button" class="${f.status !== 'erfasst' ? 'offen' : ''}">
+        ${z.auswahl ? html`<input type="checkbox" class="fb-sel" data-sel="${f.id}" aria-label="Fahrt auswählen" ${z.gewaehlt.has(f.id) ? raw('checked') : ''}>` : ''}<div class="fb-zt"><b>${FB.tag(f).slice(8, 10)}.${FB.tag(f).slice(5, 7)}.</b><span>${f.start?.zeitUnbekannt || f.start?.zeitUngefaehr ? '' : uhr(f.start?.zeit)}</span></div>
+        <div class="fb-zm"><div class="fb-zw">${FB.vonText(f)} → ${FB.nachText(f)}</div><div class="muted small">${f.zweck || (f.status === 'unterwegs' ? 'unterwegs …' : 'noch nicht benannt')}${f.partner ? ' · ' + f.partner : ''}</div></div>
+        <div class="fb-zr"><button type="button" class="fb-artbtn" data-artwahl="${f.id}" aria-label="Bewertung ändern" title="Bewertung ändern">${artBadge(f.status === 'erfasst' ? f.art : '')}</button><b>${kmTxt(FB.km(f))}</b>${FB.festgeschrieben(f) ? html`<i class="fb-lock" title="festgeschrieben">🔒</i>` : ''}${(f.historie || []).length ? html`<i class="fb-hist" title="geändert">✎</i>` : ''}</div>
       </li>`)}</ul></section>`)}`;
 }
+const artWahl = (aktuell, name = 'art') => html`<div class="full fb-arten" role="radiogroup" aria-label="Bewertung">${Object.entries(FB.ARTEN).map(([k, a]) => html`<label style="--a:${a.farbe}" class="${k === aktuell ? 'on' : ''}"><input type="radio" name="${name}" value="${k}" ${k === aktuell ? raw('checked') : ''}>${a.icon} ${a.name}</label>`)}</div>`;
+const artWahlBinden = m => m.querySelectorAll('.fb-arten input[type=radio]').forEach(r => r.onchange = () => { r.closest('.fb-arten').querySelectorAll('label').forEach(l => l.classList.toggle('on', l.contains(r))); haptik('leicht'); });
+const GRUENDE = ['Falsch zugeordnet', 'Nachträglich geklärt', 'Tippfehler', 'km laut Tacho'];
 function detail(f) {
-  const fest = FB.festgeschrieben(f), erfasst = f.status === 'erfasst';
+  const fest = FB.festgeschrieben(f), erfasst = f.status === 'erfasst', hand = f.quelle === 'hand';
   const props = db.all('properties');
   const naechste = FB.alle().filter(x => x.id !== f.id && FB.beginn(x) > FB.beginn(f)).sort((a, b) => FB.beginn(a).localeCompare(FB.beginn(b)))[0];
-  modal(`Fahrt ${tagLang(f)}`, html`
+  modal(erfasst ? 'Fahrt bearbeiten' : 'Fahrt benennen', html`
     <div class="full fb-dkopf">
-      <ol class="fb-weg">
-        <li><i class="fb-dot a"></i><span>${FB.ortName(f.start, 'Start unbekannt')}<small class="muted"> · ${f.start?.zeitUnbekannt ? 'Zeit unbekannt' : uhr(f.start?.zeit) + ' Uhr'}</small></span></li>
-        ${(f.zwischenhalt || []).map(x => html`<li class="zw"><i class="fb-dot z"></i><span>${x}</span></li>`)}
-        <li><i class="fb-dot b"></i><span>${FB.ortName(f.ende, 'Ziel unbekannt')}<small class="muted"> · ${f.ende?.zeitUnbekannt ? 'Zeit unbekannt' : uhr(f.ende?.zeit) + ' Uhr'}</small></span></li>
-      </ol>
-      <p class="muted small">${kmTxt(FB.km(f))} (${FB.kmQuelle(f)}${f.kmRoute != null && FB.kmQuelle(f) !== 'Route' ? ', Route ' + kmTxt(f.kmRoute) : ''}) · erfasst ${f.quelle === 'hand' ? 'von Hand' : 'automatisch (CarPlay)'}${f.erfasstAm ? ' · benannt ' + fmtDT(f.erfasstAm) : ''}${FB.kartenLink(f) ? raw(` · <a class="lnk" href="${esc(FB.kartenLink(f))}" target="_blank" rel="noopener">Karte</a>`) : ''}</p>
-      ${fest ? html`<p class="fb-hinweis">🔒 Festgeschrieben (älter als ${FB.FESTSCHREIBEN_TAGE} Tage). Korrekturen sind möglich, werden aber mit Grund und Zeitpunkt protokolliert.</p>` : ''}
+      <p><b>${tagLang(f)}</b> <span class="muted">· ${zeiten(f) || 'Uhrzeit offen'} · ${kmTxt(FB.km(f))} (${FB.kmQuelle(f)}) · ${hand ? 'von Hand eingetragen' : 'automatisch (CarPlay)'}${f.erfasstAm ? ' · benannt ' + fmtDT(f.erfasstAm) : ''}</span>${FB.kartenLink(f) ? raw(` · <a class="lnk" href="${esc(FB.kartenLink(f))}" target="_blank" rel="noopener">Karte</a>`) : ''}</p>
+      ${fest ? html`<p class="fb-hinweis">🔒 Festgeschrieben (älter als ${FB.FESTSCHREIBEN_TAGE} Tage). Du kannst trotzdem alles ändern – mit Grund, die Änderung wird protokolliert.</p>` : ''}
     </div>
-    <label class="f"><span>Art</span><select name="art">${Object.entries(FB.ARTEN).map(([k, a]) => html`<option value="${k}" ${k === f.art ? raw('selected') : ''}>${a.name}</option>`)}</select></label>
-    <label class="f"><span>Kilometer</span><input name="kmManuell" inputmode="decimal" value="${f.kmManuell ?? ''}" placeholder="${num(FB.km(f), 1)}"></label>
-    <label class="f full"><span>Anlass / Reisezweck</span><input name="zweck" list="fb-zwecke" value="${f.zweck || ''}"></label>
+    <p class="full fb-lbl">Bewertung</p>
+    ${artWahl(f.art || '')}
+    <label class="f full"><span>Anlass / Reisezweck</span><input name="zweck" list="fb-zwecke" value="${f.zweck || ''}" placeholder="bei Geschäftsfahrten Pflicht"></label>
     <label class="f"><span>Geschäftspartner</span><input name="partner" list="fb-partner" value="${f.partner || ''}"></label>
     ${props.length ? html`<label class="f"><span>Objekt</span><select name="propertyId"><option value=""></option>${props.map(p => html`<option value="${p.id}" ${p.id === f.propertyId ? raw('selected') : ''}>${p.nr ? p.nr + ' · ' : ''}${p.titel}</option>`)}</select></label>` : ''}
-    <label class="f"><span>Ziel (Bezeichnung)</span><input name="ziel" value="${f.ziel || ''}" placeholder="${f.ende?.adresse || ''}"></label>
+    <label class="f"><span>Von</span><input name="startText" value="${f.startText || ''}" placeholder="${FB.ortName(f.start, 'Start')}"></label>
+    <label class="f"><span>Nach</span><input name="ziel" value="${f.ziel || ''}" placeholder="${FB.ortName(f.ende, 'Ziel')}"></label>
+    ${hand ? html`<label class="f"><span>Datum</span><input name="datum" type="date" value="${f.datum || FB.tag(f)}"></label>
+    <label class="f"><span>Abfahrt</span><input name="abfahrt" type="time" value="${f.abfahrt || (f.start?.zeitUngefaehr ? '' : uhr(f.start?.zeit))}"></label>` : ''}
+    <label class="f"><span>Kilometer</span><input name="kmManuell" inputmode="decimal" value="${f.kmManuell ?? ''}" placeholder="${num(FB.km(f), 1)}"></label>
     <label class="f"><span>Umweg / Route</span><input name="umweg" value="${f.umweg || ''}"></label>
     <label class="f"><span>Kilometerstand Beginn</span><input name="kmStart" inputmode="numeric" value="${f.kmStart ?? ''}"></label>
     <label class="f"><span>Kilometerstand Ende</span><input name="kmEnde" inputmode="numeric" value="${f.kmEnde ?? ''}"></label>
-    ${erfasst ? html`<label class="f full"><span>Grund der Änderung${fest ? ' (Pflicht)' : ' (optional)'}</span><input name="grund" placeholder="z. B. Tippfehler im Zweck, Kilometer laut Tacho"></label>` : ''}
+    ${erfasst ? html`<div class="full"><label class="f"><span>Grund der Änderung${fest ? ' (Pflicht)' : ' (optional)'}</span><input name="grund" placeholder="z. B. falsch zugeordnet"></label><div class="chips fb-gruende">${GRUENDE.map(g => html`<button type="button" class="chip" data-grund="${g}">${g}</button>`)}</div></div>` : ''}
     ${(f.historie || []).length ? html`<div class="full fb-historie"><h4>Änderungsprotokoll</h4><ul>${f.historie.map(h => html`<li><b>${fmtDT(h.zeit)}</b>${h.grund ? html` – ${h.grund}` : ''}<br><span class="muted small">${Object.entries(h.felder || {}).map(([k, [a, b]]) => `${k}: „${a}“ → „${b}“`).join(' · ')}</span></li>`)}</ul></div>` : ''}
     <div class="full fb-dakt">
-      ${naechste && !fest && !FB.festgeschrieben(naechste) ? html`<button type="button" class="btn ghost small" data-zus>Mit nächster Fahrt zusammenfassen (${uhr(naechste.start?.zeit)} → ${FB.ortName(naechste.ende)})</button>` : ''}
+      <button type="button" class="btn ghost small" data-kopie>⧉ Als Vorlage für neue Fahrt</button>
+      ${naechste && !fest && !FB.festgeschrieben(naechste) ? html`<button type="button" class="btn ghost small" data-zus>Mit nächster Fahrt zusammenfassen (${uhr(naechste.start?.zeit)} → ${FB.nachText(naechste)})</button>` : ''}
     </div>`, {
     wide: true, saveLabel: erfasst ? 'Änderung speichern' : 'Fahrt erfassen',
     danger: { label: 'Verwerfen', confirm: 'Fahrt verwerfen? Sie bleibt im Protokoll als „verworfen“ sichtbar.', fn: () => verwerfenDlg(f) },
-    onMount: (m, close) => { m.querySelector('[data-zus]')?.addEventListener('click', async () => { try { await FB.zusammenfassen(f, naechste); close(); toast('Fahrten zusammengefasst'); } catch (e) { toast(e.message, 'err'); } }); },
+    onMount: (m, close) => {
+      artWahlBinden(m);
+      m.querySelectorAll('[data-grund]').forEach(b => b.onclick = () => { m.querySelector('[name=grund]').value = b.dataset.grund; });
+      m.querySelector('[data-zus]')?.addEventListener('click', async () => { try { await FB.zusammenfassen(f, naechste); close(); toast('Fahrten zusammengefasst'); } catch (e) { toast(e.message, 'err'); } });
+      m.querySelector('[data-kopie]').onclick = () => { close(); fahrtEintragen({ von: FB.vonText(f, ''), nach: FB.nachText(f, ''), km: FB.km(f), art: f.art, zweck: f.zweck, partner: f.partner, propertyId: f.propertyId, vonPunkt: f.start, nachPunkt: f.ende }); };
+    },
     onSave: async v => {
+      const art = v.art || f.art;
+      if (!art) { toast('Bitte eine Bewertung wählen', 'err'); return false; }
       const c = v.partner ? db.all('contacts').find(x => fullName(x).toLowerCase() === v.partner.trim().toLowerCase()) : null;
       try {
-        if (!erfasst) await FB.erfassen(f, { ...v, contactId: c?.id || '' });
-        else await FB.speichern(f, { art: v.art, zweck: v.zweck.trim(), partner: v.partner.trim(), contactId: c?.id || (v.partner ? f.contactId : ''), propertyId: v.propertyId || '', ziel: v.ziel.trim(), umweg: v.umweg.trim(), kmManuell: v.kmManuell === '' ? '' : FB.zahl(v.kmManuell) ?? '', kmStart: FB.zahl(v.kmStart) ?? '', kmEnde: FB.zahl(v.kmEnde) ?? '' }, { grund: (v.grund || '').trim() });
-        toast('Gespeichert');
+        if (!erfasst) await FB.erfassen(f, { ...v, art, contactId: c?.id || '' });
+        const patch = { art, zweck: (v.zweck || '').trim() || (art === 'privat' ? 'Privatfahrt' : ''), partner: (v.partner || '').trim(), contactId: c?.id || (v.partner ? f.contactId || '' : ''), propertyId: v.propertyId || '', startText: (v.startText || '').trim(), ziel: (v.ziel || '').trim(), umweg: (v.umweg || '').trim(), kmManuell: v.kmManuell === '' ? '' : FB.zahl(v.kmManuell) ?? '', kmStart: FB.zahl(v.kmStart) ?? '', kmEnde: FB.zahl(v.kmEnde) ?? '' };
+        if (hand) { patch.datum = v.datum || f.datum || FB.tag(f); patch.abfahrt = v.abfahrt || ''; }
+        if (art === 'geschaeftlich' && !patch.zweck) throw new Error('Bitte den Anlass der Geschäftsfahrt angeben.');
+        await FB.speichern(db.get('fahrten', f.id), patch, { grund: (v.grund || '').trim() });
+        haptik('erfolg'); toast('Gespeichert');
+      } catch (e) { toast(e.message, 'err'); return false; }
+    },
+  });
+}
+/** Bewertung schnell ändern (eine oder mehrere Fahrten) */
+function bewertenDlg(ids, art0 = '') {
+  const fs = ids.map(id => db.get('fahrten', id)).filter(Boolean);
+  const fest = fs.some(FB.festgeschrieben), ohneZweck = fs.filter(f => !f.zweck || f.zweck === 'Privatfahrt').length;
+  modal(fs.length === 1 ? 'Bewertung ändern' : `${fs.length} Fahrten bewerten`, html`
+    ${fs.length === 1 ? html`<p class="full muted">${tagLang(fs[0])} · ${FB.vonText(fs[0])} → ${FB.nachText(fs[0])} · ${kmTxt(FB.km(fs[0]))}</p>` : html`<p class="full muted">${kmTxt(fs.reduce((s, f) => s + FB.km(f), 0))} insgesamt</p>`}
+    ${artWahl(art0 || (fs.length === 1 ? fs[0].art : ''))}
+    <label class="f full fb-zweckf"><span>Anlass${fs.length > 1 ? ' (für Fahrten ohne Anlass)' : ''}</span><input name="zweck" list="fb-zwecke" value="${fs.length === 1 && fs[0].zweck !== 'Privatfahrt' ? fs[0].zweck || '' : ''}" placeholder="bei Geschäftsfahrten Pflicht"></label>
+    ${fs.some(f => f.status === 'erfasst') ? html`<div class="full"><label class="f"><span>Grund der Änderung${fest ? ' (Pflicht – festgeschriebene Fahrten dabei)' : ' (optional)'}</span><input name="grund"></label><div class="chips fb-gruende">${GRUENDE.slice(0, 2).map(g => html`<button type="button" class="chip" data-grund="${g}">${g}</button>`)}</div></div>` : ''}`, {
+    saveLabel: 'Übernehmen',
+    onMount: m => { artWahlBinden(m); m.querySelectorAll('[data-grund]').forEach(b => b.onclick = () => { m.querySelector('[name=grund]').value = b.dataset.grund; }); },
+    onSave: async v => {
+      if (!v.art) { toast('Bitte eine Bewertung wählen', 'err'); return false; }
+      const zweck = (v.zweck || '').trim();
+      if (v.art === 'geschaeftlich' && !zweck && fs.some(f => !f.zweck || f.zweck === 'Privatfahrt')) { toast('Bitte einen Anlass für die Geschäftsfahrt(en) angeben', 'err'); return false; }
+      if (fest && !(v.grund || '').trim()) { toast('Bitte einen Grund angeben – festgeschriebene Fahrten dabei', 'err'); return false; }
+      try {
+        for (const f of fs) {
+          const z2 = fs.length === 1 ? (zweck || (v.art === 'privat' ? 'Privatfahrt' : f.zweck)) : (!f.zweck || f.zweck === 'Privatfahrt' || v.art === 'privat' ? (zweck || (v.art === 'privat' ? 'Privatfahrt' : f.zweck)) : f.zweck);
+          if (f.status !== 'erfasst') await FB.erfassen(f, { art: v.art, zweck: z2, partner: f.partner || '', contactId: f.contactId || '', propertyId: f.propertyId || '', ziel: f.ziel || '', umweg: f.umweg || '' });
+          else await FB.speichern(f, { art: v.art, zweck: z2 }, { grund: (v.grund || '').trim() });
+        }
+        haptik('erfolg'); toast(fs.length === 1 ? `Bewertung: ${FB.ARTEN[v.art].name}` : `${fs.length} Fahrten: ${FB.ARTEN[v.art].name}`);
+        z.gewaehlt.clear(); z.auswahl = false;
       } catch (e) { toast(e.message, 'err'); return false; }
     },
   });
@@ -439,7 +485,7 @@ function einrichten() {
           <li>Aktion „<b>Inhalt von URL abrufen</b>“ hinzufügen, als URL den <b>Start-Link</b> oben einfügen und ganz am Ende hinter <code>lat=</code> und <code>lon=</code> die Variablen <b>Aktueller Standort → Breitengrad</b> bzw. <b>Längengrad</b> einsetzen.</li>
           <li>Genauso eine zweite Automation für CarPlay „<b>Trennt</b>“ mit dem <b>Ziel-Link</b>.</li>
         </ol>
-        <p class="muted small">Ohne CarPlay geht es auch mit dem Auslöser „Bluetooth“ (dein Auto) – oder du trägst Fahrten mit „+ Fahrt nachtragen“ ein.</p>
+        <p class="muted small">Ohne CarPlay geht es auch mit dem Auslöser „Bluetooth“ (dein Auto) – oder du trägst Fahrten mit „+ Fahrt eintragen“ ein.</p>
       </div>
     </section>
     <section class="card fb-schritt">
@@ -489,46 +535,76 @@ async function linksLaden(el) {
   }
 }
 
-// ---------------------------------------------------------------- Fahrt nachtragen
-function nachtragen() {
-  const fz = FB.fahrzeug(), props = db.all('properties');
-  let berechnet = null;
-  modal('Fahrt nachtragen', html`
+// ---------------------------------------------------------------- Fahrt eintragen (von Hand, auch rückwirkend)
+export function fahrtEintragen(vorlage = {}) {
+  const fz = FB.fahrzeug(), props = db.all('properties'), ziele = FB.haeufigeZiele();
+  let berechnet = vorlage.vonPunkt?.lat != null && vorlage.nachPunkt?.lat != null ? { von: vorlage.vonPunkt, nach: vorlage.nachPunkt, km: vorlage.km, min: null } : null;
+  modal('Fahrt eintragen', html`
+    <p class="full muted small">Für Fahrten ohne CarPlay-Aufzeichnung – auch rückwirkend (z. B. vor Start der Automatik). Die Strecke wird berechnet, du kannst sie anpassen.</p>
+    ${ziele.length ? html`<div class="full"><span class="fb-lbl">Häufige Ziele</span><div class="chips fb-ziele">${ziele.map((x, i) => html`<button type="button" class="chip" data-ziel="${i}">${x.text}<small> · ${num(x.kmTyp, 0)} km</small></button>`)}</div></div>` : ''}
     <label class="f"><span>Datum</span><input name="datum" type="date" value="${today()}" required></label>
-    <label class="f"><span>Abfahrt (Uhrzeit)</span><input name="zeit" type="time"></label>
-    <label class="f full"><span>Von</span><input name="von" value="${fz.zuhause ? 'Zuhause' : ''}" placeholder="Adresse oder Ort" required></label>
-    <label class="f full"><span>Nach</span><input name="nach" placeholder="Adresse oder Ort" required></label>
-    <label class="f"><span>Kilometer</span><input name="km" inputmode="decimal" placeholder="wird berechnet"></label>
+    <label class="f"><span>Abfahrt (Uhrzeit, optional)</span><input name="zeit" type="time"></label>
+    <label class="f full"><span>Von</span><input name="von" value="${vorlage.von || (fz.zuhause ? 'Zuhause' : '')}" placeholder="Adresse oder Ort" required></label>
+    <label class="f full"><span>Nach</span><input name="nach" value="${vorlage.nach || ''}" placeholder="Adresse, Ort oder Kontakt" required list="fb-orte"></label>
+    <datalist id="fb-orte">${[...props.filter(p => p.strasse).map(p => [p.strasse, p.plz, p.ort].filter(Boolean).join(', ')), ...db.all('contacts').filter(c => c.strasse && c.ort).slice(0, 300).map(c => [c.strasse, c.plz, c.ort].filter(Boolean).join(', '))].map(x => html`<option value="${x}">`)}</datalist>
+    <label class="f"><span>Kilometer (einfach)</span><input name="km" inputmode="decimal" value="${vorlage.km ? String(vorlage.km).replace('.', ',') : ''}" placeholder="wird berechnet"></label>
     <div class="f"><span>&nbsp;</span><button type="button" class="btn" id="fb-ber">km berechnen</button></div>
-    <label class="f full chk"><input type="checkbox" name="hinzurueck"><span>Hin- und Rückfahrt (zwei Fahrten)</span></label>
-    <label class="f"><span>Art</span><select name="art">${Object.entries(FB.ARTEN).map(([k, a]) => html`<option value="${k}">${a.name}</option>`)}</select></label>
-    <label class="f"><span>Geschäftspartner</span><input name="partner" list="fb-partner"></label>
-    <label class="f full"><span>Anlass / Reisezweck</span><input name="zweck" list="fb-zwecke"></label>
-    ${props.length ? html`<label class="f full"><span>Objekt</span><select name="propertyId"><option value=""></option>${props.map(p => html`<option value="${p.id}">${p.nr ? p.nr + ' · ' : ''}${p.titel}</option>`)}</select></label>` : ''}
+    <details class="full fb-mehr"><summary>Kilometerstand vom Tacho (optional)</summary><div class="fb-felder">
+      <label class="f"><span>km-Stand Beginn</span><input name="kmStart" inputmode="numeric"></label>
+      <label class="f"><span>km-Stand Ende</span><input name="kmEnde" inputmode="numeric"></label></div></details>
+    <p class="full fb-lbl">Bewertung</p>
+    ${artWahl(vorlage.art || 'geschaeftlich')}
+    <label class="f full"><span>Anlass / Reisezweck</span><input name="zweck" list="fb-zwecke" value="${vorlage.zweck || ''}"></label>
+    <label class="f"><span>Geschäftspartner</span><input name="partner" list="fb-partner" value="${vorlage.partner || ''}"></label>
+    ${props.length ? html`<label class="f"><span>Objekt</span><select name="propertyId"><option value=""></option>${props.map(p => html`<option value="${p.id}" ${p.id === vorlage.propertyId ? raw('selected') : ''}>${p.nr ? p.nr + ' · ' : ''}${p.titel}</option>`)}</select></label>` : ''}
+    <label class="f full chk"><input type="checkbox" name="hinzurueck" checked><span>Hin- und Rückfahrt (zwei Fahrten)</span></label>
+    <label class="f full chk"><input type="checkbox" name="mehrtage"><span>Gleiche Fahrt an weiteren Tagen</span></label>
+    <div class="full fb-tage" hidden><div class="fb-tagliste"></div><button type="button" class="btn ghost small" id="fb-tag-plus">+ Tag</button></div>
     <p class="full muted small" id="fb-berstat"></p>`, {
     wide: true, saveLabel: 'Eintragen',
     onMount: m => {
+      artWahlBinden(m);
       const q = n => m.querySelector(`[name=${n}]`), st = m.querySelector('#fb-berstat');
       const punkt = t => t.trim().toLowerCase() === 'zuhause' && fz.zuhause ? fz.zuhause : t;
       const rechnen = async () => {
         if (!q('von').value.trim() || !q('nach').value.trim()) return;
         st.textContent = 'berechne Strecke …';
-        try { berechnet = await strecke(punkt(q('von').value), punkt(q('nach').value)); q('km').value = String(berechnet.km).replace('.', ','); st.textContent = `${berechnet.von.adresse} → ${berechnet.nach.adresse}: ${num(berechnet.km, 1)} km, ca. ${berechnet.min} min`; }
+        try { berechnet = await strecke(punkt(q('von').value), punkt(q('nach').value)); q('km').value = String(berechnet.km).replace('.', ','); st.textContent = `${berechnet.von.adresse || q('von').value} → ${berechnet.nach.adresse}: ${num(berechnet.km, 1)} km, ca. ${berechnet.min} min`; }
         catch (e) { st.textContent = '⚠️ ' + e.message + ' – Kilometer bitte selbst eintragen.'; }
       };
       m.querySelector('#fb-ber').onclick = rechnen;
-      q('nach').addEventListener('change', () => { if (!q('km').value) rechnen(); });
+      q('nach').addEventListener('change', () => { berechnet = null; if (!q('km').value) rechnen(); });
+      q('von').addEventListener('change', () => { berechnet = null; });
+      m.querySelectorAll('[data-ziel]').forEach(b => b.onclick = () => {
+        const x = ziele[+b.dataset.ziel]; haptik('leicht');
+        q('nach').value = x.text; q('km').value = String(x.kmTyp).replace('.', ',');
+        berechnet = x.punkt ? { von: fz.zuhause || null, nach: { ...x.punkt, adresse: x.text }, km: x.kmTyp, min: null } : null;
+        if (x.zweck && !q('zweck').value) q('zweck').value = x.zweck;
+        if (x.partner && !q('partner').value) q('partner').value = x.partner;
+        const r = m.querySelector(`.fb-arten input[value="${x.art}"]`); if (r) { r.checked = true; r.dispatchEvent(new Event('change')); }
+        st.textContent = `${x.text}: zuletzt ${num(x.kmTyp, 1)} km (${x.n}× gefahren)`;
+      });
+      const liste = m.querySelector('.fb-tagliste');
+      const tagDazu = () => { const i = document.createElement('input'); i.type = 'date'; i.className = 'fb-tag'; i.setAttribute('aria-label', 'weiterer Tag'); liste.appendChild(i); i.focus(); };
+      q('mehrtage').onchange = () => { m.querySelector('.fb-tage').hidden = !q('mehrtage').checked; if (q('mehrtage').checked && !liste.children.length) tagDazu(); };
+      m.querySelector('#fb-tag-plus').onclick = tagDazu;
     },
-    onSave: async v => {
-      if (!FB.zahl(v.km)) { toast('Bitte Kilometer eintragen oder berechnen lassen', 'err'); return false; }
+    onSave: async (v, _close, form) => {
+      const kmW = FB.zahl(v.km), kS = FB.zahl(v.kmStart), kE = FB.zahl(v.kmEnde);
+      if (!kmW && !(kS != null && kE != null && kE > kS)) { toast('Bitte Kilometer eintragen oder berechnen lassen', 'err'); return false; }
+      if (v.art === 'geschaeftlich' && !v.zweck.trim()) { toast('Bitte den Anlass der Geschäftsfahrt angeben', 'err'); return false; }
       const c = v.partner ? db.all('contacts').find(x => fullName(x).toLowerCase() === v.partner.trim().toLowerCase()) : null;
       const vonP = v.von.trim().toLowerCase() === 'zuhause' && fz.zuhause ? { ...fz.zuhause, adresse: 'Zuhause' } : berechnet?.von || null;
       const nachP = berechnet?.nach || null;
-      const basis = { datum: v.datum, zeit: v.zeit, art: v.art, zweck: v.zweck, partner: v.partner, contactId: c?.id || '', propertyId: v.propertyId || '', kmWert: v.km, minRoute: berechnet?.min || null };
+      const tage = [v.datum, ...[...form.querySelectorAll('.fb-tag')].map(i => i.value).filter(Boolean)].filter((d, i, a) => d && a.indexOf(d) === i);
+      const basis = { art: v.art, partner: v.partner, contactId: c?.id || '', propertyId: v.propertyId || '', kmWert: kmW ?? '', minRoute: berechnet?.min || null };
       try {
-        await FB.nachtragen({ ...basis, von: v.von.trim(), nach: v.nach.trim(), vonPunkt: vonP, nachPunkt: nachP });
-        if (v.hinzurueck) await FB.nachtragen({ ...basis, zeit: '', zweck: v.art === 'geschaeftlich' ? `Rückfahrt: ${v.zweck}` : v.zweck, von: v.nach.trim(), nach: v.von.trim(), vonPunkt: nachP, nachPunkt: vonP });
-        toast(v.hinzurueck ? '2 Fahrten eingetragen' : 'Fahrt eingetragen');
+        let n = 0;
+        for (const d of tage) {
+          await FB.nachtragen({ ...basis, datum: d, zeit: d === v.datum ? v.zeit : '', zweck: v.zweck, von: v.von.trim(), nach: v.nach.trim(), vonPunkt: vonP, nachPunkt: nachP, kmStart: d === v.datum ? v.kmStart : '', kmEnde: d === v.datum ? v.kmEnde : '', kmWert: kmW ?? (d === v.datum ? '' : kE - kS) }); n++;
+          if (v.hinzurueck) { await FB.nachtragen({ ...basis, datum: d, zeit: '', zweck: v.art === 'geschaeftlich' ? `Rückfahrt: ${v.zweck}` : v.zweck, von: v.nach.trim(), nach: v.von.trim(), vonPunkt: nachP, nachPunkt: vonP, kmWert: kmW ?? (kE - kS) }); n++; }
+        }
+        haptik('erfolg'); toast(n === 1 ? 'Fahrt eingetragen' : `${n} Fahrten eingetragen`);
       } catch (e) { toast(e.message, 'err'); return false; }
     },
   });
@@ -547,7 +623,7 @@ const exportZeilen = () => FB.imJahr(z.jahr).concat((db.all('fahrten') || []).fi
 function csv() {
   download(`fahrtenbuch-${z.jahr}.csv`, toCSV(exportZeilen(), [
     [f => fmtDate(FB.tag(f)), 'Datum'], [f => f.start?.zeitUnbekannt ? '' : uhr(f.start?.zeit), 'Abfahrt'], [f => f.ende?.zeitUnbekannt ? '' : uhr(f.ende?.zeit), 'Ankunft'],
-    [f => FB.ortName(f.start), 'Start'], [f => f.ziel || FB.ortName(f.ende), 'Ziel'], [f => f.ende?.adresse || '', 'Zieladresse'], [f => f.umweg || (f.zwischenhalt || []).join(' / '), 'Route/Umweg'],
+    [f => FB.vonText(f, ''), 'Start'], [f => FB.nachText(f, ''), 'Ziel'], [f => f.ende?.adresse || '', 'Zieladresse'], [f => f.umweg || (f.zwischenhalt || []).join(' / '), 'Route/Umweg'],
     [f => String(FB.km(f)).replace('.', ','), 'km'], [f => f.kmStart ?? '', 'km-Stand Beginn'], [f => f.kmEnde ?? '', 'km-Stand Ende'],
     [f => f.status === 'verworfen' ? 'verworfen' : FB.ARTEN[f.art]?.name || 'nicht benannt', 'Art'], [f => f.status === 'verworfen' ? f.verworfenGrund : (f.zweck || ''), 'Reisezweck'], [f => f.partner || '', 'Geschäftspartner'],
     [f => f.erfasstAm ? fmtDT(f.erfasstAm) : '', 'Benannt am'], [f => (f.historie || []).map(h => `${fmtDT(h.zeit)}: ${h.grund || 'Änderung'} (${Object.entries(h.felder || {}).map(([k, [a, b]]) => `${k} ${a}→${b}`).join(', ')})`).join(' | '), 'Änderungen'],
@@ -569,7 +645,7 @@ function druck() {
   <div class="meta">${e(S.firma || '')} · ${e(S.inhaber || '')} · Fahrzeug: ${e(fz.name || '–')} ${fz.kennzeichen ? '· Kennzeichen ' + e(fz.kennzeichen) : ''} · ${fz.vermoegen === 'betrieb' ? 'Betriebsvermögen' : 'Privatfahrzeug, betrieblich mitgenutzt'} · erstellt ${e(fmtDT(new Date().toISOString()))}</div>
   <div class="box"><div>Geschäftlich<b>${e(kmTxt(A.kmG))}</b></div><div>Privat${A.nichtErfasst ? ' (inkl. nicht aufgezeichnet)' : ''}<b>${e(kmTxt(A.kmP + A.nichtErfasst))}</b></div><div>Wohnung ↔ Betrieb<b>${e(kmTxt(A.kmA))}</b></div><div>Anteil geschäftlich<b>${e(pct(A.anteil * 100, 1))}</b></div></div>
   <table><thead><tr><th>Datum</th><th>Zeit</th><th>Start</th><th>Ziel</th><th>Route/Umweg</th><th class="r">km</th><th class="r">km-Stand</th><th>Art</th><th>Reisezweck</th><th>Geschäftspartner</th><th>benannt</th></tr></thead><tbody>
-  ${rows.map(f => `<tr class="${f.status === 'verworfen' ? 'v' : ''}"><td>${e(fmtDate(FB.tag(f)))}</td><td>${e(zeiten(f).replace(' Uhr', ''))}</td><td>${e(FB.ortName(f.start))}</td><td>${e(f.ziel ? f.ziel + (f.ende?.adresse && f.ziel !== f.ende.adresse ? ' – ' + f.ende.adresse : '') : FB.ortName(f.ende))}</td><td>${e(f.umweg || (f.zwischenhalt || []).join(' / '))}</td><td class="r">${e(num(FB.km(f), 1))}</td><td class="r">${f.kmStart != null && f.kmStart !== '' ? e(num(f.kmStart)) + '–' + e(num(f.kmEnde)) : ''}</td><td class="g">${e(f.status === 'verworfen' ? 'verworfen' : FB.ARTEN[f.art]?.name || 'offen')}</td><td class="g">${e(f.status === 'verworfen' ? f.verworfenGrund || '' : f.zweck || '')}</td><td>${e(f.partner || '')}</td><td class="klein">${e(f.erfasstAm ? fmtDT(f.erfasstAm) : '')}${(f.historie || []).length ? ' ✎' : ''}</td></tr>`).join('')}
+  ${rows.map(f => `<tr class="${f.status === 'verworfen' ? 'v' : ''}"><td>${e(fmtDate(FB.tag(f)))}</td><td>${e(zeiten(f).replace(' Uhr', ''))}</td><td>${e(FB.vonText(f, ''))}</td><td>${e(f.ziel ? f.ziel + (f.ende?.adresse && f.ziel !== f.ende.adresse ? ' – ' + f.ende.adresse : '') : FB.ortName(f.ende))}</td><td>${e(f.umweg || (f.zwischenhalt || []).join(' / '))}</td><td class="r">${e(num(FB.km(f), 1))}</td><td class="r">${f.kmStart != null && f.kmStart !== '' ? e(num(f.kmStart)) + '–' + e(num(f.kmEnde)) : ''}</td><td class="g">${e(f.status === 'verworfen' ? 'verworfen' : FB.ARTEN[f.art]?.name || 'offen')}</td><td class="g">${e(f.status === 'verworfen' ? f.verworfenGrund || '' : f.zweck || '')}</td><td>${e(f.partner || '')}</td><td class="klein">${e(f.erfasstAm ? fmtDT(f.erfasstAm) : '')}${(f.historie || []).length ? ' ✎' : ''}</td></tr>`).join('')}
   <tr class="sum"><td colspan="5">Summe ${e(z.jahr)}</td><td class="r">${e(num(A.kmErfasst, 1))}</td><td colspan="5"></td></tr></tbody></table>
   <h2>Kostenrechnung</h2>
   <table style="width:auto"><tbody>
@@ -581,7 +657,7 @@ function druck() {
     ${A.kZusatz ? `<tr><td>Parken, Maut u. ä. an Geschäftstagen</td><td class="r">${e(eur2(A.kZusatz))}</td></tr>` : ''}
     <tr class="sum"><td>Abziehbare Fahrtkosten (${A.methode === 'pauschal' ? 'Kilometerpauschale' : 'tatsächliche Kosten'})</td><td class="r">${e(eur2(A.absetzbar))}</td></tr></tbody></table>
   <p class="klein">Aufzeichnung: Start und Ziel automatisch per GPS beim Verbinden/Trennen von CarPlay (Uhrzeit vom Server), Strecke per Routenberechnung bzw. Kilometerstand; Art, Anlass und Geschäftspartner zeitnah ergänzt. Fahrten werden ${FB.FESTSCHREIBEN_TAGE} Tage nach Erfassung festgeschrieben; spätere Änderungen sind mit Zeitpunkt und Grund protokolliert (✎). Verworfene Fahrten sind durchgestrichen mit Begründung aufgeführt.</p>
-  ${rows.some(f => (f.historie || []).length) ? `<h2>Änderungsprotokoll</h2><table><thead><tr><th>Fahrt</th><th>Geändert am</th><th>Grund</th><th>Änderung</th></tr></thead><tbody>${rows.flatMap(f => (f.historie || []).map(h => `<tr><td>${e(fmtDate(FB.tag(f)))} ${e(FB.ortName(f.start))} → ${e(FB.ortName(f.ende))}</td><td>${e(fmtDT(h.zeit))}</td><td>${e(h.grund || '')}</td><td>${e(Object.entries(h.felder || {}).map(([k, [a, b]]) => `${k}: „${a}“ → „${b}“`).join('; '))}</td></tr>`)).join('')}</tbody></table>` : ''}
+  ${rows.some(f => (f.historie || []).length) ? `<h2>Änderungsprotokoll</h2><table><thead><tr><th>Fahrt</th><th>Geändert am</th><th>Grund</th><th>Änderung</th></tr></thead><tbody>${rows.flatMap(f => (f.historie || []).map(h => `<tr><td>${e(fmtDate(FB.tag(f)))} ${e(FB.vonText(f, ''))} → ${e(FB.nachText(f, ''))}</td><td>${e(fmtDT(h.zeit))}</td><td>${e(h.grund || '')}</td><td>${e(Object.entries(h.felder || {}).map(([k, [a, b]]) => `${k}: „${a}“ → „${b}“`).join('; '))}</td></tr>`)).join('')}</tbody></table>` : ''}
   </body></html>`);
   w.document.close(); w.document.querySelector('.druckknopf')?.addEventListener('click', () => w.print());
 }
@@ -589,7 +665,12 @@ function druck() {
 // ---------------------------------------------------------------- Ereignisse
 function binden(el) {
   el.querySelector('#fb-jahr').onchange = e => { z.jahr = e.target.value; render(el); };
-  el.querySelector('#fb-neu').onclick = nachtragen;
+  el.querySelector('#fb-neu').onclick = () => fahrtEintragen();
+  el.querySelectorAll('[data-eintragen]').forEach(b => b.onclick = () => fahrtEintragen());
+  el.querySelector('#fb-auswahl')?.addEventListener('click', () => { z.auswahl = !z.auswahl; z.gewaehlt.clear(); render(el); });
+  el.querySelectorAll('[data-sel]').forEach(c => { c.onclick = e => e.stopPropagation(); c.onchange = () => { c.checked ? z.gewaehlt.add(c.dataset.sel) : z.gewaehlt.delete(c.dataset.sel); render(el); }; });
+  el.querySelectorAll('[data-massen]').forEach(b => b.onclick = () => bewertenDlg([...z.gewaehlt], b.dataset.massen));
+  el.querySelectorAll('[data-artwahl]').forEach(b => b.onclick = e => { e.stopPropagation(); haptik('leicht'); bewertenDlg([b.dataset.artwahl]); });
   el.querySelector('#fb-export').onclick = exportMenue;
   el.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { haptik('leicht'); z.wahl = b.dataset.tab; if (location.hash !== '#/fahrten/' + z.wahl) history.replaceState(null, '', '#/fahrten/' + z.wahl); render(el); });
   el.querySelectorAll('#fb-auto, [data-autoform]').forEach(b => b.onclick = autoForm);
@@ -621,6 +702,6 @@ function binden(el) {
     for (const f of o) await FB.erfassen(f, { art: 'privat', zweck: 'Privatfahrt' });
     toast(`${o.length} Fahrten als privat gespeichert`);
   });
-  el.querySelectorAll('[data-detail]').forEach(r => { const auf = () => detail(db.get('fahrten', r.dataset.detail)); r.onclick = auf; r.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); auf(); } }; });
+  el.querySelectorAll('[data-detail]').forEach(r => { const auf = () => { if (z.auswahl) { const c = r.querySelector('[data-sel]'); c.checked = !c.checked; c.onchange(); return; } detail(db.get('fahrten', r.dataset.detail)); }; r.onclick = auf; r.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); auf(); } }; });
 }
 export const offenAnzahl = () => FB.offene().length;
