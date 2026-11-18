@@ -54,7 +54,7 @@ async function adresse(p: Punkt): Promise<string> {
 }
 /** Text → Koordinaten (Suche bevorzugt die Gegend um Hof) */
 async function suche(text: string): Promise<(Punkt & { adresse: string }) | null> {
-  const q = text.replace(/[()]/g, " ").replace(/\s+/g, " ").trim();
+  const q = text.replace(/\([^)]*\)/g, " ").replace(/\s+/g, " ").trim();
   try {
     const r = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=1&lang=de&lat=50.31&lon=11.92`, { headers: { "user-agent": UA } });
     if (r.ok) { const f = (await r.json()).features?.[0]; if (f) return { lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0], adresse: photonText(f.properties || {}) || q }; }

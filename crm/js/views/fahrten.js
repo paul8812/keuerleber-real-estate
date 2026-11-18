@@ -396,7 +396,7 @@ async function linksLaden(el) {
     });
     box.querySelector('#fb-test').onclick = async () => {
       const s = box.querySelector('#fb-teststat'); s.textContent = 'teste …';
-      try { const r = await strecke('Hof (Saale)', 'Oberkotzau'); s.textContent = `✅ Server erreichbar · Testroute Hof → Oberkotzau: ${num(r.km, 1)} km`; } catch (e) { s.textContent = '❌ ' + e.message; }
+      try { const r = await strecke('Hof', 'Oberkotzau'); s.textContent = `✅ Server erreichbar · Testroute Hof → Oberkotzau: ${num(r.km, 1)} km`; } catch (e) { s.textContent = '❌ ' + e.message; }
     };
     box.querySelector('#fb-neuerschluessel').onclick = async () => {
       if (!await confirmDlg('Neuen Schlüssel erzeugen? Die bisherigen Kurzbefehle funktionieren dann nicht mehr und müssen den neuen Link bekommen.')) return;
