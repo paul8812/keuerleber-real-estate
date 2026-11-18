@@ -160,6 +160,20 @@ export const ortName = (p, fallback = '') => {
   if (fz.betrieb && abstandM(p, fz.betrieb) < NAH_M) return fz.betrieb.name || 'Büro';
   return p.adresse || (p.lat != null ? `${Number(p.lat).toFixed(4)}, ${Number(p.lon).toFixed(4)}` : (fallback || 'unbekannt'));
 };
+/** Anzeige „Von“ / „Nach“ – eigene Bezeichnung vor Adresse */
+export const vonText = (f, fb = 'Start unbekannt') => f.startText || ortName(f.start, fb);
+export const nachText = (f, fb = 'Ziel unbekannt') => f.ziel || ortName(f.ende, fb);
+/** Häufige Ziele aus bisherigen Fahrten (für „Fahrt eintragen“) */
+export function haeufigeZiele(n = 8) {
+  const m = new Map();
+  for (const f of alle()) {
+    if (f.status !== 'erfasst') continue;
+    const t = nachText(f, ''); if (!t || t === 'Zuhause') continue;
+    const e = m.get(t) || { text: t, n: 0, km: [], punkt: f.ende?.lat != null ? f.ende : null, art: f.art, zweck: f.zweck, partner: f.partner, contactId: f.contactId, propertyId: f.propertyId };
+    e.n++; e.km.push(km(f)); m.set(t, e);
+  }
+  return [...m.values()].sort((a, b) => b.n - a.n).slice(0, n).map(e => ({ ...e, kmTyp: e.km.sort((x, y) => x - y)[Math.floor(e.km.length / 2)] }));
+}
 export const kartenLink = f => f.start?.lat != null && f.ende?.lat != null
   ? `https://www.google.com/maps/dir/?api=1&origin=${f.start.lat},${f.start.lon}&destination=${f.ende.lat},${f.ende.lon}&travelmode=driving`
   : f.ende?.lat != null ? `https://www.google.com/maps/search/?api=1&query=${f.ende.lat},${f.ende.lon}` : '';
@@ -178,12 +192,22 @@ export function festgeschrieben(f) {
 }
 
 // ---------------------------------------------------------------- Speichern mit Protokoll
-const PROTOKOLL = ['art', 'zweck', 'partner', 'contactId', 'propertyId', 'ziel', 'umweg', 'kmManuell', 'kmStart', 'kmEnde', 'status', 'startText', 'zielText', 'datum'];
+const PROTOKOLL = ['art', 'zweck', 'partner', 'contactId', 'propertyId', 'ziel', 'umweg', 'kmManuell', 'kmStart', 'kmEnde', 'status', 'startText', 'datum', 'abfahrt'];
 const gleich = (a, b) => String(a ?? '') === String(b ?? '');
 /** Speichert Änderungen; bei bereits erfassten Fahrten wird jede Änderung mit Zeit (und Grund) protokolliert. */
 export async function speichern(f, patch, { grund = '' } = {}) {
   const alt = db.get('fahrten', f.id) || f;
   const neu = { ...alt, ...patch };
+  // Datum/Uhrzeit nur bei von Hand eingetragenen Fahrten änderbar (GPS-Fahrten behalten die Serverzeit)
+  if (('datum' in patch || 'abfahrt' in patch) && alt.quelle === 'hand') {
+    const d = patch.datum || alt.datum || tag(alt), hm = 'abfahrt' in patch ? patch.abfahrt : (alt.abfahrt || '');
+    const z = new Date(`${d}T${hm || '12:00'}:00`).toISOString();
+    neu.datum = d; neu.abfahrt = hm;
+    neu.start = { ...(alt.start || {}), zeit: z, zeitUngefaehr: !hm };
+    neu.ende = { ...(alt.ende || {}), zeit: alt.minRoute ? new Date(new Date(z).getTime() + alt.minRoute * 60000).toISOString() : z, zeitUngefaehr: !hm };
+  } else if ('datum' in patch || 'abfahrt' in patch) {
+    for (const k of ['datum', 'abfahrt']) { if (k in alt) neu[k] = alt[k]; else delete neu[k]; delete patch[k]; }
+  }
   if (alt.status === 'erfasst') {
     const felder = {};
     for (const k of PROTOKOLL) if (k in patch && !gleich(alt[k], patch[k])) felder[k] = [alt[k] ?? '', patch[k] ?? ''];
@@ -219,14 +243,14 @@ export async function zusammenfassen(a, b) {
   return neu;
 }
 /** Fahrt von Hand nachtragen */
-export async function nachtragen({ datum, zeit = '', von, nach, vonPunkt = null, nachPunkt = null, kmWert, art, zweck = '', partner = '', contactId = '', propertyId = '', minRoute = null }) {
+export async function nachtragen({ datum, zeit = '', von, nach, vonPunkt = null, nachPunkt = null, kmWert, kmStart = '', kmEnde = '', art, zweck = '', partner = '', contactId = '', propertyId = '', minRoute = null }) {
   const z = new Date(`${datum}T${zeit || '12:00'}:00`).toISOString();
-  const f = { id: 'fahrt-' + uid(), quelle: 'hand', erstellt: new Date().toISOString(), datum,
+  const f = { id: 'fahrt-' + uid(), quelle: 'hand', erstellt: new Date().toISOString(), datum, abfahrt: zeit, kmStart: zahl(kmStart) ?? '', kmEnde: zahl(kmEnde) ?? '',
     start: { ...(vonPunkt || {}), zeit: z, adresse: vonPunkt?.adresse || von, zeitUngefaehr: !zeit },
     ende: { ...(nachPunkt || {}), zeit: minRoute ? new Date(new Date(z).getTime() + minRoute * 60000).toISOString() : z, adresse: nachPunkt?.adresse || nach, zeitUngefaehr: !zeit },
     kmManuell: zahl(kmWert) ?? '', minRoute: minRoute || null, status: 'offen' };
   await db.save('fahrten', f);
-  return erfassen(f, { art, zweck, partner, contactId, propertyId, ziel: nach });
+  return erfassen(f, { art, zweck, partner, contactId, propertyId, ziel: nach === 'Zuhause' || !nach ? '' : nach });
 }
 
 // ---------------------------------------------------------------- Vorschläge zum Benennen

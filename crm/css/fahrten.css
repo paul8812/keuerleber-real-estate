@@ -164,3 +164,30 @@
   .fb-plan-tbl th:nth-child(4),.fb-plan-tbl td:nth-child(4),.fb-plan-tbl th:nth-child(2),.fb-plan-tbl td:nth-child(2){display:none}
   .fb-krow{grid-template-columns:1fr 90px}.fb-krow select{grid-column:1/-1}
 }
+
+/* Bewertung wählen (Radio-Kacheln), Schnell-Bewertung in der Liste, Auswahlmodus, Fahrt eintragen */
+.fb-arten label{position:relative;background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:11px 6px;cursor:pointer;font-size:13.5px;text-align:center;transition:background .15s,border-color .15s,transform .1s;user-select:none}
+.fb-arten label:hover{border-color:var(--a)}
+.fb-arten label.on{border-color:var(--a);background:color-mix(in srgb,var(--a) 18%,transparent);font-weight:600}
+.fb-arten label:active{transform:scale(.97)}
+.fb-arten label input{position:absolute;opacity:0;pointer-events:none}
+.fb-arten label:has(input:focus-visible){outline:2px solid var(--gold);outline-offset:2px}
+.fb-lbl{display:block;font-size:12px;color:var(--mut);margin:2px 0 6px}
+.fb-artbtn{background:none;border:0;padding:4px;margin:-4px;cursor:pointer;border-radius:99px;font:inherit}
+.fb-artbtn:hover .fb-art{background:color-mix(in srgb,var(--a) 25%,transparent)}
+.fb-artbtn:focus-visible{outline:2px solid var(--gold)}
+.fb-listakt{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px}
+.fb-listakt [data-massen]{border-color:var(--a)}
+.fb-zeilen.auswahl li{grid-template-columns:22px 62px 1fr auto}
+.fb-sel{width:18px;height:18px;accent-color:var(--gold);cursor:pointer}
+.fb-ziele .chip small{color:var(--mut)}
+.fb-tage{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.fb-tagliste{display:flex;flex-wrap:wrap;gap:8px}
+.fb-tag{width:auto}
+.fb-gruende{margin-top:6px}
+.fb-leer-akt{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+@media(max-width:700px){
+  .fb-zeilen.auswahl li{grid-template-columns:22px 48px 1fr}
+  .fb-zeilen.auswahl .fb-zr{grid-column:3}
+  .fb-listakt .btn{flex:1 1 auto}
+}
