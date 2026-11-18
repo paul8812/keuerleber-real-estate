@@ -31,22 +31,38 @@ async function mitZeit<T>(p: Promise<T>, ms = 6000): Promise<T | null> {
   return await Promise.race([p.catch(() => null), new Promise<null>(r => setTimeout(() => r(null), ms))]);
 }
 
+// Adressen: Photon (OpenStreetMap, komoot) – Nominatim nur als Rückfall (blockiert oft Anfragen aus Rechenzentren)
+// deno-lint-ignore no-explicit-any
+const photonText = (p: any) => {
+  const str = [p.street || (p.type === "street" ? p.name : ""), p.housenumber || ""].filter(Boolean).join(" ");
+  const ort = p.city || p.town || p.village || p.locality || p.district || (p.type === "city" ? p.name : "") || "";
+  const name = p.name && !str.includes(p.name) && p.name !== ort && !["house", "street", "city", "district", "locality"].includes(p.type) ? p.name : "";
+  return [name, str, [p.postcode, ort].filter(Boolean).join(" ")].filter(Boolean).join(", ").slice(0, 200);
+};
 /** Koordinaten → kurze Adresse „Ludwigstraße 12, 95028 Hof“ */
 async function adresse(p: Punkt): Promise<string> {
+  try {
+    const r = await fetch(`https://photon.komoot.io/reverse?lat=${p.lat}&lon=${p.lon}&lang=de&limit=1`, { headers: { "user-agent": UA } });
+    if (r.ok) { const f = (await r.json()).features?.[0]; const t = f ? photonText(f.properties || {}) : ""; if (t) return t; }
+  } catch { /* Rückfall */ }
   const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${p.lat}&lon=${p.lon}&zoom=18&addressdetails=1&accept-language=de`, { headers: { "user-agent": UA } });
   if (!r.ok) return "";
   const j = await r.json(); const a = j.address || {};
   const str = [a.road || a.pedestrian || a.footway || a.square || a.hamlet || "", a.house_number || ""].filter(Boolean).join(" ");
   const ort = a.city || a.town || a.village || a.municipality || a.suburb || "";
-  const name = j.name && !str.includes(j.name) && j.category !== "highway" && j.category !== "place" ? j.name : "";
-  return [name, str, [a.postcode, ort].filter(Boolean).join(" ")].filter(Boolean).join(", ").slice(0, 200) || String(j.display_name || "").slice(0, 200);
+  return [str, [a.postcode, ort].filter(Boolean).join(" ")].filter(Boolean).join(", ").slice(0, 200) || String(j.display_name || "").slice(0, 200);
 }
-/** Text → Koordinaten */
+/** Text → Koordinaten (Suche bevorzugt die Gegend um Hof) */
 async function suche(text: string): Promise<(Punkt & { adresse: string }) | null> {
-  const r = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=de,at,cz,ch&accept-language=de&q=${encodeURIComponent(text)}`, { headers: { "user-agent": UA } });
+  const q = text.replace(/[()]/g, " ").replace(/\s+/g, " ").trim();
+  try {
+    const r = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=1&lang=de&lat=50.31&lon=11.92`, { headers: { "user-agent": UA } });
+    if (r.ok) { const f = (await r.json()).features?.[0]; if (f) return { lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0], adresse: photonText(f.properties || {}) || q }; }
+  } catch { /* Rückfall */ }
+  const r = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=de,at,cz,ch&accept-language=de&q=${encodeURIComponent(q)}`, { headers: { "user-agent": UA } });
   if (!r.ok) return null;
   const j = (await r.json())[0]; if (!j) return null;
-  return { lat: Number(j.lat), lon: Number(j.lon), adresse: String(j.display_name || text).split(", ").slice(0, 4).join(", ") };
+  return { lat: Number(j.lat), lon: Number(j.lon), adresse: String(j.display_name || q).split(", ").slice(0, 4).join(", ") };
 }
 /** Straßen-Kilometer und Fahrzeit (schnellste Route) */
 async function route(a: Punkt, b: Punkt): Promise<{ km: number; min: number } | null> {
