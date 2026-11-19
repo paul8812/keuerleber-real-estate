@@ -7,6 +7,34 @@ import { schnellerfassung } from '../schnellerfassung.js';
 import { fokusKarte, bindFokus } from '../crmplus.js';
 import { heuteKarte, nachfassenKarte, nachfassenListe } from '../kontakt.js';
 import { eventForm, taskForm, contactForm, propertyForm, activityForm } from '../forms.js';
+import { newCount as mailsNeu } from './inbox.js';
+import { istUeberfaellig } from '../finanzen.js';
+import { offene as fahrtenOffen } from '../fahrtenbuch.js';
+import { assistent as ueberfaelligAssistent } from '../ueberfaellig.js';
+
+/** Was heute ansteht – als antippbare Zähler (nur was es wirklich gibt) */
+export function tagesleiste() {
+  const t0 = today(), T = db.all('tasks');
+  const offen = T.filter(t => !t.done && t.faellig), heute = offen.filter(t => t.faellig === t0).length, ueber = offen.filter(t => t.faellig < t0).length;
+  const erledigt = T.filter(t => t.done && (t.doneAt || '').slice(0, 10) === t0).length;
+  const termine = db.all('events').filter(e => e.datum === t0).length;
+  const wv = db.all('contacts').filter(c => c.status !== 'Archiv' && c.followup && c.followup <= t0).length;
+  const belege = (db.all('buchungen') || []).filter(b => b.pruefen).length;
+  const rechn = (db.all('rechnungen') || []).filter(istUeberfaellig).length;
+  const C = [
+    [termine, termine === 1 ? 'Termin heute' : 'Termine heute', '#/kalender', 'gold'],
+    [heute, heute === 1 ? 'Aufgabe heute' : 'Aufgaben heute', '#/aufgaben', ''],
+    [ueber, 'überfällig – ordnen', 'uf', 'dringend'],
+    [mailsNeu(), 'neue Mails', '#/posteingang', ''],
+    [fahrtenOffen().length, fahrtenOffen().length === 1 ? 'Fahrt benennen' : 'Fahrten benennen', '#/fahrten/benennen', ''],
+    [wv, wv === 1 ? 'Wiedervorlage' : 'Wiedervorlagen', '#/kontakte', ''],
+    [belege, belege === 1 ? 'Beleg prüfen' : 'Belege prüfen', '#/finanzen', ''],
+    [rechn, rechn === 1 ? 'Rechnung überfällig' : 'Rechnungen überfällig', '#/finanzen', 'dringend'],
+    [erledigt, 'heute erledigt', '', 'ok'],
+  ].filter(c => c[0]);
+  if (!C.length) return html`<div class="tagesleiste"><span class="tagok">✓ Heute steht nichts an.</span></div>`;
+  return html`<div class="tagesleiste" aria-label="Heute">${C.map(([n, l, h, cls]) => h === 'uf' ? html`<button type="button" class="tchip ${cls}" data-uf><b>${n > 999 ? '999+' : n}</b><span>${l}</span></button>` : h ? html`<a class="tchip ${cls}" href="${h}"><b>${n > 999 ? '999+' : n}</b><span>${l}</span></a>` : html`<span class="tchip ${cls}"><b>${n}</b><span>${l}</span></span>`)}</div>`;
+}
 
 export const prob = d => d.wahrscheinlichkeit !== '' && d.wahrscheinlichkeit != null ? d.wahrscheinlichkeit : (DEFAULT_PROB[d.stage] ?? 0);
 export const isOpen = d => { const P = PIPELINES[d.board]; return P && d.stage !== P.won && d.stage !== P.lost; };
@@ -48,6 +76,7 @@ export function render(el) {
   const acts = db.all('activities').filter(a => a.art !== 'system').sort((a, b) => b.datum.localeCompare(a.datum)).slice(0, 6);
   el.innerHTML = html`<div class="head dashhead"><div><p class="datum">${new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })}</p><h1>${greet}, ${(s.inhaber || '').split(' ')[0]}</h1><p class="briefing">${satz}</p></div>
       <div class="actions"><button class="btn primary" data-q="anfrage">Anfrage einfügen</button></div></div>
+    ${tagesleiste()}
     ${fokusKarte()}
     <div class="kpis strip">
       ${kpi(props.filter(p => p.status === 'Aktiv').length, 'Aktive Objekte', '#/objekte')}
@@ -64,6 +93,7 @@ export function render(el) {
     </div>
     ${leer.length ? html`<p class="ruhig">Nichts offen bei ${leer.join(', ').replace(/, ([^,]*)$/, ' und $1')}.</p>` : ''}`.s;
   bindTasks(el); bindFokus(el);
+  el.querySelector('[data-uf]')?.addEventListener('click', ueberfaelligAssistent);
   el.querySelectorAll('[data-ev]').forEach(li => li.onclick = e => { if (!e.target.closest('a')) eventForm(db.get('events', li.dataset.ev)); });
   const q = { anfrage: () => schnellerfassung(), contact: () => contactForm({}, c => location.hash = '#/kontakte/' + c.id), property: () => propertyForm({}, p => location.hash = '#/objekte/' + p.id), task: () => taskForm(), event: () => eventForm(), note: () => activityForm() };
   el.querySelectorAll('[data-q]').forEach(b => b.onclick = q[b.dataset.q]);

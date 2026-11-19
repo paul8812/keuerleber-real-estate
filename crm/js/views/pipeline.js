@@ -4,25 +4,37 @@ import { PIPELINES, sl } from '../consts.js';
 import { dealForm } from '../forms.js';
 import { cLink, pLink, empty, dealProvision } from '../ui.js';
 import { prob, isOpen } from './dashboard.js';
-import { offeneAufgaben } from '../crmplus.js';
+import { offeneAufgaben, naechsterSchritt } from '../crmplus.js';
 import { lastContact } from '../ui.js';
 import { daysBetween } from '../util.js';
 // Hinweise wie in Pipedrive: Vorgang ohne nächsten Schritt / seit Tagen ruhig
+const ruhigTage = d => { const lc = lastContact(d.contactId) || (d.updated || d.created || '').slice(0, 10); return lc ? daysBetween(lc.slice(0, 10), today()) : 0; };
+/** nächste offene Aufgabe beim Kontakt des Vorgangs (früheste zuerst) */
+export const naechsteAufgabe = d => d.contactId ? offeneAufgaben(d.contactId).sort((a, b) => (a.faellig || '9999').localeCompare(b.faellig || '9999'))[0] || null : null;
+const ohneSchritt = d => isOpen(d) && !!d.contactId && !naechsteAufgabe(d);
+const schrittUeber = d => { const t = isOpen(d) && naechsteAufgabe(d); return !!t && !!t.faellig && t.faellig < today(); };
+const istRuhig = d => isOpen(d) && !!d.contactId && ruhigTage(d) >= 14;
+// Auf der Karte: der nächste Schritt (aus den Aufgaben) – oder ein Knopf, ihn mit einem Tipp zu planen
 function hinweis(d) {
   if (!isOpen(d) || !d.contactId) return '';
-  const lc = lastContact(d.contactId) || (d.updated || d.created || '').slice(0, 10), ruhig = lc ? daysBetween(lc.slice(0, 10), today()) : 0;
-  return html`${!offeneAufgaben(d.contactId).length ? html`<div class="dwarn">⚠ Kein nächster Schritt</div>` : ''}${ruhig >= 7 ? html`<div class="druhig">💤 seit ${ruhig} Tagen kein Kontakt</div>` : ''}`;
+  const t = naechsteAufgabe(d), ruhig = ruhigTage(d), late = t && t.faellig && t.faellig < today();
+  return html`${t ? html`<div class="dnext ${late ? 'late' : ''}" title="Nächste Aufgabe beim Kontakt">→ <b>${(t.titel || '').replace(/^⚡ /, '')}</b>${t.faellig ? html`<span>· ${late ? 'überfällig ' : ''}${fmtDate(t.faellig).slice(0, 6)}</span>` : ''}</div>` : html`<button type="button" class="dplan" data-plan="${d.id}">＋ Nächsten Schritt planen</button>`}${ruhig >= 7 ? html`<div class="druhig">💤 seit ${ruhig} Tagen kein Kontakt</div>` : ''}`;
 }
+const PF = [['alle', 'Alle', () => true], ['ohne', '⚠ Ohne nächsten Schritt', ohneSchritt], ['ueber', '⏰ Schritt überfällig', schrittUeber], ['ruhig', '💤 Ruhig seit 14 Tagen', istRuhig]];
+let pf = 'alle';
 
 let board = 'akquise';
 
 export function render(el) {
-  const P = PIPELINES[board], deals = db.all('deals').filter(d => d.board === board);
-  const open = deals.filter(isOpen);
+  const P = PIPELINES[board], alleDeals = db.all('deals').filter(d => d.board === board);
+  const open = alleDeals.filter(isOpen);
+  if (pf !== 'alle' && !alleDeals.some(PF.find(x => x[0] === pf)[2])) pf = 'alle';
+  const deals = alleDeals.filter(PF.find(x => x[0] === pf)[2]);
   const sum = open.reduce((s, d) => s + (d.wert || 0), 0), fc = open.reduce((s, d) => s + dealProvision(d) * prob(d) / 100, 0);
   el.innerHTML = html`<div class="head"><h1>Pipeline</h1><div class="actions"><button class="btn primary" data-new>+ Vorgang</button></div></div>
     <div class="chips">${Object.entries(PIPELINES).map(([k, v]) => html`<button class="chip ${k === board ? 'on' : ''}" data-b="${k}">${v.name}</button>`)}
       <span class="muted grow right">${open.length} offen · Volumen ${eur(sum)} · Prognose Vergütung ${eur(fc)}</span></div>
+    <div class="pfilter" role="group" aria-label="Vorgänge filtern">${PF.map(([k, l, f]) => { const n = k === 'alle' ? 0 : alleDeals.filter(f).length; return k === 'alle' || n ? html`<button type="button" class="chip ${pf === k ? 'on' : ''}" data-pf="${k}">${l}${n ? html` <i>${n}</i>` : ''}</button>` : ''; })}</div>
     <div class="kanban">${P.stages.map(stage => { const cards = deals.filter(d => d.stage === stage).sort((a, b) => (a.faellig || '9999').localeCompare(b.faellig || '9999')); const tot = cards.reduce((s, d) => s + (d.wert || 0), 0);
       return html`<div class="col ${stage === P.won ? 'won' : stage === P.lost ? 'lost' : ''}" data-stage="${stage}"><div class="colh"><b>${sl(stage)}</b><span>${cards.length}${tot ? ' · ' + eur(tot) : ''}</span></div>
         <div class="cards">${cards.map(d => { const late = d.faellig && d.faellig < today() && isOpen(d); return html`<div class="deal" draggable="true" data-id="${d.id}"><div class="ttl">${d.titel}</div>
@@ -31,7 +43,9 @@ export function render(el) {
           ${hinweis(d)}<div class="dmove">${P.stages.indexOf(stage) > 0 ? html`<button type="button" data-mv="-1" aria-label="Phase zurück">‹</button>` : html`<span></span>`}<button type="button" class="dmehr" data-akt="deal:${d.id}" aria-label="Aktionen">⋯</button><select data-st aria-label="Phase wählen">${P.stages.map(x => html`<option value="${x}" ${x === stage ? raw('selected') : ''}>${sl(x)}</option>`)}</select>${P.stages.indexOf(stage) < P.stages.length - 1 ? html`<button type="button" data-mv="1" aria-label="Nächste Phase">›</button>` : html`<span></span>`}</div></div>`; })}</div>
         <button class="addc" data-add="${stage}">+</button></div>`; })}</div>`.s;
   el.querySelector('[data-new]').onclick = () => dealForm({ board });
-  el.querySelectorAll('[data-b]').forEach(b => b.onclick = () => { board = b.dataset.b; render(el); });
+  el.querySelectorAll('[data-b]').forEach(b => b.onclick = () => { board = b.dataset.b; pf = 'alle'; render(el); });
+  el.querySelectorAll('[data-pf]').forEach(b => b.onclick = () => { pf = b.dataset.pf; render(el); });
+  el.querySelectorAll('[data-plan]').forEach(b => b.onclick = e => { e.stopPropagation(); const d = db.get('deals', b.dataset.plan); naechsterSchritt(db.get('contacts', d.contactId), { deal: d }); });
   el.querySelectorAll('[data-add]').forEach(b => b.onclick = () => dealForm({ board, stage: b.dataset.add }));
   el.querySelectorAll('.deal').forEach(c => {
     c.onclick = e => { if (!e.target.closest('a')) dealForm(db.get('deals', c.dataset.id)); };

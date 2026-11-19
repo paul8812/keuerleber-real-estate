@@ -136,7 +136,7 @@ export async function run({ manual = false } = {}) {
     }
     if (on('ueberfaellig')) for (const t of db.all('tasks')) if (!t.done && t.faellig && t.prio === 'normal' && daysBetween(t.faellig, t0) >= d('ueberfaellig')) { await db.save('tasks', { ...t, prio: 'hoch' }); n++; }
   } finally { running = false; }
-  if (n && !manual) toast(`⚡ ${n} Automation${n > 1 ? 'en' : ''} ausgeführt`);
+  if (n && !manual) console.info(`⚡ ${n} Automation${n > 1 ? 'en' : ''} ausgeführt`);   // leise – Protokoll steht unter Automationen
   return n;
 }
 

@@ -1,6 +1,7 @@
 import * as db from './db.js';
 import { html, esc, debounce, fullName, toast, modal, inp } from './util.js';
-import { NAV } from './consts.js';
+import { NAV, NAV_GRUPPEN, TABBAR_STANDARD } from './consts.js';
+import { initBefehle } from './befehle.js';
 import { contactForm, propertyForm, taskForm, eventForm, activityForm } from './forms.js';
 import * as dashboard from './views/dashboard.js';
 import * as contacts from './views/contacts.js';
@@ -48,12 +49,15 @@ function route() {
   if (wechsel) uebergang(zeichnen, main); else zeichnen();   // Ansichtswechsel weich, Neuzeichnen nach Datenänderung sofort
 }
 function navBadges() {
-  for (const [k, n] of [['posteingang', inbox.newCount()], ['fahrten', fahrten.offenAnzahl()]]) {
-    const a = document.querySelector(`#nav a[data-k="${k}"]`); if (!a) continue;
-    let b = a.querySelector('b.nb');
-    if (!n) { b && b.remove(); continue; }
-    if (!b) { b = document.createElement('b'); b.className = 'nb'; a.appendChild(b); }
-    b.textContent = n;
+  const t0 = new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
+  const faellig = db.all('tasks').filter(t => !t.done && t.faellig && t.faellig <= t0).length;
+  for (const [k, n] of [['posteingang', inbox.newCount()], ['fahrten', fahrten.offenAnzahl()], ['aufgaben', faellig]]) {
+    for (const a of document.querySelectorAll(`#nav a[data-k="${k}"], #tabbar a[data-k="${k}"]`)) {
+      let b = a.querySelector('b.nb');
+      if (!n) { b && b.remove(); continue; }
+      if (!b) { b = document.createElement('b'); b.className = 'nb'; a.appendChild(b); }
+      b.textContent = n > 99 ? '99+' : n;
+    }
   }
 }
 const tippt = () => { const a = document.activeElement; return !!a && main.contains(a) && (a.matches('input, textarea, select') || a.isContentEditable); };
@@ -84,11 +88,23 @@ function syncAnzeige() {
   el.onclick = async () => { toast(el.title); try { await db.resume({ force: true }); } catch { /* Anzeige zeigt den Fehler */ } };
 }
 function shell() {
-  document.getElementById('nav').innerHTML = NAV.map(([k, l, ic]) => `<a href="#/${k}" data-k="${k}"><i>${ic}</i><span>${l}</span></a>`).join('');
+  const navE = Object.fromEntries(NAV.map(n => [n[0], n]));
+  const link = k => { const [, l, ic] = navE[k]; return `<a href="#/${k}" data-k="${k}"><i>${ic}</i><span>${l}</span></a>`; };
+  const gruppiert = new Set(NAV_GRUPPEN.flatMap(g => g[1]));
+  document.getElementById('nav').innerHTML = NAV_GRUPPEN.map(([name, ks]) => `<div class="navg"><span class="navt">${name}</span>${ks.filter(k => navE[k]).map(link).join('')}</div>`).join('') + NAV.filter(n => !gruppiert.has(n[0])).map(n => link(n[0])).join('');
   // Handy: Leiste unten mit den wichtigsten Bereichen
   if (!document.getElementById('tabbar')) {
-    document.body.insertAdjacentHTML('beforeend', `<nav id="tabbar">${[['dashboard', '◧', 'Übersicht'], ['aufgaben', '✓', 'Aufgaben'], ['+', '+', 'Neu'], ['kalender', '▦', 'Kalender'], ['kontakte', '☺', 'Kontakte']].map(([k, i, l]) => k === '+' ? `<button type="button" data-tabneu><i>${i}</i><span>${l}</span></button>` : `<a href="#/${k}" data-k="${k}"><i>${i}</i><span>${l}</span></a>`).join('')}</nav>`);
-    document.querySelector('[data-tabneu]').onclick = () => document.getElementById('quick').click();
+    document.body.insertAdjacentHTML('beforeend', '<nav id="tabbar"></nav>');
+    const leiste = () => {
+      const wahl = (db.settings().tabbar || []).filter(k => navE[k]), ks = [...new Set([...wahl, ...TABBAR_STANDARD])].slice(0, 4);
+      const sig = ks.join(); const tb = document.getElementById('tabbar'); if (tb.dataset.sig === sig) return; tb.dataset.sig = sig;
+      const kurz = { dashboard: 'Übersicht', posteingang: 'Post', fahrten: 'Fahrten', automation: 'Automatik', einstellungen: 'Einstell.', social: 'Social' };
+      const a = k => `<a href="#/${k}" data-k="${k}"><i>${navE[k][2]}</i><span>${kurz[k] || navE[k][1]}</span></a>`;
+      tb.innerHTML = a(ks[0]) + a(ks[1]) + '<button type="button" data-tabneu><i>+</i><span>Neu</span></button>' + a(ks[2]) + a(ks[3]);
+      tb.querySelector('[data-tabneu]').onclick = () => document.getElementById('quick').click();
+      const key = location.hash.split('/')[1] || 'dashboard'; tb.querySelectorAll('a').forEach(x => x.classList.toggle('on', x.dataset.k === key));
+    };
+    leiste(); db.onChange(() => { leiste(); });
   }
   document.getElementById('burger').onclick = e => { e.stopPropagation(); document.body.classList.toggle('nav-open'); };
   document.addEventListener('click', e => { if (document.body.classList.contains('nav-open') && !e.target.closest('#side')) document.body.classList.remove('nav-open'); });
@@ -96,22 +112,13 @@ function shell() {
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') db.resume(); });
   document.getElementById('mode').textContent = db.isCloud() ? '☁ Cloud' : '💾 Lokal';
   if (!db.isCloud() && !document.getElementById('lokalhinweis')) main.insertAdjacentHTML('beforebegin', '<div id="lokalhinweis" class="lokalhinweis">💾 Dieses Gerät arbeitet im <b>lokalen Modus</b> – du siehst nicht die Daten aus der Cloud. <a href="?cloud=1">Zur Cloud wechseln und anmelden</a></div>');
-  document.getElementById('quick').onclick = () => modal('Neu anlegen', html`<div class="full quickgrid">${[['kontakt', '✓ Kontakt gehabt'], ['anfrage', '📋 Anfrage einfügen'], ['contact', '☺ Kontakt'], ['property', '⌂ Objekt'], ['task', '✓ Aufgabe'], ['event', '▦ Termin'], ['note', '📝 Notiz'], ['call', '📞 Anruf festhalten'], ['beleg', '📷 Beleg fotografieren'], ['fahrt', '🚗 Fahrt eintragen']].map(([k, l]) => html`<button type="button" class="btn big" data-k="${k}">${l}</button>`)}</div>`, {
-    onMount: (el, close) => el.querySelectorAll('[data-k]').forEach(b => b.onclick = () => { close(); ({ kontakt: () => kontaktErfassen(), anfrage: () => schnellerfassung(), contact: () => contactForm({}, c => location.hash = '#/kontakte/' + c.id), property: () => propertyForm({}, p => location.hash = '#/objekte/' + p.id), task: () => taskForm(), event: () => eventForm(), note: () => activityForm(), call: () => activityForm({ art: 'anruf' }), beleg: belegFoto, fahrt: () => { if (!location.hash.startsWith('#/fahrten')) location.hash = '#/fahrten/fahrten'; setTimeout(() => fahrten.fahrtEintragen(), 60); } })[b.dataset.k](); }) });
-  // globale Suche
-  const sq = document.getElementById('gsearch'), res = document.getElementById('gresults');
-  const search = () => {
-    const q = sq.value.trim().toLowerCase(); if (q.length < 2) { res.hidden = true; return; }
-    const hit = (arr, f) => arr.filter(x => f(x).toLowerCase().includes(q)).slice(0, 5);
-    const C = hit(db.all('contacts'), c => [fullName(c), c.firma, c.email, c.tel, c.mobil, c.ort].join(' ')), P = hit(db.all('properties'), p => [p.titel, p.nr, p.ort, p.strasse].join(' ')), D = hit(db.all('deals'), d => d.titel || ''), T = hit(db.all('tasks'), t => t.titel || '');
-    const row = (h, ic, t, s, extra = '') => `<div class="gr"><a href="${h}"><i>${ic}</i><span>${esc(t)}<small>${esc(s || '')}</small></span></a>${extra}</div>`;
-    const out = [...C.map(c => row('#/kontakte/' + c.id, '☺', fullName(c), c.kategorie + (c.ort ? ' · ' + c.ort : ''), `<button type="button" class="grk" data-kg="${esc(c.id)}" title="Kontakt festhalten" aria-label="Kontakt mit ${esc(fullName(c))} festhalten">✓ Kontakt</button>`)), ...P.map(p => row('#/objekte/' + p.id, '⌂', p.titel, `${p.nr} · ${p.ort || ''}`)), ...D.map(d => row('#/pipeline', '▤', d.titel, d.stage)), ...T.map(t => row('#/aufgaben', '✓', t.titel, t.faellig || ''))];
-    res.innerHTML = out.join('') || '<p class="muted pad">Keine Treffer</p>'; res.hidden = false;
-  };
-  sq.oninput = debounce(search, 120);
-  res.addEventListener('click', () => { res.hidden = true; sq.value = ''; });
-  document.addEventListener('click', e => { if (!e.target.closest('.search')) res.hidden = true; });
-  document.addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); sq.focus(); sq.select(); } if (e.key === 'Escape') { res.hidden = true; sq.blur(); } });
+  const NEU = [['kontakt', '✓ Kontakt gehabt', () => kontaktErfassen()], ['anfrage', '📋 Anfrage einfügen', () => schnellerfassung()], ['contact', '☺ Kontakt', () => contactForm({}, c => location.hash = '#/kontakte/' + c.id)],
+    ['property', '⌂ Objekt', () => propertyForm({}, p => location.hash = '#/objekte/' + p.id)], ['task', '✓ Aufgabe', () => taskForm()], ['event', '▦ Termin', () => eventForm()], ['note', '📝 Notiz', () => activityForm()],
+    ['call', '📞 Anruf festhalten', () => activityForm({ art: 'anruf' })], ['beleg', '📷 Beleg fotografieren', belegFoto],
+    ['fahrt', '🚗 Fahrt eintragen', () => { if (!location.hash.startsWith('#/fahrten')) location.hash = '#/fahrten/fahrten'; setTimeout(() => fahrten.fahrtEintragen(), 60); }]];
+  document.getElementById('quick').onclick = () => modal('Neu anlegen', html`<div class="full quickgrid">${NEU.map(([k, l]) => html`<button type="button" class="btn big" data-k="${k}">${l}</button>`)}</div>`, {
+    onMount: (el, close) => el.querySelectorAll('[data-k]').forEach(b => b.onclick = () => { close(); NEU.find(x => x[0] === b.dataset.k)[2](); }) });
+  initBefehle({ neu: NEU, nav: NAV });
   db.onChange(rerender); db.onChange(navBadges);
   window.addEventListener('hashchange', route);
   window.addEventListener('focus', () => db.resume());
