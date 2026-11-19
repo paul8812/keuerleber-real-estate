@@ -139,6 +139,24 @@
     $$('.rv').forEach(function (el) { io.observe(el); });
     $$('.route li').forEach(function (el, i) { el.style.transitionDelay = (i * 70) + 'ms'; });
   } else { $$('.rv').forEach(function (el) { el.classList.add('in'); }); }
+  /* Wisch-Leisten am Handy: schmaler Fortschrittsbalken darunter */
+  $$('.facts, .route ol').forEach(function (el) {
+    var t = document.createElement('div'); t.className = 'snapbar'; t.innerHTML = '<i></i>'; el.parentNode.insertBefore(t, el.nextSibling);
+    var i = t.firstChild, upd = function () {
+      var max = el.scrollWidth - el.clientWidth; if (max <= 0) return;
+      var w = Math.max(14, el.clientWidth / el.scrollWidth * 100);
+      i.style.width = w + '%'; i.style.left = (el.scrollLeft / max * (100 - w)) + '%';
+    };
+    el.addEventListener('scroll', upd, { passive: true }); addEventListener('resize', upd); upd();
+  });
+  /* Kennzahlen oben hochzählen */
+  if (!red) $$('.hero-stats b').forEach(function (el) {
+    var roh = el.textContent, m = roh.match(/^(\d+(?:,\d+)?)(.*)$/); if (!m) return;
+    var ziel = parseFloat(m[1].replace(',', '.')), nk = (m[1].split(',')[1] || '').length, t0 = 0;
+    (function f2(now) { if (!t0) t0 = now; var p = Math.min(1, (now - t0 - 350) / 1100); if (p < 0) p = 0; var e = 1 - Math.pow(1 - p, 3);
+      el.textContent = (ziel * e).toFixed(nk).replace('.', ',') + m[2];
+      if (p < 1) requestAnimationFrame(f2); else el.textContent = roh; })(performance.now());
+  });
   var bar = $('#kaBarM'), hero = $('.hero .btn.big');
   if (bar && hero && 'IntersectionObserver' in window) {
     new IntersectionObserver(function (es) { bar.classList.toggle('an', !es[0].isIntersecting); }, { threshold: 0 }).observe(hero);
