@@ -255,3 +255,97 @@ body.ka{overflow-x:hidden}
   .bar-m .ic{flex:none;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04)}
   .bar-m svg{width:20px;height:20px;fill:none;stroke:#e9d4a6;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 }
+
+/* ===== Überarbeitung: ruhiger, vor allem am Handy ===== */
+.m-only{display:none!important}
+.case-fn{background:none;border:0;padding:0;margin:18px 0 0}
+.case-fn summary{padding:0;font-size:13px;font-weight:500;color:#a29d93;display:inline-block}
+.case-fn summary::after{float:none;margin-left:8px;font-size:15px}
+.case-fn p{font-size:12.5px;color:#8e887d;line-height:1.55;margin:8px 0 0;padding:0}
+.snapbar{display:none}
+/* Sanfter Einstieg oben */
+@media (prefers-reduced-motion:no-preference){
+  .hero-txt>*{opacity:0;animation:heIn .8s cubic-bezier(.2,.7,.2,1) forwards}
+  .hero-txt>:nth-child(2){animation-delay:.08s}.hero-txt>:nth-child(3){animation-delay:.2s}.hero-txt>:nth-child(4){animation-delay:.32s}.hero-txt>:nth-child(5){animation-delay:.42s}
+  .hero-vis{opacity:0;animation:heIn 1s cubic-bezier(.2,.7,.2,1) .3s forwards}
+  @keyframes heIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+}
+@media(max-width:700px){
+  .m-only{display:block!important}a.btn.m-only{display:inline-flex!important}
+  .d-only{display:none!important}
+  /* Reihenfolge: erst zeigen, dann erklären */
+  .ka main{display:flex;flex-direction:column}
+  #referenz{order:1}.case{order:2}.mailband{order:3}#kurz{order:4}#leistungen{order:5}.svc{order:6}#warum{order:7}.why{order:8}.weg{order:9}#fragen{order:10}.ways{order:11}.ka main>.note{order:12}
+  .sec{padding-top:56px}
+  .ka h2{font-size:27px}
+  .ka .lead{font-size:16.5px;line-height:1.6}
+  /* Start: kompakt, ein Blick */
+  .hero{padding:26px 18px 8px}
+  .hero::after{display:none}
+  .hero h1{font-size:33px;margin-bottom:20px}
+  .hero-stats{display:grid;grid-template-columns:repeat(3,auto);justify-content:space-between;gap:10px;margin-bottom:22px}
+  .hero-stats b{font-size:22px}.hero-stats span{font-size:11.5px;max-width:12ch}
+  .hero-alt{font-size:14px;margin-top:12px}
+  .hero-vis{padding:22px 0 26px;max-width:none}
+  .hv-card{transform:none;border-radius:22px;padding:8px 8px 14px}
+  .hv-card img{aspect-ratio:16/10;border-radius:15px}
+  .hv-name{font-size:20px}.hv-sub{font-size:13.5px}.hv-meta{padding-top:10px}
+  .hv-chip{animation:none}.hv-chip.c1,.hv-chip.c3{display:none}.hv-chip.c2{right:10px;top:8px}
+  /* Referenz */
+  #referenz .lead{display:none}
+  .case{margin-top:18px}
+  .case-imgs{border-radius:20px}
+  .case-panel{border-radius:20px;padding:18px 14px}
+  .case-top{margin-bottom:16px;gap:12px}
+  .case-big b{font-size:34px}
+  .calc-out{display:none}
+  .calc-in{padding:16px}.calc h3{margin-bottom:12px}
+  .calc-in input[type=range]{margin-bottom:16px}
+  /* Per E-Mail */
+  .mailband{margin-top:40px;padding:22px 18px;border-radius:22px}
+  .mailband h2{font-size:21px}
+  .mailband small{font-size:11.5px}
+  /* In Kürze: Karten zum Wischen */
+  .split-h img{display:none}.who{display:none}
+  .facts{display:flex;gap:10px;margin:20px -18px 0;padding:0 18px 4px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .facts::-webkit-scrollbar,.route ol::-webkit-scrollbar,.svc-list::-webkit-scrollbar{display:none}
+  .facts>div,.facts .more{display:block;flex:0 0 78%;scroll-snap-align:center;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.025);border-radius:18px;padding:18px}
+  .facts dt{font-size:16.5px;margin-bottom:6px}.facts dd{font-size:15px}
+  .facts-t{display:none}
+  .snapbar{display:block;position:relative;height:3px;border-radius:9px;background:rgba(255,255,255,.08);margin:14px auto 0;width:120px;overflow:hidden}
+  .snapbar i{position:absolute;top:0;bottom:0;left:0;width:20%;border-radius:9px;background:#d9bc7f;transition:left .12s linear}
+  /* Leistungen: Reiter zum Wischen */
+  .svc{margin-top:18px;gap:12px}
+  .svc-list{flex-direction:row;gap:8px;margin:0 -18px;padding:0 18px;overflow-x:auto;scrollbar-width:none}
+  .svc-list button{flex:none;white-space:nowrap;font-size:14.5px;padding:10px 16px;border-radius:99px}
+  .svc-list button::after{display:none}
+  .svc-view{min-height:300px;border-radius:20px}.svc-view h3{font-size:22px}.svc-view p{font-size:15px;margin-bottom:14px}
+  /* Warum: ohne Bild, zwei ruhige Karten */
+  .why-mid{display:none}
+  .why{margin-top:18px;gap:10px}
+  .why article{border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.025);border-radius:18px;padding:18px}
+  .why-ic{width:40px;height:40px;margin-bottom:10px}.why h3{font-size:18px}.why p{font-size:15px;margin-bottom:10px}
+  /* Weg: Schritte zum Wischen */
+  .weg{margin:56px -18px 0;padding:40px 18px 34px;text-align:left}
+  .weg h2{margin-bottom:20px;text-align:left}
+  .route ol{display:flex;gap:10px;max-width:none;margin:0 -18px;padding:0 18px 4px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+  .route ol::before{display:none}
+  .route li,.route li.hi{flex:0 0 62%;scroll-snap-align:center;padding:18px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.025);border-radius:18px;opacity:1;transform:none}
+  .route li::before,.route li.hi::before{display:none}
+  .route i{font-family:var(--f-serif);font-style:italic;font-size:30px;letter-spacing:0;color:#d9bc7f;line-height:1;margin-bottom:10px}
+  .route b{font-size:17px}.route span{font-size:14px}
+  /* Fragen */
+  .faq summary{font-size:16px;padding:12px 0}.faq details{padding:2px 16px;margin-bottom:8px;border-radius:16px}.faq details p{font-size:15px}
+  /* Drei Wege: einer groß, zwei klein */
+  .ways{margin-top:56px;padding:20px 14px;border-radius:24px}
+  .ways h2{font-size:22px;margin-bottom:16px}
+  .ways-g{gap:10px}
+  .ways article.hot{order:-1}
+  .ways article:not(.hot){padding:16px}
+  .ways article:not(.hot)>p:not(.eyebrow){display:none}
+  .ways article:not(.hot) h3{font-size:17px;margin-bottom:12px}
+  .ways .btn{width:100%;justify-content:space-between}
+  .ka .note{font-size:11.5px;margin-top:28px}
+}
+@media(max-width:1000px){.split{grid-template-columns:minmax(0,1fr)}.split>*,.ka main>*,.route,.svc>*{min-width:0;max-width:100%}}
+@media(max-width:700px){.facts,.route ol,.svc-list{max-width:none}}
