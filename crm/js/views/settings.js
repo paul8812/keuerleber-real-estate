@@ -2,7 +2,7 @@ import * as db from '../db.js';
 import * as KI from '../ki.js';
 const MSG = {};  // Statusmeldungen überleben das Neuzeichnen nach dem Speichern
 import { html, raw, inp, sel, chk, collect, toast, download, today, confirmDlg, modal } from '../util.js';
-import { BUNDESLAENDER } from '../consts.js';
+import { BUNDESLAENDER, NAV, TABBAR_STANDARD } from '../consts.js';
 import { seed } from '../seed.js';
 import * as W from '../website.js';
 
@@ -41,6 +41,9 @@ export function render(el) {
       ${inp('iban', 'IBAN', s.iban)}${inp('bic', 'BIC', s.bic)}${inp('bank', 'Bank', s.bank)}${inp('zahlungsziel', 'Zahlungsziel (Tage)', s.zahlungsziel ?? 14, { type: 'number' })}
       ${chk('kleinunternehmer', 'Kleinunternehmer nach § 19 UStG (keine Umsatzsteuer ausweisen)', s.kleinunternehmer, { cls: 'full' })}
       <div class="full"><button class="btn primary">Speichern</button></div></form></section>
+    <section class="card"><h2>📱 Handy-Leiste</h2><p class="muted small">Welche vier Bereiche sollen am iPhone unten in der Leiste liegen? In der Mitte bleibt „+ Neu“; alles andere erreichst du über das Menü ☰.</p>
+      <form id="ftab" class="grid">${[0, 1, 2, 3].map(i => { const ks = [...new Set([...(s.tabbar || []), ...TABBAR_STANDARD])]; return sel('t' + i, 'Platz ' + (i + 1), NAV.map(n => [n[0], n[1]]), ks[i]); })}
+      <div class="full"><button class="btn primary">Leiste speichern</button> <button type="button" class="btn ghost" data-tabstd>Standard</button></div></form></section>
     <section class="card"><h2>Cloud-Datenbank (Supabase)</h2>
       <p class="muted">Status: <b>${db.isCloud() ? '☁ Cloud verbunden' : '💾 Nur lokal in diesem Browser'}</b>. Anleitung: <code>crm/SETUP.md</code></p>
       <form id="fc" class="grid">${inp('url', 'Project URL', c.url, { ph: 'https://xxxx.supabase.co', cls: 'full' })}${inp('key', 'Anon / Publishable Key', c.key, { cls: 'full' })}
@@ -81,6 +84,8 @@ export function render(el) {
     }
     catch { toast('Kopieren ging nicht – „Skript ansehen“ öffnen und alles kopieren', 'err'); }
   };
+  el.querySelector('#ftab').onsubmit = async e => { e.preventDefault(); const v = collect(e.target), ks = [v.t0, v.t1, v.t2, v.t3]; if (new Set(ks).size < 4) { toast('Bitte vier verschiedene Bereiche wählen', 'err'); return; } await db.saveSettings({ ...db.settings(), tabbar: ks }); toast('Handy-Leiste gespeichert'); };
+  el.querySelector('[data-tabstd]').onclick = async () => { await db.saveSettings({ ...db.settings(), tabbar: [] }); toast('Standard-Leiste'); };
   el.querySelector('#fs').onsubmit = async e => { e.preventDefault(); await db.saveSettings({ ...s, ...collect(e.target) }); toast('Gespeichert'); };
   const wmsg = t => { MSG.w = t; const m = document.querySelector('#wmsg'); if (m) m.textContent = t; };
   el.querySelector('#fw').onsubmit = async e => { e.preventDefault(); const t = e.target.githubToken.value.trim(); if (t) await db.saveSettings({ ...db.settings(), githubToken: t });

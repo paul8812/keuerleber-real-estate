@@ -1,0 +1,70 @@
+/* Politur: Menü in Gruppen, Suche als Befehlszentrale, Handy-Leiste mit Zählern, Tagesleiste, Überfällig-Assistent, Pipeline */
+
+/* --- Menü in Gruppen --- */
+#nav{gap:0;padding-top:2px}
+.navg{display:flex;flex-direction:column;gap:1px;padding:4px 0 6px}
+.navg+.navg{border-top:1px solid var(--line);padding-top:8px}
+.navt{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);opacity:.7;padding:2px 12px 4px}
+#nav a{padding:8px 12px}
+@media(max-height:820px){#nav a{padding:6px 12px}.navt{padding-bottom:2px}.navg{padding-bottom:4px}}
+@media(max-width:900px){#nav a{padding:11px 12px}.navt{padding:4px 12px}}
+
+/* --- Zähler in der Handy-Leiste --- */
+#tabbar a{position:relative}
+#tabbar a b.nb{position:absolute;top:2px;left:50%;margin-left:6px;min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:var(--gold);color:#111;font-size:10px;font-weight:700;line-height:16px;text-align:center}
+
+/* --- Suche / Befehle --- */
+#gresults .grh{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);padding:10px 14px 4px}
+#gresults .gr.akt{background:var(--gold-soft,rgba(201,169,110,.12));box-shadow:inset 3px 0 0 var(--gold)}
+#gresults .gr>a{min-width:0}#gresults .gr>a span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#gresults .gr>a small{display:block;overflow:hidden;text-overflow:ellipsis}
+#gresults .grt{flex:0 0 auto;padding:8px 10px;text-decoration:none;opacity:.8}
+#gresults .grt:hover{opacity:1}
+#gresults .grfuss{display:flex;gap:14px;padding:8px 14px;border-top:1px solid var(--line);font-size:11px;color:var(--mut);position:sticky;bottom:0;background:var(--panel)}
+@media(max-width:700px){#gresults .grfuss{display:none}#gresults{position:fixed;left:8px;right:8px;top:58px;max-height:70vh}}
+
+/* --- Tagesleiste auf der Übersicht --- */
+.tagesleiste{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px}
+.tchip{display:flex;align-items:center;gap:9px;padding:9px 14px 9px 10px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--txt);text-decoration:none;font:inherit;cursor:pointer;transition:border-color .15s,transform .1s}
+.tchip:hover{border-color:var(--gold)}.tchip:active{transform:scale(.97)}
+.tchip b{display:grid;place-items:center;min-width:28px;height:28px;padding:0 7px;border-radius:9px;background:var(--panel2);font-size:14px}
+.tchip span{font-size:13px;color:var(--mut)}
+.tchip.dringend b{background:rgba(224,106,90,.18);color:#f08c7d}
+.tchip.gold b{background:rgba(201,169,110,.18);color:var(--gold)}
+.tchip.ok b{background:rgba(91,191,138,.15);color:var(--ok)}
+.tagok{color:var(--mut);font-size:13px;align-self:center;padding:0 4px}
+@media(max-width:700px){.tagesleiste{flex-wrap:nowrap;overflow-x:auto;margin:0 -16px 14px;padding:0 16px 2px;scrollbar-width:none}.tagesleiste::-webkit-scrollbar{display:none}.tchip{flex:0 0 auto}}
+
+/* --- Überfällig-Assistent --- */
+.uf-gr{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.uf-gr:first-of-type{border-top:0}
+.uf-gr small{color:var(--mut);display:block;font-size:12px}
+.uf-gr input{width:18px;height:18px;accent-color:var(--gold)}
+.uf-n{font-weight:600;color:var(--gold)}
+.uf-akt{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.uf-akt label{display:flex;gap:9px;align-items:flex-start;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);cursor:pointer;font-size:13.5px;line-height:1.35}
+.uf-akt label:has(input:checked){border-color:var(--gold);background:rgba(201,169,110,.1)}
+.uf-akt input{margin-top:2px;accent-color:var(--gold)}
+.uf-akt small{display:block;color:var(--mut);font-size:12px}
+.ufbanner{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:12px 16px;margin-bottom:14px;border:1px solid rgba(224,168,74,.35);background:rgba(224,168,74,.07);border-radius:var(--r);font-size:13.5px}
+@media(max-width:700px){.uf-akt{grid-template-columns:1fr}}
+
+/* --- Pipeline: nächster Schritt sichtbar --- */
+.dnext{display:flex;gap:6px;align-items:baseline;font-size:12px;color:var(--mut);margin-top:6px}
+.dnext b{color:var(--txt);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dnext.late,.dnext.late b{color:#f08c7d}
+.dplan{margin-top:6px;width:100%;text-align:left;background:rgba(224,168,74,.1);border:1px dashed rgba(224,168,74,.5);color:var(--warn);border-radius:8px;padding:6px 9px;font:inherit;font-size:12px;cursor:pointer}
+.dplan:hover{background:rgba(224,168,74,.18)}
+.pfilter{display:flex;gap:6px;flex-wrap:wrap;margin:-4px 0 12px}
+
+/* --- Kontakt: nächster Schritt oben --- */
+.kschritt{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:12px 16px;margin-bottom:14px;border-radius:var(--r);border:1px solid var(--line);background:var(--panel)}
+.kschritt.fehlt{border-color:rgba(224,168,74,.4);background:rgba(224,168,74,.07)}
+.kschritt.late{border-color:rgba(224,106,90,.45)}
+.kschritt .kl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);display:block}
+.kschritt b{font-size:15px}
+.kschritt .kakt{display:flex;gap:6px;flex-wrap:wrap}
+.uf-akt label input{width:auto;flex:0 0 auto;margin:3px 0 0}
+.uf-akt label>span{flex:1;min-width:0}
+.uf-gr input[type=checkbox]{flex:0 0 auto}
+@media(max-width:700px){.pfilter{flex-wrap:nowrap;overflow-x:auto;margin:-4px -16px 12px;padding:0 16px 2px;scrollbar-width:none}.pfilter::-webkit-scrollbar{display:none}.pfilter .chip{flex:0 0 auto}}

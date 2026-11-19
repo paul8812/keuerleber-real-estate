@@ -19,6 +19,16 @@ export const NAV = [
   ['dashboard', 'Übersicht', '◧'], ['posteingang', 'Posteingang', '✉'], ['kontakte', 'Kontakte', '☺'], ['objekte', 'Objekte', '⌂'], ['pipeline', 'Pipeline', '▤'],
   ['aufgaben', 'Aufgaben', '✓'], ['kalender', 'Kalender', '▦'], ['finanzen', 'Finanzen', '€'], ['fahrten', 'Fahrtenbuch', '⇆'], ['automation', 'Automationen', '⚡'], ['vorlagen', 'Vorlagen', '✎'], ['rechner', 'Rechner', '∑'], ['statistik', 'Statistik', '◔'], ['social', 'Social Media', '◎'], ['einstellungen', 'Einstellungen', '⚙'],
 ];
+// Menü in Gruppen (Reihenfolge = Anzeige); alle Schlüssel müssen in NAV vorkommen
+export const NAV_GRUPPEN = [
+  ['Heute', ['dashboard', 'posteingang', 'aufgaben', 'kalender']],
+  ['Vertrieb', ['kontakte', 'objekte', 'pipeline']],
+  ['Büro', ['finanzen', 'fahrten', 'vorlagen', 'rechner']],
+  ['Auswertung', ['statistik', 'social']],
+  ['System', ['automation', 'einstellungen']],
+];
+// Handy-Leiste unten: vier frei wählbare Plätze (Einstellungen → Handy-Leiste), Standard wie bisher
+export const TABBAR_STANDARD = ['dashboard', 'aufgaben', 'kalender', 'kontakte'];
 // Anzeigenamen der Einkaufs-Phasen für den Kapitalanlagevertrieb (gespeicherte Werte bleiben gleich – kompatibel mit Mail-Abgleich)
 export const STAGE_LABEL = { 'Neuer Lead': 'Neuer Kontakt', 'Bewertung / Besichtigung': 'Objektprüfung / Kalkulation', 'Angebot / Maklerauftrag': 'Vertriebsvereinbarung', 'Auftrag erhalten': 'Im Vertrieb' };
 export const sl = s => STAGE_LABEL[s] || s;

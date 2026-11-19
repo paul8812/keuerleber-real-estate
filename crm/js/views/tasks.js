@@ -1,4 +1,5 @@
 import * as db from '../db.js';
+import { assistent as ueberfaelligAssistent, ueberfaellige } from '../ueberfaellig.js';
 import { html, today, addDays, fmtDate, toast, modal, confirmDlg } from '../util.js';
 import { taskForm } from '../forms.js';
 import { cLink, pLink, empty, badge } from '../ui.js';
@@ -91,9 +92,11 @@ export function render(el) {
   el.innerHTML = html`<div class="head"><h1>Aufgaben</h1><div class="actions"><button class="btn ghost" data-aufr title="Automatisch angelegte Aufgaben gesammelt löschen">🧹 Aufräumen</button><button class="btn primary" data-new>+ Aufgabe</button></div></div>
     <div class="chips">${FILTERS.map(([k, l]) => html`<button class="chip ${k === filter ? 'on' : ''}" data-f="${k}">${l}${k === 'heute' ? html` <i>${open.filter(t => t.faellig && t.faellig <= t0).length}</i>` : ''}</button>`)}
       <select data-prio class="chipsel" aria-label="Priorität"><option value="">Alle Prioritäten</option>${PRIOS.map(([v, l]) => html`<option value="${v}" ${v === prio ? html`selected` : ''}>${l}</option>`)}</select></div>
+    ${ueberfaellige().length >= 5 ? html`<div class="ufbanner"><span>⏱ <b>${ueberfaellige().length} Aufgaben sind überfällig.</b> In einem Zug verteilen, abhaken oder löschen – statt jede einzeln.</span><button type="button" class="btn primary" data-uf>Überfällige ordnen</button></div>` : ''}
     <div class="card">${list.length ? html`<ul class="tasks">${zeig.map(taskRow)}</ul>${list.length > zeig.length ? html`<button type="button" class="btn ghost mehrlist" data-mehr>Weitere ${Math.min(SEITE, list.length - zeig.length)} von ${list.length - zeig.length} anzeigen</button>` : ''}` : empty('Keine Aufgaben in dieser Ansicht 🎉')}</div>`.s;
   el.querySelector('[data-new]').onclick = () => taskForm();
   el.querySelector('[data-aufr]').onclick = aufraeumen;
+  el.querySelector('[data-uf]')?.addEventListener('click', ueberfaelligAssistent);
   el.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { filter = b.dataset.f; mehr = 0; render(el); });
   el.querySelector('[data-prio]').onchange = e => { prio = e.target.value; mehr = 0; render(el); };
   el.querySelector('[data-mehr]')?.addEventListener('click', () => { mehr += SEITE; render(el); });

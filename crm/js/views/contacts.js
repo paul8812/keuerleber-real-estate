@@ -1,11 +1,12 @@
 import * as db from '../db.js';
 import { exposeForm } from '../modellrechnung.js';
 import { html, raw, fullName, fmtDate, fmtDT, download, toCSV, parseCSV, toast, modal, sel, today, daysBetween, eur, confirmDlg } from '../util.js';
-import { KONTAKT_ARTEN, sl } from '../consts.js';
+import { KONTAKT_ARTEN, sl, PIPELINES } from '../consts.js';
+import { addDays } from '../util.js';
 import { contactForm, dealForm, taskForm, eventForm, activityForm } from '../forms.js';
 import { avatar, badge, empty, pLink, matchesForContact, statusBadge, adresse } from '../ui.js';
-import { taskRow, bindTasks } from './tasks.js';
-import { tempBadge, temperatur } from '../crmplus.js';
+import { taskRow, bindTasks, completeTask } from './tasks.js';
+import { tempBadge, temperatur, naechsterSchritt } from '../crmplus.js';
 import { frische, frischeTag, FRISCHE, kontaktErfassen, kontaktKarte, bindKontaktKarte, kontaktIndex } from '../kontakt.js';
 
 let q = '', art = '', status = 'Aktiv', sort = 'name', fr = '', waehlen = false, sichtbar = [], mehr = 0;
@@ -110,6 +111,16 @@ function overview(el) {
   el.querySelector('[data-dupe]').onclick = () => { const d = dupes(); modal('Mögliche Dubletten', d.length ? html`<div class="full">${d.map(g => html`<div class="dup">${g.map(c => html`<a class="lnk" href="#/kontakte/${c.id}">${fullName(c)} <small>${c.email || c.tel || c.mobil || ''}</small></a>`)}</div>`)}</div>` : html`<p class="full">Keine Dubletten gefunden 👍</p>`); };
 }
 
+// Nächster Schritt ganz oben: die nächste offene Aufgabe – oder der Hinweis, dass bei einem laufenden Vorgang keiner geplant ist
+function schrittBanner(c, tasks, deals) {
+  const offen = tasks.filter(t => !t.done).sort((a, b) => (a.faellig || '9999').localeCompare(b.faellig || '9999')), t = offen[0];
+  const laeuft = deals.some(d => { const P = PIPELINES[d.board]; return P && d.stage !== P.won && d.stage !== P.lost; });
+  if (!t && !laeuft) return '';
+  if (!t) return html`<div class="kschritt fehlt"><div><span class="kl">Nächster Schritt</span><b>Noch nichts geplant</b> <span class="muted">– der Vorgang läuft, aber es gibt keine Aufgabe.</span></div><div class="kakt"><button type="button" class="btn primary" data-kplan>＋ Nächsten Schritt planen</button></div></div>`;
+  const late = t.faellig && t.faellig < today();
+  return html`<div class="kschritt ${late ? 'late' : ''}"><div><span class="kl">Nächster Schritt${offen.length > 1 ? ` · ${offen.length - 1} weitere` : ''}</span><b>${(t.titel || '').replace(/^⚡ /, '')}</b> <span class="${late ? 'warn' : 'muted'}">${t.faellig ? (late ? '· überfällig seit ' : '· ') + fmtDate(t.faellig) : '· ohne Datum'}</span></div>
+    <div class="kakt"><button type="button" class="btn primary" data-kdone="${t.id}">✓ Erledigt</button><button type="button" class="btn" data-kspaeter="${t.id}">⏭ Morgen</button><button type="button" class="btn ghost" data-akt="task:${t.id}" aria-label="Weitere Aktionen">⋯</button></div></div>`;
+}
 function detail(el, id) {
   const c = db.get('contacts', id);
   if (!c) { el.innerHTML = html`<a href="#/kontakte" class="back">← Kontakte</a>${empty('Kontakt nicht gefunden')}`.s; return; }
@@ -123,6 +134,7 @@ function detail(el, id) {
   el.innerHTML = html`<a href="#/kontakte" class="back">← Kontakte</a>
     <div class="head"><div class="who">${avatar(c)}<div><h1>${fullName(c)} ${tempBadge(c)}</h1><p class="muted">${c.kategorie}${c.firma && c.nachname ? ' · ' + c.firma : ''} ${c.status !== 'Aktiv' ? badge(c.status, '#777') : ''}</p></div></div>
       <div class="actions">${c.email ? html`<a class="btn" href="mailto:${c.email}">E-Mail</a>` : ''}${phone ? html`<a class="btn" href="tel:${phone}">Anrufen</a><a class="btn" target="_blank" rel="noopener" href="https://wa.me/${phone.replace(/^0/, '49').replace('+', '')}">WhatsApp</a>` : ''}<button class="btn" data-modell>Exposé</button><button class="btn" data-edit>Bearbeiten</button><button class="btn" data-akt="contact:${c.id}" title="Weitere Aktionen">⋯ Mehr</button></div></div>
+    ${schrittBanner(c, tasks, deals)}
     ${kontaktKarte(c)}
     <div class="split"><div>
       <section class="card"><h2>Stammdaten</h2>
@@ -140,6 +152,9 @@ function detail(el, id) {
     </div></div>`.s;
   bindTasks(el); bindKontaktKarte(el, () => detail(el, id));
   el.querySelector('[data-edit]').onclick = () => contactForm(c);
+  el.querySelector('[data-kplan]')?.addEventListener('click', () => naechsterSchritt(c));
+  el.querySelector('[data-kdone]')?.addEventListener('click', async e => { await completeTask(db.get('tasks', e.currentTarget.dataset.kdone), true, true); toast('✓ Erledigt'); });
+  el.querySelector('[data-kspaeter]')?.addEventListener('click', async e => { const t = db.get('tasks', e.currentTarget.dataset.kspaeter); await db.save('tasks', { ...t, faellig: addDays(today(), 1) }); toast('Auf morgen verschoben'); });
   el.querySelector('[data-modell]').onclick = () => {
     const ps = db.all('properties').filter(p => !['Archiv', 'Verkauft / Vermietet'].includes(p.status)), tip = db.all('deals').find(d => d.contactId === c.id && d.propertyId)?.propertyId;
     if (!ps.length) return toast('Noch keine aktiven Objekte im CRM', 'err');
