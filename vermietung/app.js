@@ -367,6 +367,7 @@ function kontaktHtml(k, s) {
   const bs = s.bes.filter((b) => b.kids.includes(k.kid)).reverse();
   return `<div class="vm-k vm-kd" style="--c:${ks.c}">
     <div class="sh-h vm-kd-h"><div><span class="eyebrow">Interessent · seit ${dt(k.erstellt)}</span><h2>${esc(k.name)} <span class="vm-erg" style="--c:${ks.c}">${esc(ks.l)}</span></h2></div><button type="button" class="btn ghost sm" data-a="kzu">Schließen</button></div>
+    ${k.stand !== 'absage' ? (() => { const ab = ablauf(k, s), n = ab.n && ab.n.attr?.startsWith('data-kopen') ? { info: 'Unterlagen unten prüfen und abhaken' } : ab.n; return `<div class="vm-nx-box">${stufenHtml(ab.stufe)}${n ? `<div class="vm-nx-r"><small>Nächster Schritt</small>${schrittBtn(n, '')}</div>` : ''}</div>`; })() : ''}
     ${meta.length ? `<p class="vm-k-m">${meta.map((x) => `<span>${x}</span>`).join('')}</p>` : ''}
     ${tel || mailOk(k.mail) ? `<div class="vm-k-a vm-kontakt">${tel ? `<a class="btn sm" href="${esc(tel)}">Anrufen</a>` : ''}${tel ? `<a class="btn ghost sm" href="${esc(tel.replace('tel:', 'sms:'))}">SMS</a>` : ''}${mailOk(k.mail) ? `<a class="btn ghost sm" href="mailto:${esc(k.mail)}">E-Mail</a>` : ''}</div>` : ''}
     ${k.stand === 'absage' ? `<p class="vm-grund">Absagegrund: <b>${esc(k.grund || 'ohne Angabe')}</b></p>` : ''}
@@ -380,14 +381,37 @@ function kontaktHtml(k, s) {
   </div>`;
 }
 
+/** Ablauf eines Interessenten: Stufe (0 Anfrage · 1 Besichtigung · 2 Unterlagen · 3 Vertrag · 4 Mieter) und der nächste Schritt. */
+const STUFEN = ['Anfrage', 'Besichtigung', 'Unterlagen', 'Vertrag', 'Mieter'];
+export function ablauf(k, s) {
+  const bs = s.bes.filter((b) => b.kids.includes(k.kid)), jetzt = Date.now();
+  const offen = bs.find((b) => b.datum <= jetzt && b.ergebnis === 'geplant'), termin = bs.find((b) => b.datum > jetzt && b.ergebnis === 'geplant');
+  const war = bs.some((b) => b.ergebnis !== 'geplant') || ['besichtigung', 'unterlagen', 'favorit', 'zusage'].includes(k.stand);
+  const da = dokZahl(k), voll = da === CHECK.length, gepr = geprueftZahl(k) === CHECK.length, vertrag = dokListe(k, 'mietvertrag').length > 0;
+  const mieter = !!s.md?.mieter && s.md.mieter.trim() === String(k.name).trim(); // als Mieter übernommen
+  const stufe = mieter ? 4 : vertrag ? 3 : (voll || da > 0 || ['unterlagen', 'favorit', 'zusage'].includes(k.stand)) ? 2 : (war || termin || offen) ? 1 : 0;
+  const id = esc(k.kid);
+  let n = null;
+  if (k.stand === 'absage' || mieter) n = null;
+  else if (offen) n = { l: 'Ergebnis eintragen', attr: `data-erg="${esc(offen.id)}"`, warn: true };
+  else if (termin) n = { info: `Termin ${tag(termin.datum)}, ${uhr(termin.datum)} Uhr` };
+  else if (!war) n = { l: 'Besichtigung planen', attr: `data-kbes="${id}"` };
+  else if (vertrag) n = { l: 'Als Mieter übernehmen', attr: `data-kmiet="${id}"` };
+  else if (k.stand === 'zusage' || (voll && gepr)) n = { l: 'Mietvertrag erstellen', attr: `data-kvertrag="${id}"` };
+  else if (voll) n = { l: 'Unterlagen prüfen', attr: `data-kopen="${id}"` };
+  else n = { l: da ? `Unterlagen ergänzen (${da}/${CHECK.length})` : 'Unterlagen hochladen', attr: `data-kup="${id}"` };
+  return { stufe, n };
+}
+const stufenHtml = (st, weg) => `<span class="vm-stufen${weg ? ' weg' : ''}" role="img" aria-label="Stufe: ${STUFEN[st]}">${STUFEN.map((l, i) => `<i class="${i < st ? 'done' : i === st ? 'on' : ''}" title="${l}"></i>`).join('')}<small>${STUFEN[st]}</small></span>`;
+const schrittBtn = (n, cls = 'sm') => (!n ? '' : n.info ? `<span class="vm-schritt-i">${esc(n.info)}</span>` : `<button type="button" class="btn ${n.warn ? 'vm-pr' : 'fill'} ${cls} vm-schritt" ${n.attr}>${esc(n.l)}</button>`);
+
 function kZeile(k, s) {
-  const ks = KSTAND[k.stand] ?? KSTAND.anfrage, z = dokZahl(k), gz = geprueftZahl(k), lb = s.bes.filter((b) => b.kids.includes(k.kid)).at(-1);
+  const ks = KSTAND[k.stand] ?? KSTAND.anfrage, z = dokZahl(k), gz = geprueftZahl(k), lb = s.bes.filter((b) => b.kids.includes(k.kid)).at(-1), ab = ablauf(k, s);
   return `<tr class="vm-klick${k.stand === 'absage' ? ' weg' : ''}" data-kopen="${esc(k.kid)}" tabindex="0" role="button" aria-label="${esc(k.name)} öffnen">
     <td class="n"><b>${esc(k.name)}</b>${k.tel || k.mail ? `<small>${esc(k.tel || k.mail)}</small>` : ''}</td>
-    <td class="e"><span class="vm-erg" style="--c:${ks.c}">${esc(ks.l)}</span>${k.stand === 'absage' && k.grund ? `<small class="vm-bg">${esc(k.grund)}</small>` : ''}</td>
+    <td class="e"><span class="vm-erg" style="--c:${ks.c}">${esc(ks.l)}</span>${k.stand === 'absage' ? (k.grund ? `<small class="vm-bg">${esc(k.grund)}</small>` : '') : stufenHtml(ab.stufe)}</td>
     <td class="u"><span class="vm-prog${z === CHECK.length ? ' voll' : ''}"><i style="width:${Math.round((z / CHECK.length) * 100)}%"></i></span><small>${z}/${CHECK.length} da${gz ? ` · <b class="ok-t">${gz} geprüft</b>` : ''}</small></td>
-    <td class="b">${lb ? `<b>${tag(lb.datum)}</b><small style="color:${ERG[lb.ergebnis]?.c}">${esc(ERG[lb.ergebnis]?.l ?? '')}</small>` : '<span class="vm-mut">–</span>'}</td>
-    <td class="a"><span class="vm-tp" aria-hidden="true">›</span></td></tr>`;
+    <td class="a">${schrittBtn(ab.n) || '<span class="vm-tp" aria-hidden="true">›</span>'}${lb ? `<small>Besichtigung ${tag(lb.datum)} · <span style="color:${ERG[lb.ergebnis]?.c}">${esc(ERG[lb.ergebnis]?.l ?? '')}</span></small>` : ''}</td></tr>`;
 }
 
 function kontaktOeffnen(kid) {
@@ -429,8 +453,8 @@ function infoHtml(o, s) {
   </section>`;
 
   const kontakte = `<section class="panel vm-sec"><div class="ph"><h2>Interessenten${s.aktiv.length ? ` <small class="vm-anz">${s.aktiv.length}</small>` : ''}</h2><button class="btn fill sm" data-act="kontakt">+ Interessent</button></div>
-    ${s.kontakte.length ? `<table class="vm-btab vm-ktab"><thead><tr><th>Name</th><th>Stand</th><th>Unterlagen</th><th>Letzte Besichtigung</th><th><span class="sr">Öffnen</span></th></tr></thead>
-      <tbody>${[...s.aktiv, ...abgesagt].map((k) => kZeile(k, s)).join('')}</tbody></table><p class="hint vm-tipp">Zeile antippen: Kontakt, Unterlagen-Checkliste und Besichtigungen der Person.</p>`
+    ${s.kontakte.length ? `<table class="vm-btab vm-ktab"><thead><tr><th>Name</th><th>Stand</th><th>Unterlagen</th><th>Nächster Schritt</th></tr></thead>
+      <tbody>${[...s.aktiv, ...abgesagt].map((k) => kZeile(k, s)).join('')}</tbody></table><p class="hint vm-tipp">Der Knopf rechts führt direkt zum nächsten Schritt. Zeile antippen: Kontakt, Unterlagen-Checkliste und Besichtigungen der Person.</p>`
       : '<p class="hint">Noch keine Interessenten. Mit „+ Interessent“ anlegen – oder einfach eine Besichtigung mit Namen eintragen, dann wird der Interessent automatisch angelegt.</p>'}</section>`;
 
   const besichtigungen = `<section class="panel vm-sec"><div class="ph"><h2>Besichtigungen${s.bes.length ? ` <small class="vm-anz">${s.bes.length}</small>` : ''}</h2><button class="btn fill sm" data-act="besichtigung">+ Besichtigung</button></div>
