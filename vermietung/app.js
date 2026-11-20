@@ -2,7 +2,7 @@
 // dazu Besichtigungen (mit Absagegründen), Anzeigen-Links, Mietdaten mit Unterlagen und der Vermietungsstand.
 // Alles Inhaltliche ist Ende-zu-Ende verschlüsselt; der Speicherdienst sieht nur Zufallskennungen und Chiffretext.
 import { openObjekte, openSlot } from './pkg.js';
-import { AUSST, SEITEN, STP, fehlt as vFehlt, gesamt as vGesamt, ibanOk, ibanSchoen, schluesselEditor, schluesselLesen, schluesselPlus, vertragsdaten, vertragsname } from './mvfelder.js';
+import { AUSST, SEITEN, STP, fehlt as vFehlt, gesamt as vGesamt, ibanOk, ibanSchoen, vertragsdaten, vertragsname } from './mvfelder.js';
 import { neuester, verOf } from './quelle.js';
 import { auffrischen, gemerkt, merken, merkenFeld, vergessen } from '../partner/merken.js';
 import { fetchEvents, getFile, postEvent, putFile } from '../handwerker/store.js';
@@ -893,7 +893,6 @@ function vertragFormular(o, kid) {
       ${inp('zimmer', 'Zimmer', { mode: 'decimal' })}${inp('flaeche', 'Wohnfläche (m²)', { mode: 'decimal' })}${inp('nutzflaeche', 'Nutzfläche (m², optional)', { mode: 'decimal' })}
       <fieldset class="f wide vm-chk"><legend>Ausstattung</legend>${AUSST.map(([key, l]) => `<label><input type="checkbox" name="au_${key}"${d0.ausst?.[key] ? ' checked' : ''}> ${l}</label>`).join('')}</fieldset>
       ${sel('stp', 'Stellplatz / Garage / Carport', STP.map((x) => [x, x || 'keiner']))}${inp('stpNr', 'Stellplatz-Nummer')}
-      ${schluesselEditor(d0.schluessel, 'sl')}
       ${kopf('Miete und Kaution (§ 2, § 5)')}
       ${inp('kalt', 'Kaltmiete (€)', { mode: 'decimal' })}${inp('nk', 'Betriebskosten-Vorauszahlung (€)', { mode: 'decimal' })}
       ${inp('stpKosten', 'Stellplatz / Garage (€ mtl.)', { mode: 'decimal' })}${inp('kuecheKosten', 'Küche / Mobiliar (€ mtl.)', { mode: 'decimal' })}
@@ -917,7 +916,6 @@ function vertragFormular(o, kid) {
     for (const n of ['vname', 'vname2', 'anschrift', 'tel', 'mail', 'mvName', 'mvAnschrift', 'mvTel', 'mvMail', 'adresse', 'geschoss', 'seite', 'stp', 'stpNr', 'bank', 'iban', 'bic', 'beginn', 'arbBis', 'arbWas', 'hv', 'vereinbarungen', 'ort']) v[n] = f[n].value.trim();
     for (const n of NUM) { const z = zahl(f[n].value); v[n] = z == null ? '' : z; }
     v.ausst = Object.fromEntries(AUSST.map(([key]) => [key, f['au_' + key].checked]));
-    v.schluessel = schluesselLesen(f, 'sl');
     v.deckblatt = false;
     if (v.iban) v.iban = ibanSchoen(v.iban);
     return v;
@@ -945,7 +943,6 @@ function vertragFormular(o, kid) {
   const fehler = (t) => { const e = dlgEl.querySelector('#vtErr'); e.textContent = t; e.classList.remove('hidden'); };
   dlgEl.onclick = async (e) => {
     if (e.target.closest('[data-a=close]')) return dlgEl.close();
-    const plus = e.target.closest('[data-sl-plus]'); if (plus) return schluesselPlus(form, plus.dataset.slPlus);
     const kb = e.target.closest('[data-kaution]');
     if (kb) { const km = zahl(form.kalt.value); if (!km) { form.kalt.focus(); return fehler('Bitte zuerst die Kaltmiete eintragen.'); } form.kaution.value = String(Math.round(km * Number(kb.dataset.kaution) * 100) / 100).replace('.', ','); return pruefen(); }
     const nur = e.target.closest('[data-a=nurspeichern]'); if (!nur) return;
