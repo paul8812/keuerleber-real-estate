@@ -1,7 +1,7 @@
 /* Mietvertrag als PDF – Text nach der Vorlage „Mietvertrag für Wohnraum“ (§ 1–§ 20),
    Gestaltung: Norderfranken-Logo oben mittig, Goldlinie, helle Karten – druckfreundlich ohne Farbflächen.
    Läuft vollständig im Browser; Bibliotheken werden erst beim ersten Vertrag geladen. */
-import { AUSST, SCHLUESSEL_STD, gesamt, ibanSchoen, natuerlich, schluesselListe } from './mvfelder.js';
+import { AUSST, gesamt, ibanSchoen, natuerlich, schluesselListe } from './mvfelder.js';
 
 let LIBS = null;
 async function laden() {
@@ -66,7 +66,6 @@ export async function vertragPdf(d, x = {}) {
   const passend = (s, font, size, max) => { let z = size; while (z > 6 && breite(s, font, z) > max) z -= 0.25; return z; };
   const kuerzen = (s, font, size, max) => { s = sauber(s); if (breite(s, font, size) <= max) return s; while (s.length > 1 && breite(s + '…', font, size) > max) s = s.slice(0, -1); return s + '…'; };
   const rund = (p, xx, yy, w, h, r, o) => p.drawSvgPath(`M${r},0 H${w - r} Q${w},0 ${w},${r} V${h - r} Q${w},${h} ${w - r},${h} H${r} Q0,${h} 0,${h - r} V${r} Q0,0 ${r},0 Z`, { x: xx, y: yy + h, ...o });
-  const rundOben = (p, xx, yy, w, h, r, o) => p.drawSvgPath(`M${r},0 H${w - r} Q${w},0 ${w},${r} V${h} H0 V${r} Q0,0 ${r},0 Z`, { x: xx, y: yy + h, ...o });
 
   /* ---------- Fließtext mit Umbruch und Seitenwechsel ---------- */
   const S = { p: null, y: 0 };
@@ -172,19 +171,20 @@ export async function vertragPdf(d, x = {}) {
     p.drawLine({ start: { x: xx, y: yy - 4 }, end: { x: xx + w, y: yy - 4 }, thickness: 0.6, color: C.hellgrau });
     if (cap) t(p, cap, xx + 1, yy - 12.5, { size: 7, color: C.grau });
   }
-  /** Unterschriftsblock: Ort/Datum und Unterschrift, mehrere Blöcke nebeneinander */
-  function unterschriften(liste, ort) {
-    const spalten = 2, bw = (W - 30) / 2, bh = 92;
-    for (let i = 0; i < liste.length; i += spalten) {
-      platz(bh + 10);
-      liste.slice(i, i + spalten).forEach((rolle, j) => {
-        const x0 = ML + j * (bw + 30);
-        feld(S.p, x0, S.y - 26, bw, ort, 'Ort, Datum');
-        S.p.drawLine({ start: { x: x0, y: S.y - 74 }, end: { x: x0 + bw, y: S.y - 74 }, thickness: 0.8, color: C.ink });
-        t(S.p, kuerzen(rolle, R, 7.5, bw), x0 + 1, S.y - 84, { size: 7.5, color: C.grau });
-      });
-      S.y -= bh + 8;
-    }
+  /** Unterschriften: links Vermieter, rechts Ort/Datum und darunter je Mieter eine Unterschriftslinie */
+  function unterschriften(vermieter, mieter, ort) {
+    const bw = (W - 30) / 2, xr = ML + bw + 30, h = 92 + (mieter.length - 1) * 54;
+    platz(h + 10);
+    feld(S.p, ML, S.y - 26, bw, ort, 'Ort, Datum');
+    S.p.drawLine({ start: { x: ML, y: S.y - 74 }, end: { x: ML + bw, y: S.y - 74 }, thickness: 0.8, color: C.ink });
+    t(S.p, kuerzen(vermieter, R, 7.5, bw), ML + 1, S.y - 84, { size: 7.5, color: C.grau });
+    feld(S.p, xr, S.y - 26, bw, ort, 'Ort, Datum');
+    mieter.forEach((rolle, i) => {
+      const y = S.y - 74 - i * 54;
+      S.p.drawLine({ start: { x: xr, y }, end: { x: xr + bw, y }, thickness: 0.8, color: C.ink });
+      t(S.p, kuerzen(rolle, R, 7.5, bw), xr + 1, y - 10, { size: 7.5, color: C.grau });
+    });
+    S.y -= h + 8;
   }
   function zustimmung(text) {
     platz(44); S.y -= 20;
@@ -314,7 +314,7 @@ export async function vertragPdf(d, x = {}) {
   // Vertragsparteien nebeneinander: zwischen [Vermieter] und [Mieter]
   {
     const gap = 16, cw = (W - gap) / 2, rh = 27;
-    const reihen = d.vname2 ? 4 : 3, h = 36 + reihen * rh;
+    const zweiter = d.vname2 ? 13 : 0, h = 36 + 3 * rh + zweiter;
     const karte = (x0, wort, kopf, rolle, name, name2, anschrift, tel, mail) => {
       t(S.p, wort, x0, S.y - 9, { size: 9.6, color: C.grau });
       const y0 = S.y - 16;
@@ -322,8 +322,10 @@ export async function vertragPdf(d, x = {}) {
       t(S.p, kopf, x0 + 12, y0 - 16, { font: B, size: 7.5, color: C.gold });
       t(S.p, rolle, x0 + cw - 12 - breite(rolle, R, 7), y0 - 16, { size: 7, color: C.grau });
       let yy = y0 - 37; const w = cw - 24, xx = x0 + 12;
-      feld(S.p, xx, yy, w, name, 'Name, Vorname'); yy -= rh;
-      if (name2) { feld(S.p, xx, yy, w, name2, '2. Mieter: Name, Vorname'); yy -= rh; }
+      if (name2) { // zwei Mieter: Namen untereinander in einem Feld
+        const v1 = sauber(name); if (v1) t(S.p, v1, xx + 1, yy, { font: B, size: passend(v1, B, 10, w - 2) });
+        yy -= 13; feld(S.p, xx, yy, w, name2, 'Mieter'); yy -= rh;
+      } else { feld(S.p, xx, yy, w, name, 'Name, Vorname'); yy -= rh; }
       feld(S.p, xx, yy, w, anschrift, 'Anschrift'); yy -= rh;
       feld(S.p, xx, yy, w * 0.44, tel, 'Telefon'); feld(S.p, xx + w * 0.49, yy, w * 0.51, mail, 'E-Mail');
     };
@@ -364,29 +366,6 @@ export async function vertragPdf(d, x = {}) {
   absatz([{ t: 'Die Nutzfläche beträgt ca. ' }, { t: d.nutzflaeche ? qm(d.nutzflaeche) : '______', b: true }, { t: ' Quadratmeter.' }], { nach: 8 });
   A('Die Vermietung erfolgt ausschließlich zu Wohnzwecken.');
 
-  // Schlüssel: Tabelle mit mindestens fünf Zeilen (Art, Anzahl, Nummer)
-  {
-    let sl = schluesselListe(d.schluessel);
-    if (!sl.length) sl = SCHLUESSEL_STD.slice(0, 5).map((art) => ({ art, n: '', nr: '' }));
-    while (sl.length < 5) sl.push({ art: '', n: '', nr: '' });
-    const rh = 20, kh = 21, h = kh + sl.length * rh + 2, cA = W * 0.47, cN = W * 0.15;
-    platz(h + 40);
-    A('Dem Mieter werden vom Vermieter folgende Schlüssel ausgehändigt:');
-    const y0 = S.y - 2;
-    rund(S.p, ML, y0 - h, W, h, 6, { color: C.weiss });
-    rundOben(S.p, ML, y0 - kh, W, kh, 6, { color: C.karte });
-    [['ART DES SCHLÜSSELS', ML + 12], ['ANZAHL', ML + cA + 12], ['SCHLÜSSEL-NR. / BEMERKUNG', ML + cA + cN + 12]].forEach(([l, xx]) => t(S.p, l, xx, y0 - 14, { font: B, size: 7, color: C.navy }));
-    for (const xx of [ML + cA, ML + cA + cN]) S.p.drawLine({ start: { x: xx, y: y0 }, end: { x: xx, y: y0 - h }, thickness: 0.6, color: C.linie });
-    sl.forEach((s, i) => {
-      const yb = y0 - kh - (i + 1) * rh;
-      S.p.drawLine({ start: { x: ML + 0.4, y: yb + rh }, end: { x: ML + W - 0.4, y: yb + rh }, thickness: i ? 0.6 : 0.8, color: C.linie });
-      if (s.art) t(S.p, kuerzen(s.art, R, 9.6, cA - 20), ML + 12, yb + 7, { size: 9.6 });
-      if (s.n !== '') t(S.p, String(s.n), ML + cA + 12, yb + 7, { font: B, size: 9.6 });
-      if (s.nr) t(S.p, kuerzen(s.nr, R, 9.6, W - cA - cN - 20), ML + cA + cN + 12, yb + 7, { size: 9.6 });
-    });
-    rund(S.p, ML, y0 - h, W, h, 6, { borderColor: C.linie, borderWidth: 0.8 });
-    S.y = y0 - h - 12;
-  }
   A('Die Beschaffung weiterer Schlüssel bedarf der Genehmigung des Vermieters. Bei Verlust oder Zerstörung von Schlüsseln zur Hauseingangstür ist der Vermieter im Interesse der Sicherheit des Hauses und der anderen Mieter berechtigt, auf Kosten des Mieters neue Schlösser mit der erforderlichen Anzahl von Schlüsseln anbringen zu lassen.');
 
   // § 2
@@ -518,15 +497,27 @@ export async function vertragPdf(d, x = {}) {
 
   // § 20
   // § 20 und Unterschriften gehören auf dieselbe Seite
-  const unterschriftH = Math.ceil((1 + Math.max(1, mieterNamen.length)) / 2) * 100 + 20;
-  platz((String(d.vereinbarungen || '').trim() ? 40 + umbruch([{ t: String(d.vereinbarungen) }], 9.6, W).length * 14 : 4 * 22 + 10) + 50 + unterschriftH);
+  const unterschriftH = 92 + Math.max(0, mieterNamen.length - 1) * 54 + 20;
+  platz(40 + Math.max(4, umbruch([{ t: String(d.vereinbarungen || '') }], 9.6, W).length + String(d.vereinbarungen || '').split('\n').length + 1) * 21 + unterschriftH);
   para(20, 'Individuelle Vereinbarungen');
-  if (String(d.vereinbarungen || '').trim()) absatz([{ t: String(d.vereinbarungen).trim(), b: false }], { nach: 10 });
-  else { platz(4 * 22); for (let i = 0; i < 4; i++) { S.y -= 20; S.p.drawLine({ start: { x: ML, y: S.y }, end: { x: ML + W, y: S.y }, thickness: 0.6, color: C.hellgrau }); } S.y -= 10; }
+  {
+    // Vereinbarungen stehen auf Schreiblinien; mehrere Punkte werden durchnummeriert, danach bleibt eine freie Linie
+    const punkte = String(d.vereinbarungen || '').split(/\n+/).map((s) => s.trim()).filter(Boolean);
+    const nummer = punkte.length > 1 && !punkte.every((s) => /^\d+[.)]/.test(s));
+    const zeilen = punkte.flatMap((s, i) => umbruch([{ t: nummer ? `${i + 1}. ${s}` : s }], 9.6, W - 4));
+    while (zeilen.length < 3) zeilen.push(null);
+    zeilen.push(null);
+    for (const z of zeilen) {
+      S.y -= 21;
+      if (z) zeichneZeile(S.p, z, ML + 1, S.y + 4.5, 9.6, C.ink);
+      S.p.drawLine({ start: { x: ML, y: S.y }, end: { x: ML + W, y: S.y }, thickness: 0.6, color: C.hellgrau });
+    }
+    S.y -= 12;
+  }
 
   // Unterschriften
   S.y -= 10;
-  unterschriften([`Vermieter${d.mvName ? ' – ' + d.mvName : ''}`, ...(mieterNamen.length ? mieterNamen : ['']).map((n) => `Mieter/in${n ? ' – ' + n : ''}`)], d.ort ? `${d.ort}, ` : '');
+  unterschriften(`Vermieter${d.mvName ? ' – ' + d.mvName : ''}`, (mieterNat.length ? mieterNat : ['']).map((n) => `Mieter/in${n ? ' · ' + n : ''}`), d.ort ? `${d.ort}, ` : '');
 
   /* ---------- Fußzeilen (auf Vertragsseiten mit Paraphen) ---------- */
   const n = seiten.length;

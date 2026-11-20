@@ -5,7 +5,7 @@ import { SQL, testConnection } from '../handwerker/store.js';
 import { ctx, header, go, relogin, ROLLEN, STATUS, eur, num, load } from './app.js';
 import { askBox, confirmBox, dlg, dt, esc, shrinkImage, toast } from '../handwerker/ui.js';
 import { randomCode, randomId, toB64 } from '../partner/crypto.js';
-import { AUSST, OBJ_FELDER, SEITEN, STP, UEBERNEHMBAR, ableiten, ibanOk, ibanSchoen, schluesselEditor, schluesselLesen, schluesselPlus, vorlageVon } from './mvfelder.js';
+import { AUSST, OBJ_FELDER, SEITEN, STP, UEBERNEHMBAR, ableiten, ibanOk, ibanSchoen, vorlageVon } from './mvfelder.js';
 
 const MIN_PW = 12;
 const app = document.getElementById('app');
@@ -134,7 +134,7 @@ function editObjekt(id) {
   const mvF = ([k, l, ph]) => {
     if (k === 'seite') return `<label class="f"><span>${l}</span><select name="mv_seite">${SEITEN.map(([v, t]) => `<option value="${v}"${(mv.seite ?? '') === v ? ' selected' : ''}>${v ? t : 'aus „Lage im Haus“'}</option>`).join('')}</select></label>`;
     if (k === 'stp') return `<label class="f"><span>${l}</span><select name="mv_stp">${STP.map((v) => `<option value="${v}"${(mv.stp ?? '') === v ? ' selected' : ''}>${v || 'keiner / aus Ausstattung'}</option>`).join('')}</select></label>`;
-    if (k === 'schluessel') return schluesselEditor(mv.schluessel, 'mvsl');
+    if (k === 'schluessel') return ''; // Schlüssel stehen nicht mehr im Vertrag (Übergabeprotokoll)
     if (k === 'vereinbarungen') return `<label class="f wide"><span>${l}</span><textarea name="mv_${k}" rows="2" maxlength="2500" placeholder="${esc(ph)}">${esc(mv[k] ?? '')}</textarea></label>`;
     const auto = k === 'geschoss' ? ab.geschoss : k === 'ort' ? ab.ort : '';
     return `<label class="f"><span>${l}</span><input name="mv_${k}" value="${esc(mv[k] ?? '')}" maxlength="200" placeholder="${esc(auto ? auto + ' (aus Objekt)' : ph)}" autocomplete="off"${['kv', 'stpKosten', 'kuecheKosten', 'nutzflaeche'].includes(k) ? ' inputmode="decimal"' : ''}></label>`;
@@ -161,7 +161,7 @@ function editObjekt(id) {
         <fieldset class="f wide vm-chk"><legend>Ausstattung laut Vertrag</legend>${AUSST.map(([k, l]) => `<label><input type="checkbox" name="mvau_${k}"${(typeof mv.ausst?.[k] === 'boolean' ? mv.ausst[k] : ab[k]) ? ' checked' : ''}> ${l}</label>`).join('')}</fieldset></div>
     </details>
     <p class="lg-err hidden" id="oErr" role="alert"></p><div class="acts sticky-save"><button class="btn fill">Übernehmen</button></div></form>`;
-  d.onclick = (e) => { if (e.target.closest('[data-a=close]')) d.close(); const p = e.target.closest('[data-sl-plus]'); if (p) schluesselPlus(d, p.dataset.slPlus); };
+  d.onclick = (e) => { if (e.target.closest('[data-a=close]')) d.close(); };
   // Kaution in Kaltmieten anzeigen (üblich: 2, höchstens 3 nach § 551 BGB)
   const kz = () => { const f = d.querySelector('#of'), km = Number(f.kaltmiete.value), ka = Number(f.kaution.value), h = d.querySelector('#kzHint'); const r = km > 0 && ka > 0 ? ka / km : 0; h.textContent = r ? `Kaution = ${r.toLocaleString('de-DE', { maximumFractionDigits: 2 })} Kaltmieten${r > 3.001 ? ' – höchstens 3 erlaubt' : ''}` : km > 0 ? `Leer lassen = 2,5 Kaltmieten (${(km * 2.5).toLocaleString('de-DE')} €) im Vertrag` : ''; h.classList.toggle('warn', r > 3.001); };
   d.querySelector('#of').addEventListener('input', (e) => { if (['kaltmiete', 'kaution'].includes(e.target.name)) kz(); }); kz();
@@ -182,7 +182,6 @@ function editObjekt(id) {
     if (nmv.iban) { if (!ibanOk(nmv.iban)) return toast('Die IBAN ist nicht gültig – bitte prüfen.', false); nmv.iban = ibanSchoen(nmv.iban); }
     for (const k of ['kv', 'stpKosten', 'kuecheKosten', 'nutzflaeche']) if (nmv[k] != null) { const z = Number(String(nmv[k]).replace(/\./g, '').replace(',', '.')); if (!Number.isFinite(z)) return toast(`„${OBJ_FELDER.find((x) => x[0] === k)[1]}“ bitte als Zahl.`, false); nmv[k] = z; }
     nmv.ausst = Object.fromEntries(AUSST.map(([k]) => [k, f[`mvau_${k}`].checked]));
-    const sl = schluesselLesen(f, 'mvsl'); if (sl.length) nmv.schluessel = sl;
     n.mv = nmv;
     if (!n.titel) return toast('Bitte Straße und Hausnummer eintragen.', false);
     if (!id) { let s = slug(n.titel + (n.lage ? '-' + n.lage : '')), i = 2; while (S.objekte.some((x) => x.id === s)) s = slug(n.titel) + '-' + i++; n.id = s; S.objekte.push(n); }
