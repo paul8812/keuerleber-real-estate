@@ -379,3 +379,7 @@ dialog.sheet .panel{overflow-x:hidden}
 .vm-kbtn small,.vm-kzhint{font-size:11.5px;color:var(--ink2);margin:0;align-self:center}
 .vm-kbtn small.warn,.vm-kzhint.warn{color:var(--warn);font-weight:700}
 @media (max-width:760px),(pointer:coarse){.vm-sl-z input,.vm-kbtn-r .btn{min-height:44px}.vm-sl-z{grid-template-columns:minmax(0,1fr) 54px minmax(0,.8fr)}}
+/* Heute zu tun */
+.vm-td b.vm-neu{color:var(--gold-t,var(--gold))}
+.vm-tm b .vm-wer{font-weight:400;color:var(--ink2)}
+.vm-mehr{margin-top:8px;font-size:12px}

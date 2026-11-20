@@ -277,20 +277,31 @@ function karte(o) {
     </div></article>`;
 }
 
-/** Was als Nächstes ansteht: Termine der nächsten 14 Tage und vergangene Termine ohne Ergebnis – über alle Objekte. */
-function alsNaechstes(alle) {
-  const bis = Date.now() + 14 * 864e5, l = [];
+/** „Heute zu tun“ über alle Objekte: neue Nachrichten, Termine, fehlende Ergebnisse, Unterlagen, Verträge. Wichtigstes zuerst. */
+function aufgaben(alle) {
+  const jetzt = Date.now(), bis = jetzt + 14 * 864e5, l = [];
   for (const o of alle) {
-    const s = stand(o.id);
-    for (const b of s.offen) l.push({ o, b, t: b.datum, offen: true });
-    for (const b of s.geplant) if (b.datum <= bis) l.push({ o, b, t: b.datum });
+    const s = stand(o.id), u = unread(tidOf(o.id)), on = `${o.titel}${o.lage ? ' · ' + o.lage : ''}`;
+    if (s.st === 'vermietet') { if (u) l.push({ o, p: 0, k: 'Neu', t: `${u} neue ${u === 1 ? 'Nachricht' : 'Nachrichten'}`, on, chat: true }); continue; }
+    if (u) l.push({ o, p: 0, k: 'Neu', t: `${u} neue ${u === 1 ? 'Nachricht' : 'Nachrichten'}`, on, chat: true });
+    for (const b of s.offen) l.push({ o, p: 1, k: tag(b.datum), warn: true, t: 'Ergebnis der Besichtigung eintragen', wer: b.wer, on, at: b.datum });
+    for (const b of s.geplant) if (b.datum <= bis) l.push({ o, p: 2, k: tag(b.datum), k2: `${uhr(b.datum)} Uhr`, t: 'Besichtigung', wer: b.wer, on, at: b.datum });
+    for (const k of s.aktiv) {
+      const da = dokZahl(k), hatVertrag = dokListe(k, 'mietvertrag').length > 0, weit = ['zusage', 'favorit', 'unterlagen'].includes(k.stand);
+      if (k.stand === 'zusage' && !hatVertrag) l.push({ o, p: 3, k: 'Vertrag', t: 'Mietvertrag erstellen', wer: k.name, on, kid: k.kid });
+      else if (da === CHECK.length && geprueftZahl(k) < CHECK.length) l.push({ o, p: 4, k: 'Prüfen', t: 'Unterlagen vollständig – prüfen', wer: k.name, on, kid: k.kid });
+      else if (weit && da < CHECK.length) l.push({ o, p: 5, k: 'Unterlagen', t: da ? `${CHECK.length - da} von ${CHECK.length} Unterlagen fehlen noch` : 'Unterlagen anfordern', wer: k.name, on, kid: k.kid });
+    }
   }
-  if (!l.length) return '';
-  l.sort((a, b) => (b.offen - a.offen) || (a.t - b.t));
-  return `<section class="panel vm-todo"><div class="ph"><h2>Als Nächstes</h2><small class="hint">${l.length} ${l.length === 1 ? 'Eintrag' : 'Einträge'}</small></div><ul>
-    ${l.slice(0, 8).map(({ o, b, offen }) => `<li><button data-oid="${esc(o.id)}"><span class="vm-td"><b>${tag(b.datum)}</b><small>${uhr(b.datum)} Uhr</small></span>
-      <span class="vm-tm"><b>${esc(o.titel)}${o.lage ? ` · ${esc(o.lage)}` : ''}</b><small>${offen ? '<em class="vm-warn">Ergebnis eintragen</em>' : 'Besichtigung'}${b.wer ? ` · <b class="vm-wer">${esc(b.wer)}</b>` : ''}</small></span><span class="vm-tp" aria-hidden="true">›</span></button></li>`).join('')}
-  </ul></section>`;
+  return l.sort((x, y) => (x.p - y.p) || ((x.at ?? 0) - (y.at ?? 0)));
+}
+function alsNaechstes(alle) {
+  const l = aufgaben(alle); if (!l.length) return '';
+  const zeig = ctx.todoAlle ? l : l.slice(0, 6);
+  return `<section class="panel vm-todo"><div class="ph"><h2>Heute zu tun</h2><small class="hint">${l.length} ${l.length === 1 ? 'Punkt' : 'Punkte'}</small></div><ul>
+    ${zeig.map((x) => `<li><button data-oid="${esc(x.o.id)}"${x.kid ? ` data-kid="${esc(x.kid)}"` : ''}${x.chat ? ' data-chat="1"' : ''}><span class="vm-td"><b${x.p === 0 ? ' class="vm-neu"' : ''}>${esc(x.k)}</b>${x.k2 ? `<small>${esc(x.k2)}</small>` : ''}</span>
+      <span class="vm-tm"><b>${x.warn ? `<em class="vm-warn">${esc(x.t)}</em>` : esc(x.t)}${x.wer ? ` · <span class="vm-wer">${esc(x.wer)}</span>` : ''}</b><small>${esc(x.on)}</small></span><span class="vm-tp" aria-hidden="true">›</span></button></li>`).join('')}
+  </ul>${l.length > 6 ? `<button class="linkbtn vm-mehr" id="todoMehr">${ctx.todoAlle ? 'Weniger anzeigen' : `Alle ${l.length} anzeigen`}</button>` : ''}</section>`;
 }
 
 const ORD = { vermarktung: 0, reserviert: 1, vorbereitung: 2, vermietet: 3 }; // Reihenfolge der Karten
@@ -314,7 +325,12 @@ function renderStart() {
   wire();
   document.getElementById('retry')?.addEventListener('click', async () => { await load(); render(); });
   app.querySelectorAll('[data-f]').forEach((b) => b.addEventListener('click', () => { ctx.filter = ctx.filter === b.dataset.f ? 'alle' : b.dataset.f; renderStart(); }));
-  app.querySelectorAll('.vm-todo [data-oid]').forEach((b) => b.addEventListener('click', () => go('objekt', b.dataset.oid)));
+  app.querySelectorAll('.vm-todo [data-oid]').forEach((b) => b.addEventListener('click', () => {
+    if (b.dataset.chat) ctx.seg = 'chat';
+    go('objekt', b.dataset.oid);
+    if (b.dataset.kid) kontaktOeffnen(b.dataset.kid); // direkt beim Interessenten landen
+  }));
+  document.getElementById('todoMehr')?.addEventListener('click', () => { ctx.todoAlle = !ctx.todoAlle; renderStart(); });
   app.querySelectorAll('.vm-card').forEach((k) => { const f = () => go('objekt', k.dataset.oid); k.addEventListener('click', f); k.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); f(); } }); });
 }
 
