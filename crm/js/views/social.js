@@ -152,8 +152,11 @@ export function render(el) {
   const avg = jetzt.posts.length ? jetzt.posts.reduce((s, p) => s + p.aufrufe, 0) / jetzt.posts.length : 0;
   const avgVorher = davor.posts.length ? davor.posts.reduce((s, p) => s + p.aufrufe, 0) / davor.posts.length : null;
   const allePosts = auswahl.flatMap(k => K[k].posts);
-  const top = [...(jetzt.posts.length >= 3 ? jetzt.posts : allePosts)].sort((a, b) => b.aufrufe - a.aufrufe).slice(0, 6);
-  const topAusZeitraum = jetzt.posts.length >= 3;
+  // Top-Beiträge: bei mehreren Kanälen die stärksten JE Kanal (sonst verdrängt der reichweitenstärkste Kanal alle anderen)
+  const jeKanal = auswahl.length > 1, proK = jeKanal ? Math.max(2, Math.floor(6 / auswahl.length)) : 6;
+  const topVon = k => { const imZ = proKanal[k].posts, L = imZ.length >= Math.min(3, proK) ? imZ : K[k].posts; return [...L].sort((a, b) => b.aufrufe - a.aufrufe).slice(0, proK); };
+  const topAusZeitraum = jeKanal ? auswahl.every(k => proKanal[k].posts.length >= Math.min(3, proK) || !K[k].posts.length) : jetzt.posts.length >= 3;
+  const top = jeKanal ? auswahl.flatMap(topVon) : [...(jetzt.posts.length >= 3 ? jetzt.posts : allePosts)].sort((a, b) => b.aufrufe - a.aufrufe).slice(0, 6);
   const v = jetzt.video, vv = davor.video;
   // Zusatzspalten in Tabellen/Tooltips nur, wenn irgendein Beitrag sie hat
   const hat = f => allePosts.some(p => p[f] != null);
@@ -193,7 +196,7 @@ export function render(el) {
     ${verbunden.length ? html`<section class="sm-kanalliste" aria-label="Kanäle">${verbunden.map((k, i) => kanalKarte(k, K[k], proKanal[k], proKanalVorher[k], n, i, verbunden.length > 1))}</section>` : ''}
 
     <section class="sm-sec sm-topsec">
-      <div class="sm-ch"><div><h2>Top-Beiträge</h2><p class="muted small">${topAusZeitraum ? `die stärksten der letzten ${n} Tage` : 'die stärksten insgesamt (im Zeitraum zu wenige)'} · antippen zum Abspielen</p></div></div>
+      <div class="sm-ch"><div><h2>Top-Beiträge</h2><p class="muted small">${jeKanal ? `die ${proK} stärksten je Kanal${topAusZeitraum ? ` in den letzten ${n} Tagen` : ' (wo im Zeitraum zu wenige: insgesamt)'}` : topAusZeitraum ? `die stärksten der letzten ${n} Tage` : 'die stärksten insgesamt (im Zeitraum zu wenige)'} · antippen zum Abspielen</p></div></div>
       <div class="sm-top">${top.map((p, i) => postKarte(p, i))}</div>
     </section>
 
