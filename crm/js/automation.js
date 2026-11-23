@@ -5,6 +5,7 @@ import { matchesForProperty, lastContact } from './ui.js';
 import { PIPELINES } from './consts.js';
 import * as google from './google.js';
 import { ausstehend } from './website.js';
+import * as KL from './kundenlinks.js';
 
 // Was in jeder Pipeline-Phase als Nächstes zu tun ist
 export const SCHRITTE = {
@@ -34,6 +35,11 @@ export const RULES = [
   { id: 'websiteFehlt', name: 'Aktives Objekt nicht online → veröffentlichen', desc: 'Aktive Objekte, die nicht auf keuerleber-immobilien.de stehen (oder ungespeicherte Änderungen haben), erzeugen eine Aufgabe.', days: 2, unit: 'Tage Wartezeit' },
   { id: 'autoErledigt', name: 'Kontakt aufgenommen → Aufgabe erledigt', desc: 'Sobald du einen Anruf, eine Mail oder ein Treffen beim Kontakt einträgst (oder eine Mail aus Outlook rausgeht), haken sich „Erstkontakt“, „Feedback“, „Nachfassen“ usw. selbst ab.', days: null },
   { id: 'belegPruefen', name: 'KI-Beleg unsicher → prüfen', desc: 'Belege, bei denen die KI unsicher war oder einen Hinweis hat (z. B. Bewirtung), erzeugen eine Prüf-Aufgabe. Offene Eingangsrechnungen erzeugen „Rechnung bezahlen“.', days: null },
+  { id: 'linkNachfassen', name: 'Kundenlink ohne Reaktion → nachfassen', desc: 'Hast du Exposé und Unterlagen per Kundenlink verschickt und es kam kein Kontakt zustande, entsteht eine Aufgabe – mit Hinweis, ob der Link geöffnet wurde, und einem Textvorschlag.', days: 3, unit: 'Tage nach Versand' },
+  { id: 'auskunftErinnern', name: 'Selbstauskunft offen → erinnern', desc: 'Angeforderte Selbstauskunft noch nicht ausgefüllt: Aufgabe mit fertigem Erinnerungstext.', days: 3, unit: 'Tage nach Versand' },
+  { id: 'auskunftPruefen', name: 'Selbstauskunft eingegangen → prüfen', desc: 'Sobald ein Mietinteressent die Selbstauskunft absendet, entsteht „Selbstauskunft prüfen“ mit den wichtigsten Angaben.', days: null },
+  { id: 'terminEinladung', name: 'Terminlink ohne Buchung → nachfassen', desc: 'Interessent hat den Terminlink bekommen, aber keinen Termin gebucht: Aufgabe mit Textvorschlag.', days: 2, unit: 'Tage nach Versand' },
+  { id: 'onlineBuchung', name: 'Online gebuchter Termin → Anfrage auf „Besichtigung“', desc: 'Bucht ein Interessent über den Terminlink, steht der Termin im Kalender und die Anfrage springt auf „Besichtigung“.', days: null },
   { id: 'statusSync', name: 'Pipeline → Objektstatus', desc: 'Reservierung/Notartermin im Vertrieb setzt das Objekt automatisch auf „Reserviert“/„Notartermin“.', days: null },
 ];
 export const ruleCfg = () => { const saved = db.settings().auto || {}; return Object.fromEntries(RULES.map(r => [r.id, { on: true, days: r.days, ...(saved[r.id] || {}) }])); };
@@ -55,6 +61,10 @@ export async function run({ manual = false } = {}) {
     const contacts = db.all('contacts'), props = db.all('properties'), deals = db.all('deals'), events = db.all('events');
     const isOpen = x => { const P = PIPELINES[x.board]; return P && x.stage !== P.won && x.stage !== P.lost; };
 
+    // Kundenlinks: Online-Buchungen übernehmen, Nachfass-Aufgaben mit Textvorschlag
+    if (on('onlineBuchung')) { const nb = await KL.buchungenVerarbeiten(); if (nb) toast(`🗓 ${nb} neue Online-Buchung${nb === 1 ? '' : 'en'} im Kalender`); }
+    { const REGEL = { ln: 'linkNachfassen', ae: 'auskunftErinnern', ap: 'auskunftPruefen', te: 'terminEinladung' };
+      for (const v of KL.nachfassen({ objekt: d('linkNachfassen') || 3, auskunft: d('auskunftErinnern') || 3, termin: d('terminEinladung') || 2 })) if (on(REGEL[v.key.slice(0, 2)])) await mk(v.key, v.titel, v.faellig, v.ref, v.prio || 'normal'); }
     if (on('neuerInteressent')) for (const c of contacts) if ((c.kategorie || '').startsWith('Interessent') && c.status !== 'Archiv' && c.created && daysBetween(c.created.slice(0, 10), t0) <= 7)
       await mk('ni:' + c.id, `Erstkontakt: ${fullName(c)}`, addDays(c.created.slice(0, 10), d('neuerInteressent')), { contactId: c.id }, 'hoch');
     if (on('besichtigungFeedback')) for (const e of events) if (e.art === 'Besichtigung' && e.contactId && e.datum < t0 && daysBetween(e.datum, t0) <= 21)
