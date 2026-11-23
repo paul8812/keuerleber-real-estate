@@ -7,6 +7,7 @@ import { html, raw, esc, modal, toast, fmtDT, fullName, uid, today } from '../ut
 import { eventForm } from '../forms.js';
 import { vorWann } from '../kontakt.js';
 import { haptik } from '../haptik.js';
+import * as KL from '../kundenlinks.js';
 
 const z = { filter: 'offen', inserat: '', ansicht: 'karten', auf: new Set(), archivAuf: false };
 const FILTER = [['offen', 'Offen', g => P.OFFEN.includes(st(g))], ['neu', 'Neu', g => st(g) === 'neu'], ['versucht', 'Nicht erreicht', g => st(g) === 'versucht'], ['kontaktiert', 'Kontaktiert', g => st(g) === 'kontaktiert'], ['besichtigung', 'Besichtigung', g => st(g) === 'besichtigung'],
@@ -138,7 +139,7 @@ export function render(el) {
       <div class="actions"><button type="button" class="btn" id="an-neu">+ Anfrage von Hand</button></div></div>
     ${offenO ? html`<div class="an-pfad">${einzel ? '' : html`<button type="button" class="btn ghost small" data-ins="">← Alle Ordner</button>`}
       <div class="an-pfadt"><b>${ord && ord.archiv ? '🗄' : '📁'} ${ord ? ord.name : 'Alle Anfragen'}${ord && ord.archiv ? html` <span class="an-z">Archiv</span>` : ''}</b><small class="muted">${ord ? [ord.nummern.join(' + '), ord.titel && ord.name !== ord.titel ? kurz(ord.titel) : '', ord.objekt ? '⌂ ' + ord.objekt.titel : 'kein Objekt zugeordnet'].filter(Boolean).join(' · ') : 'aus allen Ordnern'}</small></div>
-      ${ord ? html`<button type="button" class="btn small" data-ordbilder="${ord.k}">🖼 Bilder${ord.bilder.length ? ' (' + ord.bilder.length + ')' : ' hinzufügen'}</button><button type="button" class="btn small" data-ordedit="${ord.k}">✎ Benennen / zuordnen</button>${ord.url ? html`<a class="lnk small" href="${ord.url}" target="_blank" rel="noopener">Inserat ansehen ↗</a>` : ''}` : ''}</div>` : ''}
+      ${ord ? html`<button type="button" class="btn small" data-ordbilder="${ord.k}">🖼 Bilder${ord.bilder.length ? ' (' + ord.bilder.length + ')' : ' hinzufügen'}</button><button type="button" class="btn small" data-ordedit="${ord.k}">✎ Benennen / zuordnen</button>${(() => { const T = KL.terminStand(ord.k); return html`<button type="button" class="btn small" data-termine="${ord.k}">🗓 Besichtigungstermine${T.link ? ` (${T.frei} frei${T.gebucht ? ` · ${T.gebucht} gebucht` : ''})` : ''}</button>`; })()}${ord.url ? html`<a class="lnk small" href="${ord.url}" target="_blank" rel="noopener">Inserat ansehen ↗</a>` : ''}` : ''}</div>` : ''}
     ${ord && ord.bilder.length ? html`<div class="an-galerie">${ord.bilder.map((id, n) => html`<button type="button" data-zeig="${n}" data-ordk="${ord.k}" aria-label="Bild ${n + 1} groß ansehen"><img data-bild="${id}" alt="" loading="lazy"></button>`)}</div>` : ''}
     <div class="kpis strip an-kpis">
       <div class="kpi"><span>Neu</span><b class="${n('neu') ? 'gold' : ''}">${n('neu')}</b></div>
@@ -181,6 +182,11 @@ function karte(g, ins = []) {
       ${g.email ? html`<a class="btn" href="${mailLink(g, 'antwort')}" data-k title="${g.email}">✉ Antworten</a>` : ''}
       <button type="button" class="btn" data-besichtigung>▦ Besichtigung</button>
     </div>
+    ${['absage', 'archiv'].includes(s) ? '' : html`<div class="an-kontakt kl-knoepfe">
+      <button type="button" class="btn small" data-terminlink title="Interessent sucht sich selbst einen Besichtigungstermin aus">🗓 Terminlink schicken</button>
+      <button type="button" class="btn small" data-auskunft title="Selbstauskunft als Online-Formular anfordern">📝 Selbstauskunft anfordern</button>
+    </div>`}
+    ${KL.anfrageStatus(g, ins.find(i => i.k === inseratK(g)))}
     <div class="an-erg" role="group" aria-label="Ergebnis festhalten"><span class="muted small">Ergebnis:</span>${Object.entries(P.VERSUCH).map(([k, v]) => html`<button type="button" class="chip an-vb" data-versuch="${k}">${v.icon} ${v.name}</button>`)}</div>
     ${(h.versuche || []).length ? html`<ul class="an-verlauf">${[...h.versuche].reverse().slice(0, auf ? 20 : 3).map(v => html`<li><span aria-hidden="true">${P.VERSUCH[v.art]?.icon || '•'}</span><b>${P.VERSUCH[v.art]?.name || v.art}</b><small class="muted">${vorWann(v.zeit)} · ${fmtDT(v.zeit)}</small>${v.notiz ? html`<em>${v.notiz}</em>` : ''}</li>`)}${!auf && h.versuche.length > 3 ? html`<li class="muted small">+ ${h.versuche.length - 3} frühere</li>` : ''}</ul>` : ''}
     <footer class="an-fuss2">
@@ -254,6 +260,7 @@ function binden(el) {
     const g = grp(b), h = g.haupt;
     eventForm({ titel: `Besichtigung: ${g.name}`, art: 'Besichtigung', datum: today(), contactId: h.contactId || '', propertyId: P.objektFuer(h) || '', notiz: [g.tel, g.email].filter(Boolean).join(' · ') }, async () => { await P.status(g, 'besichtigung'); toast(`Besichtigung mit ${vorname(g.name)} geplant`); });
   });
+  KL.anfrageBinden(el, grp, g => P.inserate().find(i => i.k === inseratK(g)));
   el.querySelectorAll('[data-notiz]').forEach(t => {
     const hoch = () => { t.style.height = 'auto'; t.style.height = Math.min(160, t.scrollHeight + 2) + 'px'; }; hoch(); t.oninput = hoch;
     t.onchange = async () => { const g = grp(t); if (g && (g.haupt.notiz || '') !== t.value.trim()) { await P.setzen(g, { notiz: t.value.trim() }); toast('Notiz gespeichert'); } };

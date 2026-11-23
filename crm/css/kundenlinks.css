@@ -1,0 +1,31 @@
+/* Kundenlinks: Objekt-Links, Terminbuchung, Selbstauskunft */
+.kl-wege{display:flex;flex-wrap:wrap;gap:8px}
+.kl-liste{list-style:none;margin:0;padding:0}
+.kl-liste li{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line)}
+.kl-liste li:first-child{border-top:0}
+.kl-liste li>div{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.kl-liste small{font-size:12.5px}
+.kl-pkt{flex:none;width:9px;height:9px;border-radius:50%;background:var(--line);border:1px solid var(--mut)}
+.kl-liste li.offen .kl-pkt{background:var(--ok);border-color:var(--ok)}
+.kl-liste li.aus{opacity:.55}
+.kl-auf{color:var(--ok)}
+.kl-akt{display:flex;gap:6px;flex:none}
+.kl-knoepfe{margin-top:-2px}
+.kl-status{display:flex;flex-direction:column;gap:6px;margin:2px 0 4px}
+.kl-chip{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:13px;color:var(--mut);background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:7px 10px}
+.kl-chip.ok{color:var(--txt);border-color:rgba(91,191,138,.45);background:rgba(91,191,138,.07)}
+.kl-chip .mini{margin-left:2px}
+.kl-kurz{display:flex;flex-wrap:wrap;gap:6px}
+.kl-tag{display:grid;grid-template-columns:86px 1fr;gap:10px;align-items:start;padding:8px 0;border-top:1px solid var(--line)}
+.kl-tag:first-child{border-top:0}
+.kl-tag>div{display:flex;flex-wrap:wrap;gap:6px}
+.kl-slot{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-variant-numeric:tabular-nums;padding:4px 6px 4px 10px;border-radius:99px;border:1px solid var(--line);background:var(--panel2)}
+.kl-slot button{border:0;background:none;color:var(--mut);font:inherit;cursor:pointer;padding:0 4px;line-height:1}
+.kl-slot button:hover{color:#e07a5a}
+.kl-slot.belegt{border-color:rgba(201,169,110,.55);background:rgba(201,169,110,.1);padding-right:10px}
+.kl-slot em{font-style:normal;color:var(--gold)}
+.kl-sa h4{margin:10px 0 6px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
+.kl-sa dl{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:5px 16px;margin:0;font-size:14px}
+.kl-sa dt{color:var(--mut)}.kl-sa dd{margin:0}.kl-sa dd.warn{color:#e07a5a;font-weight:600}
+@media (max-width:700px){.kl-sa dl{grid-template-columns:1fr;gap:1px 0}.kl-sa dd{margin-bottom:7px}.kl-tag{grid-template-columns:1fr;gap:4px}}
+.kl-chip.warn{color:var(--txt);border-color:rgba(224,122,90,.5);background:rgba(224,122,90,.08)}

@@ -7,6 +7,7 @@ import { empty, timeline, cLink, statusBadge, badge, adresse, preisM2, matchesFo
 import { taskRow, bindTasks } from './tasks.js';
 import * as W from '../website.js';
 import * as U from '../unterlagen.js';
+import * as KL from '../kundenlinks.js';
 
 // Website: alle Objekte veröffentlichen, mit Fortschritt im Toast
 export async function websiteVeroeffentlichen(btn) {
@@ -130,6 +131,7 @@ function detail(el, id) {
         ${p.beschreibung ? html`<h3>Beschreibung</h3><p class="note">${p.beschreibung}</p>` : ''}${p.ausstattung ? html`<h3>Ausstattung / Lage</h3><p class="note">${p.ausstattung}</p>` : ''}${p.notiz ? html`<h3>Interne Notiz</h3><p class="note">${p.notiz}</p>` : ''}</section>
       ${exposeZeile(p)}
       ${U.karte(p)}
+      ${KL.objektKarte(p)}
       <section class="card"><h2>Passende Interessenten</h2>${matches.length ? html`<ul class="list">${matches.slice(0, 10).map(x => html`<li><b class="when">${x.m.score}%</b><div class="grow"><div class="ttl">${cLink(x.c.id)}</div><div class="sub">passt: ${x.m.hits.join(', ')}${x.c.sp_budgetMax ? ' · Budget ' + eur(x.c.sp_budgetMax) : ''}</div></div></li>`)}</ul>` : html`<p class="muted">Keine Treffer. Suchprofile bei Interessenten pflegen.</p>`}</section>
     </div><div>
       <section class="card"><h2>Vorgänge <button class="mini" data-deal>+</button></h2>${deals.length ? html`<ul class="list">${deals.map(d => html`<li data-deal-id="${d.id}"><div class="grow"><div class="ttl">${d.titel}</div><div class="sub">${sl(d.stage)} ${d.contactId ? '· ' : ''}${d.contactId ? cLink(d.contactId) : ''}</div></div></li>`)}</ul>` : html`<p class="muted">Keine Vorgänge</p>`}</section>
@@ -137,7 +139,7 @@ function detail(el, id) {
       <section class="card"><h2>Termine <button class="mini" data-event>+</button></h2>${evs.length ? html`<ul class="list">${evs.map(e => html`<li data-ev="${e.id}"><b class="when">${fmtDate(e.datum)}</b><div class="grow"><div class="ttl">${e.titel}</div><div class="sub">${e.art}${e.contactId ? html` · ${cLink(e.contactId)}` : ''}</div></div></li>`)}</ul>` : html`<p class="muted">Keine Termine</p>`}</section>
       <section class="card"><h2>Verlauf <button class="mini" data-act>+ Eintrag</button></h2>${timeline(acts, { showRefs: true })}</section>
     </div></div>`.s;
-  bindTasks(el); U.binden(el, p);
+  bindTasks(el); U.binden(el, p); KL.objektBinden(el, p);
   el.querySelector('[data-edit]').onclick = () => propertyForm(p);
   const wc = el.querySelector('.webcard') || document.createElement('div');
   wc.querySelector('[data-web=pub]')?.addEventListener('click', e => websiteVeroeffentlichen(e.currentTarget));
