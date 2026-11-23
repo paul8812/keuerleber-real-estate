@@ -2136,7 +2136,7 @@ footer{flex-wrap:wrap}
 #finder,#faq,#ueber-mich,#kontakt,#vorabliste,#drone-banner{content-visibility:auto;contain-intrinsic-size:auto 800px}
 @media(max-width:900px){#kp-grain{display:none!important}.hub-bar{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(8,8,8,.97)!important}}
 </style>
-<link rel="stylesheet" href="/design-v2.css?v=14">
+<link rel="stylesheet" href="/design-v2.css?v=15">
 </head>
 <body>
 <a class="skip-link" href="#hub-objekte">Zum Inhalt springen</a>
@@ -2561,15 +2561,16 @@ footer{flex-wrap:wrap}
   <div class="rc-inner">
     <div class="rc-head">
       <p class="section-label" data-i18n="rc_label">Selbst durchrechnen</p>
-      <h2 data-i18n-html="rc_h2">Rechnen Sie Ihre <em>eigene Rendite</em></h2>
-      <p data-i18n="rc_lead">Dieselbe Kalkulation, mit der wir jedes Objekt prüfen. Hier mit Ihren eigenen Zahlen. Tragen Sie ein oder schieben Sie den Regler; alle Ergebnisse rechnen sich sofort neu.</p>
+      <h2 data-i18n-html="rc_h2">Rechnen Sie selbst: <em>Was bleibt übrig?</em></h2>
+      <p data-i18n="rc_lead">Sechs Angaben genügen. Sie sehen sofort, was die Wohnung Sie im Monat kostet oder bringt.</p>
     </div>
     <div class="rc-grid">
 
       <div class="rc-panel">
-        <p class="rf-gruppe" data-i18n="rf_g_ein">Ihre Eingaben</p>
+        <p class="rf-gruppe" data-i18n="rf_g_ein">Ihre Angaben</p>
 <div class="rf-feld">
   <label for="rcKp" data-i18n="rf_kp">Kaufpreis</label>
+  <small class="rf-hilfe" data-i18n="rh_kp">Was die Wohnung kostet, ohne Nebenkosten.</small>
   <div class="rf-eing">
     <input type="number" id="rcKp" value="210000" min="50000" max="900000" step="500" inputmode="decimal">
     <span>€</span>
@@ -2578,6 +2579,7 @@ footer{flex-wrap:wrap}
 </div>
 <div class="rf-feld">
   <label for="rcQm" data-i18n="rf_qm">Wohnfläche</label>
+  <small class="rf-hilfe" data-i18n="rh_qm">Größe der Wohnung laut Exposé.</small>
   <div class="rf-eing">
     <input type="number" id="rcQm" value="78" min="20" max="250" step="0.01" inputmode="decimal">
     <span>m²</span>
@@ -2585,7 +2587,8 @@ footer{flex-wrap:wrap}
   <input type="range" id="rcQm_s" value="78" min="20" max="250" step="0.01" tabindex="-1" aria-hidden="true">
 </div>
 <div class="rf-feld">
-  <label for="rcMi" data-i18n="rf_mi">Miete pro m² (kalt)</label>
+  <label for="rcMi" data-i18n="rf_mi">Kaltmiete pro m²</label>
+  <small class="rf-hilfe" data-i18n="rh_mi">Monatliche Kaltmiete geteilt durch die Wohnfläche. In Hof oft zwischen 8 und 11 €.</small>
   <div class="rf-eing">
     <input type="number" id="rcMi" value="11" min="3" max="30" step="0.05" inputmode="decimal">
     <span>€</span>
@@ -2593,23 +2596,8 @@ footer{flex-wrap:wrap}
   <input type="range" id="rcMi_s" value="11" min="3" max="30" step="0.05" tabindex="-1" aria-hidden="true">
 </div>
 <div class="rf-feld">
-  <label for="rcNkP" data-i18n="rf_nk">Kaufnebenkosten</label>
-  <div class="rf-eing">
-    <input type="number" id="rcNkP" value="5.5" min="0" max="15" step="0.1" inputmode="decimal">
-    <span>%</span>
-  </div>
-  <input type="range" id="rcNkP_s" value="5.5" min="0" max="15" step="0.1" tabindex="-1" aria-hidden="true">
-</div>
-<div class="rf-feld">
-  <label for="rcGa" data-i18n="rf_ga">Gebäudeanteil (für AfA)</label>
-  <div class="rf-eing">
-    <input type="number" id="rcGa" value="80" min="50" max="100" step="1" inputmode="decimal">
-    <span>%</span>
-  </div>
-  <input type="range" id="rcGa_s" value="80" min="50" max="100" step="1" tabindex="-1" aria-hidden="true">
-</div>
-<div class="rf-feld">
-  <label for="rcEkP" data-i18n="rf_ek">Eigenkapitalquote</label>
+  <label for="rcEkP" data-i18n="rf_ek">Eigenkapital</label>
+  <small class="rf-hilfe" data-i18n="rh_ek">So viel vom Kaufpreis zahlen Sie selbst. Die Kaufnebenkosten kommen noch dazu.</small>
   <div class="rf-eing">
     <input type="number" id="rcEkP" value="10" min="0" max="100" step="1" inputmode="decimal">
     <span>%</span>
@@ -2617,7 +2605,8 @@ footer{flex-wrap:wrap}
   <input type="range" id="rcEkP_s" value="10" min="0" max="100" step="1" tabindex="-1" aria-hidden="true">
 </div>
 <div class="rf-feld">
-  <label for="rcZiP" data-i18n="rf_zi">Zinssatz p. a.</label>
+  <label for="rcZiP" data-i18n="rf_zi">Zinssatz</label>
+  <small class="rf-hilfe" data-i18n="rh_zi">Der Zinssatz, den Ihre Bank anbietet.</small>
   <div class="rf-eing">
     <input type="number" id="rcZiP" value="3.6" min="0.5" max="8" step="0.05" inputmode="decimal">
     <span>%</span>
@@ -2625,7 +2614,30 @@ footer{flex-wrap:wrap}
   <input type="range" id="rcZiP_s" value="3.6" min="0.5" max="8" step="0.05" tabindex="-1" aria-hidden="true">
 </div>
 <div class="rf-feld">
-  <label for="rcTiP" data-i18n="rf_ti">Anfängliche Tilgung p. a.</label>
+  <label for="rcStP" data-i18n="rf_st">Ihr Steuersatz</label>
+  <small class="rf-hilfe" data-i18n="rh_st">Der Steuersatz auf Ihren letzten verdienten Euro. Wenn Sie ihn nicht kennen, wählen Sie ungefähr:</small>
+  <div class="rf-chips" id="rfStChips"><button type="button" data-v="30">30 %</button><button type="button" data-v="35">35 %</button><button type="button" data-v="42">42 %</button></div>
+  <div class="rf-eing">
+    <input type="number" id="rcStP" value="35" min="0" max="45" step="1" inputmode="decimal">
+    <span>%</span>
+  </div>
+  <input type="range" id="rcStP_s" value="35" min="0" max="45" step="1" tabindex="-1" aria-hidden="true">
+</div>
+<details class="rf-details rf-mehr">
+<summary data-i18n="rf_mehr">Weitere Angaben anpassen</summary>
+<p class="rf-mini" data-i18n="rf_mehr_p">Vorbelegt mit üblichen Werten. Ändern Sie sie nur, wenn Sie es genauer wissen.</p>
+<div class="rf-feld">
+  <label for="rcNkP" data-i18n="rf_nk">Kaufnebenkosten</label>
+  <small class="rf-hilfe" data-i18n="rh_nk">Grunderwerbsteuer, Notar und Grundbuch. In Bayern rund 5 bis 5,5 %.</small>
+  <div class="rf-eing">
+    <input type="number" id="rcNkP" value="5.5" min="0" max="15" step="0.1" inputmode="decimal">
+    <span>%</span>
+  </div>
+  <input type="range" id="rcNkP_s" value="5.5" min="0" max="15" step="0.1" tabindex="-1" aria-hidden="true">
+</div>
+<div class="rf-feld">
+  <label for="rcTiP" data-i18n="rf_ti">Tilgung im ersten Jahr</label>
+  <small class="rf-hilfe" data-i18n="rh_ti">So viel vom Darlehen zahlen Sie im ersten Jahr zurück.</small>
   <div class="rf-eing">
     <input type="number" id="rcTiP" value="2" min="0.5" max="10" step="0.05" inputmode="decimal">
     <span>%</span>
@@ -2633,7 +2645,8 @@ footer{flex-wrap:wrap}
   <input type="range" id="rcTiP_s" value="2" min="0.5" max="10" step="0.05" tabindex="-1" aria-hidden="true">
 </div>
 <div class="rf-feld">
-  <label for="rcHgG" data-i18n="rf_hg">Hausgeld gesamt pro Monat</label>
+  <label for="rcHgG" data-i18n="rf_hg">Hausgeld pro Monat</label>
+  <small class="rf-hilfe" data-i18n="rh_hg">Monatliche Zahlung an die Hausverwaltung.</small>
   <div class="rf-eing">
     <input type="number" id="rcHgG" value="195" min="0" max="800" step="5" inputmode="decimal">
     <span>€</span>
@@ -2641,7 +2654,8 @@ footer{flex-wrap:wrap}
   <input type="range" id="rcHgG_s" value="195" min="0" max="800" step="5" tabindex="-1" aria-hidden="true">
 </div>
 <div class="rf-feld">
-  <label for="rcHgN" data-i18n="rf_hgn">davon nicht umlagefähig</label>
+  <label for="rcHgN" data-i18n="rf_hgn">davon nicht umlegbar</label>
+  <small class="rf-hilfe" data-i18n="rh_hgn">Der Teil des Hausgelds, den Sie nicht auf den Mieter umlegen dürfen, zum Beispiel Verwaltung und Rücklage.</small>
   <div class="rf-eing">
     <input type="number" id="rcHgN" value="40" min="0" max="400" step="0.05" inputmode="decimal">
     <span>€</span>
@@ -2649,51 +2663,57 @@ footer{flex-wrap:wrap}
   <input type="range" id="rcHgN_s" value="40" min="0" max="400" step="0.05" tabindex="-1" aria-hidden="true">
 </div>
 <div class="rf-feld">
-  <label for="rcAfP" data-i18n="rf_afa">AfA-Satz Gebäude</label>
+  <label for="rcGa" data-i18n="rf_ga">Anteil des Gebäudes am Kaufpreis</label>
+  <small class="rf-hilfe" data-i18n="rh_ga">Nur das Gebäude wird abgeschrieben, nicht das Grundstück.</small>
+  <div class="rf-eing">
+    <input type="number" id="rcGa" value="80" min="50" max="100" step="1" inputmode="decimal">
+    <span>%</span>
+  </div>
+  <input type="range" id="rcGa_s" value="80" min="50" max="100" step="1" tabindex="-1" aria-hidden="true">
+</div>
+<div class="rf-feld">
+  <label for="rcAfP" data-i18n="rf_afa">Abschreibung pro Jahr (AfA)</label>
+  <small class="rf-hilfe" data-i18n="rh_afa">Üblich sind 2 %. Mit Restnutzungsdauer-Gutachten kann der Satz höher sein.</small>
   <div class="rf-eing">
     <input type="number" id="rcAfP" value="2" min="1" max="8" step="0.01" inputmode="decimal">
     <span>%</span>
   </div>
   <input type="range" id="rcAfP_s" value="2" min="1" max="8" step="0.01" tabindex="-1" aria-hidden="true">
 </div>
-<div class="rf-feld">
-  <label for="rcStP" data-i18n="rf_st">Persönlicher Steuersatz</label>
-  <div class="rf-eing">
-    <input type="number" id="rcStP" value="35" min="0" max="45" step="1" inputmode="decimal">
-    <span>%</span>
-  </div>
-  <input type="range" id="rcStP_s" value="35" min="0" max="45" step="1" tabindex="-1" aria-hidden="true">
-</div>
+</details>
         <button type="button" class="rf-reset" id="rfReset" data-i18n="rf_reset">Auf Beispielwerte zurücksetzen</button>
       </div>
 
       <div class="rc-panel rc-erg">
         <div class="rc-haupt">
-          <div class="rc-haupt-l" data-i18n="rc_r_haupt">Cashflow nach Steuern</div>
+          <div class="rc-haupt-l" data-i18n="rc_r_haupt">Das bleibt Ihnen</div>
           <div class="rc-haupt-v" id="rcNach">–</div>
-          <div class="rc-haupt-s" data-i18n="rc_r_mtl">pro Monat</div>
+          <div class="rc-haupt-s" data-i18n="rc_r_mtl">pro Monat, nach Steuern</div>
+          <p class="rc-satz" id="rcSatz" aria-live="polite"></p>
         </div>
 
-        <p class="rf-gruppe" data-i18n="rf_g_cf">Monatlicher Cashflow (Jahr 1)</p>
+        <p class="rf-gruppe" data-i18n="rf_g_cf">So setzt es sich zusammen (pro Monat)</p>
         <div class="rf-block">
-          <div class="rf-z plus"><span data-i18n="rf_c_miete">+ Kaltmiete</span><b id="rfCfMiete">–</b></div>
-          <div class="rf-z minus"><span data-i18n="rf_c_rate">− Kreditrate (Zins + Tilgung)</span><b id="rfCfRate">–</b></div>
-          <div class="rf-z minus"><span data-i18n="rf_c_hg">− nicht umlagefähiges Hausgeld</span><b id="rfCfHg">–</b></div>
-          <div class="rf-z zwischen"><span data-i18n="rf_c_vor">Σ Cashflow vor Steuern</span><b id="rfCfVor">–</b></div>
-          <div class="rf-z plus"><span data-i18n="rf_c_st">+ Steuereffekt pro Monat</span><b id="rfCfSt">–</b></div>
-          <div class="rf-z ergebnis"><span data-i18n="rf_c_nach">Σ Cashflow nach Steuern</span><b id="rfCfNach">–</b></div>
+          <div class="rf-z plus"><span data-i18n="rf_c_miete">+ Miete vom Mieter</span><b id="rfCfMiete">–</b></div>
+          <div class="rf-z minus"><span data-i18n="rf_c_rate">− Rate an die Bank</span><b id="rfCfRate">–</b></div>
+          <div class="rf-z minus"><span data-i18n="rf_c_hg">− Hausgeld, das Sie selbst tragen</span><b id="rfCfHg">–</b></div>
+          <div class="rf-z zwischen"><span data-i18n="rf_c_vor">= Übrig vor Steuern</span><b id="rfCfVor">–</b></div>
+          <div class="rf-z plus"><span data-i18n="rf_c_st">+ Steuerwirkung</span><b id="rfCfSt">–</b></div>
+          <div class="rf-z ergebnis"><span data-i18n="rf_c_nach">= Übrig nach Steuern</span><b id="rfCfNach">–</b></div>
         </div>
 
-        <p class="rf-gruppe" data-i18n="rf_g_rend">Renditen</p>
-        <div class="rc-kennz">
+        <details class="rf-details">
+          <summary data-i18n="rf_g_rend">Renditen und Kennzahlen</summary>
+          <div class="rc-kennz">
           <div><b id="rfBrutto">–</b><span data-i18n="rf_k1">Brutto-Mietrendite</span></div>
           <div><b id="rfBruttoNk">–</b><span data-i18n="rf_k2">Brutto inkl. Nebenkosten</span></div>
           <div><b id="rfNetto">–</b><span data-i18n="rf_k3">Netto-Mietrendite*</span></div>
           <div><b id="rfFaktor">–</b><span data-i18n="rf_k4">Kaufpreisfaktor</span></div>
         </div>
+        </details>
 
         <details class="rf-details">
-          <summary data-i18n="rf_g_eck">Eckdaten der Finanzierung</summary>
+          <summary data-i18n="rf_g_eck">Alle Zahlen zur Finanzierung</summary>
           <div class="rf-block">
           <div class="rf-z"><span data-i18n="rf_r_miete">Kaltmiete pro Monat</span><b id="rfMieteM">–</b></div>
           <div class="rf-z"><span data-i18n="rf_r_mietej">Jahreskaltmiete</span><b id="rfMieteJ">–</b></div>
@@ -2711,7 +2731,7 @@ footer{flex-wrap:wrap}
         </details>
 
         <details class="rf-details">
-          <summary data-i18n="rf_g_be">Break-even: ab wann es aufgeht</summary>
+          <summary data-i18n="rf_g_be">Ab wann trägt sich die Wohnung selbst?</summary>
           <div class="rf-block">
           <div class="rf-z"><span data-i18n="rf_b_miete">Erforderliche Kaltmiete pro Monat</span><b id="rfBeMiete">–</b></div>
           <div class="rf-z"><span data-i18n="rf_b_qm">… entspricht pro m²</span><b id="rfBeQm">–</b></div>
@@ -5343,6 +5363,9 @@ function lies(id){
     var m = modell();
 
     setz('rcNach', sig(m.cfNach));
+    var satz=document.getElementById('rcSatz');
+    if(satz){ var bx=Math.round(Math.abs(m.cfNach)); satz.textContent = bx<5 ? txt('rc_s_null','Die Wohnung trägt sich ungefähr selbst.') : (m.cfNach>0 ? txt('rc_s_plus','Die Wohnung trägt sich selbst. Ihnen bleiben jeden Monat rund {x} übrig.') : txt('rc_s_minus','Sie zahlen jeden Monat rund {x} dazu. Dafür gehört Ihnen mit jeder Rate ein Stück mehr von der Wohnung.')).replace('{x}', eur(bx)); satz.className='rc-satz '+(m.cfNach>=-5?'gut':'dazu'); }
+    [].forEach.call(document.querySelectorAll('#rfStChips button'),function(b){ b.classList.toggle('an', +b.dataset.v===Math.round(m.stS*100)||+b.dataset.v===m.stS); });
     var h=document.getElementById('rcNach');
     if(h) h.style.webkitTextFillColor = m.cfNach>=0 ? '' : '#c98f7a';
 
@@ -5404,6 +5427,7 @@ function lies(id){
     rechne();
   });
 
+  [].forEach.call(document.querySelectorAll('#rfStChips button'),function(b){ b.addEventListener('click',function(){ var e=document.getElementById('rcStP'), r=document.getElementById('rcStP_s'); e.value=b.dataset.v; if(r) r.value=b.dataset.v; rechne(); }); });
   window.kreModell = modell;
   window.kreRechne = rechne;
   rechne();
@@ -6190,6 +6214,10 @@ Object.assign(I18N.de,{"tab_kaufen": "Kaufen", "tab_mieten": "Mieten", "tab_konz
 </script>
 <script>
 Object.assign(I18N.de,{"next_q1": "Wie funktioniert das Ganze?", "next_b1": "Zum Konzept", "next_q2": "Was bringt das steuerlich und wie rechnet es sich?", "next_b2": "Steuer & Rendite", "next_q3": "Wie und wo wurde saniert?", "next_b3": "Projekte ansehen", "next_q4": "Passt eine Kapitalanlage zu Ihnen?", "next_b4": "Zum Kurz-Check"});Object.assign(I18N.en,{"next_q1": "How does it all work?", "next_b1": "To the concept", "next_q2": "What are the tax benefits and how does it pay off?", "next_b2": "Tax & returns", "next_q3": "How and where was it renovated?", "next_b3": "View projects", "next_q4": "Is a property investment right for you?", "next_b4": "To the quick check"});Object.assign(I18N.es,{"next_q1": "¿Cómo funciona todo?", "next_b1": "Al concepto", "next_q2": "¿Qué ventaja fiscal hay y cómo se calcula la rentabilidad?", "next_b2": "Impuestos y rentabilidad", "next_q3": "¿Cómo y dónde se reformó?", "next_b3": "Ver proyectos", "next_q4": "¿Le conviene una inversión inmobiliaria?", "next_b4": "Al test rápido"});
+/* Renditerechner: verständlichere Texte und Erklärungen */
+Object.assign(I18N.de,{"rc_h2": "Rechnen Sie selbst: <em>Was bleibt übrig?</em>", "rc_lead": "Sechs Angaben genügen. Sie sehen sofort, was die Wohnung Sie im Monat kostet oder bringt.", "rf_g_ein": "Ihre Angaben", "rf_mi": "Kaltmiete pro m²", "rf_ek": "Eigenkapital", "rf_zi": "Zinssatz", "rf_st": "Ihr Steuersatz", "rf_nk": "Kaufnebenkosten", "rf_ti": "Tilgung im ersten Jahr", "rf_hg": "Hausgeld pro Monat", "rf_hgn": "davon nicht umlegbar", "rf_ga": "Anteil des Gebäudes am Kaufpreis", "rf_afa": "Abschreibung pro Jahr (AfA)", "rf_mehr": "Weitere Angaben anpassen", "rf_mehr_p": "Vorbelegt mit üblichen Werten. Ändern Sie sie nur, wenn Sie es genauer wissen.", "rc_r_haupt": "Das bleibt Ihnen", "rc_r_mtl": "pro Monat, nach Steuern", "rf_g_cf": "So setzt es sich zusammen (pro Monat)", "rf_c_miete": "+ Miete vom Mieter", "rf_c_rate": "− Rate an die Bank", "rf_c_hg": "− Hausgeld, das Sie selbst tragen", "rf_c_vor": "= Übrig vor Steuern", "rf_c_st": "+ Steuerwirkung", "rf_c_nach": "= Übrig nach Steuern", "rf_g_rend": "Renditen und Kennzahlen", "rf_g_eck": "Alle Zahlen zur Finanzierung", "rf_g_be": "Ab wann trägt sich die Wohnung selbst?", "rc_s_plus": "Die Wohnung trägt sich selbst. Ihnen bleiben jeden Monat rund {x} übrig.", "rc_s_null": "Die Wohnung trägt sich ungefähr selbst.", "rc_s_minus": "Sie zahlen jeden Monat rund {x} dazu. Dafür gehört Ihnen mit jeder Rate ein Stück mehr von der Wohnung.", "rh_kp": "Was die Wohnung kostet, ohne Nebenkosten.", "rh_qm": "Größe der Wohnung laut Exposé.", "rh_mi": "Monatliche Kaltmiete geteilt durch die Wohnfläche. In Hof oft zwischen 8 und 11 €.", "rh_ek": "So viel vom Kaufpreis zahlen Sie selbst. Die Kaufnebenkosten kommen noch dazu.", "rh_zi": "Der Zinssatz, den Ihre Bank anbietet.", "rh_st": "Der Steuersatz auf Ihren letzten verdienten Euro. Wenn Sie ihn nicht kennen, wählen Sie ungefähr:", "rh_nk": "Grunderwerbsteuer, Notar und Grundbuch. In Bayern rund 5 bis 5,5 %.", "rh_ti": "So viel vom Darlehen zahlen Sie im ersten Jahr zurück.", "rh_hg": "Monatliche Zahlung an die Hausverwaltung.", "rh_hgn": "Der Teil des Hausgelds, den Sie nicht auf den Mieter umlegen dürfen, zum Beispiel Verwaltung und Rücklage.", "rh_ga": "Nur das Gebäude wird abgeschrieben, nicht das Grundstück.", "rh_afa": "Üblich sind 2 %. Mit Restnutzungsdauer-Gutachten kann der Satz höher sein."});
+Object.assign(I18N.en,{"rc_h2": "Do the maths yourself: <em>what is left over?</em>", "rc_lead": "Six figures are enough. You see at once what the flat costs or earns you per month.", "rf_g_ein": "Your figures", "rf_mi": "Net rent per m²", "rf_ek": "Your own capital", "rf_zi": "Interest rate", "rf_st": "Your tax rate", "rf_nk": "Purchase costs", "rf_ti": "Repayment in the first year", "rf_hg": "Service charge per month", "rf_hgn": "of which you cannot pass on", "rf_ga": "Share of the building in the price", "rf_afa": "Depreciation per year (AfA)", "rf_mehr": "Adjust further figures", "rf_mehr_p": "Pre-filled with typical values. Only change them if you know better.", "rc_r_haupt": "What you keep", "rc_r_mtl": "per month, after tax", "rf_g_cf": "How it adds up (per month)", "rf_c_miete": "+ Rent from the tenant", "rf_c_rate": "− Payment to the bank", "rf_c_hg": "− Service charge you pay yourself", "rf_c_vor": "= Left before tax", "rf_c_st": "+ Tax effect", "rf_c_nach": "= Left after tax", "rf_g_rend": "Yields and key figures", "rf_g_eck": "All financing figures", "rf_g_be": "When does the flat pay for itself?", "rc_s_plus": "The flat pays for itself. You keep about {x} every month.", "rc_s_null": "The flat roughly pays for itself.", "rc_s_minus": "You add about {x} every month. In return, each payment makes a bit more of the flat yours.", "rh_kp": "What the flat costs, without purchase costs.", "rh_qm": "Size of the flat as stated in the exposé.", "rh_mi": "Monthly net rent divided by the living area. In Hof often between €8 and €11.", "rh_ek": "The part of the price you pay yourself. Purchase costs come on top.", "rh_zi": "The interest rate your bank offers.", "rh_st": "The tax rate on the last euro you earn. If you do not know it, pick roughly:", "rh_nk": "Property transfer tax, notary and land register. In Bavaria about 5 to 5.5%.", "rh_ti": "How much of the loan you repay in the first year.", "rh_hg": "Monthly payment to the property management.", "rh_hgn": "The part of the service charge you cannot pass on to the tenant, such as management and reserves.", "rh_ga": "Only the building is depreciated, not the land.", "rh_afa": "2% is usual. With a remaining-useful-life report the rate can be higher."});
+Object.assign(I18N.es,{"rc_h2": "Calcúlelo usted mismo: <em>¿qué le queda?</em>", "rc_lead": "Bastan seis datos. Verá al instante lo que la vivienda le cuesta o le aporta al mes.", "rf_g_ein": "Sus datos", "rf_mi": "Alquiler neto por m²", "rf_ek": "Capital propio", "rf_zi": "Tipo de interés", "rf_st": "Su tipo impositivo", "rf_nk": "Gastos de compra", "rf_ti": "Amortización del primer año", "rf_hg": "Cuota de comunidad al mes", "rf_hgn": "de ella, no repercutible", "rf_ga": "Parte del edificio en el precio", "rf_afa": "Amortización fiscal al año (AfA)", "rf_mehr": "Ajustar más datos", "rf_mehr_p": "Rellenado con valores habituales. Cámbielos solo si los conoce con más precisión.", "rc_r_haupt": "Lo que le queda", "rc_r_mtl": "al mes, después de impuestos", "rf_g_cf": "Cómo se compone (al mes)", "rf_c_miete": "+ Alquiler del inquilino", "rf_c_rate": "− Cuota al banco", "rf_c_hg": "− Comunidad que paga usted", "rf_c_vor": "= Queda antes de impuestos", "rf_c_st": "+ Efecto fiscal", "rf_c_nach": "= Queda después de impuestos", "rf_g_rend": "Rentabilidades e indicadores", "rf_g_eck": "Todas las cifras de la financiación", "rf_g_be": "¿A partir de cuándo se paga sola la vivienda?", "rc_s_plus": "La vivienda se paga sola. Le quedan unos {x} cada mes.", "rc_s_null": "La vivienda se paga prácticamente sola.", "rc_s_minus": "Usted aporta unos {x} cada mes. A cambio, con cada cuota la vivienda es un poco más suya.", "rh_kp": "Lo que cuesta la vivienda, sin gastos de compra.", "rh_qm": "Superficie de la vivienda según el dossier.", "rh_mi": "Alquiler neto mensual dividido entre la superficie. En Hof suele estar entre 8 y 11 €.", "rh_ek": "La parte del precio que paga usted. Los gastos de compra se suman aparte.", "rh_zi": "El tipo de interés que le ofrece su banco.", "rh_st": "El tipo sobre el último euro que gana. Si no lo conoce, elija aproximadamente:", "rh_nk": "Impuesto de transmisiones, notaría y registro. En Baviera, entre el 5 y el 5,5 %.", "rh_ti": "Cuánto del préstamo devuelve el primer año.", "rh_hg": "Pago mensual a la administración de la finca.", "rh_hgn": "La parte de la comunidad que no puede repercutir al inquilino, por ejemplo administración y fondo de reserva.", "rh_ga": "Solo se amortiza el edificio, no el suelo.", "rh_afa": "Lo habitual es el 2 %. Con un dictamen de vida útil restante el tipo puede ser mayor."});
 </script>
 <script>
 /* Bereichs-Tabs: Abschnitte gebündelt, Deep-Links (#rechner, #faq …) öffnen den passenden Tab */

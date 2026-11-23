@@ -524,3 +524,20 @@ html{scroll-behavior:smooth}
   .v4-light .about-photo-wrap{max-width:none;max-height:300px}
   .v4-light .about-photo-wrap>img{height:300px!important}
 }
+
+/* ===== Renditerechner: einfacher für Laien ===== */
+.rf-hilfe{display:block;font-size:12.5px;line-height:1.45;color:#8e887d;margin:-2px 0 8px}
+.rf-feld>label{font-size:14.5px!important;color:#ede8e0!important;font-weight:500;margin-bottom:4px!important}
+.rf-chips{display:flex;gap:6px;margin:0 0 10px}
+.rf-chips button{border:1px solid rgba(217,188,127,.3);background:none;color:#cfc9bd;font:500 13.5px inherit;font-family:inherit;padding:7px 14px;border-radius:99px;cursor:pointer;transition:.2s}
+.rf-chips button:hover{border-color:#d9bc7f;color:#fff}
+.rf-chips button.an{background:#d9bc7f;border-color:#d9bc7f;color:#14110b;font-weight:600}
+.rf-mehr{margin:6px 0 16px!important}
+.rf-mehr>summary{font-size:14px!important}
+.rf-mehr[open]{padding-bottom:6px}
+.rf-mehr .rf-feld{padding:0 15px}
+.rf-mehr .rf-mini{padding:0 15px;margin:0 0 14px}
+.rc-satz{margin:14px auto 0;max-width:34ch;font-size:16px;line-height:1.5;color:#cfc9bd;text-wrap:balance}
+.rc-satz.gut{color:#a9dcb6}
+.rc-satz.dazu{color:#e3c9b8}
+.rf-details .rc-kennz{padding:4px 15px 16px}
