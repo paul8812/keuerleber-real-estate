@@ -152,7 +152,7 @@ function detail(el, p) {
   const $ = q => el.querySelector(q), range = $('#ex-range'), pctIn = $('#ex-pct');
   const akt = () => db.get('exposes', p.id);
   const sichern = (patch, sofort) => { const neu = Object.assign(akt(), patch); clearTimeout(speichernT); const f = () => db.save('exposes', neu); if (sofort) return f(); speichernT = setTimeout(f, 600); aktualisieren(el, neu, true); };
-  const setzeProv = v => { v = Math.min(15, Math.max(0, v)); range.value = v; range.style.setProperty('--p', v / 15 * 100 + '%'); if (document.activeElement !== pctIn) pctIn.value = de(v) || '0'; sichern({ aufschlag: v }); };
+  const setzeProv = v => { v = Math.min(15, Math.max(0, v)); range.value = v; range.style.setProperty('--p', v / 15 * 100 + '%'); if (document.activeElement !== pctIn) pctIn.value = de(v) || '0'; sichern({ aufschlag: v, preis_override: null }); };   // fest eingetragener Preis (aus dem alten Tool) gilt nur, bis die Provision geändert wird
   range.oninput = () => setzeProv(parseFloat(range.value) || 0);
   pctIn.oninput = () => setzeProv(zahl(pctIn.value));
   range.style.setProperty('--p', (p.aufschlag ?? 8) / 15 * 100 + '%');
