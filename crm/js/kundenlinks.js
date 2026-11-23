@@ -4,6 +4,7 @@
 //   • auskunft – Mieter-Selbstauskunft als Online-Formular; die Antworten kommen zurück und lassen sich als PDF speichern
 // Der Link (Sammlung „links“) gehört dem CRM; die Kundenseite schreibt nur in „linkstatus“ (Aufrufe, Antworten) und „events“ (Buchungen).
 import * as db from './db.js';
+import * as mail from './mail.js';
 import { html, raw, toast, modal, confirmDlg, today, addDays, fmtDate, fmtDT, fullName, idFor } from './util.js';
 import { contactOpts } from './ui.js';
 import { haptik } from './haptik.js';
@@ -80,7 +81,7 @@ export function teilen(l, { gast = '', an = {}, betreff, text, protokoll = {} })
     },
     onSave: async v => {
       if (protokoll.text) await db.log('email', protokoll.text, { contactId: protokoll.contactId || '', propertyId: protokoll.propertyId || '' });
-      if (an.email) { try { await navigator.clipboard.writeText(v.text); } catch { /* egal */ } location.href = `mailto:${encodeURIComponent(an.email)}?subject=${encodeURIComponent(betreff)}&body=${encodeURIComponent(v.text)}`; toast('Mail-Entwurf geöffnet · Text in der Zwischenablage'); }
+      if (an.email) { try { await navigator.clipboard.writeText(v.text); } catch { /* egal */ } setTimeout(() => mail.oeffnen(`mailto:${encodeURIComponent(an.email)}?subject=${encodeURIComponent(betreff)}&body=${encodeURIComponent(v.text)}`, { contactId: protokoll.contactId || '', propertyId: protokoll.propertyId || '' }), 250); if (!mail.verfuegbar()) toast('Mail-Entwurf geöffnet · Text in der Zwischenablage'); }
     },
   });
 }

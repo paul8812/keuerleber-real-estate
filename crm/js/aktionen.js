@@ -2,6 +2,7 @@
 // ⋯-Knopf an jeder Zeile, Gedrückt-halten (Handy) bzw. Rechtsklick (Mac), und nach einem Anruf die Frage „Erreicht?“.
 // Nichts wird automatisch verschickt – Mails öffnen immer erst den Entwurf bzw. dein Mailprogramm.
 import * as db from './db.js';
+import * as mail from './mail.js';
 import { toast, addDays, today, fullName, html, modal, sel } from './util.js';
 import { sheet } from './mobil.js';
 import { contactForm, taskForm, eventForm, activityForm, dealForm, propertyForm } from './forms.js';
@@ -14,7 +15,7 @@ import { kontaktErfassen } from './kontakt.js';
 
 const nummer = c => (c?.mobil || c?.tel || '').replace(/[^\d+]/g, '');
 const wa = n => 'https://wa.me/' + n.replace(/^00/, '').replace(/^\+/, '').replace(/^0/, '49');
-const oeffne = url => { const a = document.createElement('a'); a.href = url; if (/^https?:/.test(url)) { a.target = '_blank'; a.rel = 'noopener'; } a.click(); };
+const oeffne = url => { if (/^mailto:/.test(url) && mail.verfuegbar()) { mail.oeffnen(url); return; } const a = document.createElement('a'); a.href = url; if (/^https?:/.test(url)) { a.target = '_blank'; a.rel = 'noopener'; } a.click(); };
 const route = ort => 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(ort);
 const naechsterMontag = () => { const d = new Date(today() + 'T12:00:00'); d.setDate(d.getDate() + ((8 - d.getDay()) % 7 || 7)); return d.toISOString().slice(0, 10); };
 

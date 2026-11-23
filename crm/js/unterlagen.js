@@ -3,6 +3,7 @@
 // der Datensatz (Sammlung „unterlagen“) merkt sich Name, Kategorie und ob die Datei nur intern ist (z. B. das Exposé des Verkäufers).
 // Verschickt werden Download-Links mit Ablaufdatum – die Datei selbst bleibt bei dir.
 import * as db from './db.js';
+import * as mail from './mail.js';
 import { html, raw, esc, toast, modal, confirmDlg, uid, today, fmtDate, fullName } from './util.js';
 import { contactOpts } from './ui.js';
 import { haptik } from './haptik.js';
@@ -116,9 +117,11 @@ function senden(p) {
       const text = `${anrede},\n\nwie besprochen erhalten Sie die Unterlagen zu „${p.titel}“${p.strasse ? ' (' + [p.strasse, p.ort].filter(Boolean).join(', ') + ')' : ''}:\n\n${links.map(([n, l]) => `• ${n}\n  ${l}`).join('\n\n')}\n\nDie Links sind bis ${bis} gültig. Bei Fragen melden Sie sich gerne.\n\nMit freundlichen Grüßen\n${S.inhaber || ''}\n${S.firma || ''}${S.tel ? '\nTel. ' + S.tel : ''}`;
       try { await navigator.clipboard.writeText(text); } catch { /* Zwischenablage nicht erlaubt */ }
       await db.log('email', `Unterlagen verschickt${an ? ' an ' + an : ''}: ${wahl.map(u => u.name).join(', ')} (Links gültig bis ${bis})`, { contactId: c?.id || '', propertyId: p.id });
-      const kurz = encodeURIComponent(text).length < 6000;
-      location.href = `mailto:${encodeURIComponent(an)}?subject=${encodeURIComponent('Unterlagen: ' + p.titel)}&body=${encodeURIComponent(kurz ? text : `${anrede},\n\n[Hier einfügen – der Text mit den ${links.length} Links liegt in der Zwischenablage]`)}`;
-      toast(kurz ? 'Mail-Entwurf geöffnet · Text in der Zwischenablage' : `Mail-Entwurf geöffnet – bitte den Text mit den ${links.length} Links einfügen (liegt in der Zwischenablage)`); haptik('erfolg');
+      const direkt = mail.verfuegbar(), kurz = direkt || encodeURIComponent(text).length < 6000;
+      const url = `mailto:${encodeURIComponent(an)}?subject=${encodeURIComponent('Unterlagen: ' + p.titel)}&body=${encodeURIComponent(kurz ? text : `${anrede},\n\n[Hier einfügen – der Text mit den ${links.length} Links liegt in der Zwischenablage]`)}`;
+      if (direkt) setTimeout(() => mail.oeffnen(url, { contactId: c?.id || '', propertyId: p.id }), 250);
+      else { location.href = url; toast(kurz ? 'Mail-Entwurf geöffnet · Text in der Zwischenablage' : `Mail-Entwurf geöffnet – bitte den Text mit den ${links.length} Links einfügen (liegt in der Zwischenablage)`); }
+      haptik('erfolg');
     },
   });
 }

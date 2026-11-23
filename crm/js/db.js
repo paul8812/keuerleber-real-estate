@@ -399,6 +399,35 @@ end $$;
 revoke all on function public.fahrt_punkt(text, text, double precision, double precision, double precision, text), public.fahrt_ergaenzen(text, text, jsonb), public.fahrt_geheim(boolean) from public;
 grant execute on function public.fahrt_punkt(text, text, double precision, double precision, double precision, text), public.fahrt_ergaenzen(text, text, jsonb) to anon, authenticated;
 grant execute on function public.fahrt_geheim(boolean) to authenticated;`;
+// E-Mail senden aus dem CRM (Edge Function „mailsenden“): Einmal-Schein für den angemeldeten Benutzer, den nur der Server gegen die
+// Postfach-Daten aus dem Vault tauschen kann. Höchstens 60 Mails je Stunde.
+export const MAILSENDEN_SQL = `create table if not exists privat.mailticket (ticket text primary key, user_id uuid not null, ablauf timestamptz not null);
+alter table privat.mailticket enable row level security;
+revoke all on privat.mailticket from public, anon, authenticated;
+create or replace function public.mailsenden_ticket() returns text language plpgsql security definer set search_path = public, privat as $$
+declare t text;
+begin
+  if auth.uid() is null or not public.mfa_ok() or not exists (select 1 from public.records r where r.user_id = auth.uid() and r.id = 'main') then raise exception 'nicht berechtigt'; end if;
+  delete from privat.mailticket where ablauf < now() - interval '1 hour';
+  if (select count(*) from privat.mailticket where user_id = auth.uid()) >= 60 then raise exception 'zu viele Mails in kurzer Zeit'; end if;
+  t := replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', '');
+  insert into privat.mailticket (ticket, user_id, ablauf) values (t, auth.uid(), now() + interval '2 minutes');
+  return t;
+end $$;
+create or replace function public.mailsenden_start(p_ticket text) returns jsonb language plpgsql security definer set search_path = public, privat as $$
+declare u uuid; pw text; pf text; nm text;
+begin
+  update privat.mailticket set ticket = 'x-' || ticket where ticket = p_ticket and ablauf > now() and ticket not like 'x-%' returning user_id into u;
+  if u is null then return jsonb_build_object('ok', false, 'grund', 'ungültig'); end if;
+  select m.postfach into pf from privat.mailsync m where m.id = 1;
+  select d.decrypted_secret into pw from vault.decrypted_secrets d where d.name = 'mailsync_imap';
+  if coalesce(pf, '') = '' or coalesce(pw, '') = '' then return jsonb_build_object('ok', false, 'grund', 'kein Postfach'); end if;
+  select r.data->>'inhaber' into nm from public.records r where r.id = 'main' and r.collection = 'settings' and r.user_id = u;
+  return jsonb_build_object('ok', true, 'user_id', u, 'postfach', pf, 'passwort', pw, 'name', coalesce(nm, ''));
+end $$;
+revoke all on function public.mailsenden_ticket(), public.mailsenden_start(text) from public, anon, authenticated;
+grant execute on function public.mailsenden_ticket() to authenticated;
+grant execute on function public.mailsenden_start(text) to service_role;`;
 export async function fahrtGeheim(neu = false) { if (!sb) throw new Error('Keine Cloud-Datenbank verbunden'); const { data, error } = await sb.rpc('fahrt_geheim', { p_neu: neu }); if (error) throw error; return data; }
 // Website-Anfragen: Formulare der Website schreiben (nur einfügen!) in diese Tabelle, das CRM holt sie ab und löscht sie danach.
 export const ANFRAGEN_SQL = `create table if not exists public.website_anfragen (
