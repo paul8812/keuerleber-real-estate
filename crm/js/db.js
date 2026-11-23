@@ -1,6 +1,6 @@
 // Datenschicht: lokal (localStorage) oder Cloud (Supabase). Gleiche API für beide.
 import { uid, today, toast, idFor } from './util.js';
-export const COLS = ['contacts', 'properties', 'deals', 'tasks', 'events', 'activities', 'templates', 'settings', 'mails', 'sync', 'buchungen', 'rechnungen', 'social', 'fahrten', 'anfragen'];
+export const COLS = ['contacts', 'properties', 'deals', 'tasks', 'events', 'activities', 'templates', 'settings', 'mails', 'sync', 'buchungen', 'rechnungen', 'social', 'fahrten', 'anfragen', 'exposes'];
 const LS = 'kre-crm-data', CFG = 'kre-crm-cfg';
 // Supabase-Bibliothek liegt im eigenen Repository (kein fremdes CDN zur Laufzeit)
 const SB_LIB = new URL('../vendor/supabase.js?v=2.45.4', import.meta.url).href;
