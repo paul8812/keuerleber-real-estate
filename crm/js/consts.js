@@ -18,13 +18,13 @@ export const PRIOS = [['hoch', 'Hoch'], ['normal', 'Normal'], ['niedrig', 'Niedr
 export const WIEDERHOLUNG = [['', 'Keine'], ['daily', 'Täglich'], ['weekly', 'Wöchentlich'], ['monthly', 'Monatlich'], ['yearly', 'Jährlich']];
 export const BUNDESLAENDER = { 'Baden-Württemberg': 5, 'Bayern': 3.5, 'Berlin': 6, 'Brandenburg': 6.5, 'Bremen': 5.5, 'Hamburg': 5.5, 'Hessen': 6, 'Mecklenburg-Vorpommern': 6, 'Niedersachsen': 5, 'Nordrhein-Westfalen': 6.5, 'Rheinland-Pfalz': 5, 'Saarland': 6.5, 'Sachsen': 5.5, 'Sachsen-Anhalt': 5, 'Schleswig-Holstein': 6.5, 'Thüringen': 5 };
 export const NAV = [
-  ['dashboard', 'Übersicht', '◧'], ['posteingang', 'Posteingang', '✉'], ['anfragen', 'Anfragen', '✆'], ['kontakte', 'Kontakte', '☺'], ['objekte', 'Objekte', '⌂'], ['pipeline', 'Pipeline', '▤'],
+  ['dashboard', 'Übersicht', '◧'], ['posteingang', 'Posteingang', '✉'], ['anfragen', 'Anfragen', '✆'], ['kontakte', 'Kontakte', '☺'], ['objekte', 'Objekte', '⌂'], ['pipeline', 'Pipeline', '▤'], ['exposes', 'Exposés', '❏'],
   ['aufgaben', 'Aufgaben', '✓'], ['kalender', 'Kalender', '▦'], ['finanzen', 'Finanzen', '€'], ['fahrten', 'Fahrtenbuch', '⇆'], ['automation', 'Automationen', '⚡'], ['vorlagen', 'Vorlagen', '✎'], ['rechner', 'Rechner', '∑'], ['statistik', 'Statistik', '◔'], ['social', 'Social Media', '◎'], ['einstellungen', 'Einstellungen', '⚙'],
 ];
 // Menü in Gruppen (Reihenfolge = Anzeige); alle Schlüssel müssen in NAV vorkommen
 export const NAV_GRUPPEN = [
   ['Heute', ['dashboard', 'anfragen', 'posteingang', 'aufgaben', 'kalender']],
-  ['Vertrieb', ['kontakte', 'objekte', 'pipeline']],
+  ['Vertrieb', ['kontakte', 'objekte', 'pipeline', 'exposes']],
   ['Büro', ['finanzen', 'fahrten', 'vorlagen', 'rechner']],
   ['Auswertung', ['statistik', 'social']],
   ['System', ['automation', 'einstellungen']],
