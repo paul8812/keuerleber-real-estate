@@ -4,6 +4,7 @@
 // ohne dass ein Login-Passwort im Spiel ist. Geschützt durch einen Zufallswert in privat.unterlagen.
 //   POST { k, a: "konto" }                      → { ok, uid }                       (Schlüssel prüfen)
 //   POST { k, a: "liste" }                      → { ok, objekte: [{id, nr, titel, strasse, ort}], unterlagen: [{id, propertyId, name}] }
+//   POST { k, a: "hole", ids: [...] }          → { ok, records: [{id, collection, data}] }
 //   POST { k, a: "upload", pfad, typ }          → { ok, pfad, url }                 (einmalige Adresse zum Hochladen einer Datei, PUT)
 //   POST { k, a: "records", records: [...] }    → { ok, n }                         (Datensätze anlegen/aktualisieren)
 // Dateien liegen im privaten Speicher-Bereich „unterlagen“ unter <Benutzer-ID>/<Objekt-ID>/<Dateiname>.
@@ -49,6 +50,12 @@ Deno.serve(async (req) => {
         unterlagen: von("unterlagen").map((r: any) => ({ id: r.id, propertyId: r.data?.propertyId ?? "", name: r.data?.name ?? "", pfad: r.data?.pfad ?? "" })),
         // deno-lint-ignore no-explicit-any
         exposes: von("exposes").map((r: any) => ({ id: r.id, name: r.data?.name ?? "", propertyId: r.data?.propertyId ?? "", quelle: r.data?.quelle ?? "" })) });
+    }
+    if (a === "hole") {       // vollständige Datensätze (z. B. ein Objekt), damit beim Ergänzen nichts überschrieben wird
+      const ids = (Array.isArray(b.ids) ? b.ids : []).filter(x => typeof x === "string" && /^[\w.:-]+$/.test(x)).slice(0, 50);
+      if (!ids.length) return antwort({ ok: true, records: [] });
+      const rows = await rest("GET", `/rest/v1/records?select=id,collection,data&user_id=eq.${uid}&collection=in.(${ERLAUBT.filter(c => c !== "dateien").join(",")})&id=in.(${ids.map(x => `"${x}"`).join(",")})`) ?? [];
+      return antwort({ ok: true, records: rows });
     }
     if (a === "upload") {
       const rel = sauber(String(b.pfad ?? "")); if (!rel) return antwort({ ok: false, fehler: "Pfad fehlt" }, 400);
