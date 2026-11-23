@@ -80,10 +80,11 @@
       '<section class="hero"><div class="w"><p class="lab in1">Persönlich erstellt für <span data-name></span></p><h1 class="in2"><span>Herzlich willkommen,</span><em data-name></em></h1><p class="p in3" id="intro"></p>' +
       '<div class="card res in4" id="res"><div class="res-h"><p class="lab" id="resLab" style="margin:0"></p><span id="resStat"></span></div>' +
       '<div class="bigs"><div><small>Steuerersparnis</small><p class="big g" id="bTax"></p><em>pro Jahr, im ersten Jahr</em></div><div><small>Monatlich nach Steuern</small><p class="big" id="bNach"></p><em>Miete minus Rate und Hausgeld, plus Steuer</em></div><div><small>Eigenkapital</small><p class="big" id="bEk"></p><em id="bEkS"></em></div></div>' +
-      '<div class="smalls"><div><small id="s1L"></small><b id="sKp"></b></div><div><small id="s2L"></small><b id="sQm"></b></div><div><small>Kaltmiete im Monat</small><b id="sMiete"></b></div><div><small>Brutto-Mietrendite</small><b id="sRend"></b></div><div><small>Abschreibung pro Jahr*</small><b id="sAfa"></b></div></div></div></div></section>' +
+      '<div class="smalls"><div><small id="s1L"></small><b id="sKp"></b></div><div><small id="s2L"></small><b id="sQm"></b></div><div><small>Kaltmiete im Monat</small><b id="sMiete"></b></div><div><small>Brutto-Mietrendite</small><b id="sRend"></b></div><div><small>Abschreibung pro Jahr*</small><b id="sAfa"></b></div></div></div>' +
+      (mehr ? '<div class="kombi" id="kombi"><span id="kombiL"></span><div id="kombiB"></div></div>' : '') + '</div></section>' +
       '<section class="blk" id="wohnung"><div class="w"><p class="lab">Die Wohnung</p><h2 id="wH"></h2><p class="p" id="wP"></p><div class="two"><div><div class="gal" id="gal"></div><div class="thumbs" id="thumbs"></div></div><div class="card pad"><ul class="kv" id="wKv"></ul><div class="pills" id="wPills"></div></div></div></div></section>' +
-      '<section class="blk" id="paket"><div class="w"><p class="lab">Das Paket</p><h2 id="pH"></h2><p class="p">Mit dem Schalter nehmen Sie eine Wohnung aus dem Paket heraus oder wieder hinein. Alle Zahlen rechnen sofort neu.</p><div class="cards" id="cards"></div></div></section>' +
-      '<section class="blk" id="invest"><div class="w"><p class="lab">Die Investition</p><h2>Was das Paket <em>kostet.</em></h2><div class="flow five" id="inv"></div></div></section>' +
+      '<section class="blk" id="paket"><div class="w"><p class="lab">Ihre Auswahl</p><h2 id="pH"></h2><p class="p">Mit dem Schalter nehmen Sie eine Wohnung in die Rechnung hinein oder wieder heraus. Alle Zahlen rechnen sofort neu.</p><div class="cards" id="cards"></div></div></section>' +
+      '<section class="blk" id="invest"><div class="w"><p class="lab">Die Investition</p><h2>Was der Kauf <em>kostet.</em></h2><div class="flow five" id="inv"></div></div></section>' +
       '<section class="blk" id="afa"><div class="w"><p class="lab">Der Steuerhebel</p><h2>So funktioniert <em>die Abschreibung.</em></h2><p class="p">Ein Gebäude nutzt sich ab. Diesen Wertverlust ziehen Sie als Vermieter jedes Jahr von den Mieteinnahmen ab, ohne dafür Geld auszugeben. Üblich sind <b>2 % über 50 Jahre</b>. Ein Gutachten über die tatsächliche Restnutzungsdauer verteilt denselben Betrag auf weniger Jahre.*</p>' +
       '<div class="flow" id="aflow"></div><div class="card tl" id="tl"><div class="tl-row"><span>Üblich<small>2 % über 50 Jahre</small></span><div class="track"><u id="tU1"></u><s style="left:100%" data-t="50 Jahre"></s></div><b id="tStd"></b></div><div class="tl-row g"><span>Mit Gutachten<small id="tGS"></small></span><div class="track"><u id="tU2"></u><s id="tS2" data-t=""></s></div><b id="tHoch"></b></div><p class="merk" id="merk"></p></div></div></section>' +
       '<section class="blk" id="steuer"><div class="w"><p class="lab">Die Rechnung</p><h2>Woher die <em>Steuerersparnis</em> kommt.</h2><p class="p">Links die Rechnung für das Finanzamt, rechts das, was monatlich auf Ihrem Konto passiert.</p><div class="two"><div class="card pad"><h3 style="margin-bottom:10px">Für das Finanzamt, pro Jahr</h3><div id="wf"></div><div class="wf-sum"><span>Steuerersparnis pro Jahr<small id="wfMal"></small></span><b id="wfBig"></b></div></div><div class="card pad"><h3 style="margin-bottom:10px">Auf Ihrem Konto, pro Monat</h3><ul class="kv" id="mon"></ul></div></div></div></section>' +
@@ -107,9 +108,9 @@
   function aufbau() {
     geruest();
     if ($('#pick')) {
-      $('#pick').innerHTML = '<button type="button" class="alle" data-i="paket"><b>Alle zusammen</b><span id="pickS"></span></button>' + D.objs.map(function (o, i) { return '<button type="button" data-i="' + i + '"><b>' + esc(o.n) + '</b><span>' + esc([o.e, o.zi ? o.zi + ' Zimmer' : '', o.qm ? fin(o.qm).toLocaleString('de-DE') + ' m²' : ''].filter(Boolean).join(' · ')) + '</span></button>'; }).join('');
+      $('#pick').innerHTML = D.objs.map(function (o, i) { return '<button type="button" data-i="' + i + '"><b>' + esc(o.n) + '</b><span>' + esc([o.e, o.zi ? o.zi + ' Zimmer' : '', o.qm ? fin(o.qm).toLocaleString('de-DE') + ' m²' : ''].filter(Boolean).join(' · ')) + '</span></button>'; }).join('') + '<button type="button" class="alle" data-i="paket"><b>Zusammen kaufen</b><span id="pickS"></span></button>';
       $$('#pick button').forEach(function (b) { b.onclick = function () { waehle(b.dataset.i === 'paket' ? 'paket' : +b.dataset.i); }; });
-      $('#cmp tbody').innerHTML = D.objs.map(function (o, i) { return '<tr data-i="' + i + '" tabindex="0"><td><b>' + esc(o.n) + '</b><span>' + esc([o.e, o.zi ? o.zi + ' Zimmer' : ''].filter(Boolean).join(' · ')) + '</span></td><td></td><td></td><td></td><td class="g"></td><td></td><td>' + esc(o.stat || '') + '</td></tr>'; }).join('') + '<tr class="sum"><td><b>Paket</b><span id="cmpS"></span></td><td></td><td></td><td></td><td class="g"></td><td></td><td></td></tr>';
+      $('#cmp tbody').innerHTML = D.objs.map(function (o, i) { return '<tr data-i="' + i + '" tabindex="0"><td><b>' + esc(o.n) + '</b><span>' + esc([o.e, o.zi ? o.zi + ' Zimmer' : ''].filter(Boolean).join(' · ')) + '</span></td><td></td><td></td><td></td><td class="g"></td><td></td><td>' + esc(o.stat || '') + '</td></tr>'; }).join('') + '<tr class="sum"><td><b>Zusammen</b><span id="cmpS"></span></td><td></td><td></td><td></td><td class="g"></td><td></td><td></td></tr>';
       $$('#cmp tbody tr[data-i]').forEach(function (tr) { var los = function () { waehle(+tr.dataset.i); window.scrollTo({ top: 0, behavior: 'smooth' }); }; tr.onclick = los; tr.onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); los(); } }; });
       var n = D.objs.length; $('#cards').className = 'cards' + (n < 4 ? ' n' + n : '');
       $('#cards').innerHTML = D.objs.map(function (o, i) {
@@ -191,16 +192,26 @@
   var WORT = ['', 'Eine', 'Zwei', 'Drei', 'Vier', 'Fünf', 'Sechs', 'Sieben', 'Acht', 'Neun', 'Zehn'];
   function zeichne() {
     var R = D.objs.map(rechne), S = summe(R), P = paket(), o = P ? null : D.objs[akt], r = P ? S : R[akt], ort = D.ort || 'Hof', nAll = D.objs.length;
-    document.title = 'Für ' + D.name + ' · ' + (nAll > 1 ? 'Wohnungspaket' : 'Wohnungsangebot') + ' ' + ort;
+    document.title = 'Für ' + D.name + ' · ' + 'Wohnungsangebot' + ' ' + ort;
     $$('[data-name]').forEach(function (e) { e.textContent = D.name; });
-    $('#hd1').textContent = P ? 'Wohnungspaket' : 'Wohnungsangebot'; $('#hd2').textContent = 'Modellrechnung' + (D.termin ? ' · Termin am ' + D.termin : P ? ' · ' + S.n + ' Wohnung' + (S.n === 1 ? '' : 'en') + ' in ' + ort : '');
+    $('#hd1').textContent = 'Wohnungsangebot'; $('#hd2').textContent = 'Modellrechnung' + (D.termin ? ' · Termin am ' + D.termin : P ? ' · ' + S.n + ' Wohnung' + (S.n === 1 ? '' : 'en') + ' in ' + ort : '');
     $$('#pick button').forEach(function (b) { b.classList.toggle('on', b.dataset.i === String(akt)); });
-    if ($('#pickS')) $('#pickS').textContent = 'Paket · ' + S.n + ' von ' + nAll + ' Wohnungen';
+    if ($('#pickS')) $('#pickS').textContent = S.n + ' von ' + nAll + ' Wohnungen gerechnet';
+    if ($('#kombi')) {
+      /* Einzelansicht: „noch eine dazu“ – Paketansicht: zurück zur einzelnen Wohnung */
+      var andere = D.objs.map(function (x, i) { return i; }).filter(function (i) { return P ? drin(D.objs[i]) : i !== akt; });
+      $('#kombiL').textContent = P ? 'Zusammen gerechnet:' : 'Zwei oder mehr kaufen? Dazu nehmen:';
+      $('#kombiB').innerHTML = P ? andere.map(function (i) { return '<button type="button" class="an" data-raus="' + i + '" aria-label="' + esc(kurz(D.objs[i])) + ' aus der Rechnung nehmen">' + esc(kurz(D.objs[i])) + (andere.length > 1 ? ' <i>×</i>' : '') + '</button>'; }).join('') + D.objs.map(function (x, i) { return drin(x) ? '' : '<button type="button" data-rein="' + i + '">+ ' + esc(kurz(x)) + '</button>'; }).join('')
+        : andere.map(function (i) { return '<button type="button" data-dazu="' + i + '">+ ' + esc(kurz(D.objs[i])) + '</button>'; }).join('');
+      $$('#kombiB [data-dazu]').forEach(function (b) { b.onclick = function () { var a = akt, z2 = +b.dataset.dazu; D.aus = {}; D.objs.forEach(function (x, i) { if (i !== a && i !== z2) D.aus[x.id] = 1; }); waehle('paket'); }; });
+      $$('#kombiB [data-rein]').forEach(function (b) { b.onclick = function () { delete D.aus[D.objs[+b.dataset.rein].id]; merken(); zeichne(); }; });
+      $$('#kombiB [data-raus]').forEach(function (b) { b.onclick = function () { var L = D.objs.filter(drin); if (L.length < 2) return; D.aus[D.objs[+b.dataset.raus].id] = 1; L = D.objs.filter(drin); if (L.length === 1) waehle(D.objs.indexOf(L[0])); else { merken(); zeichne(); } }; });
+    }
     ['wohnung'].forEach(function (id) { $('#' + id).hidden = P; }); ['paket', 'invest'].forEach(function (id) { $('#' + id).hidden = !P; });
-    $('#intro').innerHTML = P ? esc(WORT[S.n] || S.n) + ' ' + (S.n === 1 ? 'sanierte Eigentumswohnung' : 'sanierte Eigentumswohnungen') + ' in ' + esc(ort) + ' als ein Paket. Alle Zahlen sind zusammen gerechnet, mit Ihrem Steuersatz von <b>' + pz(D.st, 0) + '</b>.'
-      : 'So rechnet sich ' + (nAll > 1 ? 'eine sanierte Eigentumswohnung' : 'diese sanierte Eigentumswohnung') + ' in ' + esc(ort) + ' bei Ihrem Steuersatz von <b>' + pz(D.st, 0) + '</b>.' + (nAll > 1 ? ' Oben wählen Sie die Wohnung oder das ganze Paket, alle Zahlen darunter gehören dazu.' : '');
+    $('#intro').innerHTML = P ? esc(WORT[S.n] || S.n) + ' ' + (S.n === 1 ? 'sanierte Eigentumswohnung' : 'sanierte Eigentumswohnungen') + ' in ' + esc(ort) + (S.n === 1 ? '.' : ', zusammen gekauft.') + ' Alle Zahlen sind zusammen gerechnet, mit Ihrem Steuersatz von <b>' + pz(D.st, 0) + '</b>.'
+      : 'So rechnet sich ' + (nAll > 1 ? 'eine sanierte Eigentumswohnung' : 'diese sanierte Eigentumswohnung') + ' in ' + esc(ort) + ' bei Ihrem Steuersatz von <b>' + pz(D.st, 0) + '</b>.' + (nAll > 1 ? ' Oben wählen Sie die Wohnung. Wenn Sie zwei oder mehr kaufen möchten, nehmen Sie weitere dazu – dann wird alles zusammen gerechnet.' : '');
     /* Ergebnis */
-    $('#resLab').textContent = P ? 'Ergebnis · Paket mit ' + (S.n === 1 ? 'einer Wohnung' : S.n + ' Wohnungen') : 'Ergebnis · ' + o.n + (o.e ? ', ' + o.e : '');
+    $('#resLab').textContent = P ? 'Ergebnis · ' + (S.n === 1 ? 'eine Wohnung' : S.n + ' Wohnungen zusammen') : 'Ergebnis · ' + o.n + (o.e ? ', ' + o.e : '');
     $('#resStat').textContent = P ? S.v + ' von ' + S.n + ' vermietet · ' + ort : [o.stat, o.gut ? 'Gutachten liegt vor' : 'Gutachten in Vorbereitung'].filter(Boolean).join(' · ');
     setze($('#bTax'), r.tax, function (n) { return (n < 0 ? '− ' : '') + z(n) + '<i>€</i>'; });
     setze($('#bNach'), r.nach, function (n) { return (n < 0 ? '− ' : '+ ') + z(n) + '<i>€</i>'; }); $('#bNach').style.color = r.nach < 0 ? 'var(--neg)' : '';
@@ -215,10 +226,10 @@
       $('#wKv').innerHTML = [['Adresse', o.n + (o.plzOrt ? ' · ' + o.plzOrt : '')], o.e ? ['Etage', String(o.e).replace('OG', 'Obergeschoss')] : null, o.bj ? ['Baujahr', o.bj] : null, o.qm ? ['Wohnfläche', qm(o.qm)] : null, ['Kaufpreis', eur(o.kp) + (o.qm ? ' · ' + eur(o.kp / o.qm) + ' je m²' : '')], [o.mn || 'Kaltmiete', eur(o.miete, 2) + ' / Monat'], o.hg ? ['Hausgeld gesamt', eur(o.hg, 2) + ' / Monat'] : null, ['davon nicht umlagefähig', eur(o.nu, 2) + ' / Monat'], o.stat ? ['Vermietung', o.stat] : null, o.en ? ['Energieklasse', o.en] : null, ['Provision für Käufer', 'keine']].filter(Boolean).map(function (x) { return '<li><span>' + esc(x[0]) + '</span><b>' + esc(x[1]) + '</b></li>'; }).join('');
       $('#wPills').innerHTML = (o.pl || []).map(function (x) { return '<span>' + esc(x) + '</span>'; }).join('');
     } else {
-      $('#pH').innerHTML = esc(WORT[nAll] || nAll) + ' Wohnung' + (nAll === 1 ? '' : 'en') + ', <em>ein Paket.</em>';
+      $('#pH').innerHTML = esc(WORT[S.n] || S.n) + ' Wohnung' + (S.n === 1 ? '' : 'en') + ', <em>zusammen gerechnet.</em>';
       $$('.oc').forEach(function (c) { var i = +c.dataset.i, ob = D.objs[i], rr = R[i], an = drin(ob); c.classList.toggle('aus', !an);
         $('[data-f=kp]', c).textContent = eur(ob.kp); $('[data-f=mi]', c).textContent = eur(ob.miete, 2); $('[data-f=tx]', c).textContent = eur(rr.tax); $('[data-f=mo]', c).textContent = eurV(rr.nach, 2);
-        var sw = $('.sw', c); sw.setAttribute('aria-checked', an ? 'true' : 'false'); $('span', sw).textContent = an ? 'Im Paket' : 'Nicht im Paket'; });
+        var sw = $('.sw', c); sw.setAttribute('aria-checked', an ? 'true' : 'false'); $('span', sw).textContent = an ? 'Wird mitgekauft' : 'Nicht dabei'; });
       $('#inv').innerHTML = [['Kaufpreis', eur(S.kp), S.n + ' Wohnung' + (S.n === 1 ? '' : 'en')], ['Kaufnebenkosten', eur(S.nk), pzK(D.nk) + ' vom Kaufpreis'], ['Gesamtinvestition', eur(S.ges), 'Kaufpreis plus Nebenkosten'], ['Darlehen', eur(S.darl), pz(100 - D.ek, 0) + ' vom Kaufpreis'], ['Eigenkapital', eur(S.ek), 'das bringen Sie mit']].map(function (x, i) { return (i ? '<i>' + (i === 2 ? '=' : i === 3 ? '−' : i === 4 ? '=' : '+') + '</i>' : '') + '<div' + (i === 4 ? ' class="g"' : '') + '><small>' + x[0] + '</small><b>' + x[1] + '</b><em>' + x[2] + '</em></div>'; }).join('');
     }
     /* Abschreibung */
@@ -258,19 +269,21 @@
   function starte(daten, o) {
     opt = o || {}; STD = vorbereiten(daten);
     if (!STD.objs.length) { document.body.innerHTML = '<p style="padding:40px;font-family:sans-serif;color:#fff">Dieses Angebot enthält keine Wohnung.</p>'; D = null; return; }
-    erst = true; D = kopie(STD); akt = D.objs.length > 1 ? (STD.start === 'paket' || STD.start == null ? 'paket' : (D.objs[+STD.start] ? +STD.start : 'paket')) : 0;
+    erst = true; D = kopie(STD); akt = D.objs.length > 1 ? (STD.start === 'paket' ? 'paket' : (D.objs[+STD.start] ? +STD.start : 0)) : 0;
     KEY = 'kre-angebot-' + (STD.id || 'x') + '-' + (STD.stand || '');
     if (STD.angepasst) uebernehmen(STD.angepasst);   // im CRM gespeicherte Anpassungen für diese Person
     if (opt.merken !== false) { try { uebernehmen(JSON.parse(localStorage.getItem(KEY))); } catch (e) { /* nichts gemerkt */ } }
     aufbau(); galerie(); tool(); zeichne(); setTimeout(function () { balken(); erst = false; }, 700);
-    if (!tasten) { tasten = true; document.addEventListener('keydown', function (e) { if (/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) || D.objs.length < 2) return; var L = ['paket'].concat(D.objs.map(function (x, i) { return i; })), p = L.indexOf(akt); if (e.key === 'ArrowRight') waehle(L[(p + 1) % L.length]); if (e.key === 'ArrowLeft') waehle(L[(p + L.length - 1) % L.length]); }); }
+    if (!tasten) { tasten = true; document.addEventListener('keydown', function (e) { if (/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) || D.objs.length < 2) return; var L = D.objs.map(function (x, i) { return i; }).concat(['paket']), p = L.indexOf(akt); if (e.key === 'ArrowRight') waehle(L[(p + 1) % L.length]); if (e.key === 'ArrowLeft') waehle(L[(p + L.length - 1) % L.length]); }); }
   }
   /** Neue Werte übernehmen, ohne die Seite neu aufzubauen (Bildlauf und Auswahl bleiben) – bei geänderter Auswahl, Bildern oder Texten kompletter Neuaufbau */
   function aktualisiere(daten) {
     var neu = vorbereiten(daten), fest = ['id', 'n', 'e', 'stat', 'zi', 'qm', 'gut', 't', 'd', 'mn', 'hg', 'verm'];
     var gleich = D && neu.objs.length === D.objs.length && neu.objs.every(function (o, i) { var a = D.objs[i]; return fest.every(function (k) { return String(o[k]) === String(a[k]); }) && String(o.pl) === String(a.pl) && o.im.length === a.im.length && o.im.every(function (b, j) { return b.src === a.im[j].src; }); });
     if (!gleich || !$('#res')) { var y = window.scrollY; starte(daten, opt); erst = false; window.scrollTo(0, y); return; }
-    var aus = D.aus, a = akt; STD = neu; D = kopie(STD); D.aus = aus; akt = a; tool(); zeichne();
+    var aus = D.aus, a = akt, startNeu = neu.start !== STD.start; STD = neu; D = kopie(STD); D.aus = aus; akt = a;
+    if (startNeu) { akt = D.objs.length > 1 && STD.start === 'paket' ? 'paket' : 0; galerie(); }
+    tool(); zeichne();
   }
   window.KreAngebot = { starte: starte, aktualisiere: aktualisiere, zahl: zahl, stand: function () { return stand(); } };
 })();

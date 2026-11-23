@@ -38,3 +38,4 @@
 .ag-bl{font-size:12px;color:var(--mut)}
 @media (max-width:1100px){.ag-spalten{grid-template-columns:1fr}.ag-vor{position:static}.ag-vor iframe{height:78vh}}
 @media (max-width:560px){.ag-global{grid-template-columns:1fr 1fr}.ag-zf{grid-template-columns:1fr 1fr}.ag-raster{grid-template-columns:1fr}.ag-akt{margin-left:0;width:100%}.ag-akt .btn{flex:1}}
+.ag-ans{margin-top:10px}.ag-ans select{width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font:inherit}

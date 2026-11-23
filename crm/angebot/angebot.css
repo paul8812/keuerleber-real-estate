@@ -225,3 +225,12 @@ footer p{text-align:end;line-height:1.7}
 @media(max-width:980px){.cards.n3{grid-template-columns:1fr 1fr}}
 @media(max-width:520px){.cards.n2,.cards.n3{grid-template-columns:1fr}}
 @media print{.sw,.oc-b .auf,.dots{display:none!important}.card,.oc{break-inside:avoid}}
+
+/* Kombinieren: „noch eine dazu“ */
+.kombi{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:16px;font-size:14px;color:var(--mu)}
+.kombi div{display:flex;flex-wrap:wrap;gap:8px}
+.kombi button{border:1px solid var(--line);background:none;color:var(--gl);font:500 14px var(--sans);padding:8px 14px;border-radius:99px;cursor:pointer;transition:.2s}
+.kombi button:hover{border-color:var(--gold);background:var(--panel2)}
+.kombi button.an{background:var(--panel2);border-color:var(--gold);color:#fff}
+.kombi button i{font-style:normal;color:var(--mu);margin-inline-start:4px}
+@media print{.kombi{display:none!important}}
