@@ -5,6 +5,7 @@ import { dealForm } from '../forms.js';
 import { cLink, pLink, empty, dealProvision } from '../ui.js';
 import { prob, isOpen } from './dashboard.js';
 import { offeneAufgaben, naechsterSchritt } from '../crmplus.js';
+import { ausVorgang } from '../portal.js';
 import { lastContact } from '../ui.js';
 import { daysBetween } from '../util.js';
 // Hinweise wie in Pipedrive: Vorgang ohne nächsten Schritt / seit Tagen ruhig
@@ -23,7 +24,7 @@ function hinweis(d) {
 const PF = [['alle', 'Alle', () => true], ['ohne', '⚠ Ohne nächsten Schritt', ohneSchritt], ['ueber', '⏰ Schritt überfällig', schrittUeber], ['ruhig', '💤 Ruhig seit 14 Tagen', istRuhig]];
 let pf = 'alle';
 
-let board = 'akquise';
+let board = 'vertrieb';
 
 export function render(el) {
   const P = PIPELINES[board], alleDeals = db.all('deals').filter(d => d.board === board);
@@ -32,7 +33,7 @@ export function render(el) {
   const deals = alleDeals.filter(PF.find(x => x[0] === pf)[2]);
   const sum = open.reduce((s, d) => s + (d.wert || 0), 0), fc = open.reduce((s, d) => s + dealProvision(d) * prob(d) / 100, 0);
   el.innerHTML = html`<div class="head"><h1>Pipeline</h1><div class="actions"><button class="btn primary" data-new>+ Vorgang</button></div></div>
-    <div class="chips">${Object.entries(PIPELINES).map(([k, v]) => html`<button class="chip ${k === board ? 'on' : ''}" data-b="${k}">${v.name}</button>`)}
+    <div class="chips">${Object.entries(PIPELINES).filter(([k, v]) => !v.alt || k === board || db.all('deals').some(d => d.board === k)).map(([k, v]) => html`<button class="chip ${k === board ? 'on' : ''}" data-b="${k}">${v.name}${v.alt ? '' : html` <i>${db.all('deals').filter(d => d.board === k && isOpen(d)).length}</i>`}</button>`)}
       <span class="muted grow right">${open.length} offen · Volumen ${eur(sum)} · Prognose Vergütung ${eur(fc)}</span></div>
     <div class="pfilter" role="group" aria-label="Vorgänge filtern">${PF.map(([k, l, f]) => { const n = k === 'alle' ? 0 : alleDeals.filter(f).length; return k === 'alle' || n ? html`<button type="button" class="chip ${pf === k ? 'on' : ''}" data-pf="${k}">${l}${n ? html` <i>${n}</i>` : ''}</button>` : ''; })}</div>
     <div class="kanban">${P.stages.map(stage => { const cards = deals.filter(d => d.stage === stage).sort((a, b) => (a.faellig || '9999').localeCompare(b.faellig || '9999')); const tot = cards.reduce((s, d) => s + (d.wert || 0), 0);
@@ -59,7 +60,7 @@ export function render(el) {
       if (!d || d.stage === stage) return;
       const old = d.stage; const upd = { ...d, stage, stageAt: new Date().toISOString() };
       if (stage === P.won || stage === P.lost) upd.closedAt = today(); else upd.closedAt = '';
-      await db.save('deals', upd);
+      await db.save('deals', upd); await ausVorgang(upd);
       await db.log('system', `Vorgang „${d.titel}“: ${sl(old)} → ${sl(stage)}`, { contactId: d.contactId, propertyId: d.propertyId, dealId: d.id });
       if (stage === P.won && board === 'akquise' && d.propertyId) { const p = db.get('properties', d.propertyId); if (p && p.status === 'Akquise') { await db.save('properties', { ...p, status: 'Vorbereitung' }); toast('Objekt auf „Vorbereitung“ gesetzt'); } }
       if (stage === P.won && board === 'vertrieb' && d.propertyId) { const p = db.get('properties', d.propertyId); if (p) { await db.save('properties', { ...p, status: 'Verkauft / Vermietet' }); toast('🎉 Abschluss – Objekt als verkauft/vermietet markiert'); } }

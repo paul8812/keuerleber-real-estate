@@ -49,7 +49,12 @@ export function gruppen() {
       name: haupt.name, email: L.map(x => x.email).find(Boolean) || '', tel: L.map(x => x.tel).find(Boolean) || '', angaben: Object.assign({}, ...L.map(x => x.angaben || {})) };
   }).sort((a, b) => b.eingang.localeCompare(a.eingang));
 }
-export const neuAnzahl = () => gruppen().filter(g => (g.haupt.status || 'neu') === 'neu').length;
+/** Ordner im Archiv? (kommt nach dem Archivieren eine neue Anfrage dazu, taucht der Ordner von selbst wieder auf) */
+function archivSeit(k, L) { const t = (db.settings().inseratArchiv || {})[k]; return t && !L.some(g => (g.eingang || '') > t) ? t : ''; }
+const archivSchluessel = () => { const m = new Map(); for (const g of gruppen()) { const k = ordnerK(g.haupt); if (!m.has(k)) m.set(k, []); m.get(k).push(g); } return new Set([...m.entries()].filter(([k, L]) => archivSeit(k, L)).map(([k]) => k)); };
+/** Anfragen ohne die aus archivierten Ordnern */
+export function aktiveGruppen() { const A = archivSchluessel(); return A.size ? gruppen().filter(g => !A.has(ordnerK(g.haupt))) : gruppen(); }
+export const neuAnzahl = () => aktiveGruppen().filter(g => (g.haupt.status || 'neu') === 'neu').length;
 /** Ordner (je Inserat): Name, Nummern, Objekt, Zähler – offene zuerst, dann nach letzter Anfrage */
 export function inserate() {
   const S = db.settings(), m = new Map();
@@ -61,7 +66,7 @@ export function inserate() {
   return [...m.entries()].map(([k, e]) => {
     const T = [...e.teile.values()], h = T.find(t => t.k === k) || T[0] || {}, propertyId = (S.inserate || {})[k] || '', obj = propertyId && db.get('properties', propertyId);
     const eigen = (S.inseratNamen || {})[k] || '';
-    return { k, nr: h.nr || (/^OM-/i.test(k) ? k : ''), titel: h.titel || '', url: h.url || '', n: e.n, offen: e.offen, neu: e.neu, letzte: e.letzte, propertyId, objekt: obj || null, eigen,
+    return { k, archiv: !!(S.inseratArchiv || {})[k] && !(e.letzte > (S.inseratArchiv || {})[k]), nr: h.nr || (/^OM-/i.test(k) ? k : ''), titel: h.titel || '', url: h.url || '', n: e.n, offen: e.offen, neu: e.neu, letzte: e.letzte, propertyId, objekt: obj || null, eigen, bilder: (S.inseratBilder || {})[k] || [],
       name: eigen || (obj && obj.titel) || h.nr || h.titel || k, nummern: T.map(t => t.nr).filter(Boolean), teile: T.filter(t => t.k !== k && ziel(t.k) === k && (S.inseratZiel || {})[t.k]) };
   }).sort((a, b) => (b.offen > 0) - (a.offen > 0) || b.letzte.localeCompare(a.letzte));
 }
@@ -77,14 +82,78 @@ export async function ordnerSpeichern(k, { name, propertyId, in: inK } = {}) {
     else { let t = inK, i = 0; while (Z[t] && i++ < 6) t = Z[t]; if (t === k) throw new Error('Diese Ordner sind schon zusammengelegt.'); Z[k] = t; for (const [q, v] of Object.entries(Z)) if (v === k) Z[q] = t; }
   }
   await db.saveSettings({ ...S, inseratNamen: N, inserate: O, inseratZiel: Z });
+  await vorgaengeAnlegen();
+}
+/** Bilder eines Ordners (Datei-IDs; das erste ist das Titelbild) */
+export async function bilderSetzen(k, ids) {
+  const S = db.settings(), B = { ...(S.inseratBilder || {}) }; if (ids.length) B[k] = ids; else delete B[k];
+  await db.saveSettings({ ...S, inseratBilder: B });
+}
+/** Ordner ins Archiv legen / zurückholen (Anfragen bleiben erhalten, zählen aber nicht mehr als offen) */
+export async function ordnerArchivieren(k, an = true) {
+  const S = db.settings(), A = { ...(S.inseratArchiv || {}) }; if (an) A[k] = new Date().toISOString(); else delete A[k];
+  await db.saveSettings({ ...S, inseratArchiv: A });
+}
+/** Ordner endgültig löschen: alle Anfragen darin, ihre Vorgänge bei den Mietinteressenten, offene Anruf-Erinnerungen und die Bilder.
+ *  Kontakte bleiben. Die Anfragen werden gemerkt, damit sie beim nächsten Mail-Abruf nicht wieder auftauchen. */
+export async function ordnerLoeschen(k) {
+  const G = gruppen().filter(g => ordnerK(g.haupt) === k), ids = G.flatMap(g => g.alle.map(a => a.id));
+  const deals = db.all('deals').filter(d => d.board === 'miete' && ids.includes(d.anfrageId)).map(d => d.id);
+  const tasks = db.all('tasks').filter(t => !t.done && G.some(g => t.auto === 'anf-anruf:' + g.id)).map(t => t.id);
+  const S = db.settings(), ohne = o => { const x = { ...(o || {}) }; delete x[k]; for (const [q, v] of Object.entries(x)) if (v === k) delete x[q]; return x; };
+  for (const id of (S.inseratBilder || {})[k] || []) db.delFile(id).catch(() => {});
+  await db.saveSettings({ ...S, anfragenWeg: [...new Set([...(S.anfragenWeg || []), ...ids])], inseratNamen: ohne(S.inseratNamen), inserate: ohne(S.inserate), inseratZiel: ohne(S.inseratZiel), inseratArchiv: ohne(S.inseratArchiv), inseratBilder: ohne(S.inseratBilder) });
+  if (deals.length) await db.delMany('deals', deals);
+  if (tasks.length) await db.delMany('tasks', tasks);
+  await db.delMany('anfragen', ids);
+  return { anfragen: G.length, vorgaenge: deals.length };
 }
 /** Eine Anfrage (alle Mails der Person) in einen anderen Ordner legen */
 export async function verschieben(g, k) {
   for (const x of g.alle) { const a = { ...(db.get('anfragen', x.id) || x) }; if (k === (a.inseratNr || a.inseratTitel || '–')) delete a.ordner; else a.ordner = k; await db.save('anfragen', a); }
 }
 
-export async function setzen(g, patch) { return db.save('anfragen', { ...(db.get('anfragen', g.haupt.id) || g.haupt), ...patch }); }
+export async function setzen(g, patch) { const a = await db.save('anfragen', { ...(db.get('anfragen', g.haupt.id) || g.haupt), ...patch }); if (patch.status) await vorgangAbgleichen(a); return a; }
 export async function status(g, s, extra = {}) { return setzen(g, { status: s, statusAm: new Date().toISOString(), ...extra }); }
+
+// ---- Pipeline „Mietinteressenten“: jede Anfrage hat dort einen Vorgang; Status und Phase laufen in beide Richtungen mit
+const PHASE = { neu: 'Anfrage', versucht: 'Anfrage', kontaktiert: 'Kontakt aufgenommen', besichtigung: 'Besichtigung', zusage: 'Zusage', absage: 'Absage', archiv: 'Absage' };
+const STATUS_AUS = { 'Kontakt aufgenommen': 'kontaktiert', 'Besichtigung': 'besichtigung', 'Selbstauskunft / Unterlagen': 'besichtigung', 'Zusage': 'zusage', 'Mietvertrag unterschrieben': 'zusage', 'Absage': 'absage' };
+const RANG = ['Anfrage', 'Kontakt aufgenommen', 'Besichtigung', 'Selbstauskunft / Unterlagen', 'Zusage', 'Mietvertrag unterschrieben'];
+/** Anfrage-Status geändert → Phase des Vorgangs nachziehen (nie hinter eine weiter fortgeschrittene Phase zurück, außer bei Absage / zurück auf offen) */
+async function vorgangAbgleichen(a) {
+  const d = a.dealId && db.get('deals', a.dealId); if (!d || d.board !== 'miete') return;
+  let stage = PHASE[a.status || 'neu'] || 'Anfrage';
+  if (stage !== 'Absage' && d.stage !== 'Absage' && STATUS_AUS[d.stage] === (a.status || 'neu')) return;   // z. B. „Unterlagen“ bleibt bei Status Besichtigung
+  if (d.stage === stage) return;
+  const zu = stage === 'Absage';
+  await db.save('deals', { ...d, stage, stageAt: new Date().toISOString(), closedAt: zu ? today() : '' });
+}
+/** Vorgang in der Pipeline verschoben → Status der Anfrage nachziehen */
+export async function ausVorgang(d) {
+  if (!d || d.board !== 'miete' || !d.anfrageId) return;
+  const a = db.get('anfragen', d.anfrageId); if (!a) return;
+  const st = d.stage === 'Anfrage' ? (['neu', 'versucht'].includes(a.status || 'neu') ? a.status || 'neu' : 'neu') : STATUS_AUS[d.stage];
+  if (st && st !== (a.status || 'neu')) await db.save('anfragen', { ...a, status: st, statusAm: new Date().toISOString() });
+}
+/** fehlende Vorgänge anlegen (einmal je Anfrage; ein gelöschter Vorgang wird nicht neu angelegt) */
+export async function vorgaengeAnlegen() {
+  let n = 0; const namen = new Map(inserate().map(i => [i.k, i.name]));
+  for (const g of gruppen()) {
+    const h = db.get('anfragen', g.haupt.id) || g.haupt, st = h.status || 'neu';
+    const titel = `${g.name} – ${namen.get(ordnerK(h)) || h.inseratNr || 'Mietanfrage'}`, obj = objektFuer(h) || '';
+    if (h.dealId) {   // Ordner später benannt / Objekt später zugeordnet → am Vorgang nachziehen (nur solange der Titel nicht von Hand geändert wurde)
+      const d = db.get('deals', h.dealId);
+      if (d && d.board === 'miete' && ((d.titelAuto === d.titel && d.titel !== titel) || (!d.propertyId && obj))) await db.save('deals', { ...d, ...(d.titelAuto === d.titel ? { titel, titelAuto: titel } : {}), propertyId: d.propertyId || obj });
+      continue;
+    }
+    if (!h.contactId || ['archiv', 'absage'].includes(st)) continue;
+    const id = idFor('anf-deal', h.id), da = db.get('deals', id);
+    if (!da) await db.save('deals', { id, board: 'miete', stage: PHASE[st] || 'Anfrage', stageAt: h.statusAm || g.erste || new Date().toISOString(), titel, titelAuto: titel, contactId: h.contactId, propertyId: obj, quelle: h.quelle || 'Portal', anfrageId: h.id, created: g.erste || new Date().toISOString() });
+    await db.save('anfragen', { ...h, dealId: id }); n++;
+  }
+  return n;
+}
 
 const erinnerungen = g => db.all('tasks').filter(t => !t.done && t.auto === 'anf-anruf:' + g.id);
 /** Kontaktversuch festhalten: steht an der Anfrage, im Kontaktverlauf und (bei „nicht erreicht“) als Erinnerung für morgen.
@@ -93,7 +162,7 @@ export async function versuch(g, art, { notiz = '', erinnern = VERSUCH[art]?.eri
   const V = VERSUCH[art]; if (!V) throw new Error('Unbekanntes Ergebnis');
   const h = db.get('anfragen', g.haupt.id) || g.haupt, vorher = { ...h }, zeit = new Date().toISOString(), id = uid();
   const st = h.status || 'neu', neuSt = ['neu', 'versucht'].includes(st) || (st === 'kontaktiert' && V.status === 'kontaktiert') ? V.status : st;
-  await db.save('anfragen', { ...h, versuche: [...(h.versuche || []), { id, zeit, art, notiz: String(notiz).trim() }], status: neuSt, statusAm: neuSt !== st ? zeit : h.statusAm });
+  await vorgangAbgleichen(await db.save('anfragen', { ...h, versuche: [...(h.versuche || []), { id, zeit, art, notiz: String(notiz).trim() }], status: neuSt, statusAm: neuSt !== st ? zeit : h.statusAm }));
   const angelegt = [];
   if (h.contactId) { const a = await db.save('activities', { id: idFor('anf-versuch', id), art: V.anruf ? 'anruf' : 'notiz', text: `${V.icon} ${V.name}${h.inseratNr ? ' (Anfrage ' + h.inseratNr + ')' : ''}${notiz ? ' – ' + String(notiz).trim() : ''}`, datum: zeit, contactId: h.contactId }); angelegt.push(['activities', a.id]); }
   const offen = erinnerungen(g), erledigt = [];
@@ -102,7 +171,7 @@ export async function versuch(g, art, { notiz = '', erinnern = VERSUCH[art]?.eri
   // Rückgängig nimmt genau diesen Versuch zurück (auch wenn inzwischen weitere dazugekommen sind)
   return async () => {
     const jetzt = db.get('anfragen', h.id) || h, rest = (jetzt.versuche || []).filter(v => v.id !== id), warLetzter = (jetzt.versuche || []).at(-1)?.id === id;
-    await db.save('anfragen', { ...jetzt, versuche: rest, ...(warLetzter ? { status: vorher.status || 'neu', statusAm: vorher.statusAm || '' } : {}) });
+    await vorgangAbgleichen(await db.save('anfragen', { ...jetzt, versuche: rest, ...(warLetzter ? { status: vorher.status || 'neu', statusAm: vorher.statusAm || '' } : {}) }));
     for (const [c, i] of angelegt) if (db.get(c, i)) await db.del(c, i);
     for (const t of erledigt) await db.save('tasks', t);
   };
@@ -144,9 +213,9 @@ export function ausMail(m) {
 }
 /** Neue Anfrage-Mails aus dem Posteingang übernehmen; trägt bei schon übernommenen eine später gefundene Telefonnummer nach */
 export async function ausPosteingang() {
-  let n = 0;
+  let n = 0; const weg = new Set(db.settings().anfragenWeg || []);
   for (const m of db.all('mails') || []) {
-    const a = ausMail(m); if (!a) continue;
+    const a = ausMail(m); if (!a || weg.has(a.id)) continue;
     const alt = db.get('anfragen', a.id);
     if (!alt) { await db.save('anfragen', a); n++; }
     else if ((a.tel && !alt.tel) || (a.email && !alt.email)) await db.save('anfragen', { ...alt, tel: alt.tel || a.tel, email: alt.email || a.email });
@@ -160,6 +229,7 @@ export async function verarbeiten() {
   if (laeuft || (db.isCloud() && !db.syncState().synced)) return 0;
   laeuft = true; let n = 0;
   try {
+    { const weg = new Set(db.settings().anfragenWeg || []), wieder = weg.size ? alle().filter(a => weg.has(a.id)).map(a => a.id) : []; if (wieder.length) await db.delMany('anfragen', wieder); }   // gelöschte kommen nicht zurück (z. B. über den Gmail-Abruf)
     n += await ausPosteingang();
     for (const g of gruppen()) {
       const h = g.haupt;
@@ -181,6 +251,7 @@ export async function verarbeiten() {
       await db.save('anfragen', { ...(db.get('anfragen', h.id) || h), contactId: c.id, ...(alt ? { status: 'archiv', statusAm: new Date().toISOString(), notiz: 'Ältere Anfrage – beim Import automatisch abgelegt' } : {}) });
       n++;
     }
+    await vorgaengeAnlegen();
   } finally { laeuft = false; }
   return n;
 }

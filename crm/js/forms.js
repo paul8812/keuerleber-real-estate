@@ -84,11 +84,11 @@ export function propertyForm(p = {}, done) {
 }
 
 export function dealForm(d = {}, done) {
-  const isNew = !d.id; const board = d.board || 'akquise';
+  const isNew = !d.id; const board = d.board || 'vertrieb';
   modal(isNew ? 'Neuer Vorgang' : 'Vorgang bearbeiten', html`
     ${inp('titel', 'Titel', d.titel, { req: 1, cls: 'full' })}
-    ${sel('board', 'Pipeline', Object.entries(PIPELINES).map(([k, v]) => [k, v.name]), board)}
-    ${sel('stage', 'Phase', [...new Set(Object.values(PIPELINES).flatMap(p => p.stages))].map(x => [x, sl(x)]), d.stage || PIPELINES[board].stages[0])}
+    ${sel('board', 'Pipeline', Object.entries(PIPELINES).filter(([k, v]) => !v.alt || k === board).map(([k, v]) => [k, v.name]), board)}
+    ${sel('stage', 'Phase', PIPELINES[board].stages.map(x => [x, sl(x)]), d.stage || PIPELINES[board].stages[0])}
     ${sel('contactId', 'Kontakt', contactOpts(), d.contactId, { blank: 1 })}${sel('propertyId', 'Objekt', propOpts(), d.propertyId, { blank: 1 })}
     ${inp('wert', 'Objektwert / Kaufpreis (€)', d.wert, { type: 'number' })}${inp('verguetung', 'Deine Vergütung (€ netto) – leer = Objekt/Standard', d.verguetung, { type: 'number', step: '100' })}
     ${inp('wahrscheinlichkeit', 'Wahrscheinlichkeit (%) – leer = automatisch', d.wahrscheinlichkeit, { type: 'number' })}${inp('naechsterSchritt', 'Nächster Schritt', d.naechsterSchritt)}
@@ -102,13 +102,13 @@ export function dealForm(d = {}, done) {
         const rec = { ...d, ...v };
         if (old !== v.stage) rec.stageAt = new Date().toISOString();
         if ((v.stage === P.won || v.stage === P.lost) && !rec.closedAt) rec.closedAt = today(); if (v.stage !== P.won && v.stage !== P.lost) rec.closedAt = '';
-        await db.save('deals', rec);
+        await db.save('deals', rec); if (rec.anfrageId) (await import('./portal.js')).ausVorgang(rec).catch(() => {});
         if (isNew) await db.log('system', `Vorgang „${v.titel}“ angelegt (${sl(v.stage)})`, { contactId: v.contactId, propertyId: v.propertyId, dealId: rec.id });
         else if (old !== v.stage) await db.log('system', `Vorgang „${v.titel}“: ${sl(old)} → ${sl(v.stage)}`, { contactId: v.contactId, propertyId: v.propertyId, dealId: rec.id });
         toast('Vorgang gespeichert'); done && done(rec);
       },
       danger: isNew ? null : { label: 'Löschen', confirm: 'Vorgang löschen?', fn: async () => { await db.del('deals', d.id); } },
-      onMount: el => { const b = el.querySelector('[name=board]'), s = el.querySelector('[name=stage]'); b.onchange = () => { s.value = PIPELINES[b.value].stages[0]; }; },
+      onMount: el => { const b = el.querySelector('[name=board]'), s = el.querySelector('[name=stage]'); b.onchange = () => { s.innerHTML = PIPELINES[b.value].stages.map(x => `<option>${x}</option>`).join(''); [...s.options].forEach(o => { o.value = o.textContent; o.textContent = sl(o.value); }); s.value = PIPELINES[b.value].stages[0]; }; },
     });
 }
 
