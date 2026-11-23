@@ -9,7 +9,7 @@ import { vorWann } from '../kontakt.js';
 import { haptik } from '../haptik.js';
 
 const z = { filter: 'offen', inserat: '', ansicht: 'karten', auf: new Set() };
-const FILTER = [['offen', 'Offen', g => P.OFFEN.includes(st(g))], ['neu', 'Neu', g => st(g) === 'neu'], ['kontaktiert', 'Kontaktiert', g => st(g) === 'kontaktiert'], ['besichtigung', 'Besichtigung', g => st(g) === 'besichtigung'],
+const FILTER = [['offen', 'Offen', g => P.OFFEN.includes(st(g))], ['neu', 'Neu', g => st(g) === 'neu'], ['versucht', 'Nicht erreicht', g => st(g) === 'versucht'], ['kontaktiert', 'Kontaktiert', g => st(g) === 'kontaktiert'], ['besichtigung', 'Besichtigung', g => st(g) === 'besichtigung'],
   ['zusage', 'Zusage', g => st(g) === 'zusage'], ['erledigt', 'Absage / abgelegt', g => ['absage', 'archiv'].includes(st(g))], ['alle', 'Alle', () => true]];
 const st = g => g.haupt.status || 'neu';
 const telNr = t => String(t || '').replace(/[^\d+]/g, '');
@@ -63,11 +63,12 @@ export function render(el) {
 
 function karte(g) {
   const h = g.haupt, s = st(g), auf = z.auf.has(g.id), ang = P.angabenListe(g.angaben), c = h.contactId && db.get('contacts', h.contactId);
-  const lang = (g.letzte.nachricht || '').length > 260 || g.nachrichten.length > 1;
+  const lang = (g.letzte.nachricht || '').length > 260 || g.nachrichten.length > 1 || (h.versuche || []).length > 3;
   return html`<article class="card an-karte ${s}" data-g="${g.id}">
     <header class="an-kopf">
       <span class="an-av" aria-hidden="true">${initialen(g.name)}</span>
       <div class="an-wer"><b>${g.name}</b><small class="muted">${vorWann(g.eingang)} · ${fmtDT(g.eingang)}${g.alle.length > 1 ? ` · ${g.alle.length} Mails` : ''}${!z.inserat && h.inseratNr ? ' · ' + h.inseratNr : ''}</small></div>
+      ${(() => { const i = P.versucheInfo(h); return i && i.fehl ? html`<span class="an-fehl" title="Anrufversuche ohne Erfolg">📵 ${i.fehl}×</span>` : ''; })()}
       <button type="button" class="an-fav ${h.favorit ? 'on' : ''}" data-fav aria-pressed="${!!h.favorit}" aria-label="Favorit" title="Favorit">★</button>
       ${stBadge(s)}
     </header>
@@ -79,6 +80,8 @@ function karte(g) {
       ${g.email ? html`<a class="btn" href="${mailLink(g, 'antwort')}" data-k title="${g.email}">✉ Antworten</a>` : ''}
       <button type="button" class="btn" data-besichtigung>▦ Besichtigung</button>
     </div>
+    <div class="an-erg" role="group" aria-label="Ergebnis festhalten"><span class="muted small">Ergebnis:</span>${Object.entries(P.VERSUCH).map(([k, v]) => html`<button type="button" class="chip an-vb" data-versuch="${k}">${v.icon} ${v.name}</button>`)}</div>
+    ${(h.versuche || []).length ? html`<ul class="an-verlauf">${[...h.versuche].reverse().slice(0, auf ? 20 : 3).map(v => html`<li><span aria-hidden="true">${P.VERSUCH[v.art]?.icon || '•'}</span><b>${P.VERSUCH[v.art]?.name || v.art}</b><small class="muted">${vorWann(v.zeit)} · ${fmtDT(v.zeit)}</small>${v.notiz ? html`<em>${v.notiz}</em>` : ''}</li>`)}${!auf && h.versuche.length > 3 ? html`<li class="muted small">+ ${h.versuche.length - 3} frühere</li>` : ''}</ul>` : ''}
     <footer class="an-fuss2">
       <label class="an-stsel"><span class="muted small">Status</span><select data-status aria-label="Status von ${g.name}">${Object.entries(P.STATUS).map(([k, v]) => html`<option value="${k}" ${k === s ? raw('selected') : ''}>${v.name}</option>`)}</select></label>
       ${g.email && !['absage', 'archiv'].includes(s) ? html`<a class="btn ghost small" href="${mailLink(g, 'absage')}" data-absage>Absage schreiben</a>` : ''}
@@ -90,8 +93,9 @@ function karte(g) {
 function vergleich(liste) {
   const sp = [['Haushalt', /haushalt/i], ['Arbeit', /arbeit/i], ['Einkommen', /einkommen/i], ['Schufa', /schufa/i], ['Haustiere', /haustier/i]];
   const wert = (g, re) => (P.angabenListe(g.angaben).find(([k]) => re.test(k)) || [])[1] || '–';
-  return html`<div class="card flush an-vgl"><table class="tbl"><thead><tr><th></th><th>Name</th><th>Eingang</th>${sp.map(([l]) => html`<th>${l}</th>`)}<th>Kontakt</th><th>Status</th></tr></thead><tbody>
+  return html`<div class="card flush an-vgl"><table class="tbl"><thead><tr><th></th><th>Name</th><th>Eingang</th>${sp.map(([l]) => html`<th>${l}</th>`)}<th>Versuche</th><th>Kontakt</th><th>Status</th></tr></thead><tbody>
     ${liste.map(g => html`<tr data-g="${g.id}"><td><button type="button" class="an-fav ${g.haupt.favorit ? 'on' : ''}" data-fav aria-label="Favorit">★</button></td><td><b>${g.name}</b>${g.haupt.notiz ? html`<br><small class="muted">${g.haupt.notiz}</small>` : ''}</td><td>${fmtDT(g.eingang).slice(0, 6)}</td>${sp.map(([, re]) => html`<td>${wert(g, re)}</td>`)}
+      <td>${(() => { const i = P.versucheInfo(g.haupt); return i ? html`${i.fehl ? `📵 ${i.fehl}× ` : ''}${i.erreicht ? '✅ ' : ''}<small class="muted">${vorWann(i.letzter.zeit)}</small>` : html`<span class="muted">–</span>`; })()}</td>
       <td class="an-vk">${g.tel ? html`<a href="tel:${telNr(g.tel)}" data-k title="${g.tel}">📞</a>` : ''}${g.email ? html`<a href="${mailLink(g, 'antwort')}" data-k title="${g.email}">✉</a>` : ''}</td>
       <td><select data-status aria-label="Status von ${g.name}">${Object.entries(P.STATUS).map(([k, v]) => html`<option value="${k}" ${k === st(g) ? raw('selected') : ''}>${v.name}</option>`)}</select></td></tr>`)}
   </tbody></table></div>`;
@@ -127,8 +131,17 @@ function binden(el) {
   el.querySelectorAll('[data-mehr]').forEach(b => b.onclick = () => { const id = b.closest('[data-g]').dataset.g; z.auf.has(id) ? z.auf.delete(id) : z.auf.add(id); render(el); });
   el.querySelectorAll('[data-fav]').forEach(b => b.onclick = async () => { const g = grp(b); haptik('leicht'); await P.setzen(g, { favorit: !g.haupt.favorit }); });
   el.querySelectorAll('[data-status]').forEach(s => s.onchange = async () => { const g = grp(s); await P.status(g, s.value); haptik('erfolg'); toast(`${g.name}: ${P.STATUS[s.value].name}`); });
-  // Anrufen / WhatsApp / Antworten: aus „Neu“ wird automatisch „Kontaktiert“
-  el.querySelectorAll('[data-k]').forEach(a => a.addEventListener('click', () => { const g = grp(a); if (g && st(g) === 'neu') P.status(g, 'kontaktiert'); }));
+  // Ergebnis eines Anrufs/Kontakts mit einem Tipp festhalten (Notizfeld der Karte wird mitgenommen, wenn gerade etwas Neues drinsteht)
+  el.querySelectorAll('[data-versuch]').forEach(b => b.onclick = async () => {
+    const g = grp(b), V = P.VERSUCH[b.dataset.versuch]; if (!g) return;
+    try {
+      const zurueck = await P.versuch(g, b.dataset.versuch);
+      haptik(V.status === 'versucht' ? 'leicht' : 'erfolg');
+      toast(`${V.icon} ${g.name}: ${V.name}${V.erinnern ? ' · Erinnerung für morgen angelegt' : ''}`, 'ok', { label: 'Rückgängig', fn: zurueck });
+    } catch (e) { toast(e.message, 'err'); }
+  });
+  // WhatsApp / Antworten: aus „Neu“ wird „Kontaktiert“. Anrufen ändert nichts – das Ergebnis tippst du danach an.
+  el.querySelectorAll('[data-k]').forEach(a => a.addEventListener('click', () => { const g = grp(a); if (g && ['neu', 'versucht'].includes(st(g)) && !/^tel:/.test(a.getAttribute('href') || '')) P.status(g, 'kontaktiert'); }));
   el.querySelectorAll('[data-absage]').forEach(a => a.addEventListener('click', () => { const g = grp(a); if (g) { P.status(g, 'absage'); toast(`${g.name}: Absage – Mail-Entwurf geöffnet`); } }));
   el.querySelectorAll('[data-besichtigung]').forEach(b => b.onclick = () => {
     const g = grp(b), h = g.haupt;
