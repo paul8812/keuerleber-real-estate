@@ -13,7 +13,7 @@ export function render(el) {
   const wonV = deals.filter(d => d.board === 'vertrieb' && d.stage === PIPELINES.vertrieb.won);
   const rev = months.map((m, i) => [MN[i], wonV.filter(d => (d.closedAt || '').startsWith(m)).reduce((s, d) => s + dealProvision(d), 0)]);
   const sources = Object.entries(contacts.reduce((a, c) => { const k = c.quelle || 'Unbekannt'; a[k] = (a[k] || 0) + 1; return a; }, {})).sort((a, b) => b[1] - a[1]);
-  const aq = PIPELINES.akquise, lead = deals.filter(d => d.board === 'akquise'), won = lead.filter(d => d.stage === aq.won).length, lost = lead.filter(d => d.stage === aq.lost).length;
+  const aq = PIPELINES.miete, lead = deals.filter(d => d.board === 'miete'), won = lead.filter(d => d.stage === aq.won).length, lost = lead.filter(d => d.stage === aq.lost).length;
   const funnel = (P, b) => P.stages.filter(s => s !== P.lost).map(s => [s, deals.filter(d => d.board === b && d.stage === s).length]);
   const sold = props.filter(p => p.status === 'Verkauft / Vermietet' && p.eingestelltAm);
   const avgDays = sold.length ? Math.round(sold.reduce((s, p) => s + daysBetween(p.eingestelltAm, (p.updated || '').slice(0, 10) || today()), 0) / sold.length) : null;
@@ -29,12 +29,12 @@ export function render(el) {
   const bericht = `Wochenbericht Keuerleber Immobilien (bis ${t0.split('-').reverse().join('.')})\n\n• Neue Kontakte: ${neuK.length} (davon über die Website: ${neuW})\n• Kontakte gehabt: ${gespr.length} (mit ${new Set(gespr.map(a => a.contactId)).size} Personen)\n• Offene Vertriebs-Vorgänge: ${offenV}\n• Offene Aufgaben: ${offen.length} (überfällig: ${ueber})\n• Termine in den nächsten 7 Tagen: ${naechste}\n• Abgeschlossen (gesamt): ${wonV.length}`;
   el.innerHTML = html`<div class="head"><h1>Statistik</h1></div>
     <div class="kpis"><div class="kpi"><b>${eur(rev.reduce((s, r) => s + r[1], 0))}</b><span>Vergütung ${year}</span></div><div class="kpi"><b>${eur(volWon)}</b><span>Verkaufsvolumen (gesamt)</span></div>
-      <div class="kpi"><b>${won + lost ? pct(won / (won + lost) * 100, 0) : '–'}</b><span>Akquise-Erfolgsquote</span></div><div class="kpi"><b>${avgDays != null ? avgDays + ' Tage' : '–'}</b><span>Ø Vermarktungsdauer</span></div></div>
+      <div class="kpi"><b>${won + lost ? pct(won / (won + lost) * 100, 0) : '–'}</b><span>Vermietungsquote</span></div><div class="kpi"><b>${avgDays != null ? avgDays + ' Tage' : '–'}</b><span>Ø Vermarktungsdauer</span></div></div>
     <div class="cols">
       <section class="card"><h2>Vergütung je Monat ${year}</h2>${bars(rev, eur)}</section>
       <section class="card"><h2>Objekte nach Status</h2>${bars(OBJEKT_STATUS.map(s => [s, props.filter(p => p.status === s).length, STATUS_FARBE[s]]).filter(r => r[1]))}</section>
-      <section class="card"><h2>Trichter Akquise</h2>${bars(funnel(aq, 'akquise'))}</section>
-      <section class="card"><h2>Trichter Vertrieb</h2>${bars(funnel(PIPELINES.vertrieb, 'vertrieb'))}</section>
+      <section class="card"><h2>Trichter Kapitalanleger</h2>${bars(funnel(PIPELINES.vertrieb, 'vertrieb'))}</section>
+      <section class="card"><h2>Trichter Mietinteressenten</h2>${bars(funnel(aq, 'miete'))}</section>
       <section class="card"><h2>Kontakte nach Quelle</h2>${bars(sources)}</section>
       <section class="card"><h2>Website-Anfragen nach Seite</h2>${seiten.length ? bars(seiten) : html`<p class="muted">Sobald Anfragen über die Website eingehen, siehst du hier, welche Seite sie bringt.</p>`}</section>
       <section class="card"><h2>Wochenbericht</h2><pre class="sqlbox" style="white-space:pre-wrap">${bericht}</pre><div class="actions"><button type="button" class="btn" data-rcopy>Kopieren</button><a class="btn primary" href="mailto:${encodeURIComponent(db.settings().email || '')}?subject=${encodeURIComponent('Wochenbericht')}&body=${encodeURIComponent(bericht)}">Als E-Mail öffnen</a></div></section>

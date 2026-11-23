@@ -71,7 +71,7 @@ export function schnellerfassung(vorgabe = '') {
         const p = parseAnfrage(ta.value);
         for (const k of ['anrede', 'vorname', 'nachname', 'email', 'tel', 'kategorie', 'quelle', 'propertyId']) if (!touched.has(k) && (p[k] || k !== 'propertyId')) f[k].value = p[k] || (k === 'anrede' ? 'Frau' : '');
         const vorh = dublette(f.email.value, f.tel.value);
-        f.vorgang.parentElement.querySelector('span').textContent = (['Eigentümer', 'Bauträger / Verkäufer'].includes(f.kategorie.value) ? 'Einkaufs-Vorgang' : 'Vorgang') + ' in der Pipeline anlegen';
+        f.vorgang.parentElement.querySelector('span').textContent = (/Miete/.test(f.kategorie.value) ? 'Vorgang bei den Mietinteressenten' : 'Vorgang in der Pipeline') + ' anlegen';
         hint.textContent = vorh ? `ℹ️ ${fullName(vorh)} ist schon im CRM – die Anfrage wird diesem Kontakt zugeordnet.` : '';
       };
       ta.addEventListener('input', upd); ta.addEventListener('paste', () => setTimeout(upd, 0));
@@ -101,12 +101,12 @@ export async function speichern(v) {
   }
   const p = v.propertyId ? db.get('properties', v.propertyId) : null;
   if (v.text) await db.log(/@/.test(v.text) || v.quelle ? 'email' : 'notiz', `Anfrage${p ? ' zu „' + p.titel + '“' : ''}${v.quelle ? ' über ' + v.quelle : ''}:\n${v.text.slice(0, 4000)}`, { contactId: c.id, propertyId: p?.id, eingehend: true });
-  if (v.vorgang) {
-    const board = ['Eigentümer', 'Bauträger / Verkäufer'].includes(v.kategorie) ? 'akquise' : 'vertrieb';
-    const offen = db.all('deals').find(d => d.contactId === c.id && d.board === board && (d.propertyId || '') === (p?.id || '') && !['Abgeschlossen', 'Absage', 'Auftrag erhalten', 'Verloren'].includes(d.stage));
+  if (v.vorgang && !['Eigentümer', 'Bauträger / Verkäufer'].includes(v.kategorie)) {
+    const board = /Miete/.test(v.kategorie || '') || p?.vermarktung === 'Miete' ? 'miete' : 'vertrieb';
+    const offen = db.all('deals').find(d => d.contactId === c.id && d.board === board && (d.propertyId || '') === (p?.id || '') && !['Abgeschlossen', 'Absage', 'Mietvertrag unterschrieben'].includes(d.stage));
     if (!offen) {
-      const stage = board === 'akquise' ? 'Neuer Lead' : 'Anfrage';
-      const d = await db.save('deals', { titel: `${board === 'akquise' ? 'Akquise' : 'Anfrage'} ${fullName(c)}${p ? ' – ' + (p.strasse || p.titel) : ''}`, board, stage, stageAt: new Date().toISOString(), contactId: c.id, propertyId: p?.id || '', wert: p?.preis || '' });
+      const stage = 'Anfrage';
+      const d = await db.save('deals', { titel: `${board === 'miete' ? 'Mietanfrage' : 'Anfrage'} ${fullName(c)}${p ? ' – ' + (p.strasse || p.titel) : ''}`, board, stage, stageAt: new Date().toISOString(), contactId: c.id, propertyId: p?.id || '', wert: board === 'miete' ? '' : p?.preis || '' });
       await db.log('system', `Vorgang „${d.titel}“ angelegt (${stage})`, { contactId: c.id, propertyId: p?.id, dealId: d.id });
     }
   }

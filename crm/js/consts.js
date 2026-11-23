@@ -6,11 +6,13 @@ export const STATUS_FARBE = { 'Akquise': '#8a7bd8', 'Vorbereitung': '#5fa8d3', '
 export const ENERGIE_KLASSEN = ['A+', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 export const HEIZUNG = ['Gas', 'Öl', 'Fernwärme', 'Wärmepumpe', 'Pellets', 'Strom', 'Holz', 'Sonstige'];
 export const AKTIVITAET_ARTEN = [['notiz', 'Notiz', '📝'], ['anruf', 'Anruf', '📞'], ['email', 'E-Mail', '✉️'], ['besichtigung', 'Besichtigung', '🏠'], ['meeting', 'Termin / Meeting', '🤝'], ['whatsapp', 'WhatsApp / SMS', '💬'], ['system', 'System', '⚙️']];
+// Reihenfolge = Anzeige. „akquise“ (früher Einkauf) wird nicht mehr angeboten – bleibt nur definiert, damit alte Vorgänge lesbar sind.
 export const PIPELINES = {
-  akquise: { name: 'Einkauf (Verkäufer / Bauträger)', stages: ['Neuer Lead', 'Erstkontakt', 'Bewertung / Besichtigung', 'Angebot / Maklerauftrag', 'Auftrag erhalten', 'Verloren'], won: 'Auftrag erhalten', lost: 'Verloren' },
-  vertrieb: { name: 'Vertrieb (Interessenten)', stages: ['Anfrage', 'Beratungsgespräch', 'Besichtigung', 'Finanzierung / Prüfung', 'Reservierung', 'Notartermin', 'Abgeschlossen', 'Absage'], won: 'Abgeschlossen', lost: 'Absage' },
+  vertrieb: { name: 'Kapitalanleger', stages: ['Anfrage', 'Beratungsgespräch', 'Besichtigung', 'Finanzierung / Prüfung', 'Reservierung', 'Notartermin', 'Abgeschlossen', 'Absage'], won: 'Abgeschlossen', lost: 'Absage' },
+  miete: { name: 'Mietinteressenten', stages: ['Anfrage', 'Kontakt aufgenommen', 'Besichtigung', 'Selbstauskunft / Unterlagen', 'Zusage', 'Mietvertrag unterschrieben', 'Absage'], won: 'Mietvertrag unterschrieben', lost: 'Absage' },
+  akquise: { name: 'Einkauf (alt)', alt: true, stages: ['Neuer Lead', 'Erstkontakt', 'Bewertung / Besichtigung', 'Angebot / Maklerauftrag', 'Auftrag erhalten', 'Verloren'], won: 'Auftrag erhalten', lost: 'Verloren' },
 };
-export const DEFAULT_PROB = { 'Neuer Lead': 10, 'Erstkontakt': 20, 'Bewertung / Besichtigung': 40, 'Angebot / Maklerauftrag': 60, 'Auftrag erhalten': 100, 'Verloren': 0, 'Anfrage': 10, 'Beratungsgespräch': 20, 'Besichtigung': 30, 'Finanzierung / Prüfung': 50, 'Reservierung': 75, 'Notartermin': 90, 'Abgeschlossen': 100, 'Absage': 0 };
+export const DEFAULT_PROB = { 'Neuer Lead': 10, 'Erstkontakt': 20, 'Bewertung / Besichtigung': 40, 'Angebot / Maklerauftrag': 60, 'Auftrag erhalten': 100, 'Verloren': 0, 'Anfrage': 10, 'Beratungsgespräch': 20, 'Besichtigung': 30, 'Finanzierung / Prüfung': 50, 'Reservierung': 75, 'Notartermin': 90, 'Abgeschlossen': 100, 'Absage': 0, 'Kontakt aufgenommen': 25, 'Selbstauskunft / Unterlagen': 60, 'Zusage': 85, 'Mietvertrag unterschrieben': 100 };
 export const TERMIN_ARTEN = ['Besichtigung', 'Beratungsgespräch', 'Bewertungstermin', 'Notartermin', 'Übergabe', 'Fotoshooting', 'Energieausweis / Gutachter', 'Sonstiges'];
 export const PRIOS = [['hoch', 'Hoch'], ['normal', 'Normal'], ['niedrig', 'Niedrig']];
 export const WIEDERHOLUNG = [['', 'Keine'], ['daily', 'Täglich'], ['weekly', 'Wöchentlich'], ['monthly', 'Monatlich'], ['yearly', 'Jährlich']];

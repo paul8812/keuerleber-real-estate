@@ -8,7 +8,7 @@ import { eventForm } from '../forms.js';
 import { vorWann } from '../kontakt.js';
 import { haptik } from '../haptik.js';
 
-const z = { filter: 'offen', inserat: '', ansicht: 'karten', auf: new Set() };
+const z = { filter: 'offen', inserat: '', ansicht: 'karten', auf: new Set(), archivAuf: false };
 const FILTER = [['offen', 'Offen', g => P.OFFEN.includes(st(g))], ['neu', 'Neu', g => st(g) === 'neu'], ['versucht', 'Nicht erreicht', g => st(g) === 'versucht'], ['kontaktiert', 'Kontaktiert', g => st(g) === 'kontaktiert'], ['besichtigung', 'Besichtigung', g => st(g) === 'besichtigung'],
   ['zusage', 'Zusage', g => st(g) === 'zusage'], ['erledigt', 'Absage / abgelegt', g => ['absage', 'archiv'].includes(st(g))], ['alle', 'Alle', () => true]];
 const st = g => g.haupt.status || 'neu';
@@ -31,14 +31,15 @@ function mailLink(g, art) {
 
 const kurz = t => String(t || '').split(' - ').slice(0, 2).join(' – ');
 function ordnerKarte(i) {
-  return html`<div class="an-ord ${i.neu ? 'neu' : ''}" data-ord="${i.k}">
+  return html`<div class="an-ord ${i.archiv ? 'archiv' : i.neu ? 'neu' : ''} ${i.bilder.length ? 'mitbild' : ''}" data-ord="${i.k}">
+    ${i.bilder.length ? html`<button type="button" class="an-ordbild" data-ins="${i.k}" aria-label="Ordner ${i.name} öffnen"><img data-bild="${i.bilder[0]}" alt="" loading="lazy">${i.bilder.length > 1 ? html`<span>${i.bilder.length} Bilder</span>` : ''}</button>` : ''}
     <button type="button" class="an-ordb" data-ins="${i.k}" aria-label="Ordner ${i.name} öffnen">
-      <span class="an-ordi" aria-hidden="true">📁</span>
+      ${i.bilder.length ? '' : html`<span class="an-ordi" aria-hidden="true">${i.archiv ? '🗄' : '📁'}</span>`}
       <span class="an-ordt"><b>${i.name}</b><small>${i.nummern.length ? i.nummern.join(' + ') : 'ohne Inserat-Nummer'}${i.titel && i.name !== i.titel ? ' · ' + kurz(i.titel) : ''}</small></span>
     </button>
     <div class="an-ordz">${i.neu ? html`<span class="an-z gold">${i.neu} neu</span>` : ''}<span class="an-z">${i.offen} offen</span><span class="an-z">${i.n} gesamt</span>${i.letzte ? html`<small class="muted">letzte ${vorWann(i.letzte)}</small>` : ''}</div>
     <div class="an-ordf"><small class="${i.objekt ? '' : 'muted'}">${i.objekt ? '⌂ ' + (i.objekt.nr ? i.objekt.nr + ' · ' : '') + i.objekt.titel : 'noch keinem Objekt zugeordnet'}</small>
-      <button type="button" class="btn ghost small" data-ordedit="${i.k}">✎ Benennen / zuordnen</button></div>
+      <span class="an-ordk"><button type="button" class="btn ghost small" data-ordbilder="${i.k}">🖼 Bilder</button><button type="button" class="btn ghost small" data-ordedit="${i.k}">✎ Benennen / zuordnen</button></span></div>
   </div>`;
 }
 function ordnerDlg(k, el) {
@@ -49,9 +50,14 @@ function ordnerDlg(k, el) {
     <label class="f full"><span>Name des Ordners</span><input name="name" value="${i.eigen}" placeholder="${(i.objekt && i.objekt.titel) || i.nr || 'z. B. Ludwigstraße 12 – 3 Zi. EG'}" autocomplete="off"></label>
     <label class="f full"><span>Objekt</span><select name="propertyId"><option value="">– kein Objekt –</option>${db.all('properties').map(p => html`<option value="${p.id}" ${p.id === i.propertyId ? raw('selected') : ''}>${p.nr ? p.nr + ' · ' : ''}${p.titel}</option>`)}</select></label>
     ${andere.length ? html`<label class="f full"><span>Mit anderem Ordner zusammenlegen</span><select name="in"><option value="">– eigener Ordner –</option>${andere.map(x => html`<option value="${x.k}">${x.name}${x.nummern.length && x.name !== x.nummern[0] ? ' (' + x.nummern.join(' + ') + ')' : ''}</option>`)}</select><small class="muted">Für dieselbe Wohnung, die unter zwei Nummern inseriert war. Lässt sich wieder trennen.</small></label>` : ''}
+    <div class="f full an-arch"><button type="button" class="btn" id="an-archiv">${i.archiv ? '↩ Aus dem Archiv zurückholen' : '🗄 Ordner archivieren'}</button><small class="muted">${i.archiv ? 'Der Ordner erscheint wieder in der Übersicht.' : 'Räumt den Ordner aus der Übersicht – nichts wird gelöscht. Kommt eine neue Anfrage zu diesem Inserat, taucht er von selbst wieder auf.'}</small></div>
     ${i.teile.length ? html`<div class="f full"><span>In diesem Ordner zusammengelegt</span>${i.teile.map(t => html`<div class="an-teil"><span>${t.nr || t.titel}${t.nr && t.titel ? html` <small class="muted">${kurz(t.titel)}</small>` : ''}</span><button type="button" class="btn ghost small" data-trennen="${t.k}">Trennen</button></div>`)}</div>` : ''}`, {
     saveLabel: 'Speichern',
-    onMount: (m, close) => m.querySelectorAll('[data-trennen]').forEach(b => b.onclick = async () => { await P.ordnerSpeichern(b.dataset.trennen, { in: '' }); close(); toast('Ordner getrennt'); render(el); }),
+    danger: { label: 'Ordner löschen', confirm: `Ordner „${i.name}“ mit ${i.n} Anfrage${i.n === 1 ? '' : 'n'} endgültig löschen?\n\nDie Anfragen, ihre Vorgänge bei den Mietinteressenten und die Bilder werden gelöscht – das lässt sich nicht rückgängig machen. Die Kontakte bleiben erhalten.\n\nTipp: „Archivieren“ räumt den Ordner nur weg.`, fn: async () => { const r = await P.ordnerLoeschen(k); if (z.inserat === k) z.inserat = ''; toast(`Ordner gelöscht (${r.anfragen} Anfrage${r.anfragen === 1 ? '' : 'n'})`); render(el); } },
+    onMount: (m, close) => {
+      m.querySelectorAll('[data-trennen]').forEach(b => b.onclick = async () => { await P.ordnerSpeichern(b.dataset.trennen, { in: '' }); close(); toast('Ordner getrennt'); render(el); });
+      m.querySelector('#an-archiv').onclick = async () => { const an = !i.archiv; await P.ordnerArchivieren(k, an); if (an && z.inserat === k) z.inserat = ''; close(); toast(an ? `„${i.name}“ archiviert` : `„${i.name}“ zurückgeholt`, 'ok', { label: 'Rückgängig', fn: async () => { await P.ordnerArchivieren(k, !an); render(el); } }); render(el); };
+    },
     onSave: async v => {
       try { await P.ordnerSpeichern(k, { name: v.name, propertyId: v.propertyId, in: v.in || undefined }); } catch (e) { toast(e.message, 'err'); return false; }
       if (v.in) { z.inserat = v.in; toast('Ordner zusammengelegt'); } else toast('Ordner gespeichert');
@@ -60,10 +66,69 @@ function ordnerDlg(k, el) {
   });
 }
 
+// ---- Bilder je Ordner (verkleinert als Datei gespeichert, auf allen Geräten gleich; das erste ist das Titelbild)
+const bildCache = new Map();
+function bilderLaden(root) {
+  root.querySelectorAll('img[data-bild]').forEach(async img => {
+    const id = img.dataset.bild;
+    try { if (!bildCache.has(id)) bildCache.set(id, (await db.getFile(id))?.dataUrl || ''); if (bildCache.get(id)) img.src = bildCache.get(id); else img.closest('button, .an-bk')?.classList.add('fehlt'); } catch { img.closest('button, .an-bk')?.classList.add('fehlt'); }
+  });
+}
+async function bildVerkleinern(f) {
+  const bmp = await createImageBitmap(f), s = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+  const c = document.createElement('canvas'); c.width = Math.round(bmp.width * s); c.height = Math.round(bmp.height * s);
+  c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+  return c.toDataURL('image/jpeg', 0.82);
+}
+function bilderDlg(k, el) {
+  const ord = () => P.inserate().find(x => x.k === k); if (!ord()) return;
+  modal('Bilder – ' + ord().name, html`<div class="full an-bilder" id="an-bilder"></div>
+    <div class="full"><button type="button" class="btn primary" id="an-bildneu">＋ Bilder hinzufügen</button> <small class="muted">Mehrere auf einmal möglich. Das erste Bild ist das Titelbild des Ordners.</small></div>`, {
+    wide: true, saveLabel: 'Fertig',
+    onMount: m => {
+      const box = m.querySelector('#an-bilder');
+      const zeichnen = () => {
+        const B = ord()?.bilder || [];
+        box.innerHTML = B.length ? String(html`${B.map((id, n) => html`<div class="an-bk" data-id="${id}"><img data-bild="${id}" alt="">${n === 0 ? html`<span class="an-btitel">Titelbild</span>` : ''}
+          <div class="an-bkn">${n > 0 ? html`<button type="button" class="btn ghost small" data-titel>Als Titelbild</button>` : ''}<button type="button" class="btn ghost small" data-weg aria-label="Bild entfernen">Entfernen</button></div></div>`)}`) : '<p class="muted">Noch keine Bilder in diesem Ordner.</p>';
+        bilderLaden(box);
+        box.querySelectorAll('[data-weg]').forEach(b => b.onclick = async () => { const id = b.closest('[data-id]').dataset.id; await P.bilderSetzen(k, (ord().bilder).filter(x => x !== id)); db.delFile(id).catch(() => {}); bildCache.delete(id); zeichnen(); render(el); });
+        box.querySelectorAll('[data-titel]').forEach(b => b.onclick = async () => { const id = b.closest('[data-id]').dataset.id; await P.bilderSetzen(k, [id, ...ord().bilder.filter(x => x !== id)]); zeichnen(); render(el); });
+      };
+      zeichnen();
+      m.querySelector('#an-bildneu').onclick = () => {
+        const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*'; i.multiple = true;
+        i.onchange = async () => {
+          const F = [...i.files].slice(0, 20); if (!F.length) return; let ok = 0;
+          toast(`${F.length} Bild${F.length === 1 ? '' : 'er'} wird gespeichert …`);
+          for (const f of F) {
+            try { const id = 'anf-bild-' + uid(), url = await bildVerkleinern(f); await db.putFile(id, url, { name: f.name, typ: 'image/jpeg' }); bildCache.set(id, url); await P.bilderSetzen(k, [...(ord()?.bilder || []), id]); ok++; zeichnen(); }
+            catch (e) { toast(`${f.name}: konnte nicht gelesen werden`, 'err'); }
+          }
+          if (ok) { haptik('erfolg'); toast(`${ok} Bild${ok === 1 ? '' : 'er'} gespeichert`); render(el); }
+        };
+        i.click();
+      };
+    },
+    onSave: async () => {},
+  });
+}
+function bildGross(k, n) {
+  const B = P.inserate().find(x => x.k === k)?.bilder || []; if (!B.length) return;
+  const d = document.createElement('div'); d.className = 'an-gross'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-label', 'Bild');
+  const zeig = () => { d.innerHTML = String(html`<button type="button" class="an-gx" data-zu aria-label="Schließen">✕</button>${B.length > 1 ? html`<button type="button" class="an-gp l" data-d="-1" aria-label="Vorheriges Bild">‹</button><button type="button" class="an-gp r" data-d="1" aria-label="Nächstes Bild">›</button>` : ''}<img data-bild="${B[n]}" alt=""><small>${n + 1} / ${B.length}</small>`); bilderLaden(d); };
+  const zu = () => { d.remove(); document.removeEventListener('keydown', taste); };
+  const taste = e => { if (e.key === 'Escape') zu(); else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { n = (n + (e.key === 'ArrowRight' ? 1 : -1) + B.length) % B.length; zeig(); } };
+  d.onclick = e => { const p = e.target.closest('[data-d]'); if (p) { n = (n + Number(p.dataset.d) + B.length) % B.length; zeig(); } else if (e.target.tagName !== 'IMG') zu(); };
+  document.addEventListener('keydown', taste); document.body.appendChild(d); zeig();
+}
+
 export function render(el) {
-  const G = P.gruppen(), ins = P.inserate();
-  if (z.inserat && z.inserat !== ALLE && !ins.some(i => i.k === z.inserat)) z.inserat = '';
-  const einzel = ins.length === 1, ord = einzel && z.inserat !== ALLE ? ins[0] : ins.find(i => i.k === z.inserat), offenO = z.inserat !== '' || einzel;
+  const alleIns = P.inserate(), ins = alleIns.filter(i => !i.archiv), archiv = alleIns.filter(i => i.archiv);
+  const offenArchiv = archiv.find(i => i.k === z.inserat);
+  const G = offenArchiv ? P.gruppen() : P.aktiveGruppen();
+  if (z.inserat && z.inserat !== ALLE && !alleIns.some(i => i.k === z.inserat)) z.inserat = '';
+  const einzel = ins.length === 1 && !archiv.length, ord = einzel && z.inserat !== ALLE ? ins[0] : alleIns.find(i => i.k === z.inserat), offenO = z.inserat !== '' || einzel;
   const imIns = ord ? G.filter(g => inseratK(g) === ord.k) : G;
   const f = FILTER.find(x => x[0] === z.filter) || FILTER[0], liste = imIns.filter(f[2]);
   const n = k => imIns.filter(FILTER.find(x => x[0] === k)[2]).length;
@@ -72,8 +137,9 @@ export function render(el) {
     <div class="head"><div><h1>Anfragen</h1><p class="muted">Interessenten aus deinen Portalen – je Inserat ein Ordner. Ordner kannst du benennen, einem Objekt zuordnen oder zusammenlegen.</p></div>
       <div class="actions"><button type="button" class="btn" id="an-neu">+ Anfrage von Hand</button></div></div>
     ${offenO ? html`<div class="an-pfad">${einzel ? '' : html`<button type="button" class="btn ghost small" data-ins="">← Alle Ordner</button>`}
-      <div class="an-pfadt"><b>📁 ${ord ? ord.name : 'Alle Anfragen'}</b><small class="muted">${ord ? [ord.nummern.join(' + '), ord.titel && ord.name !== ord.titel ? kurz(ord.titel) : '', ord.objekt ? '⌂ ' + ord.objekt.titel : 'kein Objekt zugeordnet'].filter(Boolean).join(' · ') : 'aus allen Ordnern'}</small></div>
-      ${ord ? html`<button type="button" class="btn small" data-ordedit="${ord.k}">✎ Benennen / zuordnen</button>${ord.url ? html`<a class="lnk small" href="${ord.url}" target="_blank" rel="noopener">Inserat ansehen ↗</a>` : ''}` : ''}</div>` : ''}
+      <div class="an-pfadt"><b>${ord && ord.archiv ? '🗄' : '📁'} ${ord ? ord.name : 'Alle Anfragen'}${ord && ord.archiv ? html` <span class="an-z">Archiv</span>` : ''}</b><small class="muted">${ord ? [ord.nummern.join(' + '), ord.titel && ord.name !== ord.titel ? kurz(ord.titel) : '', ord.objekt ? '⌂ ' + ord.objekt.titel : 'kein Objekt zugeordnet'].filter(Boolean).join(' · ') : 'aus allen Ordnern'}</small></div>
+      ${ord ? html`<button type="button" class="btn small" data-ordbilder="${ord.k}">🖼 Bilder${ord.bilder.length ? ' (' + ord.bilder.length + ')' : ' hinzufügen'}</button><button type="button" class="btn small" data-ordedit="${ord.k}">✎ Benennen / zuordnen</button>${ord.url ? html`<a class="lnk small" href="${ord.url}" target="_blank" rel="noopener">Inserat ansehen ↗</a>` : ''}` : ''}</div>` : ''}
+    ${ord && ord.bilder.length ? html`<div class="an-galerie">${ord.bilder.map((id, n) => html`<button type="button" data-zeig="${n}" data-ordk="${ord.k}" aria-label="Bild ${n + 1} groß ansehen"><img data-bild="${id}" alt="" loading="lazy"></button>`)}</div>` : ''}
     <div class="kpis strip an-kpis">
       <div class="kpi"><span>Neu</span><b class="${n('neu') ? 'gold' : ''}">${n('neu')}</b></div>
       <div class="kpi"><span>In Bearbeitung</span><b>${n('kontaktiert') + n('besichtigung')}</b></div>
@@ -82,8 +148,9 @@ export function render(el) {
       <div class="kpi"><span>Gesamt</span><b>${imIns.length}</b></div>
     </div>
     ${!G.length ? html`<div class="card an-leer"><h3>Noch keine Anfragen</h3><p class="muted">Sobald eine Anfrage von ohne-makler in deinem Postfach landet, erscheint sie hier – mit Name, E-Mail, Nachricht und den Angaben zu Haushalt, Einkommen und Schufa.</p></div>`
-      : !offenO ? html`<div class="an-ords">${ins.map(ordnerKarte)}
-          ${ins.length > 1 ? html`<div class="an-ord alle"><button type="button" class="an-ordb" data-ins="${ALLE}"><span class="an-ordi" aria-hidden="true">🗂</span><span class="an-ordt"><b>Alle Anfragen</b><small>aus allen ${ins.length} Ordnern in einer Liste</small></span></button><div class="an-ordz"><span class="an-z">${G.filter(g => P.OFFEN.includes(st(g))).length} offen</span><span class="an-z">${G.length} gesamt</span></div></div>` : ''}</div>`
+      : !offenO ? html`${!ins.length ? html`<div class="card an-leer"><p class="muted">Alle Ordner liegen im Archiv.</p></div>` : ''}<div class="an-ords">${ins.map(ordnerKarte)}
+          ${ins.length > 1 ? html`<div class="an-ord alle"><button type="button" class="an-ordb" data-ins="${ALLE}"><span class="an-ordi" aria-hidden="true">🗂</span><span class="an-ordt"><b>Alle Anfragen</b><small>aus allen ${ins.length} Ordnern in einer Liste</small></span></button><div class="an-ordz"><span class="an-z">${G.filter(g => P.OFFEN.includes(st(g))).length} offen</span><span class="an-z">${G.length} gesamt</span></div></div>` : ''}</div>
+          ${archiv.length ? html`<button type="button" class="an-archt" id="an-archt" aria-expanded="${z.archivAuf}">🗄 Archiv (${archiv.length} Ordner) ${z.archivAuf ? '▾' : '▸'}</button>${z.archivAuf ? html`<div class="an-ords">${archiv.map(ordnerKarte)}</div>` : ''}` : ''}`
       : html`<div class="an-bar">
       <div class="chips" role="group" aria-label="Status">${FILTER.map(([k, l]) => html`<button type="button" class="chip ${z.filter === k ? 'on' : ''}" data-f="${k}">${l}${n(k) && k !== 'alle' ? html` <i>${n(k)}</i>` : ''}</button>`)}</div>
       <div class="seg an-sicht" role="group" aria-label="Ansicht"><button type="button" data-sicht="karten" class="${z.ansicht === 'karten' ? 'on' : ''}">Karten</button><button type="button" data-sicht="vergleich" class="${z.ansicht === 'vergleich' ? 'on' : ''}">Vergleich</button></div>
@@ -159,9 +226,13 @@ function vonHand() {
 function binden(el) {
   const grp = e => P.gruppen().find(g => g.id === e.closest('[data-g]')?.dataset.g);
   el.querySelector('#an-neu').onclick = vonHand;
+  { const a = el.querySelector('#an-archt'); if (a) a.onclick = () => { z.archivAuf = !z.archivAuf; render(el); }; }
   el.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { z.filter = b.dataset.f; render(el); });
   el.querySelectorAll('[data-sicht]').forEach(b => b.onclick = () => { z.ansicht = b.dataset.sicht; render(el); });
   el.querySelectorAll('[data-ins]').forEach(b => b.onclick = () => { z.inserat = b.dataset.ins; z.filter = 'offen'; render(el); window.scrollTo(0, 0); });
+  el.querySelectorAll('[data-ordbilder]').forEach(b => b.onclick = () => bilderDlg(b.dataset.ordbilder, el));
+  el.querySelectorAll('[data-zeig]').forEach(b => b.onclick = () => bildGross(b.dataset.ordk, Number(b.dataset.zeig)));
+  bilderLaden(el);
   el.querySelectorAll('[data-ordedit]').forEach(b => b.onclick = () => ordnerDlg(b.dataset.ordedit, el));
   el.querySelectorAll('[data-ordner]').forEach(s => s.onchange = async () => { const g = grp(s), alt = inseratK(g), ziel = P.inserate().find(i => i.k === s.value); await P.verschieben(g, s.value); toast(`${g.name} → Ordner „${ziel?.name || s.value}“`, 'ok', { label: 'Rückgängig', fn: () => P.verschieben({ alle: g.alle.map(x => db.get('anfragen', x.id) || x) }, alt) }); });
   el.querySelectorAll('[data-mehr]').forEach(b => b.onclick = () => { const id = b.closest('[data-g]').dataset.g; z.auf.has(id) ? z.auf.delete(id) : z.auf.add(id); render(el); });
