@@ -27,12 +27,35 @@ const zeiten = f => {
 let geheimCache = '';
 async function geheim(neu = false) { if (!geheimCache || neu) geheimCache = await db.fahrtGeheim(neu); return geheimCache; }
 const basisUrl = () => `${(db.cfg().url || '').replace(/\/$/, '')}/functions/v1/fahrt`;
+// Adressen sucht der Browser selbst (OpenStreetMap/Photon) – vom Server aus wird die Suche geblockt. Der Server rechnet dann nur die Route.
+const photonText = p => {
+  const str = [p.street || (p.type === 'street' ? p.name : ''), p.housenumber || ''].filter(Boolean).join(' ');
+  const ort = p.city || p.town || p.village || p.locality || p.district || (p.type === 'city' ? p.name : '') || '';
+  const name = p.name && !str.includes(p.name) && p.name !== ort && !['house', 'street', 'city', 'district', 'locality'].includes(p.type) ? p.name : '';
+  return [name, str, [p.postcode, ort].filter(Boolean).join(' ')].filter(Boolean).join(', ').slice(0, 200);
+};
+const PHOTON = 'https://photon.komoot.io';
+async function photon(pfad) { const c = new AbortController(), t = setTimeout(() => c.abort(), 7000); try { const r = await fetch(PHOTON + pfad, { signal: c.signal }); return r.ok ? (await r.json()).features || [] : []; } catch { return []; } finally { clearTimeout(t); } }
+/** Text → { lat, lon, adresse } (bevorzugt die Gegend um Hof); probiert bei Tippfehlern auch ohne Hausnummer bzw. nur PLZ + Ort */
+export async function ortSuchen(text) {
+  const q = String(text || '').replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim(); if (!q) return null;
+  const plzOrt = (q.match(/\b\d{5}\s+[^,]+/) || [])[0];
+  for (const v of [q, q.replace(/\s\d+\s*[a-z]?(?=,|\s+\d{5}|$)/i, ''), plzOrt].filter((x, i, a) => x && a.indexOf(x) === i)) {
+    const f = (await photon(`/api/?q=${encodeURIComponent(v)}&limit=1&lang=de&lat=50.31&lon=11.92`))[0];
+    if (f) return { lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0], adresse: photonText(f.properties || {}) || q, ungefaehr: v !== q };
+  }
+  return null;
+}
+export async function ortName(p) { const f = (await photon(`/reverse?lat=${p.lat}&lon=${p.lon}&lang=de&limit=1`))[0]; return f ? photonText(f.properties || {}) : ''; }
 export async function strecke(von, nach) {
+  const istPunkt = v => v && typeof v === 'object' && v.lat != null;
+  const [a, b] = await Promise.all([von, nach].map(v => istPunkt(v) ? v : ortSuchen(v)));
   const k = await geheim(), q = new URLSearchParams({ k, a: 'strecke' });
-  for (const [n, v] of [['von', von], ['nach', nach]]) { if (v && typeof v === 'object' && v.lat != null) { q.set(n + 'Lat', v.lat); q.set(n + 'Lon', v.lon); } else q.set(n, v || ''); }
+  for (const [n, v, p] of [['von', von, a], ['nach', nach, b]]) { if (p) { q.set(n + 'Lat', p.lat); q.set(n + 'Lon', p.lon); } else q.set(n, v || ''); }
   const r = await fetch(`${basisUrl()}?${q}`); const j = await r.json().catch(() => null);
   if (!r.ok || !j) throw new Error('Strecke konnte nicht berechnet werden');
-  if (!j.ok) throw new Error(j.fehler || 'Keine Route gefunden');
+  if (!j.ok) throw new Error(j.fehler ? `${j.fehler} – bitte Straße, Hausnummer und Ort prüfen` : 'Keine Route gefunden');
+  for (const [n, p] of [['von', a], ['nach', b]]) if (p) j[n] = { ...j[n], lat: p.lat, lon: p.lon, adresse: p.adresse || j[n]?.adresse || (await ortName(p)), ungefaehr: !!p.ungefaehr };
   return j;
 }
 
@@ -664,7 +687,7 @@ function kmRechner(m, { punkt = t => t, fertig = () => {} } = {}) {
     try {
       const b = await strecke(punkt(q('von').value), punkt(q('nach').value)); if (nr !== lauf) return;
       fertig(b); q('km').value = txt(b.km); auto = q('km').value;
-      st.textContent = `${b.von.adresse || q('von').value} → ${b.nach.adresse || q('nach').value}: ${num(b.km, 1)} km, ca. ${b.min} min`;
+      st.textContent = `${b.von.adresse || q('von').value} → ${b.nach.adresse || q('nach').value}: ${num(b.km, 1)} km, ca. ${b.min} min${b.von.ungefaehr || b.nach.ungefaehr ? ' · ⚠️ Adresse nicht genau gefunden – bitte Schreibweise prüfen' : ''}`;
       const A = [{ km: b.km, min: b.min, name: 'schnellste Route' }, ...(b.alternativen || []).map(x => ({ ...x, name: 'andere Route' }))];
       if (alt && A.length > 1) {
         alt.hidden = false;
