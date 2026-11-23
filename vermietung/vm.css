@@ -404,3 +404,55 @@ dialog.sheet .panel{overflow-x:hidden}
 .vm-ktab .u{min-width:84px}
 .vm-ktab .vm-schritt{padding-inline:10px;letter-spacing:.08em}
 @media (max-width:640px){.vm-ktab .u{grid-column:1/-1}}
+
+/* =====================================================================
+   Weiches Design (nur Vermietung): runde Ecken, ruhigere Schrift, mehr Luft
+   ===================================================================== */
+:root{--r-l:16px;--r-m:12px;--r-s:9px}
+.panel,.card,.lg-card,.hw-card,.vm-hero,.vm-cl-d,.vm-mv,.vm-mvd,.vm-sl,.vm-nx-box,.vm-fehlt,.vm-summe,.tbl-w,.newbanner,.banner.warn-b,.composer{border-radius:var(--r-l)}
+.kt,.vm-fakten>div,.vm-mini>div,.vm-b,.vm-k,.vm-kd-b li,.vm-links li,.vm-todo button,.vm-vor,.vm-chk,.note,.rows li,.msg,.bub,.rg,.foto,.vm-bild img,.vm-th,.dd-menu,.toast,.vm-seg{border-radius:var(--r-m)}
+.btn,input,select,textarea,.vm-file,.vm-seg button,.dd-menu [role=menuitem],.vm-pw code{border-radius:var(--r-s)}
+.vm-erg,.vm-st,.rolle,.chip2,.pill,.neu,.vm-aus span,.tag,.vm-anz{border-radius:999px}
+.vm-erg{padding:2px 10px}.vm-st{padding:5px 12px}
+.card{overflow:hidden}
+dialog.sheet,dialog.mini{border-radius:20px;overflow:hidden}
+dialog.sheet .panel{border-radius:0}
+.vm-btab tr{border-radius:var(--r-m)}
+.vm-btab tbody tr td:first-child{border-radius:var(--r-m) 0 0 var(--r-m)}.vm-btab tbody tr td:last-child{border-radius:0 var(--r-m) var(--r-m) 0}
+.vm-stufen i,.vm-prog,.vm-g i{border-radius:999px}
+/* Schrift: weniger Versalien und Sperrung */
+.btn{font:600 12.5px/1.4 var(--sans);letter-spacing:.01em;text-transform:none;padding:9px 16px}
+.btn.sm{font-size:12px;padding:6px 12px}
+.btn.fill{background:var(--gold-bg,color-mix(in srgb,var(--gold) 14%,transparent))}
+.vm-erg,.vm-st,.rolle{text-transform:none;letter-spacing:.02em;font-weight:600;font-size:11px}
+.panel .ph h2,.vm-det summary h2{font:600 15px/1.3 var(--sans);letter-spacing:0;text-transform:none;color:var(--ink)}
+.panel h3,.sub-h{font:600 12.5px/1.4 var(--sans);letter-spacing:.01em;text-transform:none}
+.held h1,.held h2{letter-spacing:.01em;text-transform:none;font-weight:600}
+.vm-seg button{text-transform:none;letter-spacing:.01em;font:600 13px var(--sans)}
+.f>span,.vm-fakten small,.vm-mini small,.kt small,.vm-btab th,.vm-cl-h,.vm-nx-r small,.vm-sl legend,.vm-sl-k span{letter-spacing:.04em}
+.vm-ktab .vm-schritt{letter-spacing:.01em}
+/* Luft und weichere Flächen */
+.panel{padding:20px 22px;border-color:var(--rand2)}
+.vm-todo button{padding:12px 14px}
+.kt{border-color:var(--rand2)}
+input,select,textarea{height:40px;padding-inline:12px}
+textarea{padding-block:9px}
+input[type=checkbox],input[type=radio]{height:auto}
+.btn:focus-visible,input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px var(--gold-bg,color-mix(in srgb,var(--gold) 22%,transparent));border-color:var(--gold)}
+@media (max-width:760px){
+  .vm-seg{border-radius:0}
+  dialog.sheet{border-radius:20px 20px 0 0}
+  .panel{padding:16px}
+}
+.kpis>div,.c-out>div{border-radius:var(--r-s)}
+.kpis .price{box-shadow:none}
+.panel h2.big{font:600 20px/1.25 var(--sans);letter-spacing:0;text-transform:none;color:var(--ink)}
+.sh-h h2{font:600 16px/1.3 var(--sans);letter-spacing:0;text-transform:none;color:var(--ink)}
+.vm-kd-h h2{font:600 20px/1.25 var(--sans);font-variant:normal}
+.kpis small,.vm-fakten small{text-transform:none;letter-spacing:.01em;font-size:11px}
+.kt small,.vm-mini small{text-transform:none;letter-spacing:.01em;font-size:11.5px}
+.f>span{text-transform:none;letter-spacing:.01em;font-size:12px;font-weight:500}
+.vm-btab th{text-transform:none;letter-spacing:.01em;font-size:11.5px;font-weight:500}
+.eyebrow{letter-spacing:.1em}
+.vm-nx-box{border:1px solid color-mix(in srgb,var(--gold) 45%,transparent);border-left-width:1px}
+.toast{border-left-width:1px}
