@@ -70,7 +70,7 @@ async function daten(a, mitBildern = true) {
     const im = mitBildern ? (await Promise.all((o.bilder || []).map(k => bild(p, k)))).filter(Boolean) : [];
     objs.push({ ...objektWerte(p), ...Object.fromEntries(Object.entries(o).filter(([k, v]) => k !== 'bilder' && v !== '' && v != null)), im });
   }
-  return { id: a.id, stand: a.updated || '', name: a.name || 'Interessent', termin: terminText(a.termin), st: a.st, ek: a.ek, tilg: a.tilg, nk: a.nk, start: a.start ?? (objs.length > 1 ? 'paket' : 0), ort: objs[0]?.plzOrt?.replace(/^\d+\s*/, '') || 'Hof',
+  return { id: a.id, stand: a.updated || '', name: a.name || 'Interessent', termin: terminText(a.termin), st: a.st, ek: a.ek, tilg: a.tilg, nk: a.nk, start: a.ansicht === 'paket' && objs.length > 1 ? 'paket' : 0, ort: objs[0]?.plzOrt?.replace(/^\d+\s*/, '') || 'Hof',
     hinweis: a.hinweis || '', logo: new URL('../../../logo/Wappen_gold.svg', import.meta.url).href, absender: absender(), objs, angepasst: a.aus && Object.keys(a.aus).length ? { aus: a.aus } : null };
 }
 let spT = 0, offen = false;
@@ -90,7 +90,7 @@ async function sende() {
 function ausVorschau(s) {
   if (!z.a || !s) return; const a = z.a;
   if (s.name) a.name = s.name; for (const k of ['st', 'ek', 'tilg', 'nk']) if (Number.isFinite(s[k])) a[k] = s[k];
-  a.aus = s.aus || {}; a.start = s.akt;
+  a.aus = s.aus || {};
   for (const x of s.objs || []) { const o = a.objs.find(y => y.id === x.id); if (o) for (const k of ['kp', 'miete', 'nu', 'zins', 'afa', 'geb']) if (Number.isFinite(x[k])) o[k] = x[k]; }
   speichern(); felderFuellen();
 }
@@ -117,7 +117,7 @@ function liste(el) {
     <div class="head"><div><h1>Angebote</h1><p class="muted">Persönliche Modellrechnung für einen Kunden – eine Wohnung oder mehrere als Paket. Zum Zeigen im Termin oder als Datei zum Mitgeben.</p></div>
       <div class="actions"><button type="button" class="btn primary" id="ag-neu">+ Neues Angebot</button></div></div>
     ${L.length ? html`<div class="ag-liste">${L.map(a => html`<a class="card ag-karte" href="#/angebote/${a.id}">
-        <span class="ag-art">${a.objs.length > 1 ? 'Paket · ' + a.objs.length + ' Wohnungen' : 'Angebot'}</span>
+        <span class="ag-art">${a.objs.length > 1 ? 'Angebot · ' + a.objs.length + ' Wohnungen' : 'Angebot'}</span>
         <b>${a.name || 'Ohne Namen'}</b><small class="muted">${titelVon(a)}</small>
         <small class="muted">${a.termin ? 'Termin ' + fmtDate(a.termin) + ' · ' : ''}geändert ${fmtDate((a.updated || a.created || '').slice(0, 10))}</small></a>`)}</div>`
       : html`<div class="card ag-leerliste"><h3>Noch kein Angebot</h3><p class="muted">Wähle einen Kunden und eine oder mehrere Wohnungen aus dem Vertrieb – das CRM baut daraus die Modellrechnung mit Steuerersparnis, monatlichem Ergebnis und Zehn-Jahres-Übersicht. Unten in der Vorschau passt du Steuersatz, Eigenkapital, Zins und Tilgung per Schieberegler auf die Person an.</p><button type="button" class="btn primary" id="ag-neu2">+ Erstes Angebot erstellen</button></div>`}
@@ -136,9 +136,10 @@ function listeZeichnen() {
   el.querySelectorAll('[data-obj]').forEach(c => c.onchange = () => {
     const id = c.dataset.obj;
     if (c.checked) { const p = db.get('properties', id); z.a.objs.push({ id, bilder: standardBilder(p) }); } else { z.a.objs = z.a.objs.filter(o => o.id !== id); if (z.a.aus) delete z.a.aus[id]; }
-    z.a.start = z.a.objs.length > 1 ? 'paket' : 0; haptik('leicht'); tabelleZeichnen(); geaendert();
+    haptik('leicht'); tabelleZeichnen(); geaendert();
   });
-  const n = z.a.objs.length; z.el.querySelector('#ag-art').textContent = n > 1 ? `Paket mit ${n} Wohnungen` : n === 1 ? 'Angebot für eine Wohnung' : 'Noch keine Wohnung gewählt';
+  const n = z.a.objs.length; z.el.querySelector('.ag-ans').hidden = n < 2;
+  z.el.querySelector('#ag-art').textContent = n > 1 ? `Angebot mit ${n} Wohnungen` : n === 1 ? 'Angebot für eine Wohnung' : 'Noch keine Wohnung gewählt';
   z.el.querySelectorAll('[data-braucht]').forEach(b => { b.disabled = !n; });
 }
 function tabelleZeichnen() {
@@ -207,13 +208,13 @@ export async function alsHtml(a) {
   for (const f of [...new Set(css.match(/url\(\/fonts\/[^)]+\)/g) || [])]) css = css.split(f).join(`url(${await b64(new URL(f.slice(5, -1), wurzel))})`);
   d.logo = await b64(d.logo); d.id = a.id; d.stand = new Date().toISOString();
   const json = JSON.stringify(d).replace(/</g, '\\u003c').replace(new RegExp('[' + String.fromCharCode(0x2028, 0x2029) + ']', 'g'), ' ');
-  const titel = `Für ${d.name} · ${d.objs.length > 1 ? 'Wohnungspaket' : 'Wohnungsangebot'}`.replace(/[<>&]/g, '');
+  const titel = `Für ${d.name} · Wohnungsangebot`.replace(/[<>&]/g, '');
   return `<!doctype html>\n<html lang="de">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<meta name="robots" content="noindex, nofollow">\n<meta name="theme-color" content="#080808">\n<title>${titel}</title>\n<style>\n${css}\n</style>\n</head>\n<body>\n<script>\n${js.replace(/<\/script/gi, '<\\/script')}\n</script>\n<script>KreAngebot.starte(${json});</script>\n</body>\n</html>\n`;
 }
 async function herunterladen() {
   if (!z.a?.objs.length) return; toast('Datei wird erstellt …');
   try {
-    const text = await alsHtml(z.a), name = `${z.a.objs.length > 1 ? 'Paket' : 'Angebot'}-${(z.a.name || 'Kunde').trim().replace(/\s+/g, '-').replace(/[^\wäöüÄÖÜß-]/g, '')}.html`;
+    const text = await alsHtml(z.a), name = `Angebot-${(z.a.name || 'Kunde').trim().replace(/\s+/g, '-').replace(/[^\wäöüÄÖÜß-]/g, '')}.html`;
     const l = document.createElement('a'); l.href = URL.createObjectURL(new Blob([text], { type: 'text/html' })); l.download = name; document.body.append(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(l.href), 5000);
     haptik('erfolg'); toast(`${name} gespeichert (${(text.length / 1048576).toLocaleString('de-DE', { maximumFractionDigits: 1 })} MB)`);
   } catch (e) { toast('Datei konnte nicht erstellt werden: ' + e.message, 'err'); }
@@ -231,7 +232,8 @@ function bearbeiten(el, a) {
           <div class="ag-raster"><label class="f full"><span>Kunde</span><input id="ag-name" value="${z.a.name || ''}" list="ag-kontakte" placeholder="Name des Kunden" autocomplete="off"></label>
             <datalist id="ag-kontakte">${K.slice(0, 500).map(c => html`<option value="${fullName(c)}">`)}</datalist>
             <label class="f"><span>Termin (optional)</span><input id="ag-termin" type="date" value="${z.a.termin || ''}"></label></div></section>
-        <section class="card"><h3>2 · Welche Wohnungen?</h3><p class="muted small">Eine Wohnung ergibt ein Angebot, mehrere ein Paket. Im Paket kann der Kunde einzelne Wohnungen per Schalter herausnehmen.</p><div id="ag-objs" class="ag-objs"></div></section>
+        <section class="card"><h3>2 · Welche Wohnungen?</h3><p class="muted small">Standard ist eine Wohnung. Bei mehreren zeigt das Angebot zuerst die erste einzeln – der Kunde kann weitere „dazu nehmen“, dann wird alles zusammen gerechnet.</p><div id="ag-objs" class="ag-objs"></div>
+          <label class="f full ag-ans"><span>Beim Öffnen zeigen</span><select id="ag-ansicht"><option value="einzel">Eine Wohnung (die erste angehakte)</option><option value="paket" ${z.a.ansicht === 'paket' ? raw('selected') : ''}>Alle zusammen gerechnet</option></select></label></section>
         <section class="card"><h3>3 · Konditionen für diese Person</h3>
           <div class="ag-global">${[['st', 'Steuersatz %'], ['ek', 'Eigenkapital %'], ['tilg', 'Tilgung %'], ['nk', 'Kaufnebenkosten %']].map(([k, l]) => html`<label><span>${l}</span><input inputmode="decimal" data-g="${k}" value="${de(z.a[k])}"></label>`)}</div>
           <p class="muted small">Dieselben Werte stellst du in der Vorschau unter „Annahmen anpassen“ per Schieberegler ein – beides bleibt gleich.</p>
@@ -244,6 +246,7 @@ function bearbeiten(el, a) {
     </div></div>`);
   const q = s => el.querySelector(s);
   q('#ag-name').oninput = () => { z.a.name = q('#ag-name').value.trim(); const c = K.find(x => fullName(x) === z.a.name); z.a.contactId = c?.id || ''; geaendert(); };
+  q('#ag-ansicht').onchange = () => { z.a.ansicht = q('#ag-ansicht').value; geaendert(); };
   q('#ag-termin').onchange = () => { z.a.termin = q('#ag-termin').value; geaendert(); };
   q('#ag-hinweis').oninput = () => { z.a.hinweis = q('#ag-hinweis').value.trim(); geaendert(); };
   el.querySelectorAll('[data-g]').forEach(i => i.oninput = () => { const v = window.KreAngebotZahl(i.value), k = i.dataset.g, max = { st: 45, ek: 60, tilg: 10, nk: 15 }[k]; const ok = v >= 0 && v <= max; i.classList.toggle('falsch', !ok && i.value.trim() !== ''); if (ok) { z.a[k] = v; geaendert(); } });
