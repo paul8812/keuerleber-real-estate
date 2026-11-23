@@ -4,6 +4,7 @@ import * as db from './db.js';
 import { html, inp, area, modal, toast, fullName, fmtDate } from './util.js';
 import { adresse } from './ui.js';
 import { completeTask } from './views/tasks.js';
+import * as mail from './mail.js';
 
 export function fuellen(txt, c, p, datum) {
   const s = db.settings();
@@ -38,20 +39,23 @@ export function entwurf(t) {
 export function entwurfDialog(t) {
   const e = entwurf(t);
   modal('✉ E-Mail prüfen & senden', html`
-    <p class="full muted small">Vom CRM vorbereitet${e.vorlage ? ` (Vorlage „${e.vorlage}“)` : ''} – nichts wurde verschickt. Prüfen, anpassen, dann in Outlook senden.</p>
+    <p class="full muted small">Vom CRM vorbereitet${e.vorlage ? ` (Vorlage „${e.vorlage}“)` : ''} – nichts wurde verschickt. Prüfen, anpassen, dann ${mail.verfuegbar() ? 'senden' : 'in Outlook senden'}.</p>
     ${inp('an', 'An', e.an, { type: 'email', cls: 'full', req: 1 })}${inp('betreff', 'Betreff', e.betreff, { cls: 'full' })}${area('text', 'Text', e.text, { rows: 12 })}
     <div class="full entwurfdanach" hidden><p>Hast du die Mail in Outlook abgeschickt?</p><div class="actions"><button type="button" class="btn primary" data-gesendet>✓ Ja, gesendet – Aufgabe erledigen</button><button type="button" class="btn ghost" data-nein>Noch nicht</button></div></div>`, {
-    wide: true, saveLabel: '✉ In Outlook öffnen',
+    wide: true, saveLabel: mail.verfuegbar() ? '➤ Senden' : '✉ In Outlook öffnen',
     onSave: async (v, close, form) => {
       if (!v.an) { toast('Bitte Empfänger eintragen', 'err'); return false; }
       const url = `mailto:${encodeURIComponent(v.an).replace('%40', '@')}?subject=${encodeURIComponent(v.betreff)}&body=${encodeURIComponent(v.text)}`;
-      const a = document.createElement('a'); a.href = url; a.click();
-      const box = form.querySelector('.entwurfdanach'); box.hidden = false; box.scrollIntoView({ block: 'nearest' });
+      const direkt = mail.verfuegbar(); let erg = null;
+      if (direkt) { try { erg = await mail.senden({ an: v.an, betreff: v.betreff, text: v.text, contactId: e.c?.id || '', propertyId: t.propertyId || '' }); } catch (err) { toast(err.message, 'err'); return false; } }
+      else { const a = document.createElement('a'); a.href = url; a.click(); }
+      const box = form.querySelector('.entwurfdanach'); if (!direkt) { box.hidden = false; box.scrollIntoView({ block: 'nearest' }); }
       box.querySelector('[data-gesendet]').onclick = async () => {
-        if (e.c) await db.log('email', `E-Mail gesendet: ${v.betreff}`, { contactId: e.c.id, propertyId: t.propertyId });
+        if (e.c && !erg?.abgelegt) await db.log('email', `E-Mail gesendet: ${v.betreff}`, { contactId: e.c.id, propertyId: t.propertyId });
         if (!t.ohneAufgabe) await completeTask(db.get('tasks', t.id) || t, true, true); toast(t.ohneAufgabe ? '✓ Im Verlauf vermerkt' : '✓ Erledigt'); close();
       };
       box.querySelector('[data-nein]').onclick = close;
+      if (direkt) { await box.querySelector('[data-gesendet]').onclick(); return false; }
       return false;
     },
   });

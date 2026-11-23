@@ -29,3 +29,5 @@
 .kl-sa dt{color:var(--mut)}.kl-sa dd{margin:0}.kl-sa dd.warn{color:#e07a5a;font-weight:600}
 @media (max-width:700px){.kl-sa dl{grid-template-columns:1fr;gap:1px 0}.kl-sa dd{margin-bottom:7px}.kl-tag{grid-template-columns:1fr;gap:4px}}
 .kl-chip.warn{color:var(--txt);border-color:rgba(224,122,90,.5);background:rgba(224,122,90,.08)}
+.mail-warn{color:#f3b8a5;border:1px solid rgba(224,122,90,.5);background:rgba(224,122,90,.08);border-radius:10px;padding:9px 12px;font-size:13.5px}
+button.lnk{background:none;border:0;padding:0;font:inherit;color:var(--gold);cursor:pointer;text-decoration:underline}

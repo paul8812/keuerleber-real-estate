@@ -28,6 +28,8 @@ import { schnellerfassung } from './schnellerfassung.js';
 import { initMobil } from './mobil.js';
 import { initHaptik, uebergang } from './haptik.js';
 import { initAktionen } from './aktionen.js';
+import * as mail from './mail.js';
+mail.einrichten();
 import { initCrmPlus } from './crmplus.js';
 import { initKontakt, kontaktErfassen } from './kontakt.js';
 import { belegeHochladen } from './views/finanzen.js';
