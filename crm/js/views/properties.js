@@ -6,6 +6,7 @@ import { propertyForm, taskForm, eventForm, dealForm, activityForm } from '../fo
 import { empty, timeline, cLink, statusBadge, badge, adresse, preisM2, matchesForProperty } from '../ui.js';
 import { taskRow, bindTasks } from './tasks.js';
 import * as W from '../website.js';
+import * as U from '../unterlagen.js';
 
 // Website: alle Objekte veröffentlichen, mit Fortschritt im Toast
 export async function websiteVeroeffentlichen(btn) {
@@ -22,7 +23,7 @@ function list(el) {
   const s = q.toLowerCase();
   const rows = db.all('properties').filter(p => (!st ? p.status !== 'Archiv' : p.status === st) && (!art || p.art === art) && (!verm || p.vermarktung === verm) && (!s || [p.titel, p.nr, p.ort, p.strasse, p.plz].join(' ').toLowerCase().includes(s)))
     .sort((a, b) => OBJEKT_STATUS.indexOf(a.status) - OBJEKT_STATUS.indexOf(b.status) || (b.created || '').localeCompare(a.created || ''));
-  el.querySelector('#plist').innerHTML = rows.length ? html`<div class="pgrid">${rows.map(p => { let img = (p.bilder || '').split('\n')[0].trim(); if (img.startsWith('objektbilder/')) img = '../' + img; return html`<a class="pcard" href="#/objekte/${p.id}"><div class="pimg" style="${img ? `background-image:url('${img.replace(/['")\\]/g, '')}')` : ''}">${img ? '' : '⌂'}<span class="pst">${statusBadge(p.status)}</span>${p.webLive ? html`<span class="pweb" title="Auf der Website">🌐 online</span>` : ''}</div>
+  el.querySelector('#plist').innerHTML = rows.length ? html`<div class="pgrid">${rows.map(p => { let img = (p.bilder || '').split('\n')[0].trim() || p.bildIntern || ''; if (img.startsWith('objektbilder/')) img = '../' + img; return html`<a class="pcard" href="#/objekte/${p.id}"><div class="pimg" style="${img ? `background-image:url('${img.replace(/['")\\]/g, '')}')` : ''}">${img ? '' : '⌂'}<span class="pst">${statusBadge(p.status)}</span>${p.webLive ? html`<span class="pweb" title="Auf der Website">🌐 online</span>` : ''}</div>
       <div class="pbody"><div class="pnr">${p.nr} · ${p.art}</div><h3>${p.titel}</h3><div class="sub">${[p.plz, p.ort].filter(Boolean).join(' ')}</div>
       <div class="pfacts"><b>${eur(p.preis)}${p.vermarktung === 'Miete' ? '/Monat' : ''}</b><span>${p.flaeche ? num(p.flaeche, 1) + ' m²' : ''}</span><span>${p.zimmer ? p.zimmer + ' Zi.' : ''}</span></div></div></a>`; })}</div>`.s : html`<div class="pad">${empty('Keine Objekte gefunden', 'Mit „+ Objekt“ das erste anlegen')}</div>`.s;
   el.querySelector('#pcount').textContent = rows.length + ' Objekte';
@@ -93,6 +94,7 @@ function detail(el, id) {
   const evs = db.all('events').filter(e => e.propertyId === id).sort((a, b) => b.datum.localeCompare(a.datum));
   const matches = matchesForProperty(p);
   const imgs = (p.bilder || '').split('\n').map(x => x.trim()).filter(Boolean);
+  if (!imgs.length && p.bildIntern) imgs.push(p.bildIntern);
   const m2 = preisM2(p), tage = p.eingestelltAm ? daysBetween(p.eingestelltAm, today()) : null;
   const rend = p.preis && p.mieteJahr && p.vermarktung === 'Kauf' ? p.mieteJahr / p.preis * 100 : null;
   const kv = (l, v) => v || v === 0 ? html`<div class="kv"><span>${l}</span><b>${v}</b></div>` : '';
@@ -114,6 +116,7 @@ function detail(el, id) {
         ${p.eigentuemerId ? html`<div class="kv"><span>Verkäufer / Bauträger</span><b>${cLink(p.eigentuemerId)}</b></div>` : ''}
         ${kv('Vertriebsvereinbarung', p.auftragVon || p.auftragBis ? `${p.alleinauftrag ? 'Exklusiv · ' : ''}${fmtDate(p.auftragVon)} – ${fmtDate(p.auftragBis)}` : '')}${kv('Deine Vergütung', eur(Number(p.verguetung) || Number(db.settings().verguetung) || 8000) + ' netto' + (p.verguetung ? '' : ' (Standard)'))}
         ${p.beschreibung ? html`<h3>Beschreibung</h3><p class="note">${p.beschreibung}</p>` : ''}${p.ausstattung ? html`<h3>Ausstattung / Lage</h3><p class="note">${p.ausstattung}</p>` : ''}${p.notiz ? html`<h3>Interne Notiz</h3><p class="note">${p.notiz}</p>` : ''}</section>
+      ${U.karte(p)}
       <section class="card"><h2>Passende Interessenten</h2>${matches.length ? html`<ul class="list">${matches.slice(0, 10).map(x => html`<li><b class="when">${x.m.score}%</b><div class="grow"><div class="ttl">${cLink(x.c.id)}</div><div class="sub">passt: ${x.m.hits.join(', ')}${x.c.sp_budgetMax ? ' · Budget ' + eur(x.c.sp_budgetMax) : ''}</div></div></li>`)}</ul>` : html`<p class="muted">Keine Treffer. Suchprofile bei Interessenten pflegen.</p>`}</section>
     </div><div>
       <section class="card"><h2>Vorgänge <button class="mini" data-deal>+</button></h2>${deals.length ? html`<ul class="list">${deals.map(d => html`<li data-deal-id="${d.id}"><div class="grow"><div class="ttl">${d.titel}</div><div class="sub">${sl(d.stage)} ${d.contactId ? '· ' : ''}${d.contactId ? cLink(d.contactId) : ''}</div></div></li>`)}</ul>` : html`<p class="muted">Keine Vorgänge</p>`}</section>
@@ -121,7 +124,7 @@ function detail(el, id) {
       <section class="card"><h2>Termine <button class="mini" data-event>+</button></h2>${evs.length ? html`<ul class="list">${evs.map(e => html`<li data-ev="${e.id}"><b class="when">${fmtDate(e.datum)}</b><div class="grow"><div class="ttl">${e.titel}</div><div class="sub">${e.art}${e.contactId ? html` · ${cLink(e.contactId)}` : ''}</div></div></li>`)}</ul>` : html`<p class="muted">Keine Termine</p>`}</section>
       <section class="card"><h2>Verlauf <button class="mini" data-act>+ Eintrag</button></h2>${timeline(acts, { showRefs: true })}</section>
     </div></div>`.s;
-  bindTasks(el);
+  bindTasks(el); U.binden(el, p);
   el.querySelector('[data-edit]').onclick = () => propertyForm(p);
   const wc = el.querySelector('.webcard');
   wc.querySelector('[data-web=pub]')?.addEventListener('click', e => websiteVeroeffentlichen(e.currentTarget));

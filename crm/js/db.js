@@ -1,6 +1,6 @@
 // Datenschicht: lokal (localStorage) oder Cloud (Supabase). Gleiche API für beide.
 import { uid, today, toast, idFor } from './util.js';
-export const COLS = ['contacts', 'properties', 'deals', 'tasks', 'events', 'activities', 'templates', 'settings', 'mails', 'sync', 'buchungen', 'rechnungen', 'social', 'fahrten', 'anfragen', 'exposes'];
+export const COLS = ['contacts', 'properties', 'deals', 'tasks', 'events', 'activities', 'templates', 'settings', 'mails', 'sync', 'buchungen', 'rechnungen', 'social', 'fahrten', 'anfragen', 'exposes', 'unterlagen'];
 const LS = 'kre-crm-data', CFG = 'kre-crm-cfg';
 // Supabase-Bibliothek liegt im eigenen Repository (kein fremdes CDN zur Laufzeit)
 const SB_LIB = new URL('../vendor/supabase.js?v=2.45.4', import.meta.url).href;
@@ -613,6 +613,9 @@ export const SQL_URL = () => { const m = (cfg().url || '').match(/https:\/\/([^.
 // Nur dieses Gerät abmelden. Ohne scope meldet supabase-js *global* ab und macht damit auch den
 // Zugang des Mail-Abgleichs auf dem Mac ungültig (refresh_token_not_found) – das passierte bei jedem Auto-Logout.
 export async function logout() { await flush().catch(() => {}); await geraetLeeren(); if (sb) await sb.auth.signOut({ scope: 'local' }); location.reload(); }
+/** Supabase-Client und Benutzer-ID (für den Dateispeicher der Objektunterlagen) */
+export const klient = () => sb;
+export const benutzer = () => userId;
 export const userEmail = async () => sb ? (await sb.auth.getUser()).data.user?.email : null;
 
 // ================================================================ Sync (Cloud)

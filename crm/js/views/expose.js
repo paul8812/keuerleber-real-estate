@@ -24,7 +24,7 @@ const fehlend = p => ['kaufpreis_partner', 'kaltmiete', 'wohnflaeche'].filter(k 
 const dateiId = (p, bildId) => `exp-${p.id}-${bildId}`;
 const zahl = v => parseFloat(String(v).replace(/\./g, '').replace(',', '.')) || 0;
 const de = v => v != null && v !== 0 && v !== '' ? String(v).replace('.', ',') : '';
-function pdfName(p) {
+export function pdfName(p) {
   const o = p.objekt || {}; let et = (o.etage || '').replace(/\s*Obergeschoss/, '. OG').replace('..', '.'); if (/erdgeschoss/i.test(et)) et = 'EG';
   const t = (o.strasse || o.ort) ? `${o.strasse || ''} ${o.ort || ''} ${et}`.trim() : (p.name || 'Objekt');
   return `Expose ${t} - Keuerleber Immobilien`.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ');
