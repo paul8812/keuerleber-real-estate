@@ -7,6 +7,7 @@ import { html, raw, esc, modal, toast, today, fmtDate, fmtDT, eur, eur2, num, pc
 import { haptik } from '../haptik.js';
 import { belegAnsehen } from './finanzen.js';
 import * as OPEL from '../opelimport.js';
+import * as F from '../finanzen.js';
 
 const z = { tab: '', wahl: '', auswahl: false, gewaehlt: new Set(), jahr: today().slice(0, 4) };
 const FZEIT = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' });
@@ -188,7 +189,7 @@ function liste() {
       <ul class="fb-zeilen ${z.auswahl ? 'auswahl' : ''}">${arr.map(f => html`<li data-detail="${f.id}" tabindex="0" role="button" class="${f.status !== 'erfasst' ? 'offen' : ''}">
         ${z.auswahl ? html`<input type="checkbox" class="fb-sel" data-sel="${f.id}" aria-label="Fahrt auswählen" ${z.gewaehlt.has(f.id) ? raw('checked') : ''}>` : ''}<div class="fb-zt"><b>${FB.tag(f).slice(8, 10)}.${FB.tag(f).slice(5, 7)}.</b><span>${f.start?.zeitUnbekannt || f.start?.zeitUngefaehr ? '' : uhr(f.start?.zeit)}</span></div>
         <div class="fb-zm"><div class="fb-zw">${FB.vonText(f)} → ${FB.nachText(f)}</div><div class="muted small">${f.zweck || (f.status === 'unterwegs' ? 'unterwegs …' : 'noch nicht benannt')}${f.partner ? ' · ' + f.partner : ''}</div></div>
-        <div class="fb-zr"><button type="button" class="fb-artbtn" data-artwahl="${f.id}" aria-label="Bewertung ändern" title="Bewertung ändern">${artBadge(f.status === 'erfasst' ? f.art : '')}</button><b>${kmTxt(FB.km(f))}</b>${FB.festgeschrieben(f) ? html`<i class="fb-lock" title="festgeschrieben">🔒</i>` : ''}${(f.historie || []).length ? html`<i class="fb-hist" title="geändert">✎</i>` : ''}</div>
+        <div class="fb-zr"><button type="button" class="fb-artbtn" data-artwahl="${f.id}" aria-label="Bewertung ändern" title="Bewertung ändern">${artBadge(f.status === 'erfasst' ? f.art : '')}</button><b>${kmTxt(FB.km(f))}</b>${FB.fahrtBetrag(f, A) ? html`<span class="fb-ze" title="absetzbar: ${kmTxt(FB.km(f))} × ${eur2(A.satz)}">${eur2(FB.fahrtBetrag(f, A))}</span>` : ''}${FB.festgeschrieben(f) ? html`<i class="fb-lock" title="festgeschrieben">🔒</i>` : ''}${(f.historie || []).length ? html`<i class="fb-hist" title="geändert">✎</i>` : ''}</div>
       </li>`)}</ul></section>`)}`;
 }
 const artWahl = (aktuell, name = 'art') => html`<div class="full fb-arten" role="radiogroup" aria-label="Bewertung">${Object.entries(FB.ARTEN).map(([k, a]) => html`<label style="--a:${a.farbe}" class="${k === aktuell ? 'on' : ''}"><input type="radio" name="${name}" value="${k}" ${k === aktuell ? raw('checked') : ''}>${a.icon} ${a.name}</label>`)}</div>`;
@@ -295,10 +296,12 @@ function kosten() {
         <span class="muted small">${kmTxt(A.kmG)} geschäftlich${A.arbeitsweg ? ` · ${A.tage} Tage Arbeitsweg` : ''}${A.kZusatz ? ' · Parken/Maut' : ''}</span></div>
       <div class="fb-vgl">
         <div class="fb-m ${gewinner === 'pauschal' ? 'sieg' : ''}"><span>Kilometerpauschale</span><b>${eur2(A.pauschal)}</b><small>${kmTxt(A.kmG)} × 0,30 €</small></div>
-        <div class="fb-m ${gewinner === 'tatsaechlich' ? 'sieg' : ''}"><span>Tatsächliche Kosten</span>${A.odo ? html`<b>${eur2(A.tatsaechlich)}</b><small>${kmTxt(A.kmG)} × ${eur2(A.proKm)}/km</small>` : html`<b class="muted">–</b><small>braucht 2 Kilometerstände (z. B. Jahresanfang + heute)</small>`}</div>
+        <div class="fb-m ${gewinner === 'tatsaechlich' ? 'sieg' : ''}"><span>Tatsächliche Kosten</span>${A.odo ? html`<b>${eur2(A.tatsaechlich)}</b><small>${kmTxt(A.kmG)} × ${eur2(A.proKm)}/km</small>` : html`<b class="muted">≈ ${eur2(A.vorl.betrag)}</b><small>Hochrechnung mit ${eur2(A.vorl.proKm)}/km – zählt erst mit 2 Kilometerständen</small>`}</div>
       </div>
-      <p class="small fb-empf">${A.kmG ? html`<b>${gewinner === 'pauschal' ? 'Pauschale' : 'Tatsächliche Kosten'}</b> ${diff >= 1 ? html`bringt ${eur2(diff)} mehr` : 'ist gleichauf'} – wird in der Buchhaltung angesetzt.` : 'Sobald Geschäftsfahrten benannt sind, erscheint hier der Abzug.'}</p>
+      <p class="small fb-empf">${A.kmG ? html`${A.odo ? html`<b>${gewinner === 'pauschal' ? 'Pauschale' : 'Tatsächliche Kosten'}</b> ${diff >= 1 ? html`bringt ${eur2(diff)} mehr` : 'ist gleichauf'} – wird in der Buchhaltung angesetzt.` : html`Angesetzt wird die <b>Pauschale</b> – die tatsächlichen Kosten zählen erst, wenn Kilometerstände die Gesamtfahrleistung belegen.`}${!A.odo && A.vorl.mehr >= 1 ? html` Mit Kilometerständen wären voraussichtlich <b class="gold">${eur2(A.vorl.mehr)} mehr</b> drin. <button type="button" class="btn small" data-check="km" data-datum="${today()}">Kilometerstand eintragen</button>` : ''}` : 'Sobald Geschäftsfahrten benannt sind, erscheint hier der Abzug.'}</p>
     </section>
+    ${tatsKarte(A, fz)}
+    ${erfassenLeiste()}
     <div class="kpis small">
       <div class="kpi"><span>Gesamt gefahren ${z.jahr}</span><b>${kmTxt(A.kmGesamt)}</b>${A.nichtErfasst ? html`<span>davon ${kmTxt(A.nichtErfasst)} nicht aufgezeichnet (zählt privat)</span>` : html`<span>${A.odo ? 'lt. Kilometerständen' : 'aufgezeichnete Fahrten'}</span>`}</div>
       <div class="kpi"><span>Autokosten ${z.jahr}</span><b>${eur2(A.kGesamt)}</b><span>bis heute: Leasing, Versicherung, Steuer, Sprit … (Belege, sonst Plan)</span></div>
@@ -308,12 +311,13 @@ function kosten() {
       ${A.kZusatzAlle ? html`<div class="kpi"><span>Parken, Maut & Co.</span><b>${eur2(A.kZusatz)}</b><span>an Tagen mit Geschäftsfahrt (gesamt ${eur2(A.kZusatzAlle)})</span></div>` : ''}
     </div>
 
+    ${monatsKarte(A)}
     ${kostenplanKarte(fz, A)}
     ${leasingKarte(fz)}
     <section class="card">
-      <div class="fb-kh"><h3>Belege rund ums Auto ${z.jahr}</h3><button type="button" class="btn small" id="fb-beleg">📷 Beleg fotografieren</button></div>
+      <div class="fb-kh"><h3>Belege rund ums Auto ${z.jahr}</h3><span class="muted small">${A.belege.length} Beleg${A.belege.length === 1 ? '' : 'e'} · ${eur(A.kBelege + A.kZusatzAlle)}</span></div>
       <p class="muted small">Tanken, Werkstatt, Versicherung, Steuer, Reifen, Wäsche … werden von der KI automatisch als „Fahrzeug & Fahrtkosten“ erkannt und landen hier. Beim Privatauto zählen sie nicht direkt als Betriebsausgabe, sondern über die Kosten je km. Parken und Maut an Geschäftstagen sind zusätzlich absetzbar.</p>
-      ${A.belege.length ? html`<table class="tbl fb-tbl"><thead><tr><th>Datum</th><th>Lieferant</th><th>Art</th><th class="r">Betrag</th><th></th></tr></thead><tbody>${A.belege.sort((a, b) => b.datum.localeCompare(a.datum)).map(b => html`<tr><td>${fmtDate(b.datum)}</td><td>${b.lieferant || b.beschreibung || ''}${b.kmStand ? html`<br><small class="muted">km-Stand ${num(b.kmStand)}</small>` : ''}</td><td>${FB.istZusatz(b) ? 'Parken/Maut' : (() => { const id = FB.postenFuer(b); return id === 'leasing' ? 'Leasing (Vertrag)' : FB.kostenPosten().find(p => p.id === id)?.name || 'sonstige Kfz-Kosten'; })()}</td><td class="r">${eur2(db.settings().kleinunternehmer ? b.brutto : (b.netto ?? b.brutto))}</td><td>${b.belegId ? html`<button type="button" class="mini" data-beleg="${b.belegId}" title="Beleg ansehen">📎</button>` : ''}</td></tr>`)}</tbody></table>` : html`<p class="muted">Noch keine Kfz-Belege in ${z.jahr}.</p>`}
+      ${A.belege.length ? html`<table class="tbl fb-tbl ${z.alleBelege ? '' : 'fb-kurz'}"><thead><tr><th>Datum</th><th>Lieferant</th><th>Art</th><th class="r">Betrag</th><th></th></tr></thead><tbody>${A.belege.sort((a, b) => b.datum.localeCompare(a.datum)).slice(0, z.alleBelege ? 999 : 8).map(b => html`<tr><td>${fmtDate(b.datum)}</td><td>${b.lieferant || b.beschreibung || ''}${b.kmStand ? html`<br><small class="muted">km-Stand ${num(b.kmStand)}${b.liter ? ` · ${num(b.liter, 1)} l` : ''}</small>` : ''}</td><td>${FB.istZusatz(b) ? 'Parken/Maut' : (() => { const id = FB.postenFuer(b); return id === 'leasing' ? 'Leasing (Vertrag)' : FB.kostenPosten().find(p => p.id === id)?.name || 'sonstige Kfz-Kosten'; })()}</td><td class="r">${eur2(db.settings().kleinunternehmer ? b.brutto : (b.netto ?? b.brutto))}</td><td>${b.belegId ? html`<button type="button" class="mini" data-beleg="${b.belegId}" title="Beleg ansehen">📎</button>` : ''}</td></tr>`)}</tbody></table>${A.belege.length > 8 ? html`<button type="button" class="btn small ghost fb-mehr" id="fb-allebelege">${z.alleBelege ? 'Weniger anzeigen' : `Alle ${A.belege.length} Belege anzeigen`}</button>` : ''}` : html`<p class="muted">Noch keine Kfz-Belege in ${z.jahr}.</p>`}
     </section>
 
     <div class="fb-zwei">
@@ -334,6 +338,103 @@ function kosten() {
       </section>
     </div>
     <p class="muted small fb-rechts">Rechengrundlage: Privatfahrzeug mit betrieblicher Nutzung – Geschäftsfahrten wahlweise 0,30 €/km (R 4.12 EStR i. V. m. § 5 BRKG) oder anteilige tatsächliche Kosten inkl. AfA; Wohnung ↔ erste Betriebsstätte mit Entfernungspauschale (${z.jahr >= '2026' ? '0,38 € ab dem 1. km' : '0,30/0,38 €'}). Keine Steuerberatung – im Zweifel mit dem Steuerberater abstimmen.</p>`;
+}
+// ---------------------------------------------------------------- Tatsächliche Kosten
+const FARBE = { leasingrate: '#c9a96e', sonderzahlung: '#a8893f', afa: '#c9a96e', kraftstoff: '#5fa8d3', versicherung: '#8e7cc3', wartung: '#6fbf8f', steuer: '#e0926a', reifen: '#d47fa6', hu: '#9aa3ad', pflege: '#57b8b0', sonstige: '#7c8591' };
+const farbe = id => FARBE[id] || '#7c8591';
+const ct = n => (n * 100).toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' ct';
+const QK = { Belege: 'beleg', Vertrag: 'vertrag', Vorgabe: 'vorgabe', 'Schätzung': 'schaetz', fehlt: 'fehlt' };
+function tatsKarte(A, fz) {
+  const K = FB.kostenAufteilung(A, fz), G = FB.grenzKm(fz), C = FB.kostenCheck(A, fz), V = FB.verbrauch(z.jahr);
+  const d = K.proKm - FB.PAUSCHALE_KM, max = Math.max(0.6, K.proKm * 1.15), tacho = K.basis === 'tacho';
+  const fehlt = K.teile.filter(t => t.quelle === 'fehlt');
+  const kmJahr = tacho ? Math.round(A.odo.km / Math.max(1, A.zeitraumTage) * 365) : K.km;
+  return html`<section class="card fb-tk">
+    <div class="fb-kh"><h3>Tatsächliche Kosten je Kilometer</h3><span class="fb-q ${tacho ? 'beleg' : 'schaetz'}">${tacho ? `aus Kilometerständen ${fmtDate(A.odo.von.datum)}–${fmtDate(A.odo.bis.datum)}` : `Hochrechnung bei ${num(K.km)} km/Jahr`}</span></div>
+    <div class="fb-tk-top">
+      <div class="fb-tk-satz">
+        <b class="${d > 0 ? 'gold' : ''}">${eur2(K.proKm)}</b><span>je km · ${eur(K.summe)} ÷ ${num(K.km)} km</span>
+        <div class="fb-skala" role="img" aria-label="${eur2(K.proKm)} je km, Pauschale 0,30 € je km">
+          <i class="fb-sk-w" style="width:${Math.min(100, K.proKm / max * 100).toFixed(1)}%"></i>
+          <i class="fb-sk-p" style="left:${(FB.PAUSCHALE_KM / max * 100).toFixed(1)}%"><em>Pauschale 0,30 €</em></i>
+        </div>
+      </div>
+      <div class="fb-tk-txt">
+        ${fehlt.length ? html`<p class="fb-hinweis small">📄 ${fehlt.map(t => t.name).join(', ')} fehlt noch – der Satz ist deshalb zu niedrig. <button type="button" class="btn small" data-check="auto">Vertrag eintragen</button></p>` : ''}
+        <p>${d > 0.005 ? html`Je Geschäfts-km <b>${ct(d)} mehr</b> als die Pauschale${A.kmG ? html` – bei ${kmTxt(A.kmG)} sind das <b class="gold">${eur2(A.kmG * d)}</b> zusätzlicher Abzug` : ''}.` : d < -0.005 ? html`Dein Auto ist günstiger als 0,30 €/km – die <b>Pauschale</b> bringt je Geschäfts-km ${ct(-d)} mehr.` : 'Tatsächliche Kosten und Pauschale liegen gleichauf.'}
+        ${!tacho ? html` <span class="muted">Angesetzt wird das erst, wenn zwei Kilometerstände die Gesamtfahrleistung belegen.</span>` : ''}</p>
+        <p class="muted small">${Number.isFinite(G.km) ? html`Faustregel: Bis etwa <b>${num(G.km)} km im Jahr</b> lohnen sich die tatsächlichen Kosten, darüber die Pauschale – du liegst bei rund ${num(kmJahr)} km/Jahr${tacho ? ' (hochgerechnet)' : ' (Annahme)'}.` : 'Allein der Sprit kostet schon mehr als 0,30 €/km – die tatsächlichen Kosten sind immer besser.'}</p>
+      </div>
+    </div>
+    <div class="fb-seg" role="img" aria-label="Zusammensetzung der Kosten">${K.teile.filter(t => t.wert > 0).map(t => html`<i style="flex:${t.wert};background:${farbe(t.id)}" title="${t.name}: ${eur(t.wert)} (${pct(t.anteil * 100, 0)})"></i>`)}</div>
+    <table class="tbl fb-tbl fb-tk-tbl"><thead><tr><th>Kostenart</th><th>Grundlage</th><th class="r">${tacho ? 'Im Zeitraum' : 'Pro Jahr'}</th><th class="r">je km</th><th class="r">Anteil</th></tr></thead><tbody>
+      ${K.teile.map(t => html`<tr class="${t.quelle === 'fehlt' ? 'fehlt' : ''}"><td><i class="fb-pkt" style="background:${farbe(t.id)}"></i>${t.name.replace(/ \(.*\)$/, '')}</td><td><span class="fb-q ${QK[t.quelle] || 'vorgabe'}">${t.quelle === 'Belege' && t.belege ? `${t.belege} Beleg${t.belege > 1 ? 'e' : ''}` : t.quelle === 'Vorgabe' ? 'ADAC' : t.quelle}</span></td><td class="r">${t.quelle === 'fehlt' ? '–' : eur(t.wert)}</td><td class="r">${t.quelle === 'fehlt' ? '–' : ct(t.proKm)}</td><td class="r">${t.quelle === 'fehlt' ? '–' : pct(t.anteil * 100, 0)}</td></tr>`)}
+    </tbody><tfoot><tr><td>Summe</td><td></td><td class="r">${eur(K.summe)}</td><td class="r">${ct(K.proKm)}</td><td class="r">100 %</td></tr></tfoot></table>
+    <div class="fb-tk-unten">
+      <div class="fb-chk">
+        <div class="fb-chk-k"><b>So belastbar ist die Rechnung</b><span class="muted small">${C.ok} von ${C.n} erledigt · ${pct(K.belegt * 100, 0)} der Kosten durch Belege oder Vertrag gedeckt</span></div>
+        <div class="fb-chk-b"><i style="width:${(C.ok / C.n * 100).toFixed(0)}%"></i></div>
+        <ul>${C.punkte.map(p => html`<li class="${p.ok ? 'ok' : ''}"><span class="fb-hk" aria-hidden="true">${p.ok ? '✓' : ''}</span><div><b>${p.text}</b>${p.ok ? '' : html`<small class="muted">${p.fehlt}</small>`}</div>${p.ok ? '' : html`<button type="button" class="btn small" data-check="${p.aktion}" data-datum="${p.datum || ''}">${p.aktion === 'km' ? 'Eintragen' : p.aktion === 'tanken' ? '⛽ Tanken' : 'Eintragen'}</button>`}</li>`)}</ul>
+      </div>
+      <div class="fb-vb">
+        <b>Verbrauch ${z.jahr}</b>
+        ${V.anzahl ? html`<dl>
+          <dt>Getankt</dt><dd>${eur(V.summe)}${V.liter ? ` · ${num(V.liter, 0)} l` : ''} <small class="muted">(${V.anzahl}×)</small></dd>
+          <dt>Verbrauch</dt><dd>${V.l100 ? html`<b>${V.l100.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} l/100 km</b>` : html`<span class="muted">braucht Liter + km-Stand auf 2 Tankbelegen</span>`}</dd>
+          <dt>Literpreis</dt><dd>${V.preisL ? `Ø ${num(V.preisL, 2)} €` : '–'}</dd>
+          <dt>Sprit je 100 km</dt><dd>${V.je100 ? eur2(V.je100) : '–'}</dd>
+        </dl>` : html`<p class="muted small">Noch keine Tankbelege. Trag beim Tanken Betrag, Liter und Kilometerstand ein – daraus ergeben sich Verbrauch und Gesamtfahrleistung ganz nebenbei.</p>`}
+      </div>
+    </div>
+  </section>`;
+}
+// Schnell erfassen ohne Foto – landet als Buchung „Fahrzeug & Fahrtkosten“ und fließt sofort in die Kosten je km ein
+const ERFASSEN = {
+  tanken: { icon: '⛽', name: 'Tanken', text: 'Tanken', liter: true, km: true, ort: 'Tankstelle (z. B. Aral Hof)' },
+  werkstatt: { icon: '🔧', name: 'Werkstatt', text: 'Werkstatt / Inspektion', km: true, ort: 'Werkstatt' },
+  versicherung: { icon: '🛡', name: 'Versicherung', text: 'Kfz-Versicherung', ohneUst: true, ort: 'Versicherer' },
+  steuer: { icon: '🏛', name: 'Kfz-Steuer', text: 'Kfz-Steuer', ohneUst: true, ort: 'Hauptzollamt' },
+  reifen: { icon: '🛞', name: 'Reifen', text: 'Reifen / Räderwechsel', ort: 'Reifenhändler' },
+  hu: { icon: '📋', name: 'TÜV', text: 'TÜV Hauptuntersuchung', km: true, ort: 'Prüfstelle' },
+  pflege: { icon: '🧽', name: 'Wäsche', text: 'Autowäsche', ort: 'Waschanlage' },
+  parken: { icon: '🅿️', name: 'Parken / Maut', text: 'Parken', ort: 'Parkhaus, Mautstelle …' },
+  sonst: { icon: '＋', name: 'Sonstiges', text: '', ort: 'Wofür?' },
+};
+function erfassenLeiste() {
+  return html`<section class="card fb-erf">
+    <div class="fb-kh"><h3>Kosten erfassen</h3><button type="button" class="btn small" id="fb-beleg">📷 Beleg fotografieren</button></div>
+    <div class="fb-erf-b">${Object.entries(ERFASSEN).map(([k, t]) => html`<button type="button" data-erfassen="${k}"><i aria-hidden="true">${t.icon}</i>${t.name}</button>`)}<button type="button" data-check="km" data-datum="${today()}"><i aria-hidden="true">🔢</i>Kilometerstand</button></div>
+  </section>`;
+}
+function kostenErfassen(typ) {
+  const t = ERFASSEN[typ] || ERFASSEN.sonst, kl = F.kleinunternehmer();
+  modal(`${t.icon} ${t.name} erfassen`, html`
+    <label class="f"><span>Datum</span><input name="datum" type="date" value="${today()}" max="${today()}" required></label>
+    <label class="f"><span>Betrag (€, brutto)</span><input name="brutto" inputmode="decimal" required placeholder="z. B. 68,40" autofocus></label>
+    ${t.liter ? html`<label class="f"><span>Liter</span><input name="liter" inputmode="decimal" placeholder="z. B. 38,2"></label>` : ''}
+    ${t.km ? html`<label class="f"><span>Kilometerstand</span><input name="kmStand" inputmode="numeric" placeholder="vom Tacho, z. B. 17.650"></label>` : ''}
+    <label class="f full"><span>${typ === 'sonst' ? 'Beschreibung' : 'Wo? (optional)'}</span><input name="lieferant" placeholder="${t.ort}" ${typ === 'sonst' ? raw('required') : ''}></label>
+    ${t.km ? html`<p class="full muted small">Tipp: Mit dem Kilometerstand kennt das CRM deine Gesamtfahrleistung – die Voraussetzung, um die tatsächlichen Kosten anzusetzen.</p>` : ''}`, {
+    saveLabel: 'Speichern',
+    onSave: async v => {
+      const brutto = FB.zahl(v.brutto); if (!brutto || brutto <= 0) { toast('Bitte einen Betrag eingeben', 'err'); return false; }
+      const satz = kl || t.ohneUst ? 0 : 19, { netto, ust } = F.bruttoZuNetto(brutto, satz), wo = (v.lieferant || '').trim();
+      const liter = FB.zahl(v.liter), kmS = FB.zahl(v.kmStand);
+      if (kmS != null) { const vor = FB.kmStaende().filter(s => s.datum <= v.datum).pop(); if (vor && kmS < FB.zahl(vor.km)) { toast(`Kilometerstand liegt unter dem vom ${fmtDate(vor.datum)} (${num(FB.zahl(vor.km))} km)`, 'err'); return false; } }
+      await db.save('buchungen', { art: 'ausgabe', datum: v.datum, kategorie: 'Fahrzeug & Fahrtkosten', konto: F.konto('Fahrzeug & Fahrtkosten', satz),
+        beschreibung: typ === 'sonst' ? wo : t.text, lieferant: typ === 'sonst' ? '' : wo, brutto: F.r2(brutto), netto, ust, ustSatz: satz, offen: false, quelle: 'fahrtenbuch',
+        ...(kmS > 0 ? { kmStand: Math.round(kmS) } : {}), ...(liter > 0 ? { liter } : {}) });
+      haptik('erfolg'); toast(`${t.name} gespeichert`);
+    },
+  });
+}
+function monatsKarte(A) {
+  const M = A.monate.filter(m => m.m <= today().slice(0, 7) || m.betrag), max = Math.max(1, ...M.map(m => m.betrag));
+  if (!A.kmG) return '';
+  return html`<section class="card fb-mon">
+    <div class="fb-kh"><h3>Abzug je Monat ${z.jahr}</h3><span class="muted small">${A.methode === 'tatsaechlich' ? `tatsächliche Kosten · ${eur2(A.satz)}/km` : 'Kilometerpauschale · 0,30 €/km'}</span></div>
+    <div class="fb-bars">${M.map(m => html`<div class="fb-bar" tabindex="0" title="${FMON.format(new Date(m.m + '-15T12:00:00'))}: ${eur2(m.betrag)} · ${kmTxt(m.km)} geschäftlich"><span>${m.betrag ? eur(m.betrag) : ''}</span><i style="height:${(m.betrag / max * 100).toFixed(1)}%"></i><small>${new Intl.DateTimeFormat('de-DE', { month: 'short' }).format(new Date(m.m + '-15T12:00:00')).replace('.', '')}</small><em>${m.km ? num(m.km, 0) + ' km' : ''}</em></div>`)}</div>
+  </section>`;
 }
 // ---------------------------------------------------------------- Kostenplan & Leasing
 function kostenplanKarte(fz, A) {
@@ -452,9 +553,11 @@ function autoForm() {
     },
   });
 }
-function kmStandForm() {
+function kmStandForm(datum) {
+  const letzter = FB.kmStaende().pop();
   modal('Kilometerstand eintragen', html`
-    <label class="f"><span>Datum</span><input name="datum" type="date" value="${today()}" required></label>
+    ${letzter ? html`<p class="full muted small">Letzter Stand: ${num(FB.zahl(letzter.km))} km am ${fmtDate(letzter.datum)}</p>` : ''}
+    <label class="f"><span>Datum</span><input name="datum" type="date" value="${typeof datum === 'string' && datum ? datum : today()}" max="${today()}" required></label>
     <label class="f"><span>Kilometerstand</span><input name="km" inputmode="numeric" required placeholder="z. B. 48.250"></label>`, {
     onSave: async v => {
       const k = FB.zahl(v.km); if (k == null || k < 0) { toast('Bitte Kilometerstand eingeben', 'err'); return false; }
@@ -726,7 +829,10 @@ function binden(el) {
   el.querySelector('#fb-foto')?.addEventListener('click', fotoWaehlen);
   el.querySelector('#fb-kosten')?.addEventListener('click', kostenForm);
   fotoLaden(el);
-  el.querySelectorAll('#fb-kmstand').forEach(b => b.onclick = kmStandForm);
+  el.querySelectorAll('#fb-kmstand').forEach(b => b.onclick = () => kmStandForm());
+  el.querySelectorAll('[data-erfassen]').forEach(b => b.onclick = () => { haptik('leicht'); kostenErfassen(b.dataset.erfassen); });
+  el.querySelectorAll('[data-check]').forEach(b => b.onclick = () => { const a = b.dataset.check; if (a === 'km') kmStandForm(b.dataset.datum); else if (a === 'auto') autoForm(); else if (a === 'posten') kostenForm(); else kostenErfassen('tanken'); });
+  el.querySelector('#fb-allebelege')?.addEventListener('click', () => { z.alleBelege = !z.alleBelege; render(el); });
   el.querySelector('#fb-beleg')?.addEventListener('click', () => { const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*,application/pdf'; i.multiple = true; i.onchange = async () => { if (i.files.length) { const { belegeHochladen } = await import('./finanzen.js'); belegeHochladen(i.files); } }; i.click(); });
   el.querySelectorAll('[data-beleg]').forEach(b => b.onclick = () => belegAnsehen(b.dataset.beleg));
   el.querySelectorAll('[data-kmweg]').forEach(b => b.onclick = async () => { if (!await confirmDlg('Kilometerstand löschen?')) return; const fz = FB.fahrzeug(); await FB.fahrzeugSpeichern({ kmStaende: (fz.kmStaende || []).filter(s => s.id !== b.dataset.kmweg) }); });
