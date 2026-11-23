@@ -17,7 +17,8 @@ const wa = t => telNr(t).replace(/^\+/, '').replace(/^0/, '49');
 const initialen = n => String(n || '?').replace(/^(Herr|Frau)\s+/i, '').split(/\s+/).filter(Boolean).slice(0, 2).map(x => x[0]).join('').toUpperCase();
 const vorname = n => String(n || '').trim().split(/\s+/)[0] || '';
 const stBadge = s => html`<span class="an-st" style="--a:${P.STATUS[s]?.farbe || '#888'}">${P.STATUS[s]?.name || s}</span>`;
-const inseratK = g => g.haupt.inseratNr || g.haupt.inseratTitel || '–';
+const inseratK = g => P.ordnerK(g.haupt);
+const ALLE = '*';
 
 function mailLink(g, art) {
   const S = db.settings(), h = g.haupt, was = h.inseratTitel ? `„${h.inseratTitel.split(' - ')[0]}“` : 'unsere Wohnung';
@@ -28,16 +29,51 @@ function mailLink(g, art) {
   return `mailto:${encodeURIComponent(g.email)}?subject=${encodeURIComponent((art === 'absage' ? 'Ihre Anfrage: ' : 'Besichtigung: ') + (h.inseratTitel || 'Wohnung').split(' - ').slice(0, 2).join(' – '))}&body=${encodeURIComponent(text)}`;
 }
 
+const kurz = t => String(t || '').split(' - ').slice(0, 2).join(' – ');
+function ordnerKarte(i) {
+  return html`<div class="an-ord ${i.neu ? 'neu' : ''}" data-ord="${i.k}">
+    <button type="button" class="an-ordb" data-ins="${i.k}" aria-label="Ordner ${i.name} öffnen">
+      <span class="an-ordi" aria-hidden="true">📁</span>
+      <span class="an-ordt"><b>${i.name}</b><small>${i.nummern.length ? i.nummern.join(' + ') : 'ohne Inserat-Nummer'}${i.titel && i.name !== i.titel ? ' · ' + kurz(i.titel) : ''}</small></span>
+    </button>
+    <div class="an-ordz">${i.neu ? html`<span class="an-z gold">${i.neu} neu</span>` : ''}<span class="an-z">${i.offen} offen</span><span class="an-z">${i.n} gesamt</span>${i.letzte ? html`<small class="muted">letzte ${vorWann(i.letzte)}</small>` : ''}</div>
+    <div class="an-ordf"><small class="${i.objekt ? '' : 'muted'}">${i.objekt ? '⌂ ' + (i.objekt.nr ? i.objekt.nr + ' · ' : '') + i.objekt.titel : 'noch keinem Objekt zugeordnet'}</small>
+      <button type="button" class="btn ghost small" data-ordedit="${i.k}">✎ Benennen / zuordnen</button></div>
+  </div>`;
+}
+function ordnerDlg(k, el) {
+  const i = P.inserate().find(x => x.k === k); if (!i) return;
+  const andere = P.inserate().filter(x => x.k !== k);
+  modal('Ordner ' + (i.nummern[0] || i.name), html`
+    <p class="muted small full" style="margin:0">${i.nummern.length ? 'Inserat ' + i.nummern.join(' + ') : 'Ohne Inserat-Nummer'}${i.titel ? ' · ' + i.titel : ''} · ${i.n} Anfrage${i.n === 1 ? '' : 'n'}</p>
+    <label class="f full"><span>Name des Ordners</span><input name="name" value="${i.eigen}" placeholder="${(i.objekt && i.objekt.titel) || i.nr || 'z. B. Ludwigstraße 12 – 3 Zi. EG'}" autocomplete="off"></label>
+    <label class="f full"><span>Objekt</span><select name="propertyId"><option value="">– kein Objekt –</option>${db.all('properties').map(p => html`<option value="${p.id}" ${p.id === i.propertyId ? raw('selected') : ''}>${p.nr ? p.nr + ' · ' : ''}${p.titel}</option>`)}</select></label>
+    ${andere.length ? html`<label class="f full"><span>Mit anderem Ordner zusammenlegen</span><select name="in"><option value="">– eigener Ordner –</option>${andere.map(x => html`<option value="${x.k}">${x.name}${x.nummern.length && x.name !== x.nummern[0] ? ' (' + x.nummern.join(' + ') + ')' : ''}</option>`)}</select><small class="muted">Für dieselbe Wohnung, die unter zwei Nummern inseriert war. Lässt sich wieder trennen.</small></label>` : ''}
+    ${i.teile.length ? html`<div class="f full"><span>In diesem Ordner zusammengelegt</span>${i.teile.map(t => html`<div class="an-teil"><span>${t.nr || t.titel}${t.nr && t.titel ? html` <small class="muted">${kurz(t.titel)}</small>` : ''}</span><button type="button" class="btn ghost small" data-trennen="${t.k}">Trennen</button></div>`)}</div>` : ''}`, {
+    saveLabel: 'Speichern',
+    onMount: (m, close) => m.querySelectorAll('[data-trennen]').forEach(b => b.onclick = async () => { await P.ordnerSpeichern(b.dataset.trennen, { in: '' }); close(); toast('Ordner getrennt'); render(el); }),
+    onSave: async v => {
+      try { await P.ordnerSpeichern(k, { name: v.name, propertyId: v.propertyId, in: v.in || undefined }); } catch (e) { toast(e.message, 'err'); return false; }
+      if (v.in) { z.inserat = v.in; toast('Ordner zusammengelegt'); } else toast('Ordner gespeichert');
+      render(el);
+    },
+  });
+}
+
 export function render(el) {
   const G = P.gruppen(), ins = P.inserate();
-  if (z.inserat && !ins.some(i => i.k === z.inserat)) z.inserat = '';
-  const imIns = z.inserat ? G.filter(g => inseratK(g) === z.inserat) : G;
+  if (z.inserat && z.inserat !== ALLE && !ins.some(i => i.k === z.inserat)) z.inserat = '';
+  const einzel = ins.length === 1, ord = einzel && z.inserat !== ALLE ? ins[0] : ins.find(i => i.k === z.inserat), offenO = z.inserat !== '' || einzel;
+  const imIns = ord ? G.filter(g => inseratK(g) === ord.k) : G;
   const f = FILTER.find(x => x[0] === z.filter) || FILTER[0], liste = imIns.filter(f[2]);
   const n = k => imIns.filter(FILTER.find(x => x[0] === k)[2]).length;
   const neuester = G.reduce((m, g) => (g.letzte.importiert || '') > m ? g.letzte.importiert : m, '');
   el.innerHTML = String(html`<div class="an">
-    <div class="head"><div><h1>Anfragen</h1><p class="muted">Interessenten aus deinen Portalen – kommen automatisch aus den ohne-makler-Mails in deinem Posteingang.</p></div>
+    <div class="head"><div><h1>Anfragen</h1><p class="muted">Interessenten aus deinen Portalen – je Inserat ein Ordner. Ordner kannst du benennen, einem Objekt zuordnen oder zusammenlegen.</p></div>
       <div class="actions"><button type="button" class="btn" id="an-neu">+ Anfrage von Hand</button></div></div>
+    ${offenO ? html`<div class="an-pfad">${einzel ? '' : html`<button type="button" class="btn ghost small" data-ins="">← Alle Ordner</button>`}
+      <div class="an-pfadt"><b>📁 ${ord ? ord.name : 'Alle Anfragen'}</b><small class="muted">${ord ? [ord.nummern.join(' + '), ord.titel && ord.name !== ord.titel ? kurz(ord.titel) : '', ord.objekt ? '⌂ ' + ord.objekt.titel : 'kein Objekt zugeordnet'].filter(Boolean).join(' · ') : 'aus allen Ordnern'}</small></div>
+      ${ord ? html`<button type="button" class="btn small" data-ordedit="${ord.k}">✎ Benennen / zuordnen</button>${ord.url ? html`<a class="lnk small" href="${ord.url}" target="_blank" rel="noopener">Inserat ansehen ↗</a>` : ''}` : ''}</div>` : ''}
     <div class="kpis strip an-kpis">
       <div class="kpi"><span>Neu</span><b class="${n('neu') ? 'gold' : ''}">${n('neu')}</b></div>
       <div class="kpi"><span>In Bearbeitung</span><b>${n('kontaktiert') + n('besichtigung')}</b></div>
@@ -45,29 +81,27 @@ export function render(el) {
       <div class="kpi"><span>Zusagen</span><b>${n('zusage')}</b></div>
       <div class="kpi"><span>Gesamt</span><b>${imIns.length}</b></div>
     </div>
-    ${ins.length ? html`<div class="an-ins">${ins.map(i => html`<div class="an-in ${z.inserat === i.k ? 'on' : ''}">
-      <button type="button" class="an-inb" data-ins="${i.k}" aria-pressed="${z.inserat === i.k}"><b>${i.nr || 'Inserat'}</b><span>${i.titel || ''}</span><small>${i.n} Anfrage${i.n === 1 ? '' : 'n'}${i.offen ? ` · ${i.offen} offen` : ''}</small></button>
-      <label class="an-obj"><span>Objekt</span><select data-insobj="${i.k}" aria-label="Objekt zu ${i.nr || i.titel}"><option value="">– zuordnen –</option>${db.all('properties').map(p => html`<option value="${p.id}" ${p.id === i.propertyId ? raw('selected') : ''}>${p.nr ? p.nr + ' · ' : ''}${p.titel}</option>`)}</select></label>
-      ${i.url ? html`<a class="lnk small" href="${i.url}" target="_blank" rel="noopener">Inserat ansehen ↗</a>` : ''}</div>`)}</div>` : ''}
-    <div class="an-bar">
+    ${!G.length ? html`<div class="card an-leer"><h3>Noch keine Anfragen</h3><p class="muted">Sobald eine Anfrage von ohne-makler in deinem Postfach landet, erscheint sie hier – mit Name, E-Mail, Nachricht und den Angaben zu Haushalt, Einkommen und Schufa.</p></div>`
+      : !offenO ? html`<div class="an-ords">${ins.map(ordnerKarte)}
+          ${ins.length > 1 ? html`<div class="an-ord alle"><button type="button" class="an-ordb" data-ins="${ALLE}"><span class="an-ordi" aria-hidden="true">🗂</span><span class="an-ordt"><b>Alle Anfragen</b><small>aus allen ${ins.length} Ordnern in einer Liste</small></span></button><div class="an-ordz"><span class="an-z">${G.filter(g => P.OFFEN.includes(st(g))).length} offen</span><span class="an-z">${G.length} gesamt</span></div></div>` : ''}</div>`
+      : html`<div class="an-bar">
       <div class="chips" role="group" aria-label="Status">${FILTER.map(([k, l]) => html`<button type="button" class="chip ${z.filter === k ? 'on' : ''}" data-f="${k}">${l}${n(k) && k !== 'alle' ? html` <i>${n(k)}</i>` : ''}</button>`)}</div>
       <div class="seg an-sicht" role="group" aria-label="Ansicht"><button type="button" data-sicht="karten" class="${z.ansicht === 'karten' ? 'on' : ''}">Karten</button><button type="button" data-sicht="vergleich" class="${z.ansicht === 'vergleich' ? 'on' : ''}">Vergleich</button></div>
     </div>
-    ${!G.length ? html`<div class="card an-leer"><h3>Noch keine Anfragen</h3><p class="muted">Sobald eine Anfrage von ohne-makler in deinem Postfach landet, erscheint sie hier – mit Name, E-Mail, Nachricht und den Angaben zu Haushalt, Einkommen und Schufa.</p></div>`
-      : !liste.length ? html`<div class="card an-leer"><p class="muted">Keine Anfragen in „${f[1]}“.</p>${z.filter !== 'alle' && imIns.length ? html`<p><button type="button" class="btn" data-f="alle">Alle ${imIns.length} Anfragen zeigen</button></p>` : ''}</div>`
-      : z.ansicht === 'vergleich' ? vergleich(liste) : html`<div class="an-liste">${liste.map(karte)}</div>`}
+    ${!liste.length ? html`<div class="card an-leer"><p class="muted">Keine Anfragen in „${f[1]}“.</p>${z.filter !== 'alle' && imIns.length ? html`<p><button type="button" class="btn" data-f="alle">Alle ${imIns.length} Anfragen zeigen</button></p>` : ''}</div>`
+      : z.ansicht === 'vergleich' ? vergleich(liste) : html`<div class="an-liste">${liste.map(g => karte(g, ins))}</div>`}`}
     <p class="muted small an-fuss">Anfrage-Mails von ohne-makler werden automatisch aus dem CRM-Posteingang übernommen (zusätzlich zweimal täglich aus Gmail).${neuester ? ` Letzte neue Anfrage übernommen ${vorWann(neuester)}.` : ''} Mehrere Mails derselben Person zum selben Inserat zählen als eine Anfrage.</p>
   </div>`);
   binden(el);
 }
 
-function karte(g) {
+function karte(g, ins = []) {
   const h = g.haupt, s = st(g), auf = z.auf.has(g.id), ang = P.angabenListe(g.angaben), c = h.contactId && db.get('contacts', h.contactId);
   const lang = (g.letzte.nachricht || '').length > 260 || g.nachrichten.length > 1 || (h.versuche || []).length > 3;
   return html`<article class="card an-karte ${s}" data-g="${g.id}">
     <header class="an-kopf">
       <span class="an-av" aria-hidden="true">${initialen(g.name)}</span>
-      <div class="an-wer"><b>${g.name}</b><small class="muted">${vorWann(g.eingang)} · ${fmtDT(g.eingang)}${g.alle.length > 1 ? ` · ${g.alle.length} Mails` : ''}${!z.inserat && h.inseratNr ? ' · ' + h.inseratNr : ''}</small></div>
+      <div class="an-wer"><b>${g.name}</b><small class="muted">${vorWann(g.eingang)} · ${fmtDT(g.eingang)}${g.alle.length > 1 ? ` · ${g.alle.length} Mails` : ''}${z.inserat === ALLE ? ' · ' + (ins.find(i => i.k === inseratK(g))?.name || h.inseratNr || '') : ''}</small></div>
       ${(() => { const i = P.versucheInfo(h); return i && i.fehl ? html`<span class="an-fehl" title="Anrufversuche ohne Erfolg">📵 ${i.fehl}×</span>` : ''; })()}
       <button type="button" class="an-fav ${h.favorit ? 'on' : ''}" data-fav aria-pressed="${!!h.favorit}" aria-label="Favorit" title="Favorit">★</button>
       ${stBadge(s)}
@@ -85,6 +119,7 @@ function karte(g) {
     <footer class="an-fuss2">
       <label class="an-stsel"><span class="muted small">Status</span><select data-status aria-label="Status von ${g.name}">${Object.entries(P.STATUS).map(([k, v]) => html`<option value="${k}" ${k === s ? raw('selected') : ''}>${v.name}</option>`)}</select></label>
       ${g.email && !['absage', 'archiv'].includes(s) ? html`<a class="btn ghost small" href="${mailLink(g, 'absage')}" data-absage>Absage schreiben</a>` : ''}
+      ${ins.length > 1 ? html`<label class="an-stsel"><span class="muted small">Ordner</span><select data-ordner aria-label="Ordner von ${g.name}">${ins.map(i => html`<option value="${i.k}" ${i.k === inseratK(g) ? raw('selected') : ''}>${i.name}</option>`)}</select></label>` : ''}
       ${c ? html`<a class="lnk small" href="#/kontakte/${c.id}">Kontakt öffnen →</a>` : ''}
     </footer>
     <textarea class="an-notiz" data-notiz rows="1" placeholder="Notiz (z. B. Eindruck am Telefon, Wunschtermin)" aria-label="Notiz zu ${g.name}">${h.notiz || ''}</textarea>
@@ -107,7 +142,7 @@ function vonHand() {
     <label class="f full"><span>Name</span><input name="name" required></label>
     <label class="f"><span>Telefon</span><input name="tel" inputmode="tel"></label>
     <label class="f"><span>E-Mail</span><input name="email" type="email"></label>
-    <label class="f full"><span>Inserat / Wohnung</span><input name="inserat" list="an-ins" value="${z.inserat && ins.find(i => i.k === z.inserat)?.nr || ''}" placeholder="z. B. OM-493407 oder „3-Zi-Wohnung Hof“"></label>
+    <label class="f full"><span>Inserat / Wohnung</span><input name="inserat" list="an-ins" value="${(ins.find(i => i.k === z.inserat) || (ins.length === 1 ? ins[0] : null))?.nr || ''}" placeholder="z. B. OM-493407 oder „3-Zi-Wohnung Hof“"></label>
     <datalist id="an-ins">${ins.map(i => html`<option value="${i.nr || i.titel}">${i.titel}</option>`)}</datalist>
     <label class="f full"><span>Nachricht / Notiz</span><textarea name="nachricht" rows="4"></textarea></label>`, {
     saveLabel: 'Eintragen',
@@ -126,8 +161,9 @@ function binden(el) {
   el.querySelector('#an-neu').onclick = vonHand;
   el.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { z.filter = b.dataset.f; render(el); });
   el.querySelectorAll('[data-sicht]').forEach(b => b.onclick = () => { z.ansicht = b.dataset.sicht; render(el); });
-  el.querySelectorAll('[data-ins]').forEach(b => b.onclick = () => { z.inserat = z.inserat === b.dataset.ins ? '' : b.dataset.ins; render(el); });
-  el.querySelectorAll('[data-insobj]').forEach(s => s.onchange = async () => { await P.inseratZuordnen(s.dataset.insobj, s.value); toast(s.value ? 'Objekt zugeordnet – gilt für alle Anfragen zu diesem Inserat' : 'Zuordnung entfernt'); });
+  el.querySelectorAll('[data-ins]').forEach(b => b.onclick = () => { z.inserat = b.dataset.ins; z.filter = 'offen'; render(el); window.scrollTo(0, 0); });
+  el.querySelectorAll('[data-ordedit]').forEach(b => b.onclick = () => ordnerDlg(b.dataset.ordedit, el));
+  el.querySelectorAll('[data-ordner]').forEach(s => s.onchange = async () => { const g = grp(s), alt = inseratK(g), ziel = P.inserate().find(i => i.k === s.value); await P.verschieben(g, s.value); toast(`${g.name} → Ordner „${ziel?.name || s.value}“`, 'ok', { label: 'Rückgängig', fn: () => P.verschieben({ alle: g.alle.map(x => db.get('anfragen', x.id) || x) }, alt) }); });
   el.querySelectorAll('[data-mehr]').forEach(b => b.onclick = () => { const id = b.closest('[data-g]').dataset.g; z.auf.has(id) ? z.auf.delete(id) : z.auf.add(id); render(el); });
   el.querySelectorAll('[data-fav]').forEach(b => b.onclick = async () => { const g = grp(b); haptik('leicht'); await P.setzen(g, { favorit: !g.haupt.favorit }); });
   el.querySelectorAll('[data-status]').forEach(s => s.onchange = async () => { const g = grp(s); await P.status(g, s.value); haptik('erfolg'); toast(`${g.name}: ${P.STATUS[s.value].name}`); });

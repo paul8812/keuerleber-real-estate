@@ -29,7 +29,12 @@ const norm = s => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
 const nameParts = n => { const p = String(n || '').trim().replace(/^(Herr|Frau)\s+/i, '').split(/\s+/).filter(Boolean); return p.length > 1 ? { vorname: p.slice(0, -1).join(' '), nachname: p[p.length - 1] } : { vorname: '', nachname: p[0] || '' }; };
 
 export const alle = () => db.all('anfragen') || [];
-const schluessel = a => `${a.inseratNr || a.inseratTitel || ''}|${(a.email || '').toLowerCase() || digits(a.tel) || norm(a.name)}`;
+// Ordner: je Inserat-Nummer einer. Eine Anfrage kann von Hand in einen anderen Ordner gelegt werden (a.ordner),
+// zwei Ordner lassen sich zusammenlegen (settings.inseratZiel), Namen stehen in settings.inseratNamen.
+const roh = a => a.ordner || a.inseratNr || a.inseratTitel || '–';
+const ziel = k => { const Z = db.settings().inseratZiel || {}; let i = 0; while (Z[k] && Z[k] !== k && i++ < 6) k = Z[k]; return k; };
+export const ordnerK = a => ziel(roh(a));
+const schluessel = a => `${ordnerK(a)}|${(a.email || '').toLowerCase() || digits(a.tel) || norm(a.name)}`;
 /** Anfragen gruppiert: je Person + Inserat eine (früheste = Haupteintrag mit Status/Notiz), alle Nachrichten zeitlich */
 export function gruppen() {
   const m = new Map();
@@ -45,14 +50,38 @@ export function gruppen() {
   }).sort((a, b) => b.eingang.localeCompare(a.eingang));
 }
 export const neuAnzahl = () => gruppen().filter(g => (g.haupt.status || 'neu') === 'neu').length;
-/** Inserate (für Filter und Objekt-Zuordnung) */
+/** Ordner (je Inserat): Name, Nummern, Objekt, Zähler – offene zuerst, dann nach letzter Anfrage */
 export function inserate() {
-  const m = new Map();
-  for (const g of gruppen()) { const k = g.haupt.inseratNr || g.haupt.inseratTitel || '–'; const e = m.get(k) || { nr: g.haupt.inseratNr || '', titel: g.haupt.inseratTitel || '', url: g.haupt.inseratUrl || '', n: 0, offen: 0 }; e.n++; if (OFFEN.includes(g.haupt.status || 'neu')) e.offen++; m.set(k, e); }
-  return [...m.entries()].map(([k, e]) => ({ k, ...e, propertyId: (db.settings().inserate || {})[k] || '' })).sort((a, b) => b.n - a.n);
+  const S = db.settings(), m = new Map();
+  for (const g of gruppen()) {
+    const k = ordnerK(g.haupt), e = m.get(k) || { nr: '', titel: '', url: '', n: 0, offen: 0, neu: 0, letzte: '', teile: new Map() };
+    for (const x of g.alle) { const r = x.inseratNr || x.inseratTitel || '–'; if (!e.teile.has(r)) e.teile.set(r, { k: r, nr: x.inseratNr || '', titel: x.inseratTitel || '', url: x.inseratUrl || '' }); }
+    e.n++; const s = g.haupt.status || 'neu'; if (OFFEN.includes(s)) e.offen++; if (s === 'neu') e.neu++; if (g.eingang > e.letzte) e.letzte = g.eingang; m.set(k, e);
+  }
+  return [...m.entries()].map(([k, e]) => {
+    const T = [...e.teile.values()], h = T.find(t => t.k === k) || T[0] || {}, propertyId = (S.inserate || {})[k] || '', obj = propertyId && db.get('properties', propertyId);
+    const eigen = (S.inseratNamen || {})[k] || '';
+    return { k, nr: h.nr || (/^OM-/i.test(k) ? k : ''), titel: h.titel || '', url: h.url || '', n: e.n, offen: e.offen, neu: e.neu, letzte: e.letzte, propertyId, objekt: obj || null, eigen,
+      name: eigen || (obj && obj.titel) || h.nr || h.titel || k, nummern: T.map(t => t.nr).filter(Boolean), teile: T.filter(t => t.k !== k && ziel(t.k) === k && (S.inseratZiel || {})[t.k]) };
+  }).sort((a, b) => (b.offen > 0) - (a.offen > 0) || b.letzte.localeCompare(a.letzte));
 }
-export const objektFuer = a => (db.settings().inserate || {})[a.inseratNr || a.inseratTitel || '–'] || a.propertyId || '';
+export const objektFuer = a => (db.settings().inserate || {})[ordnerK(a)] || a.propertyId || '';
 export async function inseratZuordnen(k, propertyId) { await db.saveSettings({ ...db.settings(), inserate: { ...(db.settings().inserate || {}), [k]: propertyId } }); }
+/** Ordner benennen, Objekt zuordnen, mit anderem Ordner zusammenlegen (in = Schlüssel des Zielordners, '' = eigener Ordner) */
+export async function ordnerSpeichern(k, { name, propertyId, in: inK } = {}) {
+  const S = db.settings(), N = { ...(S.inseratNamen || {}) }, O = { ...(S.inserate || {}) }, Z = { ...(S.inseratZiel || {}) };
+  if (name !== undefined) { if (String(name).trim()) N[k] = String(name).trim(); else delete N[k]; }
+  if (propertyId !== undefined) { if (propertyId) O[k] = propertyId; else delete O[k]; }
+  if (inK !== undefined) {
+    if (!inK || inK === k) delete Z[k];
+    else { let t = inK, i = 0; while (Z[t] && i++ < 6) t = Z[t]; if (t === k) throw new Error('Diese Ordner sind schon zusammengelegt.'); Z[k] = t; for (const [q, v] of Object.entries(Z)) if (v === k) Z[q] = t; }
+  }
+  await db.saveSettings({ ...S, inseratNamen: N, inserate: O, inseratZiel: Z });
+}
+/** Eine Anfrage (alle Mails der Person) in einen anderen Ordner legen */
+export async function verschieben(g, k) {
+  for (const x of g.alle) { const a = { ...(db.get('anfragen', x.id) || x) }; if (k === (a.inseratNr || a.inseratTitel || '–')) delete a.ordner; else a.ordner = k; await db.save('anfragen', a); }
+}
 
 export async function setzen(g, patch) { return db.save('anfragen', { ...(db.get('anfragen', g.haupt.id) || g.haupt), ...patch }); }
 export async function status(g, s, extra = {}) { return setzen(g, { status: s, statusAm: new Date().toISOString(), ...extra }); }
