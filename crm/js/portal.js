@@ -4,17 +4,26 @@
 //   • die Zuordnung zum Objekt (einmal je Inserat festlegen, gilt dann für alle weiteren Anfragen)
 // Mehrere Mails derselben Person zum selben Inserat zählen als eine Anfrage mit mehreren Nachrichten.
 import * as db from './db.js';
-import { idFor, contactIdFor, today, daysBetween } from './util.js';
+import { idFor, contactIdFor, today, daysBetween, addDays, uid } from './util.js';
 
 export const STATUS = {
   neu: { name: 'Neu', farbe: '#c9a96e' },
+  versucht: { name: 'Nicht erreicht', farbe: '#e0a84a' },
   kontaktiert: { name: 'Kontaktiert', farbe: '#5fa8d3' },
   besichtigung: { name: 'Besichtigung', farbe: '#b48ce0' },
   zusage: { name: 'Zusage', farbe: '#5bbf8a' },
   absage: { name: 'Absage', farbe: '#8b877f' },
   archiv: { name: 'Abgelegt', farbe: '#6f6b64' },
 };
-export const OFFEN = ['neu', 'kontaktiert', 'besichtigung'];
+export const OFFEN = ['neu', 'versucht', 'kontaktiert', 'besichtigung'];
+// Ergebnis eines Kontaktversuchs – ein Tipp an der Anfrage
+export const VERSUCH = {
+  nichtErreicht: { name: 'Nicht erreicht', icon: '📵', status: 'versucht', erinnern: true, anruf: true },
+  mailbox: { name: 'Mailbox besprochen', icon: '📼', status: 'versucht', erinnern: true, anruf: true },
+  nachricht: { name: 'Nachricht geschickt', icon: '💬', status: 'kontaktiert', erinnern: false },
+  gesprochen: { name: 'Gesprochen', icon: '✅', status: 'kontaktiert', erinnern: false, anruf: true },
+  rueckruf: { name: 'Ruft zurück', icon: '↩', status: 'kontaktiert', erinnern: false, anruf: true },
+};
 const digits = s => String(s || '').replace(/\D/g, '').replace(/^49/, '0');
 const norm = s => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
 const nameParts = n => { const p = String(n || '').trim().replace(/^(Herr|Frau)\s+/i, '').split(/\s+/).filter(Boolean); return p.length > 1 ? { vorname: p.slice(0, -1).join(' '), nachname: p[p.length - 1] } : { vorname: '', nachname: p[0] || '' }; };
@@ -47,6 +56,34 @@ export async function inseratZuordnen(k, propertyId) { await db.saveSettings({ .
 
 export async function setzen(g, patch) { return db.save('anfragen', { ...(db.get('anfragen', g.haupt.id) || g.haupt), ...patch }); }
 export async function status(g, s, extra = {}) { return setzen(g, { status: s, statusAm: new Date().toISOString(), ...extra }); }
+
+const erinnerungen = g => db.all('tasks').filter(t => !t.done && t.auto === 'anf-anruf:' + g.id);
+/** Kontaktversuch festhalten: steht an der Anfrage, im Kontaktverlauf und (bei „nicht erreicht“) als Erinnerung für morgen.
+ *  Gibt eine Funktion zurück, die alles wieder rückgängig macht. */
+export async function versuch(g, art, { notiz = '', erinnern = VERSUCH[art]?.erinnern } = {}) {
+  const V = VERSUCH[art]; if (!V) throw new Error('Unbekanntes Ergebnis');
+  const h = db.get('anfragen', g.haupt.id) || g.haupt, vorher = { ...h }, zeit = new Date().toISOString(), id = uid();
+  const st = h.status || 'neu', neuSt = ['neu', 'versucht'].includes(st) || (st === 'kontaktiert' && V.status === 'kontaktiert') ? V.status : st;
+  await db.save('anfragen', { ...h, versuche: [...(h.versuche || []), { id, zeit, art, notiz: String(notiz).trim() }], status: neuSt, statusAm: neuSt !== st ? zeit : h.statusAm });
+  const angelegt = [];
+  if (h.contactId) { const a = await db.save('activities', { id: idFor('anf-versuch', id), art: V.anruf ? 'anruf' : 'notiz', text: `${V.icon} ${V.name}${h.inseratNr ? ' (Anfrage ' + h.inseratNr + ')' : ''}${notiz ? ' – ' + String(notiz).trim() : ''}`, datum: zeit, contactId: h.contactId }); angelegt.push(['activities', a.id]); }
+  const offen = erinnerungen(g), erledigt = [];
+  if (V.erinnern === false) for (const t of offen) { erledigt.push({ ...t }); await db.save('tasks', { ...t, done: true, doneAt: zeit }); }   // erreicht → alte Erinnerungen weg
+  if (erinnern && !offen.length) { const t = await db.save('tasks', { id: idFor('anf-wv', id), titel: `📞 Erneut anrufen: ${g.name}${g.tel ? ' · ' + g.tel : ''}`, faellig: addDays(today(), 1), prio: 'hoch', done: false, auto: 'anf-anruf:' + g.id, contactId: h.contactId || '', notiz: `Anfrage ${h.inseratNr || ''} – ${V.name}` }); angelegt.push(['tasks', t.id]); }
+  // Rückgängig nimmt genau diesen Versuch zurück (auch wenn inzwischen weitere dazugekommen sind)
+  return async () => {
+    const jetzt = db.get('anfragen', h.id) || h, rest = (jetzt.versuche || []).filter(v => v.id !== id), warLetzter = (jetzt.versuche || []).at(-1)?.id === id;
+    await db.save('anfragen', { ...jetzt, versuche: rest, ...(warLetzter ? { status: vorher.status || 'neu', statusAm: vorher.statusAm || '' } : {}) });
+    for (const [c, i] of angelegt) if (db.get(c, i)) await db.del(c, i);
+    for (const t of erledigt) await db.save('tasks', t);
+  };
+}
+/** Kurzfassung der Versuche: „2× nicht erreicht · zuletzt …“ */
+export function versucheInfo(h) {
+  const V = h.versuche || []; if (!V.length) return null;
+  const fehl = V.filter(v => VERSUCH[v.art]?.status === 'versucht').length, letzter = V[V.length - 1];
+  return { anzahl: V.length, fehl, letzter, erreicht: V.some(v => v.art === 'gesprochen') };
+}
 
 /** Zusatzangaben als kurze Liste [Label, Wert] in fester Reihenfolge */
 export function angabenListe(ang = {}) {
