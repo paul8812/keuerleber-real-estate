@@ -2,7 +2,7 @@
 //
 // Das CRM schickt eine Mail über das eigene Strato-Postfach (SMTP, Port 465) und legt eine Kopie im Ordner „Gesendet“ ab (IMAP),
 // damit sie auch in Outlook erscheint und der Mail-Abgleich sie dem Kontakt zuordnet.
-//   POST { an, cc?, bcc?, betreff, text, antwortAuf? }   mit dem Login des CRM-Benutzers (Authorization: Bearer <Sitzung>)
+//   POST { an, cc?, bcc?, betreff, text, html?, antwortAuf? }   mit dem Login des CRM-Benutzers (Authorization: Bearer <Sitzung>)
 //   → { ok, id, abgelegt }  |  { ok: false, fehler }
 //   POST { pruefen: true } → { ok, postfach }   (meldet sich nur am Postfach an, sendet nichts)
 // Zugang: Der angemeldete Benutzer (mit 2FA) holt per mailsenden_ticket() einen Einmal-Schein; nur diese Funktion kann ihn
@@ -154,9 +154,16 @@ Deno.serve(async (req) => {
       `To: ${an.join(", ")}`, ...(cc.length ? [`Cc: ${cc.join(", ")}`] : []),
       `Subject: ${kopf(betreff)}`, `Date: ${new Date().toUTCString().replace("GMT", "+0000")}`, `Message-ID: ${id}`,
       ...(bezugOk ? [`In-Reply-To: ${bezug}`, `References: ${bezug}`] : []),
-      "MIME-Version: 1.0", "Content-Type: text/plain; charset=utf-8", "Content-Transfer-Encoding: base64", "X-Mailer: Keuerleber CRM",
+      "MIME-Version: 1.0", "X-Mailer: Keuerleber CRM",
     ];
-    const roh = enc.encode(kopfZ.join("\r\n") + "\r\n\r\n" + zeilen76(b64text(text.replace(/\n/g, "\r\n"))) + "\r\n");
+    // Mit HTML-Fassung (Signatur mit Logo): multipart/alternative – Text zuerst, HTML danach
+    const htmlT = typeof b.html === "string" && b.html.trim() && b.html.length <= 200000 ? b.html.replace(/\r\n?/g, "\n") : "";
+    const teil = (typ: string, inhalt: string) => `Content-Type: ${typ}; charset=utf-8\r\nContent-Transfer-Encoding: base64\r\n\r\n${zeilen76(b64text(inhalt.replace(/\n/g, "\r\n")))}\r\n`;
+    const grenze = "kre-" + crypto.randomUUID().replaceAll("-", "");
+    const rumpf = htmlT
+      ? `Content-Type: multipart/alternative; boundary="${grenze}"\r\n\r\n--${grenze}\r\n${teil("text/plain", text)}--${grenze}\r\n${teil("text/html", `<!doctype html><html><body>${htmlT}</body></html>`)}--${grenze}--\r\n`
+      : teil("text/plain", text);
+    const roh = enc.encode(kopfZ.join("\r\n") + "\r\n" + rumpf);
 
     // 3) Senden, dann Kopie in „Gesendet“ (scheitert die Ablage, ist die Mail trotzdem raus)
     await smtp(z, [...new Set([...an, ...cc, ...bcc])], roh);
