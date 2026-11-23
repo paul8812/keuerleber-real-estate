@@ -179,6 +179,7 @@ function liste() {
       <div class="kpi"><span>Fahrten</span><b>${A.anzahl}</b>${A.offen ? html`<span class="warn">${A.offen} offen</span>` : ''}</div>
       <div class="kpi"><span>Absetzbar ${z.jahr}</span><b class="gold">${eur2(A.absetzbar)}</b></div>
     </div>
+    ${streckenLeiste()}
     <div class="fb-listakt">
       <button type="button" class="btn primary" data-eintragen>+ Fahrt eintragen</button>
       ${F.length ? html`<button type="button" class="btn ghost" id="fb-auswahl">${z.auswahl ? 'Auswahl beenden' : '☑ Mehrere bewerten'}</button>` : ''}
@@ -647,12 +648,103 @@ async function linksLaden(el) {
   }
 }
 
+// ---------------------------------------------------------------- Meine Strecken (Shortcuts)
+const ARTI = a => FB.ARTEN[a || 'geschaeftlich']?.icon || '🚗';
+/** Kilometer-Rechner für Formulare mit den Feldern von / nach / km, Knopf #fb-ber, Status #fb-berstat und Auswahl #fb-alt.
+ *  Rechnet neu, sobald sich Start oder Ziel ändern – außer du hast die Kilometer selbst eingetragen. */
+function kmRechner(m, { punkt = t => t, fertig = () => {} } = {}) {
+  const q = n => m.querySelector(`[name=${n}]`), st = m.querySelector('#fb-berstat'), alt = m.querySelector('#fb-alt');
+  const paar = () => q('von').value.trim() + '→' + q('nach').value.trim();
+  let auto = '', lauf = 0, zuletzt = q('km').value ? paar() : '';
+  const txt = k => String(k).replace('.', ',');
+  const setze = k => { lauf++; q('km').value = txt(k); auto = q('km').value; zuletzt = paar(); if (alt) alt.hidden = true; };
+  const rechnen = async () => {
+    if (!q('von').value.trim() || !q('nach').value.trim()) return;
+    const nr = ++lauf; zuletzt = paar(); st.textContent = 'berechne Strecke …'; if (alt) alt.hidden = true;
+    try {
+      const b = await strecke(punkt(q('von').value), punkt(q('nach').value)); if (nr !== lauf) return;
+      fertig(b); q('km').value = txt(b.km); auto = q('km').value;
+      st.textContent = `${b.von.adresse || q('von').value} → ${b.nach.adresse || q('nach').value}: ${num(b.km, 1)} km, ca. ${b.min} min`;
+      const A = [{ km: b.km, min: b.min, name: 'schnellste Route' }, ...(b.alternativen || []).map(x => ({ ...x, name: 'andere Route' }))];
+      if (alt && A.length > 1) {
+        alt.hidden = false;
+        alt.innerHTML = String(html`<span class="fb-lbl">Welche Route fährst du?</span><div class="chips">${A.map((x, i) => html`<button type="button" class="chip ${i === 0 ? 'on' : ''}" data-alt="${x.km}" data-min="${x.min}">${num(x.km, 1)} km<small> · ${x.min} min · ${x.name}</small></button>`)}</div>`);
+        alt.querySelectorAll('[data-alt]').forEach(c => c.onclick = () => { q('km').value = txt(c.dataset.alt); auto = q('km').value; fertig({ ...b, km: Number(c.dataset.alt), min: Number(c.dataset.min) }); alt.querySelectorAll('.chip').forEach(y => y.classList.toggle('on', y === c)); haptik('leicht'); });
+      }
+    } catch (e) { if (nr === lauf) st.textContent = '⚠️ ' + e.message + ' – Kilometer bitte selbst eintragen.'; }
+  };
+  m.querySelector('#fb-ber').onclick = rechnen;
+  q('km').addEventListener('input', () => { lauf++; });   // tippst du selbst, überschreibt eine laufende Berechnung nichts mehr
+  const geaendert = () => { if (paar() === zuletzt) return; fertig(null); if (!q('km').value || q('km').value === auto) { q('km').value = ''; rechnen(); } else st.textContent = 'Ziel geändert – deine eingetragenen Kilometer bleiben stehen. „km berechnen“ rechnet neu.'; };
+  q('nach').addEventListener('change', geaendert); q('von').addEventListener('change', geaendert);
+  return { rechnen, setze };
+}
+function streckenLeiste() {
+  const L = FB.strecken();
+  return html`<section class="card fb-str">
+    <div class="fb-kh"><h3>Meine Strecken</h3><button type="button" class="btn small" data-strecke-neu>+ Strecke</button></div>
+    ${L.length ? html`<div class="fb-str-b">${L.map(s => html`<div class="fb-str-k" style="--a:${FB.ARTEN[s.art || 'geschaeftlich']?.farbe || '#c9a96e'}">
+        <button type="button" class="fb-str-los" data-fahren="${s.id}" title="Fahrt eintragen"><i aria-hidden="true">${ARTI(s.art)}</i><span><b>${s.name}</b><small>${s.von} → ${s.nach.split(',')[0]}</small></span><em>${s.hinzurueck !== false ? '2 × ' : ''}${num(s.km, 1)} km</em></button>
+        <button type="button" class="fb-str-ed" data-strecke-ed="${s.id}" aria-label="Strecke ${s.name} bearbeiten" title="Bearbeiten">✎</button></div>`)}</div>`
+      : html`<p class="muted small">Leg Wege, die du oft fährst, einmal mit festen Kilometern an (z. B. „Büro“, „Notar Bayreuth“). Danach reicht ein Tipp, um die Fahrt einzutragen – ohne dass jedes Mal neu gerechnet wird.</p>`}
+  </section>`;
+}
+function streckeForm(id) {
+  const s = FB.strecken().find(x => x.id === id) || {}, fz = FB.fahrzeug(), props = db.all('properties');
+  let punkte = { von: s.vonPunkt || null, nach: s.nachPunkt || null, min: s.min || null };
+  modal(s.id ? 'Strecke bearbeiten' : 'Neue Strecke', html`
+    <label class="f full"><span>Name</span><input name="name" value="${s.name || ''}" placeholder="z. B. Büro Gattendorf" required></label>
+    <label class="f full"><span>Von</span><input name="von" value="${s.von || (fz.zuhause ? 'Zuhause' : '')}" placeholder="Adresse oder Ort" required></label>
+    <label class="f full"><span>Nach</span><input name="nach" value="${s.nach || ''}" placeholder="Straße Nr., PLZ Ort" required></label>
+    <label class="f"><span>Kilometer (einfach) – fest</span><input name="km" inputmode="decimal" value="${s.km ? String(s.km).replace('.', ',') : ''}" placeholder="wird berechnet" required></label>
+    <div class="f"><span>&nbsp;</span><button type="button" class="btn" id="fb-ber">km berechnen</button></div>
+    <div class="full fb-alt" id="fb-alt" hidden></div>
+    <p class="full muted small" id="fb-berstat">Die Kilometer gelten für jede Fahrt auf dieser Strecke. Trag ein, was dein Tacho zeigt, wenn die Berechnung abweicht.</p>
+    <p class="full fb-lbl">Bewertung</p>
+    ${artWahl(s.art || 'geschaeftlich')}
+    <label class="f full"><span>Anlass / Reisezweck</span><input name="zweck" list="fb-zwecke" value="${s.zweck || ''}" placeholder="z. B. Fahrt ins Büro"></label>
+    <label class="f"><span>Geschäftspartner</span><input name="partner" list="fb-partner" value="${s.partner || ''}"></label>
+    ${props.length ? html`<label class="f"><span>Objekt</span><select name="propertyId"><option value=""></option>${props.map(p => html`<option value="${p.id}" ${p.id === s.propertyId ? raw('selected') : ''}>${p.nr ? p.nr + ' · ' : ''}${p.titel}</option>`)}</select></label>` : ''}
+    <label class="f full chk"><input type="checkbox" name="hinzurueck" ${s.hinzurueck !== false ? raw('checked') : ''}><span>Immer mit Rückfahrt eintragen (zwei Fahrten)</span></label>`, {
+    wide: true, saveLabel: 'Strecke speichern',
+    danger: s.id ? { label: 'Strecke löschen', confirm: `Strecke „${s.name}“ löschen?\n\nBereits eingetragene Fahrten bleiben erhalten.`, fn: async () => { await FB.streckeLoeschen(s.id); toast('Strecke gelöscht'); } } : undefined,
+    onMount: m => { artWahlBinden(m); kmRechner(m, { punkt: t => t.trim().toLowerCase() === 'zuhause' && fz.zuhause ? fz.zuhause : t, fertig: b => { punkte = b ? { von: b.von, nach: b.nach, min: b.min } : { von: null, nach: null, min: null }; } }); },
+    onSave: async v => {
+      const km = FB.zahl(v.km); if (!km || km <= 0) { toast('Bitte die Kilometer eintragen oder berechnen lassen', 'err'); return false; }
+      if (v.art === 'geschaeftlich' && !(v.zweck || '').trim()) { toast('Bitte den Anlass angeben – der steht dann bei jeder Fahrt', 'err'); return false; }
+      await FB.streckeSpeichern({ id: s.id, name: v.name.trim(), von: v.von.trim(), nach: v.nach.trim(), vonPunkt: punkte.von, nachPunkt: punkte.nach, min: punkte.min, km, art: v.art, zweck: (v.zweck || '').trim(), partner: v.partner || '', propertyId: v.propertyId || '', hinzurueck: !!v.hinzurueck });
+      toast('Strecke gespeichert');
+    },
+  });
+}
+function streckeFahren(id) {
+  const s = FB.strecken().find(x => x.id === id); if (!s) return;
+  const g = new Date(); g.setDate(g.getDate() - 1);
+  const gestern = `${g.getFullYear()}-${String(g.getMonth() + 1).padStart(2, '0')}-${String(g.getDate()).padStart(2, '0')}`;
+  modal(`${ARTI(s.art)} ${s.name}`, html`
+    <p class="full"><b>${s.von} → ${s.nach}</b><br><span class="muted small">${num(s.km, 1)} km einfach · ${FB.ARTEN[s.art || 'geschaeftlich'].name}${s.zweck ? ' · ' + s.zweck : ''}</span></p>
+    <label class="f"><span>Datum</span><input name="datum" type="date" value="${today()}" max="${today()}" required></label>
+    <div class="f"><span>&nbsp;</span><div class="chips fb-tagwahl"><button type="button" class="chip on" data-tag="${today()}">Heute</button><button type="button" class="chip" data-tag="${gestern}">Gestern</button></div></div>
+    <label class="f full chk"><input type="checkbox" name="hinzurueck" ${s.hinzurueck !== false ? raw('checked') : ''}><span>Hin- und Rückfahrt (2 × ${num(s.km, 1)} km)</span></label>`, {
+    saveLabel: 'Eintragen',
+    onMount: m => { const d = m.querySelector('[name=datum]'), mark = () => m.querySelectorAll('[data-tag]').forEach(c => c.classList.toggle('on', c.dataset.tag === d.value)); m.querySelectorAll('[data-tag]').forEach(c => c.onclick = () => { d.value = c.dataset.tag; mark(); }); d.onchange = mark; },
+    onSave: async v => {
+      try {
+        const ids = await FB.streckeFahren(s, v.datum, !!v.hinzurueck);
+        if (z.jahr !== v.datum.slice(0, 4)) z.jahr = v.datum.slice(0, 4);
+        toast(`${s.name}: ${ids.length === 2 ? '2 Fahrten' : 'Fahrt'} eingetragen (${num(s.km * ids.length, 1)} km)`, 'ok', { label: 'Rückgängig', fn: async () => { for (const i of ids) await db.del('fahrten', i); } });
+      } catch (e) { toast(e.message, 'err'); return false; }
+    },
+  });
+}
+
 // ---------------------------------------------------------------- Fahrt eintragen (von Hand, auch rückwirkend)
 export function fahrtEintragen(vorlage = {}) {
   const fz = FB.fahrzeug(), props = db.all('properties'), ziele = FB.haeufigeZiele();
   let berechnet = vorlage.vonPunkt?.lat != null && vorlage.nachPunkt?.lat != null ? { von: vorlage.vonPunkt, nach: vorlage.nachPunkt, km: vorlage.km, min: null } : null;
   modal('Fahrt eintragen', html`
     <p class="full muted small">Für Fahrten ohne CarPlay-Aufzeichnung – auch rückwirkend (z. B. vor Start der Automatik). Die Strecke wird berechnet, du kannst sie anpassen.</p>
+    ${FB.strecken().length ? html`<div class="full"><span class="fb-lbl">Meine Strecken</span><div class="chips fb-ziele">${FB.strecken().map(x => html`<button type="button" class="chip" data-strecke="${x.id}">${ARTI(x.art)} ${x.name}<small> · ${num(x.km, 1)} km</small></button>`)}</div></div>` : ''}
     ${ziele.length ? html`<div class="full"><span class="fb-lbl">Häufige Ziele</span><div class="chips fb-ziele">${ziele.map((x, i) => html`<button type="button" class="chip" data-ziel="${i}">${x.text}<small> · ${num(x.kmTyp, 0)} km</small></button>`)}</div></div>` : ''}
     <label class="f"><span>Datum</span><input name="datum" type="date" value="${today()}" required></label>
     <label class="f"><span>Abfahrt (Uhrzeit, optional)</span><input name="zeit" type="time"></label>
@@ -661,6 +753,7 @@ export function fahrtEintragen(vorlage = {}) {
     <datalist id="fb-orte">${[...props.filter(p => p.strasse).map(p => [p.strasse, p.plz, p.ort].filter(Boolean).join(', ')), ...db.all('contacts').filter(c => c.strasse && c.ort).slice(0, 300).map(c => [c.strasse, c.plz, c.ort].filter(Boolean).join(', '))].map(x => html`<option value="${x}">`)}</datalist>
     <label class="f"><span>Kilometer (einfach)</span><input name="km" inputmode="decimal" value="${vorlage.km ? String(vorlage.km).replace('.', ',') : ''}" placeholder="wird berechnet"></label>
     <div class="f"><span>&nbsp;</span><button type="button" class="btn" id="fb-ber">km berechnen</button></div>
+    <div class="full fb-alt" id="fb-alt" hidden></div>
     <details class="full fb-mehr"><summary>Kilometerstand vom Tacho (optional)</summary><div class="fb-felder">
       <label class="f"><span>km-Stand Beginn</span><input name="kmStart" inputmode="numeric"></label>
       <label class="f"><span>km-Stand Ende</span><input name="kmEnde" inputmode="numeric"></label></div></details>
@@ -671,6 +764,8 @@ export function fahrtEintragen(vorlage = {}) {
     ${props.length ? html`<label class="f"><span>Objekt</span><select name="propertyId"><option value=""></option>${props.map(p => html`<option value="${p.id}" ${p.id === vorlage.propertyId ? raw('selected') : ''}>${p.nr ? p.nr + ' · ' : ''}${p.titel}</option>`)}</select></label>` : ''}
     <label class="f full chk"><input type="checkbox" name="hinzurueck" checked><span>Hin- und Rückfahrt (zwei Fahrten)</span></label>
     <label class="f full chk"><input type="checkbox" name="mehrtage"><span>Gleiche Fahrt an weiteren Tagen</span></label>
+    <label class="f full chk"><input type="checkbox" name="merken"><span>Als Strecke merken (Shortcut mit festen Kilometern)</span></label>
+    <label class="f full fb-merkname" hidden><span>Name der Strecke</span><input name="merkname" placeholder="z. B. Büro Gattendorf"></label>
     <div class="full fb-tage" hidden><div class="fb-tagliste"></div><button type="button" class="btn ghost small" id="fb-tag-plus">+ Tag</button></div>
     <p class="full muted small" id="fb-berstat"></p>`, {
     wide: true, saveLabel: 'Eintragen',
@@ -678,18 +773,19 @@ export function fahrtEintragen(vorlage = {}) {
       artWahlBinden(m);
       const q = n => m.querySelector(`[name=${n}]`), st = m.querySelector('#fb-berstat');
       const punkt = t => t.trim().toLowerCase() === 'zuhause' && fz.zuhause ? fz.zuhause : t;
-      const rechnen = async () => {
-        if (!q('von').value.trim() || !q('nach').value.trim()) return;
-        st.textContent = 'berechne Strecke …';
-        try { berechnet = await strecke(punkt(q('von').value), punkt(q('nach').value)); q('km').value = String(berechnet.km).replace('.', ','); st.textContent = `${berechnet.von.adresse || q('von').value} → ${berechnet.nach.adresse}: ${num(berechnet.km, 1)} km, ca. ${berechnet.min} min`; }
-        catch (e) { st.textContent = '⚠️ ' + e.message + ' – Kilometer bitte selbst eintragen.'; }
-      };
-      m.querySelector('#fb-ber').onclick = rechnen;
-      q('nach').addEventListener('change', () => { berechnet = null; if (!q('km').value) rechnen(); });
-      q('von').addEventListener('change', () => { berechnet = null; });
+      const R = kmRechner(m, { punkt, fertig: b => { berechnet = b; } }), rechnen = R.rechnen;
+      q('merken').onchange = () => { m.querySelector('.fb-merkname').hidden = !q('merken').checked; if (q('merken').checked && !q('merkname').value) q('merkname').value = q('nach').value.split(',')[0].trim(); };
+      m.querySelectorAll('[data-strecke]').forEach(b => b.onclick = () => {
+        const x = FB.strecken().find(y => y.id === b.dataset.strecke); if (!x) return; haptik('leicht');
+        q('von').value = x.von; q('nach').value = x.nach; R.setze(x.km); q('zweck').value = x.zweck || x.name; q('partner').value = x.partner || '';
+        if (q('propertyId')) q('propertyId').value = x.propertyId || ''; q('hinzurueck').checked = x.hinzurueck !== false;
+        berechnet = { von: x.vonPunkt || null, nach: x.nachPunkt || null, km: x.km, min: x.min || null };
+        const r = m.querySelector(`.fb-arten input[value="${x.art || 'geschaeftlich'}"]`); if (r) { r.checked = true; r.dispatchEvent(new Event('change')); }
+        st.textContent = `Strecke „${x.name}“: ${num(x.km, 1)} km einfach (fest hinterlegt)`;
+      });
       m.querySelectorAll('[data-ziel]').forEach(b => b.onclick = () => {
         const x = ziele[+b.dataset.ziel]; haptik('leicht');
-        q('nach').value = x.text; q('km').value = String(x.kmTyp).replace('.', ',');
+        q('nach').value = x.text; R.setze(x.kmTyp);
         berechnet = x.punkt ? { von: fz.zuhause || null, nach: { ...x.punkt, adresse: x.text }, km: x.kmTyp, min: null } : null;
         if (x.zweck && !q('zweck').value) q('zweck').value = x.zweck;
         if (x.partner && !q('partner').value) q('partner').value = x.partner;
@@ -716,7 +812,8 @@ export function fahrtEintragen(vorlage = {}) {
           await FB.nachtragen({ ...basis, datum: d, zeit: d === v.datum ? v.zeit : '', zweck: v.zweck, von: v.von.trim(), nach: v.nach.trim(), vonPunkt: vonP, nachPunkt: nachP, kmStart: d === v.datum ? v.kmStart : '', kmEnde: d === v.datum ? v.kmEnde : '', kmWert: kmW ?? (d === v.datum ? '' : kE - kS) }); n++;
           if (v.hinzurueck) { await FB.nachtragen({ ...basis, datum: d, zeit: '', zweck: v.art === 'geschaeftlich' ? `Rückfahrt: ${v.zweck}` : v.zweck, von: v.nach.trim(), nach: v.von.trim(), vonPunkt: nachP, nachPunkt: vonP, kmWert: kmW ?? (kE - kS) }); n++; }
         }
-        haptik('erfolg'); toast(n === 1 ? 'Fahrt eingetragen' : `${n} Fahrten eingetragen`);
+        if (v.merken && (v.merkname || '').trim() && kmW) await FB.streckeSpeichern({ name: v.merkname.trim(), von: v.von.trim(), nach: v.nach.trim(), vonPunkt: vonP, nachPunkt: nachP, km: kmW, min: berechnet?.min || null, art: v.art, zweck: v.zweck.trim(), partner: v.partner || '', propertyId: v.propertyId || '', hinzurueck: !!v.hinzurueck });
+        haptik('erfolg'); toast((n === 1 ? 'Fahrt eingetragen' : `${n} Fahrten eingetragen`) + (v.merken && (v.merkname || '').trim() && kmW ? ' · Strecke gemerkt' : ''));
       } catch (e) { toast(e.message, 'err'); return false; }
     },
   });
@@ -818,6 +915,9 @@ function binden(el) {
   el.querySelector('#fb-jahr').onchange = e => { z.jahr = e.target.value; render(el); };
   el.querySelector('#fb-neu').onclick = () => fahrtEintragen();
   el.querySelectorAll('[data-eintragen]').forEach(b => b.onclick = () => fahrtEintragen());
+  el.querySelector('[data-strecke-neu]')?.addEventListener('click', () => streckeForm());
+  el.querySelectorAll('[data-strecke-ed]').forEach(b => b.onclick = () => streckeForm(b.dataset.streckeEd));
+  el.querySelectorAll('[data-fahren]').forEach(b => b.onclick = () => { haptik('leicht'); streckeFahren(b.dataset.fahren); });
   el.querySelector('#fb-auswahl')?.addEventListener('click', () => { z.auswahl = !z.auswahl; z.gewaehlt.clear(); render(el); });
   el.querySelectorAll('[data-sel]').forEach(c => { c.onclick = e => e.stopPropagation(); c.onchange = () => { c.checked ? z.gewaehlt.add(c.dataset.sel) : z.gewaehlt.delete(c.dataset.sel); render(el); }; });
   el.querySelectorAll('[data-massen]').forEach(b => b.onclick = () => bewertenDlg([...z.gewaehlt], b.dataset.massen));
