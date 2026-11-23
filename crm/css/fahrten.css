@@ -250,3 +250,22 @@
   .fb-chk li{flex-wrap:wrap}
 }
 .fb-tk .fb-kh{flex-wrap:wrap;gap:6px}
+
+/* Meine Strecken (Shortcuts) */
+.fb-str{margin-bottom:14px}
+.fb-str-b{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.fb-str-k{display:flex;align-items:stretch;border:1px solid var(--line);border-left:3px solid var(--a);border-radius:12px;background:var(--panel2);overflow:hidden;transition:border-color .15s}
+.fb-str-k:hover{border-color:var(--a)}
+.fb-str-los{flex:1;min-width:0;display:flex;align-items:center;gap:11px;padding:12px 10px 12px 13px;background:none;border:0;color:var(--txt);font:inherit;text-align:left;cursor:pointer}
+.fb-str-los:active{transform:scale(.985)}
+.fb-str-los i{font-style:normal;font-size:20px;flex:none}
+.fb-str-los span{flex:1;min-width:0;display:flex;flex-direction:column}
+.fb-str-los b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fb-str-los small{color:var(--mut);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fb-str-los em{flex:none;font-style:normal;font-size:13px;color:var(--gold);font-variant-numeric:tabular-nums;white-space:nowrap}
+.fb-str-ed{flex:none;width:40px;background:none;border:0;border-left:1px solid var(--line);color:var(--mut);cursor:pointer;font-size:14px}
+.fb-str-ed:hover{color:var(--txt)}
+.fb-alt .chips{margin:6px 0 0;flex-wrap:wrap}
+.fb-alt .chip.on,.fb-tagwahl .chip.on{border-color:var(--gold);color:var(--gold)}
+.fb-alt .chip small{color:var(--mut)}
+.fb-tagwahl{margin:0}

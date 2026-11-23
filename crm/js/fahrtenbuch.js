@@ -253,6 +253,25 @@ export async function nachtragen({ datum, zeit = '', von, nach, vonPunkt = null,
   return erfassen(f, { art, zweck, partner, contactId, propertyId, ziel: nach === 'Zuhause' || !nach ? '' : nach });
 }
 
+// ---------------------------------------------------------------- Meine Strecken (Shortcuts): feste Wege mit festen Kilometern
+/** [{ id, name, von, nach, vonPunkt, nachPunkt, km (einfach), art, zweck, partner, propertyId, hinzurueck }] */
+export const strecken = () => fahrzeug().strecken || [];
+export async function streckeSpeichern(s) {
+  const L = strecken(), neu = s.id && L.some(x => x.id === s.id) ? L.map(x => x.id === s.id ? { ...x, ...s } : x) : [...L, { ...s, id: 'st-' + uid().slice(0, 8) }];
+  await fahrzeugSpeichern({ strecken: neu });
+}
+export const streckeLoeschen = id => fahrzeugSpeichern({ strecken: strecken().filter(x => x.id !== id) });
+/** Strecke für einen Tag eintragen (mit Rückfahrt = zwei Fahrten). Liefert die IDs der angelegten Fahrten. */
+export async function streckeFahren(s, datum, hinzurueck = s.hinzurueck !== false) {
+  const c = s.partner ? (db.all('contacts') || []).find(x => [x.vorname, x.nachname].filter(Boolean).join(' ').toLowerCase() === s.partner.trim().toLowerCase()) : null;
+  const heim = t => String(t || '').trim().toLowerCase() === 'zuhause', fz = fahrzeug();
+  const pkt = (t, p) => heim(t) && fz.zuhause ? { ...fz.zuhause, adresse: 'Zuhause' } : p || null;
+  const basis = { datum, art: s.art || 'geschaeftlich', partner: s.partner || '', contactId: c?.id || '', propertyId: s.propertyId || '', kmWert: s.km, minRoute: s.min || null }, ids = [];
+  const hin = await nachtragen({ ...basis, zweck: s.zweck || s.name, von: s.von, nach: s.nach, vonPunkt: pkt(s.von, s.vonPunkt), nachPunkt: pkt(s.nach, s.nachPunkt) }); if (hin?.id) ids.push(hin.id);
+  if (hinzurueck) { const rueck = await nachtragen({ ...basis, zweck: basis.art === 'geschaeftlich' ? `Rückfahrt: ${s.zweck || s.name}` : (s.zweck || s.name), von: s.nach, nach: s.von, vonPunkt: pkt(s.nach, s.nachPunkt), nachPunkt: pkt(s.von, s.vonPunkt) }); if (rueck?.id) ids.push(rueck.id); }
+  return ids;
+}
+
 // ---------------------------------------------------------------- Vorschläge zum Benennen
 const norm = s => String(s || '').toLowerCase().replace(/ß/g, 'ss').replace(/str\.?(\s|,|$)/g, 'strasse$1').replace(/[^a-z0-9äöü ]/g, ' ').replace(/\s+/g, ' ').trim();
 const strasse = s => norm(String(s || '').split(',')[0]).replace(/\s*\d+\s*[a-z]?$/, '').trim();

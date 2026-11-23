@@ -72,6 +72,17 @@ async function route(a: Punkt, b: Punkt): Promise<{ km: number; min: number } | 
   return { km: Math.round(x.distance / 100) / 10, min: Math.round(x.duration / 60) };
 }
 
+/** Schnellste Route plus bis zu zwei Alternativen (andere Strecke, z. B. über die Autobahn statt durch den Ort) */
+async function routen(a: Punkt, b: Punkt): Promise<{ km: number; min: number }[]> {
+  const r = await fetch(`https://router.project-osrm.org/route/v1/driving/${a.lon},${a.lat};${b.lon},${b.lat}?overview=false&alternatives=3`, { headers: { "user-agent": UA } });
+  if (!r.ok) return [];
+  const j = await r.json();
+  // deno-lint-ignore no-explicit-any
+  const L = (j.routes || []).map((x: any) => ({ km: Math.round(x.distance / 100) / 10, min: Math.round(x.duration / 60) }));
+  // deno-lint-ignore no-explicit-any
+  return L.filter((x: any, i: number) => L.findIndex((y: any) => Math.abs(y.km - x.km) < 0.3) === i).slice(0, 3);
+}
+
 const antwort = (body: unknown, status = 200) => new Response(typeof body === "string" ? body : JSON.stringify(body), {
   status, headers: { ...CORS, "content-type": typeof body === "string" ? "text/plain; charset=utf-8" : "application/json" },
 });
@@ -111,8 +122,8 @@ Deno.serve(async (req) => {
         : (String(t ?? "").trim() ? await mitZeit(suche(String(t))) : null);
       const [von, nach] = await Promise.all([ort(p.von, p.vonLat, p.vonLon), ort(p.nach, p.nachLat, p.nachLon)]);
       if (!von || !nach) return antwort({ ok: false, fehler: !von ? "Start nicht gefunden" : "Ziel nicht gefunden" }, 200);
-      const rt = await mitZeit(route(von, nach), 8000);
-      return antwort({ ok: !!rt, von, nach, km: rt?.km ?? null, min: rt?.min ?? null });
+      const rts = (await mitZeit(routen(von, nach), 8000)) || [], rt = rts[0] || (await mitZeit(route(von, nach), 6000));
+      return antwort({ ok: !!rt, von, nach, km: rt?.km ?? null, min: rt?.min ?? null, alternativen: rts.slice(1) });
     }
     return antwort("Unbekannte Aktion (a=start|ende|strecke).", 400);
   } catch (e) {
