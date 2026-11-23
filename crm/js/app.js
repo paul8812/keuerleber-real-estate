@@ -19,6 +19,7 @@ import * as finanzen from './views/finanzen.js';
 import * as social from './views/social.js';
 import * as fahrten from './views/fahrten.js';
 import * as exposes from './views/expose.js';
+import * as angebote from './views/angebote.js';
 import * as anfragenView from './views/anfragen.js';
 import * as portal from './portal.js';
 import * as auto from './automation.js';
@@ -35,7 +36,7 @@ import { initKontakt, kontaktErfassen } from './kontakt.js';
 import { belegeHochladen } from './views/finanzen.js';
 function belegFoto() { const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*,application/pdf'; i.multiple = true; i.onchange = () => { if (i.files.length) { location.hash = '#/finanzen'; setTimeout(() => belegeHochladen(i.files), 300); } }; i.click(); }
 
-const VIEWS = { dashboard, posteingang: inbox, kontakte: contacts, objekte: properties, pipeline, aufgaben: tasks, kalender: calendar, finanzen, vorlagen: templates, automation, rechner: calc, statistik: stats, social, fahrten, exposes, anfragen: anfragenView, einstellungen: settings };
+const VIEWS = { dashboard, posteingang: inbox, kontakte: contacts, objekte: properties, pipeline, aufgaben: tasks, kalender: calendar, finanzen, vorlagen: templates, automation, rechner: calc, statistik: stats, social, fahrten, exposes, angebote, anfragen: anfragenView, einstellungen: settings };
 const main = document.getElementById('main');
 
 function route() {

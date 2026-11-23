@@ -1,0 +1,40 @@
+/* Angebote: Generator für die Kunden-Modellrechnung */
+.ag-liste{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.ag-karte{display:flex;flex-direction:column;gap:3px;text-decoration:none;color:var(--txt);transition:border-color .15s,transform .15s}
+.ag-karte:hover{border-color:var(--gold);transform:translateY(-1px)}
+.ag-karte b{font-size:17px}.ag-art{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
+.ag-leerliste{max-width:640px}.ag-leerliste p{margin:8px 0 14px}
+.ag-kopf{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-bottom:14px}
+.ag-akt{margin-left:auto;display:flex;flex-wrap:wrap;gap:8px}
+.ag-spalten{display:grid;grid-template-columns:minmax(340px,440px) minmax(0,1fr);gap:16px;align-items:start}
+.ag-form{display:flex;flex-direction:column;gap:14px;min-width:0}
+.ag-form h3{margin:0 0 10px;font-size:15px}
+.ag-raster{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ag-raster .full{grid-column:1/-1}
+.ag-objs{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.ag-obj{display:flex;gap:11px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:var(--panel2);cursor:pointer;transition:border-color .15s}
+.ag-obj:hover{border-color:var(--mut)}.ag-obj.an{border-color:var(--gold);background:rgba(201,169,110,.07)}
+.ag-obj input{flex:none;width:19px;height:19px;margin-top:2px;accent-color:var(--gold)}
+.ag-obj span{display:flex;flex-direction:column;gap:1px;min-width:0}.ag-obj small{color:var(--mut);font-size:12.5px}.ag-obj small.warn{color:#e0a84a}
+.ag-global{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ag-global label,.ag-zf label{display:flex;flex-direction:column;gap:3px;min-width:0}
+.ag-global span,.ag-zf span{font-size:11px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ag-global input,.ag-zf input,.ag-zf select{width:100%;min-width:0;padding:7px 8px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font:inherit;font-size:14px;font-variant-numeric:tabular-nums}
+.ag-global input.falsch,.ag-zf input.falsch{border-color:#e07a5a}
+.ag-tab{display:flex;flex-direction:column;gap:10px;margin:12px 0}
+.ag-zeile{border:1px solid var(--line);border-radius:11px;padding:10px 12px}
+.ag-zk{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px;margin-bottom:8px}.ag-zk span{display:flex;gap:6px;flex-wrap:wrap}
+.ag-zf{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ag-vor{position:sticky;top:12px;display:flex;flex-direction:column;min-width:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#080808}
+.ag-vork{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line);background:var(--panel)}
+.ag-vor iframe{width:100%;height:calc(100vh - 150px);min-height:520px;border:0;display:block;background:#080808}
+.ag-leer{padding:60px 24px;text-align:center}
+.ag-bilder{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.ag-bilder button{position:relative;aspect-ratio:3/2;border:2px solid var(--line);border-radius:9px;background:var(--panel2) center/cover no-repeat;cursor:pointer;padding:0;opacity:.6;transition:.15s}
+.ag-bilder button.plan{background-size:contain;background-color:#fff}
+.ag-bilder button.an{opacity:1;border-color:var(--gold)}
+.ag-bilder button i{position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.4)}
+.ag-bilder button.an i{background:var(--gold);border-color:var(--gold)}
+.ag-bilder button.an i::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;color:#14110b;font-size:12px;font-style:normal;font-weight:700}
+.ag-bl{font-size:12px;color:var(--mut)}
+@media (max-width:1100px){.ag-spalten{grid-template-columns:1fr}.ag-vor{position:static}.ag-vor iframe{height:78vh}}
+@media (max-width:560px){.ag-global{grid-template-columns:1fr 1fr}.ag-zf{grid-template-columns:1fr 1fr}.ag-raster{grid-template-columns:1fr}.ag-akt{margin-left:0;width:100%}.ag-akt .btn{flex:1}}
