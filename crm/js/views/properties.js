@@ -23,7 +23,7 @@ function list(el) {
   const s = q.toLowerCase();
   const rows = db.all('properties').filter(p => (!st ? p.status !== 'Archiv' : p.status === st) && (!art || p.art === art) && (!verm || p.vermarktung === verm) && (!s || [p.titel, p.nr, p.ort, p.strasse, p.plz].join(' ').toLowerCase().includes(s)))
     .sort((a, b) => OBJEKT_STATUS.indexOf(a.status) - OBJEKT_STATUS.indexOf(b.status) || (b.created || '').localeCompare(a.created || ''));
-  el.querySelector('#plist').innerHTML = rows.length ? html`<div class="pgrid">${rows.map(p => { let img = (p.bilder || '').split('\n')[0].trim() || p.bildIntern || ''; if (img.startsWith('objektbilder/')) img = '../' + img; return html`<a class="pcard" href="#/objekte/${p.id}"><div class="pimg" style="${img ? `background-image:url('${img.replace(/['")\\]/g, '')}')` : ''}">${img ? '' : '⌂'}<span class="pst">${statusBadge(p.status)}</span>${p.webLive ? html`<span class="pweb" title="Auf der Website">🌐 online</span>` : ''}</div>
+  el.querySelector('#plist').innerHTML = rows.length ? html`<div class="pgrid">${rows.map(p => { let img = p.bildIntern || (p.bilder || '').split('\n')[0].trim(); if (img.startsWith('objektbilder/')) img = '../' + img; return html`<a class="pcard" href="#/objekte/${p.id}"><div class="pimg" style="${img ? `background-image:url('${img.replace(/['")\\]/g, '')}')` : ''}">${img ? '' : '⌂'}<span class="pst">${statusBadge(p.status)}</span>${p.webLive && WEB_AN() ? html`<span class="pweb" title="Auf der Website">🌐 online</span>` : ''}</div>
       <div class="pbody"><div class="pnr">${p.nr} · ${p.art}</div><h3>${p.titel}</h3><div class="sub">${[p.plz, p.ort].filter(Boolean).join(' ')}</div>
       <div class="pfacts"><b>${eur(p.preis)}${p.vermarktung === 'Miete' ? '/Monat' : ''}</b><span>${p.flaeche ? num(p.flaeche, 1) + ' m²' : ''}</span><span>${p.zimmer ? p.zimmer + ' Zi.' : ''}</span></div></div></a>`; })}</div>`.s : html`<div class="pad">${empty('Keine Objekte gefunden', 'Mit „+ Objekt“ das erste anlegen')}</div>`.s;
   el.querySelector('#pcount').textContent = rows.length + ' Objekte';
@@ -71,6 +71,9 @@ export function exposee(p) {
   w.document.close();
 }
 
+// Die Website hat derzeit keinen Objektbereich – ohne ihn wird hier nichts veröffentlicht und nichts als „online“ angezeigt.
+// Einschalten: Einstellungen → websiteObjekte = true (wenn die Website wieder Objekte zeigen soll).
+const WEB_AN = () => !!db.settings().websiteObjekte;
 function webCard(p) {
   const soll = W.sollOnline(p), offen = W.ausstehend(p), tok = W.hasToken();
   const status = p.webLive ? (offen ? (soll ? '🟡 Online – Änderungen noch nicht veröffentlicht' : '🟡 Online – wird beim Veröffentlichen entfernt') : '🟢 Online auf keuerleber-immobilien.de')
@@ -85,6 +88,15 @@ function webCard(p) {
       <label class="btn fotolbl">+ Fotos hochladen<input type="file" accept="image/*" multiple data-web="fotos" hidden></label></div></div></section>`;
 }
 
+/** Verknüpftes Keuerleber-Exposé: Kaufpreis und Provision auf einen Blick, mit Sprung zum Anpassen */
+function exposeZeile(p) {
+  const L = (db.all('exposes') || []).filter(e => e.propertyId === p.id); if (!L.length) return '';
+  return html`<section class="card obj-ex"><h2>Exposé <a class="mini" href="#/exposes/${(L.find(e => e.id === p.exposeId) || L[0]).id}">✎ Preis / Provision anpassen</a></h2>
+    ${L.map(e => { const o = e.objekt || {}, vk = +o.kaufpreis_partner || 0, kp = e.preis_override ? Math.round(+e.preis_override) : Math.round(vk * (1 + (+e.aufschlag || 0) / 100) / 100) * 100;
+      return html`<a class="obj-exz" href="#/exposes/${e.id}"><span><b>${eur(kp)}</b><small>dein Kaufpreis</small></span><span><b>${eur(vk)}</b><small>Preis vom Verkäufer</small></span><span><b>+ ${eur(kp - vk)}</b><small>${vk ? num((kp - vk) / vk * 100, 1) : 0} % Provision</small></span></a>`; })}
+    ${p.preis && L.length === 1 && (() => { const e = L[0], o = e.objekt || {}, kp = e.preis_override ? Math.round(+e.preis_override) : Math.round((+o.kaufpreis_partner || 0) * (1 + (+e.aufschlag || 0) / 100) / 100) * 100; return kp && kp !== Number(p.preis); })() ? html`<p class="muted small">Hinweis: Der Preis am Objekt (${eur(p.preis)}) weicht vom Exposé ab.</p>` : ''}</section>`;
+}
+
 function detail(el, id) {
   const p = db.get('properties', id);
   if (!p) { el.innerHTML = html`<a href="#/objekte" class="back">← Objekte</a>${empty('Objekt nicht gefunden')}`.s; return; }
@@ -94,7 +106,7 @@ function detail(el, id) {
   const evs = db.all('events').filter(e => e.propertyId === id).sort((a, b) => b.datum.localeCompare(a.datum));
   const matches = matchesForProperty(p);
   const imgs = (p.bilder || '').split('\n').map(x => x.trim()).filter(Boolean);
-  if (!imgs.length && p.bildIntern) imgs.push(p.bildIntern);
+  if (p.bildIntern) imgs.unshift(p.bildIntern);
   const m2 = preisM2(p), tage = p.eingestelltAm ? daysBetween(p.eingestelltAm, today()) : null;
   const rend = p.preis && p.mieteJahr && p.vermarktung === 'Kauf' ? p.mieteJahr / p.preis * 100 : null;
   const kv = (l, v) => v || v === 0 ? html`<div class="kv"><span>${l}</span><b>${v}</b></div>` : '';
@@ -102,7 +114,7 @@ function detail(el, id) {
   el.innerHTML = html`<a href="#/objekte" class="back">← Objekte</a>
     <div class="head"><div><p class="muted">${p.nr} · ${p.art} · ${p.vermarktung}</p><h1>${p.titel}</h1><p class="muted">${adresse(p)}</p></div><div class="actions">${statusBadge(p.status)}<button class="btn primary" data-expose>📄 Exposé & Modellrechnung</button><button class="btn" data-edit>Bearbeiten</button><button class="btn" data-akt="property:${p.id}" title="Weitere Aktionen">⋯ Mehr</button></div></div>
     ${imgs.length ? html`<div class="gallery">${imgs.map((i, n) => html`<div class="gimg"><img src="${i.startsWith('objektbilder/') ? '../' + i : i}" loading="lazy" alt="">${p.webTeaser && n < (Number(p.webTeaserBilder) || 4) ? html`<span>öffentlich</span>` : n === 0 ? html`<span>Titelbild</span>` : ''}</div>`)}</div>` : ''}
-    ${webCard(p)}
+    ${WEB_AN() ? webCard(p) : ''}
     <div class="kpis small">
       <div class="kpi"><b>${eur(p.preis)}</b><span>${p.vermarktung === 'Miete' ? 'Kaltmiete' : 'Kaufpreis'}</span></div>
       <div class="kpi"><b>${m2 ? eur(m2) : '–'}</b><span>pro m²</span></div>
@@ -116,6 +128,7 @@ function detail(el, id) {
         ${p.eigentuemerId ? html`<div class="kv"><span>Verkäufer / Bauträger</span><b>${cLink(p.eigentuemerId)}</b></div>` : ''}
         ${kv('Vertriebsvereinbarung', p.auftragVon || p.auftragBis ? `${p.alleinauftrag ? 'Exklusiv · ' : ''}${fmtDate(p.auftragVon)} – ${fmtDate(p.auftragBis)}` : '')}${kv('Deine Vergütung', eur(Number(p.verguetung) || Number(db.settings().verguetung) || 8000) + ' netto' + (p.verguetung ? '' : ' (Standard)'))}
         ${p.beschreibung ? html`<h3>Beschreibung</h3><p class="note">${p.beschreibung}</p>` : ''}${p.ausstattung ? html`<h3>Ausstattung / Lage</h3><p class="note">${p.ausstattung}</p>` : ''}${p.notiz ? html`<h3>Interne Notiz</h3><p class="note">${p.notiz}</p>` : ''}</section>
+      ${exposeZeile(p)}
       ${U.karte(p)}
       <section class="card"><h2>Passende Interessenten</h2>${matches.length ? html`<ul class="list">${matches.slice(0, 10).map(x => html`<li><b class="when">${x.m.score}%</b><div class="grow"><div class="ttl">${cLink(x.c.id)}</div><div class="sub">passt: ${x.m.hits.join(', ')}${x.c.sp_budgetMax ? ' · Budget ' + eur(x.c.sp_budgetMax) : ''}</div></div></li>`)}</ul>` : html`<p class="muted">Keine Treffer. Suchprofile bei Interessenten pflegen.</p>`}</section>
     </div><div>
@@ -126,7 +139,7 @@ function detail(el, id) {
     </div></div>`.s;
   bindTasks(el); U.binden(el, p);
   el.querySelector('[data-edit]').onclick = () => propertyForm(p);
-  const wc = el.querySelector('.webcard');
+  const wc = el.querySelector('.webcard') || document.createElement('div');
   wc.querySelector('[data-web=pub]')?.addEventListener('click', e => websiteVeroeffentlichen(e.currentTarget));
   wc.querySelector('[data-web=on]')?.addEventListener('click', async e => { await db.save('properties', { ...p, webOnline: true }); websiteVeroeffentlichen(e.currentTarget); });
   wc.querySelector('[data-web=off]')?.addEventListener('click', async e => { if (await confirmDlg('Objekt von der Website entfernen?')) { await db.save('properties', { ...db.get('properties', p.id), webOnline: false }); websiteVeroeffentlichen(e.currentTarget); } });
