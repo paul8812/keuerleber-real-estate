@@ -1,0 +1,71 @@
+/* Posteingang: Ordner links · Liste in der Mitte · Lesebereich rechts (Handy: Liste, Mail als Blatt) */
+.pe-kopf{display:flex;align-items:center;gap:16px;margin-bottom:14px;flex-wrap:wrap}
+.pe-kopf h1{margin:0}
+.pe-such{flex:1;min-width:220px;max-width:460px;display:flex;align-items:center;gap:8px;padding:0 12px;border:1px solid var(--line2,var(--line));border-radius:11px;background:var(--panel)}
+.pe-such span{color:var(--mut);font-size:17px}
+.pe-such input{flex:1;border:0!important;background:none;padding:10px 0;outline:none;color:var(--txt);min-width:0}
+.pe-such:focus-within{border-color:var(--gold)}
+.pe-sync{margin-left:auto}
+.pe-body{display:grid;grid-template-columns:200px minmax(320px,430px) minmax(0,1fr);gap:14px;align-items:start}
+.pe-ordner{display:flex;flex-direction:column;gap:2px;position:sticky;top:12px}
+.pe-ordner button{display:flex;align-items:center;gap:10px;padding:8px 10px;border:0;border-radius:9px;background:none;color:#b9b4ab;font:inherit;font-size:14px;cursor:pointer;text-align:left}
+.pe-ordner button:hover{background:var(--panel);color:var(--txt)}
+.pe-ordner button.on{background:var(--gold-soft,rgba(201,169,110,.12));color:var(--txt);box-shadow:inset 3px 0 0 var(--gold)}
+.pe-ordner button>span{width:14px;text-align:center;color:var(--mut);font-size:12px;flex:0 0 auto}
+.pe-ordner button>span.kd{width:9px;height:9px;border-radius:50%;background:var(--k);margin:0 2.5px}
+.pe-ordner b{flex:1;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pe-ordner i{font-style:normal;font-size:12px;color:var(--mut)}
+.pe-ordner i.gold{background:var(--gold);color:#111;font-weight:700;padding:0 7px;border-radius:99px}
+.pe-ordner hr{border:0;border-top:1px solid var(--line);margin:8px 4px;width:auto}
+.pe-ordner p{padding:4px 10px;margin:0}
+.pe-mitte{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);min-width:0;overflow:hidden}
+.pe-leiste{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line)}
+.pe-leiste b{font-size:15px}.pe-leiste .btn{margin-left:auto}
+.pe-liste{max-height:calc(100vh - 215px);overflow-y:auto;overscroll-behavior:contain}
+.pe-tag{position:sticky;top:0;z-index:1;padding:6px 14px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);background:var(--panel2);border-bottom:1px solid var(--line)}
+.pe .list.mails{margin:0}
+.pe .list.mails li{display:flex;grid-template-columns:none;align-items:flex-start;gap:11px;padding:11px 14px;border-bottom:1px solid var(--line);cursor:pointer;position:relative}
+.pe .list.mails li:hover{background:rgba(255,255,255,.03)}
+.pe .list.mails li.sel{background:var(--gold-soft,rgba(201,169,110,.12));box-shadow:inset 3px 0 0 var(--gold)}
+.pe .list.mails li.unread::before{content:'';position:absolute;left:4px;top:25px;width:6px;height:6px;border-radius:50%;background:var(--gold)}
+.pe-av{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto;font-size:12.5px;font-weight:600;color:var(--k);background:color-mix(in srgb,var(--k) 16%,var(--panel2));border:1px solid color-mix(in srgb,var(--k) 35%,transparent)}
+.pe-z1{display:flex;align-items:baseline;gap:8px}
+.pe-z1 .ttl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;color:#cfc9bf}
+.pe .list.mails li.unread .pe-z1 .ttl{font-weight:700;color:var(--txt)}
+.pe-z1 time{font-size:12px;color:var(--mut);flex:0 0 auto}
+.pe-z2{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#cfc9bf}
+.pe .list.mails li.unread .pe-z2{color:var(--txt)}
+.pe-z3{display:flex;align-items:center;gap:6px;margin-top:1px}
+.pe .list.mails .pe-z3 .sub{flex:1;min-width:0;max-width:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;font-size:12.5px}
+.pe-z3 em{font-style:normal;font-size:10.5px;padding:1px 7px;border-radius:99px;white-space:nowrap;color:var(--k,var(--gold));border:1px solid color-mix(in srgb,var(--k,var(--gold)) 45%,transparent);flex:0 0 auto}
+.pe-ok{flex:0 0 auto;align-self:center;width:32px;height:32px;border-radius:50%;border:1px solid var(--line2,var(--line));background:none;color:var(--mut);cursor:pointer;opacity:0;transition:opacity .12s}
+.pe .list.mails li:hover .pe-ok,.pe-ok:focus-visible{opacity:1}
+.pe-ok:hover{border-color:var(--ok);color:var(--ok)}
+.pe-lesen{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);min-width:0;position:sticky;top:12px;max-height:calc(100vh - 150px);overflow-y:auto}
+.pe-mail{padding:16px 20px 20px}
+.pe-akt{display:flex;flex-wrap:wrap;gap:8px;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.pe-akt .btn{padding:7px 13px}
+.pe-betreff{font-family:'Cormorant Garamond',Georgia,serif;font-size:26px;line-height:1.15;margin:0 0 12px;display:block}
+.pe-von{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px}
+.pe-von .pe-av{width:42px;height:42px;font-size:14px}
+.pe-von .grow{min-width:0;overflow-wrap:anywhere}
+.pe-ow{display:flex;flex-direction:column;gap:2px;flex:0 0 auto}
+.pe-ow select{padding:5px 8px;font-size:13px;max-width:170px}
+.pe-text{white-space:pre-wrap;word-break:break-word;line-height:1.6;font-size:14.5px;color:#ddd8cf;max-width:76ch}
+.pe-leer{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:60px 20px;color:var(--mut)}
+.pe-leer b{font-family:'Cormorant Garamond',Georgia,serif;font-size:24px;color:var(--txt)}
+@media(max-width:1250px){.pe-body{grid-template-columns:180px minmax(300px,380px) minmax(0,1fr)}}
+@media(max-width:999px){
+  .pe-body{grid-template-columns:1fr;gap:10px}
+  .pe-lesen{display:none}
+  .pe-ordner{position:static;flex-direction:row;overflow-x:auto;gap:6px;margin:0 -16px;padding:0 16px 2px;scrollbar-width:none}
+  .pe-ordner::-webkit-scrollbar{display:none}
+  .pe-ordner button{flex:0 0 auto;border:1px solid var(--line);border-radius:99px;padding:7px 13px;background:var(--panel)}
+  .pe-ordner button.on{box-shadow:none;border-color:var(--gold)}
+  .pe-ordner b{flex:none}.pe-ordner hr,.pe-ordner p{display:none}
+  .pe-liste{max-height:none;overflow:visible}
+  .pe-tag{top:0;position:static}
+  .pe-ok{opacity:1}
+  .pe-sync{margin-left:0;width:100%}
+  .modal .pe-mail{padding:0}.modal .pe-text{max-height:none}
+}

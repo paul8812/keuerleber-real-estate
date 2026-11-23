@@ -205,6 +205,7 @@ function detail(el, p) {
         <section class="card ex-s"><h2><i>1</i>Deine Provision</h2>
           <div class="ex-prov"><input type="range" id="ex-range" min="0" max="15" step="0.5" value="${p.aufschlag ?? 8}" aria-label="Provision in Prozent"><label><input type="text" id="ex-pct" inputmode="decimal" value="${de(p.aufschlag ?? 8) || '0'}" aria-label="Provision in Prozent"> %</label></div>
           <div class="ex-zahlen" id="ex-zahlen"></div>
+          <label class="ex-fest"><span>Oder Kaufpreis fest eintragen (€)</span><input type="text" id="ex-fest" inputmode="numeric" value="${p.preis_override ? Math.round(p.preis_override).toLocaleString('de-DE') : ''}" placeholder="leer = Verkäufer-Preis + Provision"></label>
         </section>
         <section class="card ex-s"><details id="ex-daten" ${miss.length ? raw('open') : ''}><summary><h2><i>2</i>Objektdaten prüfen<span class="ex-st" id="ex-dst"></span></h2></summary>
           <p class="muted small">Automatisch aus dem Verkäufer-Exposé gelesen. Nur ändern, wenn etwas nicht stimmt – Vorschau und Rechnung passen sich sofort an.</p>
@@ -225,10 +226,14 @@ function detail(el, p) {
     </div></div>`);
   const $ = q => el.querySelector(q), range = $('#ex-range'), pctIn = $('#ex-pct');
   const akt = () => db.get('exposes', p.id);
-  const sichern = (patch, sofort) => { const neu = Object.assign(akt(), patch); clearTimeout(speichernT); const f = () => db.save('exposes', neu); if (sofort) return f(); speichernT = setTimeout(f, 600); aktualisieren(el, neu, true); };
-  const setzeProv = v => { v = Math.min(15, Math.max(0, v)); range.value = v; range.style.setProperty('--p', v / 15 * 100 + '%'); if (document.activeElement !== pctIn) pctIn.value = de(v) || '0'; sichern({ aufschlag: v, preis_override: null }); };   // fest eingetragener Preis (aus dem alten Tool) gilt nur, bis die Provision geändert wird
+  const sichern = (patch, sofort) => { const neu = Object.assign(akt(), patch); clearTimeout(speichernT); const f = async () => { await db.save('exposes', neu); await objektPreis(neu); }; if (sofort) return f(); speichernT = setTimeout(f, 600); aktualisieren(el, neu, true); };
+  const setzeProv = v => { v = Math.min(15, Math.max(0, v)); range.value = v; range.style.setProperty('--p', v / 15 * 100 + '%'); if (document.activeElement !== pctIn) pctIn.value = de(v) || '0'; if (document.activeElement !== fest) fest.value = ''; sichern({ aufschlag: v, preis_override: null }); };   // fest eingetragener Preis (aus dem alten Tool) gilt nur, bis die Provision geändert wird
   range.oninput = () => setzeProv(parseFloat(range.value) || 0);
   pctIn.oninput = () => setzeProv(zahl(pctIn.value));
+  const fest = $('#ex-fest');
+  fest.oninput = () => { const v = Math.round(zahl(fest.value)), vk = +akt().objekt?.kaufpreis_partner || 0;
+    if (v > 0 && vk > 0) { const a = Math.round((v / vk - 1) * 1000) / 10; range.value = Math.min(15, Math.max(0, a)); range.style.setProperty('--p', Math.min(15, Math.max(0, a)) / 15 * 100 + '%'); pctIn.value = de(a) || '0'; sichern({ preis_override: v, aufschlag: a }); }
+    else sichern({ preis_override: null }); };
   range.style.setProperty('--p', (p.aufschlag ?? 8) / 15 * 100 + '%');
   el.querySelectorAll('.ex-felder [data-k]').forEach(f => f.addEventListener('input', () => {
     const neu = akt(), k = f.dataset.k, t = f.dataset.t; neu.objekt = { ...neu.objekt }; neu.annahmen = { ...(neu.annahmen || {}) };
@@ -257,6 +262,13 @@ function detail(el, p) {
   $('#ex-bilder').addEventListener('toggle', () => zeigeBilder(el, akt()));
   window.addEventListener('resize', skalieren);
   aktualisieren(el, p, true);
+}
+
+/** Kaufpreis des Exposés an das verknüpfte Objekt weitergeben (nur wenn dieses Exposé das Haupt-Exposé des Objekts ist) */
+async function objektPreis(p) {
+  const pr = p.propertyId && db.get('properties', p.propertyId); if (!pr || fehlend(p).length) return;
+  if (pr.exposeId && pr.exposeId !== p.id) return;
+  const kp = berechne(p, einstellungen()).kp; if (kp && Number(pr.preis) !== kp) await db.save('properties', { ...pr, preis: kp, exposeId: pr.exposeId || p.id });
 }
 
 /** Zahlen, Markierungen und Vorschau auf den Stand von p bringen (ohne die Eingabefelder neu aufzubauen) */
