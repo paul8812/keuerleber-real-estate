@@ -5,6 +5,7 @@
 //   POST { k, a: "konto" }                      → { ok, uid }                       (Schlüssel prüfen)
 //   POST { k, a: "liste" }                      → { ok, objekte: [{id, nr, titel, strasse, ort}], unterlagen: [{id, propertyId, name}] }
 //   POST { k, a: "hole", ids: [...] }          → { ok, records: [{id, collection, data}] }
+//   POST { k, a: "loesche", ids: [...] }       → { ok, n }                         (Unterlagen/Exposés/Bild-Dateien entfernen)
 //   POST { k, a: "upload", pfad, typ }          → { ok, pfad, url }                 (einmalige Adresse zum Hochladen einer Datei, PUT)
 //   POST { k, a: "records", records: [...] }    → { ok, n }                         (Datensätze anlegen/aktualisieren)
 // Dateien liegen im privaten Speicher-Bereich „unterlagen“ unter <Benutzer-ID>/<Objekt-ID>/<Dateiname>.
@@ -47,7 +48,7 @@ Deno.serve(async (req) => {
         // deno-lint-ignore no-explicit-any
         objekte: von("properties").map((r: any) => ({ id: r.id, nr: r.data?.nr ?? "", titel: r.data?.titel ?? "", strasse: r.data?.strasse ?? "", ort: r.data?.ort ?? "", exposeId: r.data?.exposeId ?? "" })),
         // deno-lint-ignore no-explicit-any
-        unterlagen: von("unterlagen").map((r: any) => ({ id: r.id, propertyId: r.data?.propertyId ?? "", name: r.data?.name ?? "", pfad: r.data?.pfad ?? "" })),
+        unterlagen: von("unterlagen").map((r: any) => ({ id: r.id, propertyId: r.data?.propertyId ?? "", name: r.data?.name ?? "", pfad: r.data?.pfad ?? "", hash: r.data?.hash ?? "" })),
         // deno-lint-ignore no-explicit-any
         exposes: von("exposes").map((r: any) => ({ id: r.id, name: r.data?.name ?? "", propertyId: r.data?.propertyId ?? "", quelle: r.data?.quelle ?? "" })) });
     }
@@ -56,6 +57,18 @@ Deno.serve(async (req) => {
       if (!ids.length) return antwort({ ok: true, records: [] });
       const rows = await rest("GET", `/rest/v1/records?select=id,collection,data&user_id=eq.${uid}&collection=in.(${ERLAUBT.filter(c => c !== "dateien").join(",")})&id=in.(${ids.map(x => `"${x}"`).join(",")})`) ?? [];
       return antwort({ ok: true, records: rows });
+    }
+    if (a === "loesche") {    // Unterlagen (mit Datei), Exposés oder Bild-Dateien entfernen – nur aus dem Import-Bereich, keine Objekte/Kontakte
+      const ids = (Array.isArray(b.ids) ? b.ids : []).filter(x => typeof x === "string" && /^[\w.:-]+$/.test(x)).slice(0, 200);
+      if (!ids.length) return antwort({ ok: true, n: 0 });
+      const liste = ids.map(x => `"${x}"`).join(",");
+      const rows = await rest("GET", `/rest/v1/records?select=id,collection,data->>pfad&user_id=eq.${uid}&collection=in.(unterlagen,exposes,dateien)&id=in.(${liste})`) ?? [];
+      // deno-lint-ignore no-explicit-any
+      const pfade = rows.filter((r: any) => r.collection === "unterlagen" && r.pfad && String(r.pfad).startsWith(uid + "/")).map((r: any) => r.pfad);
+      if (pfade.length) await rest("DELETE", `/storage/v1/object/${BUCKET}`, { prefixes: pfade });
+      // deno-lint-ignore no-explicit-any
+      if (rows.length) await rest("DELETE", `/rest/v1/records?user_id=eq.${uid}&collection=in.(unterlagen,exposes,dateien)&id=in.(${rows.map((r: any) => `"${r.id}"`).join(",")})`, undefined, { Prefer: "return=minimal" });
+      return antwort({ ok: true, n: rows.length, dateien: pfade.length });
     }
     if (a === "upload") {
       const rel = sauber(String(b.pfad ?? "")); if (!rel) return antwort({ ok: false, fehler: "Pfad fehlt" }, 400);
