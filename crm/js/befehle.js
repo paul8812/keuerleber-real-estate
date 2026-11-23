@@ -35,6 +35,7 @@ export function suchen(q, { neu = [], nav = [] } = {}) {
   gruppe('Befehle', [...neu.map(([k, l, fn]) => ({ t: 'Neu: ' + l.replace(/^\S+ /, ''), r: 'neu anlegen erstellen hinzufügen ' + k, i: l.split(' ')[0], fn })),
     ...nav.map(([k, l, i]) => ({ t: l, r: 'gehe zu öffnen ansicht ' + k, i, h: '#/' + k, s: 'Bereich öffnen' }))], x => x, 4);
   gruppe('Kontakte', db.all('contacts'), c => ({ t: fullName(c), r: [c.firma, c.email, c.tel, c.mobil, c.ort, c.tags, c.kategorie].join(' '), s: [c.kategorie, c.ort].filter(Boolean).join(' · ') + (c.status === 'Archiv' ? ' · Archiv' : ''), i: '☺', h: '#/kontakte/' + c.id, kg: c.id, tel: (c.mobil || c.tel || '').replace(/[^\d+]/g, '') }), 6);
+  gruppe('Anfragen', db.all('anfragen') || [], a => ({ t: a.name || '', r: [a.email, a.tel, a.inseratNr, a.inseratTitel, a.nachricht].join(' '), s: [a.inseratNr, a.quelle].filter(Boolean).join(' · '), i: '✆', h: '#/anfragen' }), 4);
   gruppe('Objekte', db.all('properties'), p => ({ t: p.titel || p.nr, r: [p.nr, p.ort, p.strasse, p.plz, p.art].join(' '), s: [p.nr, p.ort, p.status].filter(Boolean).join(' · '), i: '⌂', h: '#/objekte/' + p.id }));
   gruppe('Vorgänge', db.all('deals'), d => ({ t: d.titel || '', r: fullName(db.get('contacts', d.contactId) || {}), s: sl(d.stage), i: '▤', fn: () => dealForm(d) }), 4);
   gruppe('Aufgaben', db.all('tasks').filter(t => !t.done), t => ({ t: (t.titel || '').replace(/^⚡ /, ''), r: fullName(db.get('contacts', t.contactId) || {}), s: t.faellig ? 'fällig ' + fmtDate(t.faellig) : 'ohne Datum', i: '✓', fn: () => taskForm(t) }), 4);

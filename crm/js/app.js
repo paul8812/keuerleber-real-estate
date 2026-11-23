@@ -18,6 +18,8 @@ import * as inbox from './views/inbox.js';
 import * as finanzen from './views/finanzen.js';
 import * as social from './views/social.js';
 import * as fahrten from './views/fahrten.js';
+import * as anfragenView from './views/anfragen.js';
+import * as portal from './portal.js';
 import * as auto from './automation.js';
 import * as anfragen from './anfragen.js';
 import * as mailsort from './mailsort.js';
@@ -30,7 +32,7 @@ import { initKontakt, kontaktErfassen } from './kontakt.js';
 import { belegeHochladen } from './views/finanzen.js';
 function belegFoto() { const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*,application/pdf'; i.multiple = true; i.onchange = () => { if (i.files.length) { location.hash = '#/finanzen'; setTimeout(() => belegeHochladen(i.files), 300); } }; i.click(); }
 
-const VIEWS = { dashboard, posteingang: inbox, kontakte: contacts, objekte: properties, pipeline, aufgaben: tasks, kalender: calendar, finanzen, vorlagen: templates, automation, rechner: calc, statistik: stats, social, fahrten, einstellungen: settings };
+const VIEWS = { dashboard, posteingang: inbox, kontakte: contacts, objekte: properties, pipeline, aufgaben: tasks, kalender: calendar, finanzen, vorlagen: templates, automation, rechner: calc, statistik: stats, social, fahrten, anfragen: anfragenView, einstellungen: settings };
 const main = document.getElementById('main');
 
 function route() {
@@ -51,7 +53,7 @@ function route() {
 function navBadges() {
   const t0 = new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
   const faellig = db.all('tasks').filter(t => !t.done && t.faellig && t.faellig <= t0).length;
-  for (const [k, n] of [['posteingang', inbox.newCount()], ['fahrten', fahrten.offenAnzahl()], ['aufgaben', faellig]]) {
+  for (const [k, n] of [['posteingang', inbox.newCount()], ['fahrten', fahrten.offenAnzahl()], ['anfragen', anfragenView.neuAnzahl()], ['aufgaben', faellig]]) {
     for (const a of document.querySelectorAll(`#nav a[data-k="${k}"], #tabbar a[data-k="${k}"]`)) {
       let b = a.querySelector('b.nb');
       if (!n) { b && b.remove(); continue; }
@@ -123,7 +125,7 @@ function shell() {
   window.addEventListener('hashchange', route);
   window.addEventListener('focus', () => db.resume());
   syncAnzeige();
-  route(); auto.start(); anfragen.start(); mailsort.start(); idleWatch(); initHaptik(); initMobil(); initAktionen(); initCrmPlus(); initKontakt();
+  route(); auto.start(); anfragen.start(); mailsort.start(); portal.start(); idleWatch(); initHaptik(); initMobil(); initAktionen(); initCrmPlus(); initKontakt();
 }
 
 async function boot() {

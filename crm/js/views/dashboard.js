@@ -8,6 +8,7 @@ import { fokusKarte, bindFokus } from '../crmplus.js';
 import { heuteKarte, nachfassenKarte, nachfassenListe } from '../kontakt.js';
 import { eventForm, taskForm, contactForm, propertyForm, activityForm } from '../forms.js';
 import { newCount as mailsNeu } from './inbox.js';
+import { neuAnzahl as anfragenNeu } from '../portal.js';
 import { istUeberfaellig } from '../finanzen.js';
 import { offene as fahrtenOffen } from '../fahrtenbuch.js';
 import { assistent as ueberfaelligAssistent } from '../ueberfaellig.js';
@@ -25,6 +26,7 @@ export function tagesleiste() {
     [termine, termine === 1 ? 'Termin heute' : 'Termine heute', '#/kalender', 'gold'],
     [heute, heute === 1 ? 'Aufgabe heute' : 'Aufgaben heute', '#/aufgaben', ''],
     [ueber, 'überfällig – ordnen', 'uf', 'dringend'],
+    [anfragenNeu(), anfragenNeu() === 1 ? 'neue Anfrage' : 'neue Anfragen', '#/anfragen', 'gold'],
     [mailsNeu(), 'neue Mails', '#/posteingang', ''],
     [fahrtenOffen().length, fahrtenOffen().length === 1 ? 'Fahrt benennen' : 'Fahrten benennen', '#/fahrten/benennen', ''],
     [wv, wv === 1 ? 'Wiedervorlage' : 'Wiedervorlagen', '#/kontakte', ''],

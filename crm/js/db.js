@@ -1,6 +1,6 @@
 // Datenschicht: lokal (localStorage) oder Cloud (Supabase). Gleiche API für beide.
 import { uid, today, toast, idFor } from './util.js';
-export const COLS = ['contacts', 'properties', 'deals', 'tasks', 'events', 'activities', 'templates', 'settings', 'mails', 'sync', 'buchungen', 'rechnungen', 'social', 'fahrten'];
+export const COLS = ['contacts', 'properties', 'deals', 'tasks', 'events', 'activities', 'templates', 'settings', 'mails', 'sync', 'buchungen', 'rechnungen', 'social', 'fahrten', 'anfragen'];
 const LS = 'kre-crm-data', CFG = 'kre-crm-cfg';
 // Supabase-Bibliothek liegt im eigenen Repository (kein fremdes CDN zur Laufzeit)
 const SB_LIB = new URL('../vendor/supabase.js?v=2.45.4', import.meta.url).href;
@@ -266,6 +266,51 @@ begin
 end $$;
 revoke all on function public.social_push(text, jsonb) from public;
 grant execute on function public.social_push(text, jsonb) to anon, authenticated;`;
+// Portal-Anfragen (ohne-makler.net u. a.): Ein geplanter Abruf liest die Anfrage-Mails aus dem Gmail-Postfach und legt sie hier ab.
+// anfragen_push() nimmt nur bekannte Felder an und überschreibt nie eine vorhandene Anfrage (Status/Notizen bleiben erhalten).
+export const PORTAL_SQL = `create schema if not exists privat;
+create table if not exists privat.anfragen (
+  id int primary key default 1 check (id = 1),
+  geheim text not null default replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', ''),
+  geaendert timestamptz not null default now()
+);
+alter table privat.anfragen enable row level security;
+revoke all on privat.anfragen from public, anon, authenticated;
+insert into privat.anfragen (id) values (1) on conflict (id) do nothing;
+
+create or replace function public.anfragen_push(p_geheim text, p_anfragen jsonb) returns jsonb language plpgsql security definer set search_path = public, privat as $$
+declare u uuid; g text; a jsonb; nid text; d jsonb; k text; neu int := 0; r int;
+begin
+  select geheim into g from privat.anfragen where id = 1;
+  if g is null or coalesce(p_geheim, '') <> g then raise exception 'nicht erlaubt'; end if;
+  if jsonb_typeof(p_anfragen) <> 'array' or jsonb_array_length(p_anfragen) > 200 then raise exception 'Liste mit höchstens 200 Anfragen erwartet'; end if;
+  select user_id into u from public.records where id = 'main' and collection = 'settings' limit 1;
+  if u is null then raise exception 'CRM nicht eingerichtet'; end if;
+  for a in select * from jsonb_array_elements(p_anfragen) loop
+    if coalesce(a->>'mailId', '') = '' or coalesce(a->>'name', '') = '' then continue; end if;
+    nid := left('anf-' || left(regexp_replace(lower(coalesce(a->>'quelle', 'portal')), '[^a-z0-9]', '', 'g'), 12) || '-' || regexp_replace(a->>'mailId', '[^A-Za-z0-9]', '', 'g'), 80);
+    d := jsonb_build_object('id', nid, 'status', 'neu', 'importiert', now());
+    foreach k in array array['quelle', 'mailId', 'eingang', 'inseratNr', 'inseratTitel', 'inseratUrl', 'name', 'email', 'tel', 'adresse'] loop
+      if jsonb_typeof(a->k) = 'string' then d := d || jsonb_build_object(k, left(a->>k, 300)); end if;
+    end loop;
+    if jsonb_typeof(a->'nachricht') = 'string' then d := d || jsonb_build_object('nachricht', left(a->>'nachricht', 6000)); end if;
+    if jsonb_typeof(a->'angaben') = 'object' and length((a->'angaben')::text) < 3000 then d := d || jsonb_build_object('angaben', a->'angaben'); end if;
+    insert into public.records (id, collection, data, user_id) values (nid, 'anfragen', d, u) on conflict (id) do nothing;
+    get diagnostics r = row_count; neu := neu + r;
+  end loop;
+  return jsonb_build_object('ok', true, 'neu', neu, 'gesamt', (select count(*) from public.records where user_id = u and collection = 'anfragen'));
+end $$;
+
+-- Für den Abruf: wie viele Anfragen gibt es schon und von wann ist die neueste?
+create or replace function public.anfragen_stand(p_geheim text) returns jsonb language plpgsql security definer set search_path = public, privat as $$
+declare g text;
+begin
+  select geheim into g from privat.anfragen where id = 1;
+  if g is null or coalesce(p_geheim, '') <> g then raise exception 'nicht erlaubt'; end if;
+  return (select jsonb_build_object('anzahl', count(*), 'neueste', max(data->>'eingang')) from public.records where collection = 'anfragen');
+end $$;
+revoke all on function public.anfragen_push(text, jsonb), public.anfragen_stand(text) from public;
+grant execute on function public.anfragen_push(text, jsonb), public.anfragen_stand(text) to anon, authenticated;`;
 // Fahrtenbuch: Das iPhone meldet beim Verbinden/Trennen von CarPlay (Kurzbefehl-Automation) Start und Ende einer Fahrt
 // über die Edge Function „fahrt“ → fahrt_punkt(). Geschützt durch einen Zufallswert, der nur diese Funktionen öffnet.
 // Die Fahrt landet als Datensatz in 'fahrten' und ist per Realtime sofort im CRM zum Benennen da.
