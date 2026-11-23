@@ -1,0 +1,163 @@
+/* Social-Formate im Website-Look: schwarz, Kupfer-Verlauf, kräftige Typo.
+   Maße in px (Export 1:1). Instagram-Story: oben ~250 px und unten ~340 px frei von wichtigen Inhalten. */
+.story, .ad { --cu: #c9a96e; --cu-light: #d9c08a; --cu-deep: #8a6f3d; --grad: linear-gradient(135deg,#d9c08a 0%,#c9a96e 45%,#a88951 100%);
+  position: relative; overflow: hidden; background: #080808; color: #f2ede4; box-sizing: border-box;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+.story *, .ad * { box-sizing: border-box; }
+.story { width: 1080px; height: 1920px; padding: 250px 84px 340px; display: flex; flex-direction: column; }
+.ad { width: 1080px; height: 1350px; display: flex; flex-direction: column; }
+
+.s-bild { position: absolute; inset: 0; background: #1a1a1a center / cover no-repeat; }
+.s-bild.blass { opacity: .35; }
+.s-bild.weich { filter: blur(38px) saturate(1.1); transform: scale(1.15); }
+.s-karte { position: relative; z-index: 2; height: 760px; border-radius: 34px; background: #1a1a1a center / cover no-repeat;
+  border: 1.5px solid rgba(217,192,138,.35); }
+.s1 .s-unten { margin-top: 56px !important; }
+.s1 h1 { font-size: 80px; }
+.s-verlauf { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.6) 0%, rgba(0,0,0,0) 22%, rgba(0,0,0,.05) 45%, rgba(0,0,0,.92) 100%); }
+.s-dunkel { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8,8,8,.75), rgba(8,8,8,.92)); }
+.s-dunkel.stark { background: rgba(8,8,8,.86); }
+.s-oben { position: absolute; top: 120px; left: 84px; right: 84px; z-index: 2; }
+.s-logo { display: flex; align-items: center; gap: 18px; font-size: 30px; font-weight: 500; letter-spacing: .14em; line-height: 1.1; color: #fff; }
+.s-logo img { height: 104px; width: auto; display: block; margin-left: -6px; }
+.s-logo small { display: block; font-size: 17px; letter-spacing: .42em; color: var(--cu-light); margin-top: 4px; }
+.s-kicker { font-size: 26px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: var(--cu-light); margin-bottom: 22px; position: relative; z-index: 2; }
+.story h1, .ad h1 { font-size: 88px; line-height: 1.02; font-weight: 700; letter-spacing: -.03em; margin: 0; color: #fff; position: relative; z-index: 2; }
+.story h2 { font-size: 66px; line-height: 1.06; font-weight: 700; letter-spacing: -.025em; margin: 0 0 18px; color: #fff; position: relative; z-index: 2; }
+
+/* 1 Aufmacher */
+.s1 .s-unten { margin-top: auto; position: relative; z-index: 2; }
+.s-zusatz { font-size: 40px; color: rgba(255,255,255,.88); margin: 18px 0 0; }
+.s-preis { margin-top: 46px; display: inline-flex; flex-direction: column; background: var(--grad); color: #14100a; border-radius: 26px; padding: 22px 34px 24px; }
+.s-preis span { font-size: 22px; letter-spacing: .16em; text-transform: uppercase; font-weight: 700; opacity: .75; }
+.s-preis b { font-size: 70px; letter-spacing: -.02em; line-height: 1.05; }
+.s-chips { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 30px; }
+.s-chips span { font-size: 27px; padding: 12px 24px; border-radius: 99px; border: 1.5px solid rgba(217,192,138,.6); color: #f2e6cf; background: rgba(0,0,0,.35); }
+
+/* 2 Objekt */
+.s2 { background: radial-gradient(ellipse at 50% 0%, #1d1810 0%, #080808 60%); }
+.s-eck { font-size: 32px; color: #b9b2a6; margin: 0 0 40px; }
+.s-collage { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1.25fr 1fr; gap: 16px; flex: 1; min-height: 0; }
+.s-collage div { border-radius: 26px; background: #1a1a1a center / cover no-repeat; }
+.s-collage .gross { grid-column: 1 / 3; }
+.s-collage.n1 { grid-template-rows: 1fr; } .s-collage.n2 { grid-template-rows: 1fr 1fr; }
+.s-collage.n2 .klein { grid-column: 1 / 3; }
+.s-liste { list-style: none; padding: 0; margin: 40px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 18px 30px; }
+.s-liste li { font-size: 30px; line-height: 1.25; padding-left: 36px; position: relative; color: #e9e3d8; }
+.s-liste li::before { content: ""; position: absolute; left: 0; top: 11px; width: 16px; height: 16px; border-radius: 50%; background: var(--grad); }
+
+/* 3 Zahlen */
+.s3 .s-kicker { margin-top: 30px; }
+.s3 h2 { margin-bottom: 50px; font-size: 76px; }
+.s-zahlen { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; position: relative; z-index: 2; }
+.s-zahlen div { background: rgba(22,22,22,.92); border: 1.5px solid #2e2a22; border-radius: 28px; padding: 40px 36px 36px; }
+.s-zahlen span { display: block; font-size: 22px; letter-spacing: .14em; text-transform: uppercase; color: #a39b8e; font-weight: 600; }
+.s-zahlen b { display: block; font-size: 60px; letter-spacing: -.02em; margin-top: 10px; color: #fff; }
+.s-zahlen .hl { grid-column: 1 / 3; order: -1; background: linear-gradient(135deg,#251e12,#121212 70%); border-color: #5a4a2c; }
+.s-zahlen .hl b { font-size: 92px; color: var(--cu-light); }
+.s-zahlen small { font-size: 26px; color: #a39b8e; }
+.s-afa { position: relative; z-index: 2; margin-top: 26px; font-size: 28px; padding: 22px 30px; border-radius: 22px; border: 1.5px solid #5a4a2c; color: #ecd9b0; background: rgba(40,32,18,.7); }
+.s-fuss { position: relative; z-index: 2; margin-top: auto; font-size: 20px; line-height: 1.45; color: #8f897f; }
+
+/* 4 Kontakt */
+.s4 { justify-content: center; }
+.s-mitte { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.s-foto { width: 260px; height: 260px; border-radius: 50%; object-fit: cover; border: 5px solid var(--cu); margin-bottom: 50px; }
+.s4 h2 { font-size: 76px; margin-bottom: 50px; }
+.s-cta { font-size: 40px; font-weight: 700; color: #14100a; background: var(--grad); border-radius: 99px; padding: 30px 60px; margin-bottom: 56px; }
+.s-kontakt { display: flex; flex-direction: column; gap: 10px; font-size: 32px; color: #d6cfc3; margin-bottom: 70px; }
+.s-kontakt b { font-size: 44px; color: #fff; margin-bottom: 6px; }
+
+/* Meta-Anzeige 1080×1350 */
+.a-bild { position: relative; flex: 0 0 840px; background: #1a1a1a center / cover no-repeat; display: flex; flex-direction: column; justify-content: space-between; }
+.a-oben { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; padding: 54px 60px 0; }
+.a-tag { font-size: 24px; font-weight: 700; color: #14100a; background: var(--grad); padding: 12px 22px; border-radius: 99px; }
+.a-titel { position: relative; z-index: 2; padding: 0 60px 46px; }
+.a-bild .s-verlauf { background: radial-gradient(ellipse 360px 160px at 185px 106px, rgba(0,0,0,.62) 0%, rgba(0,0,0,.4) 45%, rgba(0,0,0,0) 100%),
+    linear-gradient(180deg, rgba(0,0,0,.6) 0%, rgba(0,0,0,.35) 13%, rgba(0,0,0,0) 26%, rgba(0,0,0,.1) 38%, rgba(0,0,0,.8) 68%, rgba(8,8,8,1) 100%); }
+.ad h1 { font-size: 74px; }
+.a-titel p { font-size: 32px; color: rgba(255,255,255,.88); margin: 14px 0 0; }
+.a-panel { flex: 1; padding: 36px 60px 32px; display: flex; flex-direction: column; background: #080808; }
+.a-kpis { display: grid; grid-template-columns: 1fr 1fr 1.3fr; gap: 16px; }
+.a-kpis div { background: #141414; border: 1.5px solid #262626; border-radius: 22px; padding: 22px 24px; display: flex; flex-direction: column; }
+.a-kpis span { display: block; font-size: 18px; letter-spacing: .12em; text-transform: uppercase; color: #9a948a; font-weight: 600; }
+.a-kpis b { display: block; font-size: 44px; letter-spacing: -.02em; margin-top: auto; padding-top: 10px; color: #fff; white-space: nowrap; }   /* Zahlen auf einer Linie */
+.a-kpis .hl { background: linear-gradient(135deg,#251e12,#121212 70%); border-color: #5a4a2c; }
+.a-kpis .hl b { color: var(--cu-light); }
+.a-cta { margin-top: 26px; display: flex; justify-content: space-between; align-items: center; background: var(--grad); color: #14100a; border-radius: 99px; padding: 24px 40px; font-size: 32px; font-weight: 700; }
+.a-cta b { font-size: 40px; }
+.a-fuss { margin: auto 0 0; font-size: 17px; line-height: 1.4; color: #77716a; }
+
+/* ===== Story-Vorlage (Okt. 2026): hell/dunkel im Wechsel, Hanken Grotesk ===== */
+.story.v1, .story.v2, .story.v3, .story.v4 { font-family: "Hanken Grotesk", "Helvetica Neue", sans-serif; padding: 262px 48px 300px; }
+.story.dunkel { background: #0e0e0e; color: #fff; }
+.story.hell { background: #f3f2ef; color: #121212; }
+.v-kicker { font-size: 28px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: #c9a66b; margin-bottom: 18px; }
+.hell .v-kicker { color: #9a7438; }
+.story.v1 h1 { font-size: 96px; line-height: .98; font-weight: 800; letter-spacing: -.035em; margin: 0 0 26px; color: #fff; }
+.story.v2 h2, .story.v3 h2, .story.v4 h2 { font-size: 64px; line-height: 1.06; font-weight: 800; letter-spacing: -.025em; margin: 0 0 34px; color: inherit; }
+.v-fuss { font-size: 20px; color: #9b968d; margin: 30px 0 0; font-weight: 500; }
+.v-fuss.lang { font-size: 18.5px; line-height: 1.5; margin-top: 26px; }
+
+/* 1 */
+.story.v1 { padding: 0; }
+.v-foto { position: relative; height: 860px; background: #222 center / cover no-repeat; }
+.v-foto::before { content: ""; position: absolute; inset: 0;      /* sanfte Abdunklung oben für das Gold-Logo */
+  background: radial-gradient(ellipse 430px 210px at 205px 214px, rgba(0,0,0,.62) 0%, rgba(0,0,0,.4) 45%, rgba(0,0,0,0) 100%),
+    linear-gradient(180deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,.4) 20%, rgba(0,0,0,.12) 36%, rgba(0,0,0,0) 48%); }
+.v-pill, .v-bsp { z-index: 1; }
+.v-pill { position: absolute; top: 150px; left: 42px;   /* oben links, direkt unter Instagrams Profilzeile (~140 px) */ display: flex; align-items: center; gap: 16px;
+  padding: 0; color: #fff; font-size: 23px; font-weight: 800; letter-spacing: .18em; line-height: 1.15; }
+.v-pill img { height: 128px; width: auto; display: block; }
+.v-pill small { display: block; font-size: 13px; letter-spacing: .4em; color: #c9a66b; font-weight: 700; margin-top: 2px; }
+.v-bsp { position: absolute; right: 48px; bottom: 14px; background: #0e0e0e; color: #fff; font-size: 18px; font-weight: 700; padding: 8px 12px; border-radius: 7px; }
+.v-badge { position: relative; z-index: 2; margin: -60px 0 0 48px; display: inline-block; align-self: flex-start; background: #c9a66b; color: #121212;
+  font-size: 46px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; padding: 22px 36px 20px; border-radius: 14px; }
+.v-text { padding: 44px 48px 0; }
+.v-unter { font-size: 35px; line-height: 1.28; color: #d6d2ca; margin: 0 0 32px; font-weight: 500; }
+.v-chips { display: flex; flex-wrap: wrap; gap: 14px; }
+.v-chips span { font-size: 27px; font-weight: 700; color: #fff; background: #222; padding: 14px 24px; border-radius: 99px; }
+.v-chips span.gold { background: #c9a66b; color: #121212; }
+.v-chips i { font-style: normal; }
+
+/* 2 */
+.v-collage { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 380px 310px; gap: 16px; }
+.v-collage div { border-radius: 24px; background: #ddd center / cover no-repeat; }
+.v-collage .gross { grid-column: 1 / 3; }
+.v-collage.n1 { grid-template-rows: 706px; } .v-collage.n2 { grid-template-rows: 380px 310px; } .v-collage.n2 .klein { grid-column: 1 / 3; }
+.v-cap { font-size: 19px; color: #66625c; margin: 22px 0 0; font-weight: 500; }
+.v-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 28px; }
+.v-kpis div { background: #fff; border: 1.5px solid #e2dfd8; border-radius: 22px; padding: 26px 22px 22px; }
+.v-kpis b { display: block; font-size: 44px; font-weight: 800; letter-spacing: -.02em; color: #121212; white-space: nowrap; }
+.v-kpis span { display: block; font-size: 21px; color: #5f5b55; margin-top: 8px; font-weight: 500; }
+.v-liste { list-style: none; padding: 0; margin: 32px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 20px 40px; }
+.v-liste li { position: relative; padding-left: 28px; font-size: 28px; font-weight: 700; line-height: 1.3; color: #121212; }
+.v-liste li::before { content: ""; position: absolute; left: 0; top: 14px; width: 12px; height: 12px; border-radius: 50%; background: #c49a5a; }
+
+/* 3 */
+.v-hero { border: 2px solid #c9a66b; border-radius: 26px; padding: 40px 42px 34px; margin-bottom: 30px; }
+.v-hero b { display: block; font-size: 116px; line-height: 1; font-weight: 800; letter-spacing: -.03em; color: #c9a66b; }
+.v-hero span { display: block; font-size: 30px; font-weight: 700; margin-top: 16px; color: #fff; }
+.v-tabelle .t-row { display: flex; justify-content: space-between; align-items: baseline; gap: 20px; padding: 22px 0; border-bottom: 1.5px solid #2a2a2a; font-size: 31px; font-weight: 500; color: #ece8e1; }
+.v-tabelle .t-row.sum span { font-weight: 800; color: #fff; }
+.v-tabelle .t-row b { font-weight: 800; white-space: nowrap; }
+.v-tabelle b.pos { color: #8ad1a6; } .v-tabelle b.neg { color: #f2efe9; }
+.v-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 30px; }
+.v-tiles div { background: #1d1d1f; border-radius: 20px; padding: 26px 24px 22px; }
+.v-tiles b { display: block; font-size: 46px; font-weight: 800; letter-spacing: -.02em; color: #fff; white-space: nowrap; }
+.v-tiles span { display: block; font-size: 21px; color: #b9b5ad; margin-top: 8px; font-weight: 500; }
+
+/* 4 */
+.v-sub { font-size: 31px; color: #4f4b45; margin: -16px 0 34px; font-weight: 500; }
+.v-plan { background: #fff; border: 1.5px solid #e4e1da; border-radius: 26px; padding: 26px 26px 22px; }
+.v-plan .bild { height: 600px; background: #fff center / cover no-repeat; border-radius: 14px; }
+.v-plan .bild.contain { background-size: contain; }
+.v-plan p { text-align: center; font-size: 24px; font-weight: 700; color: #3c3934; margin: 18px 0 0; }
+.v-kontakt { display: flex; align-items: center; gap: 34px; background: #0e0e0e; color: #fff; border-radius: 26px; padding: 34px 38px; margin-top: 30px; }
+.v-kontakt img { width: 170px; height: 170px; border-radius: 50%; object-fit: cover; border: 3px solid #c9a66b; }
+.v-kontakt b { display: block; font-size: 40px; font-weight: 800; letter-spacing: -.01em; }
+.v-kontakt span { display: block; font-size: 22px; color: #b9b5ad; margin-top: 6px; font-weight: 500; }
+.v-kontakt em { display: block; font-style: normal; font-size: 50px; font-weight: 800; color: #c9a66b; margin-top: 14px; letter-spacing: -.01em; }
+.v-kontakt small { display: block; font-size: 24px; margin-top: 8px; font-weight: 600; }
+.v-schluss { font-size: 23px; font-weight: 800; margin: 26px 0 0; color: #121212; }
+.story.v1 { display: flex; flex-direction: column; }

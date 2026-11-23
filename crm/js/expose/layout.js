@@ -4,13 +4,13 @@
 export const eur0 = n => Math.round(n).toLocaleString('de-DE') + ' €';
 export const eur2 = n => n.toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
 export const pct = (n, d = 2) => n.toLocaleString('de-DE', {minimumFractionDigits: d, maximumFractionDigits: d}) + ' %';
-const num = (n, d = 2) => n.toLocaleString('de-DE', {minimumFractionDigits: d, maximumFractionDigits: d});
+export const num = (n, d = 2) => n.toLocaleString('de-DE', {minimumFractionDigits: d, maximumFractionDigits: d});
 export const sgn = (n, f) => (n < 0 ? '− ' : '+ ') + f(Math.abs(n));
-const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+export const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
 
 // Alle angezeigten Werte werden gerundet und JEDE Summe aus den gerundeten Werten gebildet,
 // damit jede Zeile im Exposé exakt nachrechenbar ist.
-const r0 = n => Math.round(n), r2 = n => Math.round(n * 100) / 100;
+export const r0 = n => Math.round(n), r2 = n => Math.round(n * 100) / 100;
 export function berechne(p, s) {
   const o = p.objekt || {}, a = Object.assign({}, s.annahmen, p.annahmen || {});
   const basis = +o.kaufpreis_partner || 0;
