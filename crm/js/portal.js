@@ -61,7 +61,7 @@ export function inserate() {
   return [...m.entries()].map(([k, e]) => {
     const T = [...e.teile.values()], h = T.find(t => t.k === k) || T[0] || {}, propertyId = (S.inserate || {})[k] || '', obj = propertyId && db.get('properties', propertyId);
     const eigen = (S.inseratNamen || {})[k] || '';
-    return { k, nr: h.nr || (/^OM-/i.test(k) ? k : ''), titel: h.titel || '', url: h.url || '', n: e.n, offen: e.offen, neu: e.neu, letzte: e.letzte, propertyId, objekt: obj || null, eigen,
+    return { k, nr: h.nr || (/^OM-/i.test(k) ? k : ''), titel: h.titel || '', url: h.url || '', n: e.n, offen: e.offen, neu: e.neu, letzte: e.letzte, propertyId, objekt: obj || null, eigen, bilder: (S.inseratBilder || {})[k] || [],
       name: eigen || (obj && obj.titel) || h.nr || h.titel || k, nummern: T.map(t => t.nr).filter(Boolean), teile: T.filter(t => t.k !== k && ziel(t.k) === k && (S.inseratZiel || {})[t.k]) };
   }).sort((a, b) => (b.offen > 0) - (a.offen > 0) || b.letzte.localeCompare(a.letzte));
 }
@@ -77,6 +77,11 @@ export async function ordnerSpeichern(k, { name, propertyId, in: inK } = {}) {
     else { let t = inK, i = 0; while (Z[t] && i++ < 6) t = Z[t]; if (t === k) throw new Error('Diese Ordner sind schon zusammengelegt.'); Z[k] = t; for (const [q, v] of Object.entries(Z)) if (v === k) Z[q] = t; }
   }
   await db.saveSettings({ ...S, inseratNamen: N, inserate: O, inseratZiel: Z });
+}
+/** Bilder eines Ordners (Datei-IDs; das erste ist das Titelbild) */
+export async function bilderSetzen(k, ids) {
+  const S = db.settings(), B = { ...(S.inseratBilder || {}) }; if (ids.length) B[k] = ids; else delete B[k];
+  await db.saveSettings({ ...S, inseratBilder: B });
 }
 /** Eine Anfrage (alle Mails der Person) in einen anderen Ordner legen */
 export async function verschieben(g, k) {
