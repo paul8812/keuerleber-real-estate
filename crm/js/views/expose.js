@@ -5,6 +5,7 @@ import * as db from '../db.js';
 import { html, raw, esc, toast, modal, confirmDlg, uid, today, fmtDate } from '../util.js';
 import { berechne, renderExpose, eur0, eur2, pct, sgn } from '../expose/layout.js';
 import { parse, leer } from '../expose/parse.js';
+import { renderStory, renderAd } from '../expose/social.js';
 import { haptik } from '../haptik.js';
 
 const BASIS = new URL('../../expose/', import.meta.url).href;
@@ -30,22 +31,93 @@ function pdfName(p) {
 }
 
 // ---- Bilder: liegen als Dateien in der Cloud, im Browser als Blob-Adressen (schnell für Vorschau und Druck)
-const bildUrl = new Map();
+const bildUrl = new Map(), datenVon = new Map();   // Datei-ID → Blob-Adresse, Blob-Adresse → Data-URL (für den Bild-Export)
 async function bildLaden(fid) {
   if (bildUrl.has(fid)) return bildUrl.get(fid);
   const f = await db.getFile(fid).catch(() => null); if (!f?.dataUrl) return '';
   // Data-URL von Hand in ein Blob wandeln (fetch auf data: ist durch die Sicherheitsrichtlinie des CRM gesperrt)
   const [kopf, b64] = f.dataUrl.split(','), bin = atob(b64), bytes = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  const u = URL.createObjectURL(new Blob([bytes], { type: (kopf.match(/data:([^;]+)/) || [])[1] || 'image/jpeg' })); bildUrl.set(fid, u); return u;
+  const u = URL.createObjectURL(new Blob([bytes], { type: (kopf.match(/data:([^;]+)/) || [])[1] || 'image/jpeg' })); bildUrl.set(fid, u); datenVon.set(u, f.dataUrl); return u;
 }
 async function bilderVon(p) { await Promise.all((p.images || []).map(async i => { i.src = await bildLaden(dateiId(p, i.id)); })); return p; }
 function listenBilder(root) { root.querySelectorAll('img[data-exbild]').forEach(async img => { const u = await bildLaden(img.dataset.exbild); if (u) img.src = u; else img.closest('.ex-cov')?.classList.add('leer'); }); }
 
 // ---- Dokument (Vorschau + Druck)
-const seitenHtml = p => renderExpose(p, einstellungen(), BASIS);
-const dokument = p => `<!doctype html><html lang="de"><head><meta charset="utf-8"><title>${esc(pdfName(p))}</title><link rel="stylesheet" href="${BASIS}expose.css"><style>html,body{margin:0;padding:0}body{overflow:hidden}</style></head><body>${seitenHtml(p)}</body></html>`;
+const FORMATE = { expose: ['Exposé', 794], story: ['Insta-Story', 1080], ad: ['Werbeanzeige', 1080] };
+const seitenHtml = (p, f = 'expose') => f === 'story' ? renderStory(p, einstellungen(), BASIS) : f === 'ad' ? renderAd(p, einstellungen(), BASIS) : renderExpose(p, einstellungen(), BASIS);
+const dokument = (p, f = 'expose') => `<!doctype html><html lang="de"><head><meta charset="utf-8"><title>${esc(pdfName(p))}</title><link rel="stylesheet" href="${BASIS}expose.css"><link rel="stylesheet" href="${BASIS}social.css">
+<style>html,body{margin:0;padding:0}body{overflow:hidden;background:${f === 'expose' ? '#fff' : '#2a2a2d'}}#out{display:flex;flex-direction:column;gap:${f === 'story' ? 28 : 0}px}</style></head><body><div id="out">${seitenHtml(p, f)}</div></body></html>`;
 
-let z = { id: '', busy: '', el: null };
+// ---- Story / Anzeige als Bilder speichern (1080 px breit, wie im bisherigen Tool)
+let h2cP = null;
+const h2c = () => h2cP || (h2cP = new Promise((res, rej) => { if (window.html2canvas) return res(window.html2canvas); const sc = document.createElement('script'); sc.src = new URL('../../vendor/html2canvas.min.js', import.meta.url).href; sc.onload = () => res(window.html2canvas); sc.onerror = () => { h2cP = null; rej(new Error('Bild-Werkzeug konnte nicht geladen werden')); }; document.head.appendChild(sc); }));
+const alsDataUrl = blob => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(blob); });
+const festeDaten = new Map();   // Logo, Porträt, Stylesheet – einmal laden
+async function fest(url, text) { if (!festeDaten.has(url)) { const r = await fetch(url); if (!r.ok) throw new Error('Vorlage nicht erreichbar'); festeDaten.set(url, text ? await r.text() : await alsDataUrl(await r.blob())); } return festeDaten.get(url); }
+/** Ein Story-/Anzeigen-Element exakt so als Bild ausgeben, wie der Browser es zeichnet (SVG mit eingebettetem HTML → Leinwand) */
+async function alsBild(sec, css) {
+  const w = sec.offsetWidth, h = sec.offsetHeight;
+  let xhtml = new XMLSerializer().serializeToString(sec);
+  const urls = new Set([...xhtml.matchAll(/(?:url\((?:&quot;|'|")?|src=")((?:blob:|https?:)[^"')&]+)/g)].map(m => m[1]));
+  for (const u of urls) { const d = datenVon.get(u) || (u.startsWith('blob:') ? '' : await fest(u)); if (d) xhtml = xhtml.split(u).join(d); }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><foreignObject x="0" y="0" width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml" style="width:${w}px;height:${h}px"><style>${css.replace(/</g, '&lt;').replace(/&(?!lt;)/g, '&amp;')}</style>${xhtml}</div></foreignObject></svg>`;
+  const img = new Image(); img.decoding = 'sync';
+  await new Promise((res, rej) => { img.onload = res; img.onerror = () => rej(new Error('Bild konnte nicht aufgebaut werden')); img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); });
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d');
+  // Safari zeichnet eingebettete Fotos manchmal erst beim zweiten Mal → kurz warten und noch einmal zeichnen
+  x.drawImage(img, 0, 0); await new Promise(r => setTimeout(r, 250)); x.clearRect(0, 0, w, h); x.fillStyle = '#080808'; x.fillRect(0, 0, w, h); x.drawImage(img, 0, 0);
+  return await new Promise((res, rej) => { try { c.toBlob(b => b ? res(b) : rej(new Error('leer')), 'image/png'); } catch (e) { rej(e); } });
+}
+async function bilderErzeugen(p, f) {
+  await bilderVon(p);
+  const css = await fest(BASIS + 'social.css', true);
+  const fr = document.createElement('iframe'); fr.setAttribute('aria-hidden', 'true'); fr.style.cssText = 'position:fixed;left:-20000px;top:0;width:1080px;height:1920px;border:0';
+  document.body.appendChild(fr);
+  try {
+    await new Promise(r => { fr.onload = r; fr.srcdoc = dokument(p, f); });
+    const d = fr.contentDocument; fr.style.height = d.documentElement.scrollHeight + 'px';
+    await Promise.all([...d.images].map(i => i.complete ? 0 : new Promise(r => { i.onload = i.onerror = r; })));
+    const out = [];
+    for (const sec of d.querySelectorAll('.story, .ad')) {
+      try { out.push(await alsBild(sec, css)); }
+      catch (e) {   // Browser lässt den direkten Weg nicht zu → Ersatzweg (nachgezeichnet, minimal ungenauer)
+        const html2canvas = await h2c(), c = await html2canvas(sec, { scale: 1, backgroundColor: '#080808', logging: false, useCORS: true, width: sec.offsetWidth, height: sec.offsetHeight, windowWidth: 1080 });
+        out.push(await new Promise(r => c.toBlob(r, 'image/png')));
+      }
+    }
+    return out.filter(Boolean);
+  } finally { fr.remove(); }
+}
+// kleines ZIP ohne Kompression (PNG ist schon komprimiert)
+const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return b => { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = t[(c ^ b[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }; })();
+function zip(dateien) {
+  const enc = new TextEncoder(), teile = [], zentral = []; let off = 0;
+  const kopf = (sig, name, crc, len, extra) => { const b = new DataView(new ArrayBuffer(extra ? 46 : 30)); let o = 0; const u32 = v => { b.setUint32(o, v, true); o += 4; }, u16 = v => { b.setUint16(o, v, true); o += 2; };
+    u32(sig); if (extra) u16(20); u16(20); u16(0x0800); u16(0); u16(0); u16(33); u32(crc); u32(len); u32(len); u16(name.length); u16(0); if (extra) { u16(0); u16(0); u16(0); u32(0); u32(extra.off); } return new Uint8Array(b.buffer); };
+  for (const [n, bytes] of dateien) { const name = enc.encode(n), crc = CRC(bytes); teile.push(kopf(0x04034b50, name, crc, bytes.length), name, bytes); zentral.push(kopf(0x02014b50, name, crc, bytes.length, { off }), name); off += 30 + name.length + bytes.length; }
+  const zl = zentral.reduce((x, y) => x + y.length, 0), e = new DataView(new ArrayBuffer(22)); e.setUint32(0, 0x06054b50, true); e.setUint16(8, dateien.length, true); e.setUint16(10, dateien.length, true); e.setUint32(12, zl, true); e.setUint32(16, off, true);
+  return new Blob([...teile, ...zentral, new Uint8Array(e.buffer)], { type: 'application/zip' });
+}
+function laden(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 30000); }
+/** Story (4 Bilder) oder Anzeige (1 Bild) erzeugen und speichern: am Handy über „Teilen“ (→ In Fotos sichern), am Rechner als Download */
+async function socialSpeichern(p, f, knopf) {
+  const alt = knopf.textContent; knopf.disabled = true; knopf.textContent = 'Bilder werden erstellt …';
+  try {
+    const B = await bilderErzeugen(p, f); if (!B.length) throw new Error('Es konnte kein Bild erstellt werden');
+    // Dateinamen ohne Umlaute/Sonderzeichen – manche Browser verwerfen sie sonst und speichern nur „download“
+    const ascii = t => t.replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/Ä/g, 'Ae').replace(/Ö/g, 'Oe').replace(/Ü/g, 'Ue').replace(/ß/g, 'ss').normalize('NFD').replace(/[^\x20-\x7E]/g, '');
+    const basis = ascii(pdfName(p).replace(/^Expose /, f === 'story' ? 'Story ' : 'Anzeige '));
+    const files = B.map((b, i) => new File([b], `${basis}${B.length > 1 ? ' ' + (i + 1) : ''}.png`, { type: 'image/png' }));
+    if (matchMedia('(pointer:coarse)').matches && navigator.canShare?.({ files })) { try { await navigator.share({ files }); } catch (e) { if (e.name !== 'AbortError') throw e; } }
+    else if (files.length === 1) laden(files[0], files[0].name);
+    else laden(zip(await Promise.all(files.map(async x => [x.name, new Uint8Array(await x.arrayBuffer())]))), basis + '.zip');
+    haptik('erfolg'); toast(f === 'story' ? `Story: ${B.length} Bilder (1080 × 1920) erstellt` : 'Werbeanzeige (1080 × 1350) erstellt');
+    const cur = db.get('exposes', p.id); if (cur) { clearTimeout(speichernT); await db.save('exposes', Object.assign(cur, { [f === 'story' ? 'storyDatum' : 'adDatum']: today() })); }
+  } catch (e) { toast(e.message || 'Bilder konnten nicht erstellt werden', 'err'); }
+  finally { knopf.disabled = false; knopf.textContent = alt; }
+}
+
+let z = { id: '', busy: '', el: null, format: 'expose' };
 let speichernT = 0, vorschauT = 0;
 
 export function render(el, arg) {
@@ -139,15 +211,17 @@ function detail(el, p) {
           <div class="ex-felder">${FELDER.map(([k, l, t, cls]) => html`<label class="${cls || ''}"><span>${l}</span><input data-k="${k}" data-t="${t}" value="${t === 'text' ? o[k] || '' : de(o[k])}" ${t === 'zahl' ? raw('inputmode="decimal"') : ''}></label>`)}
             <label class="full"><span>RND-Gutachten</span><select data-k="rnd_angenommen" data-t="bool"><option value="false" ${o.rnd_angenommen ? '' : raw('selected')}>liegt vor</option><option value="true" ${o.rnd_angenommen ? raw('selected') : ''}>in Vorbereitung / angenommen</option></select></label>
             <label class="full"><span>Vermietung</span><select data-k="vermietung_status" data-t="wahl">${[['unvermietet', 'unvermietet / sofort frei'], ['frisch', 'frisch vermietet'], ['vermietet', 'vermietet']].map(([v, l]) => html`<option value="${v}" ${o.vermietung_status === v ? raw('selected') : ''}>${l}</option>`)}</select></label>
+            <label class="full"><span>Story-Überschrift (leer = automatisch)</span><input data-k="story_titel" data-t="root" value="${p.story_titel || ''}" placeholder="z. B. Top Einsteiger-Kapitalanlage"></label>
             <div class="full ex-fin">Finanzierung im Rechenbeispiel</div>
             ${FINANZ.map(([k, l]) => html`<label><span>${l}</span><input data-k="${k}" data-t="annahme" inputmode="decimal" value="${de((p.annahmen || {})[k] ?? s.annahmen[k])}"></label>`)}</div>
         </details></section>
         <section class="card ex-s"><details id="ex-bilder"><summary><h2><i>3</i>Titelbild wählen</h2></summary><div class="ex-pics" id="ex-pics"></div></details></section>
         <section class="card ex-s ex-fertigs"><button type="button" class="btn primary ex-go" id="ex-go">Exposé als PDF erstellen</button>
           <p class="muted small" id="ex-goh">Öffnet das fertige Exposé in einem neuen Fenster – dort „Als PDF sichern“.</p>
+          <div class="ex-social"><button type="button" class="btn" id="ex-story"><b>Insta-Story</b><small>4 Bilder · 1080 × 1920</small></button><button type="button" class="btn" id="ex-ad"><b>Werbeanzeige</b><small>1 Bild · 1080 × 1350</small></button></div>
           <div class="ex-mehr">${prop ? html`<a class="lnk small" href="#/objekte/${prop.id}">⌂ Objekt „${prop.titel}“ öffnen →</a>` : html`<button type="button" class="btn small" id="ex-objekt">⌂ Als Objekt im CRM anlegen</button>`}<button type="button" class="btn ghost small" id="ex-weg">Exposé löschen</button></div></section>
       </div>
-      <div class="ex-rechts"><div class="ex-vbar"><b>Vorschau</b><span class="muted small" id="ex-vinfo">wird geladen …</span></div><div class="ex-vwrap" id="ex-vwrap"><iframe id="ex-frame" title="Vorschau des Exposés" scrolling="no"></iframe></div></div>
+      <div class="ex-rechts"><div class="ex-vbar"><div class="seg" role="group" aria-label="Vorschau">${Object.entries(FORMATE).map(([k, [l]]) => html`<button type="button" data-fmt="${k}" class="${z.format === k ? 'on' : ''}">${l}</button>`)}</div><span class="muted small" id="ex-vinfo">wird geladen …</span></div><div class="ex-vwrap" id="ex-vwrap"><iframe id="ex-frame" title="Vorschau des Exposés" scrolling="no"></iframe></div></div>
     </div></div>`);
   const $ = q => el.querySelector(q), range = $('#ex-range'), pctIn = $('#ex-pct');
   const akt = () => db.get('exposes', p.id);
@@ -159,13 +233,14 @@ function detail(el, p) {
   el.querySelectorAll('.ex-felder [data-k]').forEach(f => f.addEventListener('input', () => {
     const neu = akt(), k = f.dataset.k, t = f.dataset.t; neu.objekt = { ...neu.objekt }; neu.annahmen = { ...(neu.annahmen || {}) };
     if (t === 'annahme') { const v = parseFloat(f.value.replace(',', '.')); if (isNaN(v)) delete neu.annahmen[k]; else neu.annahmen[k] = v; }
+    else if (t === 'root') neu[k] = f.value.trim();
     else neu.objekt[k] = t === 'text' ? f.value.trim() : t === 'bool' ? f.value === 'true' : t === 'wahl' ? f.value : zahl(f.value);
     if (k === 'restnutzungsdauer') neu.objekt[k] = Math.round(neu.objekt[k]);
     if (k === 'strasse' || k === 'ort') { neu.name = `${neu.objekt.strasse || ''} ${neu.objekt.ort || ''}`.trim() || neu.name; el.querySelector('.ex-kopft h1').textContent = neu.name; }
     if (k === 'vermietung_status' && neu.pages) {      // Texte passend neu schreiben, eigene Zahlen behalten
       try { const r = parse(neu.pages, (neu.images || []).map(i => ({ ...i })), f.value); neu.texte = r.texte; neu.objekt.vermietung = r.objekt.vermietung; } catch { /* Texte bleiben */ }
     }
-    sichern({ objekt: neu.objekt, annahmen: neu.annahmen, name: neu.name, texte: neu.texte });
+    sichern({ objekt: neu.objekt, annahmen: neu.annahmen, name: neu.name, texte: neu.texte, story_titel: neu.story_titel || '' });
   }));
   $('#ex-go').onclick = async () => {
     const cur = akt(); if (fehlend(cur).length) { $('#ex-daten').open = true; return toast('Bitte erst die rot markierten Werte ergänzen', 'err'); }
@@ -176,6 +251,8 @@ function detail(el, p) {
     await db.save('exposes', Object.assign(akt(), { pdfDatum: today(), pdfKaufpreis: c.kp, pdfAufschlag: cur.aufschlag })); haptik('erfolg');
   };
   $('#ex-weg').onclick = () => loeschen(akt());
+  for (const [id, f] of [['#ex-story', 'story'], ['#ex-ad', 'ad']]) $(id).onclick = () => { const cur = akt(); if (fehlend(cur).length) { $('#ex-daten').open = true; return toast('Bitte erst die rot markierten Werte ergänzen', 'err'); } socialSpeichern(cur, f, $(id)); };
+  el.querySelectorAll('[data-fmt]').forEach(b => b.onclick = () => { z.format = b.dataset.fmt; el.querySelectorAll('[data-fmt]').forEach(x => x.classList.toggle('on', x === b)); const fr = $('#ex-frame'); fr.removeAttribute('srcdoc'); fr.dataset.fmt = ''; vorschau(el, akt()); });
   const ob = $('#ex-objekt'); if (ob) ob.onclick = () => objektAnlegen(akt());
   $('#ex-bilder').addEventListener('toggle', () => zeigeBilder(el, akt()));
   window.addEventListener('resize', skalieren);
@@ -200,13 +277,16 @@ function aktualisieren(el, p, mitVorschau) {
 async function vorschau(el, p) {
   const fr = el.querySelector('#ex-frame'); if (!fr || z.id !== p.id) return;
   await bilderVon(p);
-  const info = el.querySelector('#ex-vinfo'), fertig = () => { try { const d = fr.contentDocument, n = d.querySelectorAll('.page').length; fr.style.height = Math.max(d.body.scrollHeight, d.documentElement.scrollHeight) + 'px'; if (info) info.textContent = `${n} Seiten · ${de(p.aufschlag || 0) || '0'} % Provision`; skalieren(); } catch { /* Rahmen weg */ } };
-  if (fr.contentDocument?.querySelector('.page')) { fr.contentDocument.body.innerHTML = seitenHtml(p); fertig(); setTimeout(fertig, 400); }
-  else { fr.onload = () => { fertig(); setTimeout(fertig, 500); setTimeout(fertig, 1500); }; fr.srcdoc = dokument(p); }
+  const f = z.format, breite = FORMATE[f][1];
+  const info = el.querySelector('#ex-vinfo'), fertig = () => { try { const d = fr.contentDocument, n = d.querySelectorAll('.page, .story, .ad').length; fr.style.width = breite + 'px'; fr.style.height = Math.max(d.body.scrollHeight, d.documentElement.scrollHeight) + 'px';
+    if (info) info.textContent = (f === 'expose' ? `${n} Seiten` : f === 'story' ? `${n} Story-Bilder` : 'Anzeige 4:5') + ` · ${de(p.aufschlag || 0) || '0'} % Provision`; skalieren(); } catch { /* Rahmen weg */ } };
+  if (fr.dataset.fmt === f && fr.contentDocument?.querySelector('#out')) { fr.contentDocument.getElementById('out').innerHTML = seitenHtml(p, f); fertig(); setTimeout(fertig, 400); }
+  else { fr.dataset.fmt = f; fr.onload = () => { fertig(); setTimeout(fertig, 500); setTimeout(fertig, 1500); }; fr.srcdoc = dokument(p, f); }
 }
 function skalieren() {
   const w = z.el?.querySelector('#ex-vwrap'), fr = z.el?.querySelector('#ex-frame'); if (!w || !fr) return window.removeEventListener('resize', skalieren);
-  const s = Math.min(1, w.clientWidth / 794); fr.style.transform = `scale(${s})`; w.style.height = (parseFloat(fr.style.height) || 1123) * s + 'px';
+  const breite = FORMATE[z.format][1], max = z.format === 'expose' ? 794 : 560; w.style.maxWidth = max + 'px';
+  const s = Math.min(1, w.clientWidth / breite); fr.style.transform = `scale(${s})`; w.style.height = (parseFloat(fr.style.height) || 1123) * s + 'px';
 }
 function zeigeBilder(el, p) {
   const box = el.querySelector('#ex-pics'); if (!box || !el.querySelector('#ex-bilder').open) return;

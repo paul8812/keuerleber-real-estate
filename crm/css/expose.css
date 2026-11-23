@@ -64,3 +64,8 @@
 #ex-frame{width:794px;height:1123px;border:0;display:block;transform-origin:0 0;background:#fff}
 @media(max-width:1000px){.ex-zwei{grid-template-columns:1fr}.ex-links{position:static;max-height:none;overflow:visible}.ex-schritte{grid-template-columns:1fr}.ex-vwrap{margin:10px auto}}
 @media(max-width:700px){.ex-drop{padding:28px 16px}.ex-drop b{font-size:17px}.ex-kopft h1{font-size:24px}.ex-liste{grid-template-columns:1fr}}
+.ex-social{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.ex-social .btn{display:flex;flex-direction:column;align-items:center;gap:1px;padding:10px 8px;justify-content:center}
+.ex-social .btn small{color:var(--mut);font-size:11.5px}
+.ex-social .btn:disabled{opacity:.6;cursor:progress}
+.ex-vbar .seg button{font-size:13px}
