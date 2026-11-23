@@ -44,6 +44,38 @@ function kopf(D, ueber) {
     vor ? h('p', { style: null }, `Guten Tag ${vor},`) : null];
 }
 
+// ---------------------------------------------------------------- Alles auf einmal: ZIP im Browser bauen (unkomprimiert – PDFs und Fotos sind es schon)
+const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+const crc32 = b => { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+function zip(dateien) {   // [{ name, bytes: Uint8Array }]
+  const enc = new TextEncoder(), teile = [], verz = []; let pos = 0;
+  const kopf = (sig, n, crc, len, extra) => { const b = new DataView(new ArrayBuffer(extra)); b.setUint32(0, sig, true); return b; };
+  for (const d of dateien) {
+    const n = enc.encode(d.name), crc = crc32(d.bytes), len = d.bytes.length;
+    const l = new DataView(new ArrayBuffer(30)); l.setUint32(0, 0x04034b50, true); l.setUint16(4, 20, true); l.setUint16(6, 0x0800, true); l.setUint32(14, crc, true); l.setUint32(18, len, true); l.setUint32(22, len, true); l.setUint16(26, n.length, true);
+    const c = new DataView(new ArrayBuffer(46)); c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true); c.setUint32(16, crc, true); c.setUint32(20, len, true); c.setUint32(24, len, true); c.setUint16(28, n.length, true); c.setUint32(42, pos, true);
+    teile.push(l.buffer, n, d.bytes); verz.push(c.buffer, n); pos += 30 + n.length + len;
+  }
+  const vl = verz.reduce((s, x) => s + (x.byteLength ?? x.length), 0), e = new DataView(new ArrayBuffer(22));
+  e.setUint32(0, 0x06054b50, true); e.setUint16(8, dateien.length, true); e.setUint16(10, dateien.length, true); e.setUint32(12, vl, true); e.setUint32(16, pos, true);
+  void kopf; return new Blob([...teile, ...verz, e.buffer], { type: 'application/zip' });
+}
+async function allesLaden(D, knopf) {
+  const U = D.unterlagen || [], alt = knopf.textContent; knopf.disabled = true; knopf.parentNode.querySelectorAll('.meldung').forEach(x => x.remove());
+  try {
+    const dateien = [], namen = new Set();
+    for (let i = 0; i < U.length; i++) {
+      knopf.textContent = `Lädt ${i + 1} von ${U.length} …`;
+      const r = await api('datei', { id: U[i].id }), antw = await fetch(r.url); if (!antw.ok) throw new Error(`„${U[i].name}“ konnte nicht geladen werden.`);
+      let name = String(U[i].name || 'Datei').replace(/[\\/:*?"<>|]/g, ' ').trim() || 'Datei'; for (let k = 2; namen.has(name.toLowerCase()); k++) name = name.replace(/(\.[a-z0-9]+)?$/i, ` (${k})$1`);
+      namen.add(name.toLowerCase()); dateien.push({ name, bytes: new Uint8Array(await antw.arrayBuffer()) });
+    }
+    knopf.textContent = 'Wird zusammengestellt …';
+    const a = h('a', { href: URL.createObjectURL(zip(dateien)), download: `Unterlagen ${String(D.titel || 'Objekt').replace(/[\\/:*?"<>|]/g, ' ').slice(0, 60)}.zip` }); document.body.append(a); a.click(); a.remove();
+  } catch (e) { knopf.after(meldung(e.message + ' Sie können die Dateien auch einzeln öffnen.')); }
+  knopf.disabled = false; knopf.textContent = alt;
+}
+
 // ---------------------------------------------------------------- Unterlagen zum Objekt
 function objekt(D) {
   const gruppen = new Map();
@@ -58,6 +90,7 @@ function objekt(D) {
   setze(kopf(D, 'Ihre Unterlagen'),
     h('div.karte', {},
       h('p.text', {}, D.text || 'hier finden Sie die Unterlagen zu diesem Objekt. Ein Tipp auf eine Datei öffnet sie.'),
+      (D.unterlagen || []).length > 1 ? (() => { const gr = (D.unterlagen || []).reduce((s, u) => s + (u.groesse || 0), 0), b = h('button.btn.haupt.breit', { type: 'button' }, `⬇ Alle ${D.unterlagen.length} Dateien herunterladen${gr ? ' (' + groesse(gr) + ')' : ''}`); b.onclick = () => allesLaden(D, b); return h('div.reihe', {}, b); })() : null,
       [...gruppen].map(([k, L]) => h('div.gruppe', {}, h('h3', {}, k),
         L.map(u => { const b = h('button.datei', { type: 'button' }, h('i', {}, (u.name.split('.').pop() || 'PDF').slice(0, 4).toUpperCase()), h('span', {}, u.name.replace(/\.[a-z0-9]{2,5}$/i, ''), h('small', {}, groesse(u.groesse))), h('b', {}, 'Öffnen')); b.onclick = () => oeffnen(u, b); return b; }))),
       !(D.unterlagen || []).length ? h('p.muted', {}, 'Zu diesem Link sind derzeit keine Unterlagen freigegeben.') : null),

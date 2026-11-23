@@ -95,12 +95,15 @@ export function objektLinkDlg(p) {
     <label class="f full"><span>Für wen?</span><select name="contactId"><option value="">– Kontakt wählen (oder Name unten eintragen) –</option>${contactOpts().map(([id, n]) => html`<option value="${id}">${n}</option>`)}</select></label>
     <label class="f"><span>Name (falls kein Kontakt)</span><input name="name" placeholder="z. B. Herr Weber"></label>
     <label class="f"><span>E-Mail (falls kein Kontakt)</span><input name="email" type="email" placeholder="name@beispiel.de"></label>
-    <div class="f full"><span>Was soll auf der Seite stehen? <small class="muted">(vorausgewählt: dein Exposé)</small></span><div class="unt-wahl">${[...G].map(([k, D]) => html`<div class="unt-wk"><label class="unt-wkk"><input type="checkbox" data-alle="${k}"> <b>${k}</b><small>${D.length}</small></label>
+    <div class="f full"><span>Was soll auf der Seite stehen? <small class="muted">(vorausgewählt: dein Exposé)</small> <label class="kl-alle"><input type="checkbox" data-alles> alle ${L.length} Unterlagen</label></span><div class="unt-wahl">${[...G].map(([k, D]) => html`<div class="unt-wk"><label class="unt-wkk"><input type="checkbox" data-alle="${k}"> <b>${k}</b><small>${D.length}</small></label>
       ${D.map(u => html`<label data-k="${k}"><input type="checkbox" name="u_${u.id}" ${k === 'Exposé' ? raw('checked') : ''}> <span>${u.name}</span></label>`)}</div>`)}</div></div>
     <label class="f"><span>Link gültig</span><select name="tage"><option value="14">14 Tage</option><option value="30" selected>30 Tage</option><option value="90">90 Tage</option></select></label>
-    <p class="muted small full">Der Interessent bekommt eine eigene Seite mit Bild, Exposé und den gewählten Unterlagen. Du siehst, ob und wann er sie geöffnet hat.</p>`, {
+    <p class="muted small full">Der Interessent bekommt <b>einen Link</b> zu seiner eigenen Seite mit Bild, Exposé und den gewählten Unterlagen. Dort kann er jede Datei ansehen oder alles auf einmal herunterladen. Du siehst, ob und wann er die Seite geöffnet hat.</p>`, {
     wide: true, saveLabel: 'Link erstellen',
-    onMount: m => m.querySelectorAll('[data-alle]').forEach(a => a.onchange = () => m.querySelectorAll(`label[data-k="${a.dataset.alle}"] input`).forEach(i => { i.checked = a.checked; })),
+    onMount: m => {
+      m.querySelectorAll('[data-alle]').forEach(a => a.onchange = () => m.querySelectorAll(`label[data-k="${a.dataset.alle}"] input`).forEach(i => { i.checked = a.checked; }));
+      m.querySelector('[data-alles]').onchange = e => m.querySelectorAll('.unt-wahl input[type=checkbox]').forEach(i => { i.checked = e.target.checked; });
+    },
     onSave: async v => {
       const wahl = L.filter(u => v['u_' + u.id]); if (!wahl.length) { toast('Bitte mindestens eine Datei auswählen', 'err'); return false; }
       const c = v.contactId && db.get('contacts', v.contactId), name = c ? ([c.anrede, c.nachname].filter(Boolean).join(' ') || fullName(c)) : (v.name || '').trim(), email = (c?.email || v.email || '').trim(), tage = Number(v.tage) || 30;

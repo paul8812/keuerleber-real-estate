@@ -1,7 +1,7 @@
 // Objektunterlagen: Dateien je Objekt (Exposé, Grundrisse, Energieausweis, Verträge …) – verwalten und per Link verschicken.
 // Die Dateien liegen im privaten Cloud-Speicher „unterlagen“ (Supabase Storage) unter <Benutzer>/<Objekt>/<Datei>;
 // der Datensatz (Sammlung „unterlagen“) merkt sich Name, Kategorie und ob die Datei nur intern ist (z. B. das Exposé des Verkäufers).
-// Verschickt werden Download-Links mit Ablaufdatum – die Datei selbst bleibt bei dir.
+// Verschickt wird EIN Link zu einer Kundenseite mit allen gewählten Unterlagen (kundenlinks.js) – die Dateien bleiben bei dir.
 import * as db from './db.js';
 import * as mail from './mail.js';
 import { html, raw, esc, toast, modal, confirmDlg, uid, today, fmtDate, fullName } from './util.js';
@@ -79,7 +79,7 @@ export function binden(el, p) {
   const von = b => db.get('unterlagen', b.closest('[data-unt]').dataset.unt);
   k.querySelectorAll('[data-unt-auf]').forEach(b => b.onclick = async () => { const w = window.open('', '_blank'); try { const url = await adresse(von(b)); if (w) w.location = url; else location.href = url; } catch (e) { w?.close(); toast(e.message, 'err'); } });
   k.querySelectorAll('[data-unt-mehr]').forEach(b => b.onclick = () => bearbeiten(von(b)));
-  k.querySelector('[data-unt-senden]')?.addEventListener('click', () => senden(p));
+  k.querySelector('[data-unt-senden]')?.addEventListener('click', () => import('./kundenlinks.js').then(m => m.objektLinkDlg(p)));   // ein Link zu einer Seite mit allen gewählten Unterlagen
 }
 
 function bearbeiten(u) {
