@@ -362,6 +362,8 @@ export function auswertung(j) {
     proKm = kostenZeitraum / odo.km;
   }
   const pauschal = r2(kmG * PAUSCHALE_KM), tatsaechlich = r2(kmG * proKm);
+  // Ohne Kilometerstände: vorläufiger Satz aus dem Kostenplan (nur zur Orientierung, wird nicht angesetzt)
+  const plan = kostenplan(fz), vorl = odo ? null : { proKm: plan.proKm, betrag: r2(kmG * plan.proKm), kmJahr: plan.km, mehr: r2(Math.max(0, kmG * plan.proKm - pauschal)) };
   const methode = tatsaechlich > pauschal ? 'tatsaechlich' : 'pauschal';
   const satz = methode === 'tatsaechlich' ? proKm : PAUSCHALE_KM;
   // Wohnung ↔ Betrieb: je Arbeitstag einmal die einfache Entfernung
@@ -383,11 +385,67 @@ export function auswertung(j) {
     jahr: String(j), fahrten: F, kostenZeitraum, zeitraumTage, kJahr, kZeitraum, anzahl: F.length, erfasst: erf.length, offen: offen.length,
     kmG, kmP, kmA, kmOffen, kmErfasst, kmGesamt, nichtErfasst, odo, anteil,
     belege, laufend, zusatz, kBelege, kZusatzAlle, kZusatz, kAfa, kFix, kGesamt, proKm,
-    pauschal, tatsaechlich, methode, satz, fahrtkosten, tage: tage.length, entf, arbeitsweg,
+    pauschal, tatsaechlich, vorl, methode, satz, fahrtkosten, tage: tage.length, entf, arbeitsweg,
     absetzbar: r2(fahrtkosten + arbeitsweg + kZusatz), monate,
     hinweis: anteil > 0.5 ? 'ueber50' : anteil >= 0.1 ? 'zwischen' : '',
   };
 }
+
+// ---------------------------------------------------------------- Tatsächliche Kosten im Detail
+/** Woraus sich der Kilometersatz zusammensetzt. Mit Kilometerständen: echte Kosten im Tacho-Zeitraum; sonst der Kostenplan (Jahr). */
+export function kostenAufteilung(A, fz = fahrzeug()) {
+  let teile, kmB, basis;
+  if (A.odo && A.kZeitraum) {
+    basis = 'tacho'; kmB = A.odo.km;
+    teile = A.kZeitraum.zeilen.map(z => ({ id: z.id, name: z.name, wert: z.wert, quelle: z.quelle, belege: z.belege }));
+    if (A.kZeitraum.sonstige) teile.push({ id: 'sonstige', name: 'Sonstige Kfz-Belege', wert: A.kZeitraum.sonstige, quelle: 'Belege' });
+    if (A.kZeitraum.afa) teile.push({ id: 'afa', name: 'Abschreibung (AfA)', wert: A.kZeitraum.afa, quelle: 'Vertrag' });
+  } else {
+    const P = kostenplan(fz); basis = 'plan'; kmB = P.km;
+    teile = P.zeilen.map(z => ({ id: z.id, name: z.name, wert: z.jahr, quelle: z.vertrag ? (z.fehlt ? 'fehlt' : 'Vertrag') : z.geschaetzt ? 'Schätzung' : 'Vorgabe' }));
+    if (P.afa) teile.push({ id: 'afa', name: 'Abschreibung (AfA)', wert: P.afa, quelle: 'Vertrag' });
+  }
+  teile = teile.filter(t => t.wert > 0 || t.quelle === 'fehlt');
+  const summe = r2(teile.reduce((s, t) => s + t.wert, 0));
+  for (const t of teile) { t.proKm = kmB ? t.wert / kmB : 0; t.anteil = summe ? t.wert / summe : 0; }
+  const sicher = r2(teile.filter(t => t.quelle === 'Belege' || t.quelle === 'Vertrag' || t.quelle === 'Vorgabe').reduce((s, t) => s + t.wert, 0));
+  return { basis, km: kmB, summe, proKm: kmB ? summe / kmB : 0, teile: teile.sort((a, b) => b.wert - a.wert), belegt: summe ? sicher / summe : 0 };
+}
+/** Ab welcher Jahresfahrleistung die 0,30-€-Pauschale besser wäre (Fixkosten verteilen sich auf mehr km) */
+export function grenzKm(fz = fahrzeug()) {
+  const P = kostenplan(fz);
+  const fix = P.zeilen.filter(z => z.rhythmus !== '100km').reduce((s, z) => s + z.jahr, 0) + P.afa;
+  const v = P.zeilen.filter(z => z.rhythmus === '100km').reduce((s, z) => s + z.betrag / 100, 0);
+  return { fix: r2(fix), variabel: v, km: v < PAUSCHALE_KM ? Math.round(fix / (PAUSCHALE_KM - v)) : Infinity };
+}
+/** Verbrauch und Literpreis aus den Tankbelegen des Jahres (Liter + Kilometerstand liest die KI vom Beleg oder du trägst sie ein) */
+export function verbrauch(j) {
+  const T = (db.all('buchungen') || []).filter(b => istKfzBeleg(b) && !istZusatz(b) && (b.datum || '').startsWith(String(j)) && postenFuer(b) === 'kraftstoff');
+  const mitL = T.filter(b => zahl(b.liter) > 0), liter = mitL.reduce((s, b) => s + zahl(b.liter), 0);
+  const kette = mitL.filter(b => zahl(b.kmStand) > 0).sort((a, b) => zahl(a.kmStand) - zahl(b.kmStand));
+  let l100 = 0, strecke = 0;
+  if (kette.length >= 2) { strecke = zahl(kette[kette.length - 1].kmStand) - zahl(kette[0].kmStand); if (strecke > 0) l100 = kette.slice(1).reduce((s, b) => s + zahl(b.liter), 0) / strecke * 100; }
+  const preisL = liter ? mitL.reduce((s, b) => s + kostenBetrag(b), 0) / liter : 0;
+  return { anzahl: T.length, summe: r2(T.reduce((s, b) => s + kostenBetrag(b), 0)), liter: r1(liter), preisL, l100, strecke, je100: l100 && preisL ? l100 * preisL : 0 };
+}
+/** Was für eine belastbare Rechnung mit tatsächlichen Kosten noch fehlt */
+export function kostenCheck(A, fz = fahrzeug()) {
+  const j = A.jahr, lfd = j === today().slice(0, 4), st = kmStaende().filter(s => s.datum.startsWith(j)), L = fz.leasing || {};
+  const vers = kostenPosten(fz).find(p => p.id === 'versicherung'), versBeleg = A.kJahr.zeilen.find(z => z.id === 'versicherung')?.belege;
+  const letzter = st[st.length - 1];
+  const out = [
+    fz.finanzierung === 'leasing'
+      ? { id: 'vertrag', ok: !!(zahl(L.rate) && L.beginn && zahl(L.laufzeit)), text: 'Leasingvertrag eingetragen', fehlt: 'Leasingrate, Beginn und Laufzeit eintragen', aktion: 'auto' }
+      : { id: 'vertrag', ok: !!(zahl(fz.kaufpreis) && fz.kaufdatum), text: 'Kaufpreis und Kaufdatum eingetragen', fehlt: 'Kaufpreis und Kaufdatum eintragen (für die Abschreibung)', aktion: 'auto' },
+    { id: 'kmAnfang', ok: st.some(s => s.datum <= `${j}-01-31`), text: `Kilometerstand Anfang ${j}`, fehlt: `Stand vom Januar ${j} nachtragen – steht z. B. auf einer Werkstattrechnung oder in myOpel`, aktion: 'km', datum: `${j}-01-01` },
+    { id: 'kmEnde', ok: !!letzter && st.length >= 2 && (lfd ? letzter.datum >= addDays(today(), -35) : letzter.datum >= `${j}-12-01`), text: lfd ? 'Aktueller Kilometerstand (letzte 5 Wochen)' : `Kilometerstand Ende ${j}`, fehlt: lfd ? 'Heutigen Stand vom Tacho eintragen' : `Stand vom 31.12.${j} nachtragen`, aktion: 'km', datum: lfd ? today() : `${j}-12-31` },
+    { id: 'versicherung', ok: !!versBeleg || (vers && !vers.geschaetzt), text: 'Versicherungsbeitrag aus der Police', fehlt: 'Noch geschätzt (1.200 €) – echten Jahresbeitrag eintragen', aktion: 'posten' },
+    { id: 'sprit', ok: A.kJahr.zeilen.find(z => z.id === 'kraftstoff')?.belege > 0, text: 'Tankbelege erfasst', fehlt: 'Sprit ist noch geschätzt – Tankbelege fotografieren oder Tanken eintragen', aktion: 'tanken' },
+  ];
+  return { punkte: out, ok: out.filter(p => p.ok).length, n: out.length };
+}
+/** Absetzbarer Betrag einer einzelnen Geschäftsfahrt nach der im Jahr angesetzten Methode */
+export const fahrtBetrag = (f, A) => f.status === 'erfasst' && f.art === 'geschaeftlich' ? r2(km(f) * A.satz) : 0;
 
 /** Für die EÜR (finanzen.jahr): absetzbare Fahrtkosten je Monat; null wenn kein Privatwagen-Fahrtenbuch */
 export function euerAnteil(j) {
