@@ -65,7 +65,12 @@ Deno.serve(async (req) => {
       const rows = await rest("GET", `/rest/v1/records?select=id,collection,data->>pfad&user_id=eq.${uid}&collection=in.(unterlagen,exposes,dateien)&id=in.(${liste})`) ?? [];
       // deno-lint-ignore no-explicit-any
       const pfade = rows.filter((r: any) => r.collection === "unterlagen" && r.pfad && String(r.pfad).startsWith(uid + "/")).map((r: any) => r.pfad);
-      if (pfade.length) await rest("DELETE", `/storage/v1/object/${BUCKET}`, { prefixes: pfade });
+      // geteilte Dateien (gleicher Speicherplatz bei mehreren Objekten) nur entfernen, wenn kein anderer Datensatz sie mehr nutzt
+      const andere = await rest("GET", `/rest/v1/records?select=id,data->>pfad&user_id=eq.${uid}&collection=eq.unterlagen&limit=5000`) ?? [];
+      // deno-lint-ignore no-explicit-any
+      const nochGenutzt = new Set(andere.filter((r: any) => !ids.includes(r.id)).map((r: any) => r.pfad));
+      const frei = pfade.filter((x: string) => !nochGenutzt.has(x));
+      if (frei.length) await rest("DELETE", `/storage/v1/object/${BUCKET}`, { prefixes: frei });
       // deno-lint-ignore no-explicit-any
       if (rows.length) await rest("DELETE", `/rest/v1/records?user_id=eq.${uid}&collection=in.(unterlagen,exposes,dateien)&id=in.(${rows.map((r: any) => `"${r.id}"`).join(",")})`, undefined, { Prefer: "return=minimal" });
       return antwort({ ok: true, n: rows.length, dateien: pfade.length });
