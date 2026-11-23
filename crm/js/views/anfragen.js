@@ -14,7 +14,7 @@ const FILTER = [['offen', 'Offen', g => P.OFFEN.includes(st(g))], ['neu', 'Neu',
 const st = g => g.haupt.status || 'neu';
 const telNr = t => String(t || '').replace(/[^\d+]/g, '');
 const wa = t => telNr(t).replace(/^\+/, '').replace(/^0/, '49');
-const initialen = n => String(n || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(x => x[0]).join('').toUpperCase();
+const initialen = n => String(n || '?').replace(/^(Herr|Frau)\s+/i, '').split(/\s+/).filter(Boolean).slice(0, 2).map(x => x[0]).join('').toUpperCase();
 const vorname = n => String(n || '').trim().split(/\s+/)[0] || '';
 const stBadge = s => html`<span class="an-st" style="--a:${P.STATUS[s]?.farbe || '#888'}">${P.STATUS[s]?.name || s}</span>`;
 const inseratK = g => g.haupt.inseratNr || g.haupt.inseratTitel || '–';
@@ -36,7 +36,7 @@ export function render(el) {
   const n = k => imIns.filter(FILTER.find(x => x[0] === k)[2]).length;
   const neuester = G.reduce((m, g) => (g.letzte.importiert || '') > m ? g.letzte.importiert : m, '');
   el.innerHTML = String(html`<div class="an">
-    <div class="head"><div><h1>Anfragen</h1><p class="muted">Interessenten aus deinen Portalen – kommen automatisch aus den ohne-makler-Mails.</p></div>
+    <div class="head"><div><h1>Anfragen</h1><p class="muted">Interessenten aus deinen Portalen – kommen automatisch aus den ohne-makler-Mails in deinem Posteingang.</p></div>
       <div class="actions"><button type="button" class="btn" id="an-neu">+ Anfrage von Hand</button></div></div>
     <div class="kpis strip an-kpis">
       <div class="kpi"><span>Neu</span><b class="${n('neu') ? 'gold' : ''}">${n('neu')}</b></div>
@@ -53,10 +53,10 @@ export function render(el) {
       <div class="chips" role="group" aria-label="Status">${FILTER.map(([k, l]) => html`<button type="button" class="chip ${z.filter === k ? 'on' : ''}" data-f="${k}">${l}${n(k) && k !== 'alle' ? html` <i>${n(k)}</i>` : ''}</button>`)}</div>
       <div class="seg an-sicht" role="group" aria-label="Ansicht"><button type="button" data-sicht="karten" class="${z.ansicht === 'karten' ? 'on' : ''}">Karten</button><button type="button" data-sicht="vergleich" class="${z.ansicht === 'vergleich' ? 'on' : ''}">Vergleich</button></div>
     </div>
-    ${!G.length ? html`<div class="card an-leer"><h3>Noch keine Anfragen</h3><p class="muted">Sobald eine Anfrage von ohne-makler in deinem Gmail-Postfach landet, erscheint sie hier – mit Name, Telefon, E-Mail, Nachricht und den Angaben zu Haushalt, Einkommen und Schufa. Der Abruf läuft stündlich.</p></div>`
-      : !liste.length ? html`<div class="card an-leer"><p class="muted">Keine Anfragen in „${f[1]}“.</p></div>`
+    ${!G.length ? html`<div class="card an-leer"><h3>Noch keine Anfragen</h3><p class="muted">Sobald eine Anfrage von ohne-makler in deinem Postfach landet, erscheint sie hier – mit Name, E-Mail, Nachricht und den Angaben zu Haushalt, Einkommen und Schufa.</p></div>`
+      : !liste.length ? html`<div class="card an-leer"><p class="muted">Keine Anfragen in „${f[1]}“.</p>${z.filter !== 'alle' && imIns.length ? html`<p><button type="button" class="btn" data-f="alle">Alle ${imIns.length} Anfragen zeigen</button></p>` : ''}</div>`
       : z.ansicht === 'vergleich' ? vergleich(liste) : html`<div class="an-liste">${liste.map(karte)}</div>`}
-    <p class="muted small an-fuss">Automatischer Abruf aus Gmail: stündlich zwischen 7 und 22 Uhr.${neuester ? ` Letzte neue Anfrage übernommen ${vorWann(neuester)}.` : ''} Mehrere Mails derselben Person zum selben Inserat zählen als eine Anfrage.</p>
+    <p class="muted small an-fuss">Anfrage-Mails von ohne-makler werden automatisch aus dem CRM-Posteingang übernommen (zusätzlich zweimal täglich aus Gmail).${neuester ? ` Letzte neue Anfrage übernommen ${vorWann(neuester)}.` : ''} Mehrere Mails derselben Person zum selben Inserat zählen als eine Anfrage.</p>
   </div>`);
   binden(el);
 }

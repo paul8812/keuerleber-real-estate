@@ -260,6 +260,19 @@ type Mail = {
   von: string; von_name: string; von_adresse: string; antwort_an: string; antwort_name: string;
   an: string; cc: string; betreff: string; text: string; anhaenge: string[]; massenmail: boolean; automatisch: boolean;
 };
+// Portal-Anfragen (ohne-makler.net): Im Nur-Text-Teil steht unter „Kontaktdaten des Interessenten“ nur der Name –
+// E-Mail und Telefon gibt es nur im HTML-Teil. Diese Zeilen werden in den Text übernommen (für CRM → Anfragen).
+function portalKontakt(text: string, htmlText: (() => string) | null): string {
+  const i = text.search(/Kontaktdaten des Interessenten/i);
+  if (i < 0 || !htmlText || /(Telefon|E-Mail):/i.test(text.slice(i))) return text;
+  try {
+    const ht = htmlText().replaceAll("\r\n", "\n"), j = ht.search(/Kontaktdaten des Interessenten/i);
+    if (j < 0) return text;
+    const extra = [...ht.slice(j, j + 800).matchAll(/^[ \t]*(E-Mail|Telefon|Mobil):[ \t]*(\S[^\n]*)$/gim)].map((m) => `${m[1]}: ${m[2].trim().slice(0, 120)}`);
+    if (!extra.length) return text;
+    return /Name:[^\n]*/i.test(text.slice(i)) ? text.slice(0, i) + text.slice(i).replace(/(Name:[^\n]*)/i, `$1\n${extra.join("\n")}`) : text + "\n" + extra.join("\n");
+  } catch { return text; }
+}
 function parseMail(raw: Uint8Array, folder: string, uid: number): Mail {
   const bin = latin1(raw);
   const sep = bin.search(/\r?\n\r?\n/);
@@ -271,6 +284,7 @@ function parseMail(raw: Uint8Array, folder: string, uid: number): Mail {
   const html = leaves.find((l) => !l.attach && l.type === "text/html");
   let text = plain ? leafText(plain) : html ? htmlToText(leafText(html)) : "";
   text = text.replaceAll("\r\n", "\n").replace(/\n{3,}/g, "\n\n").trim();
+  text = portalKontakt(text, plain && html ? () => htmlToText(leafText(html)) : null);
   const frm = hdr("from"), reply = hdr("reply-to");
   let datum: Date | null = null;
   const ds = hdr("date").replace(/\([^)]*\)/g, "").trim();
@@ -391,6 +405,21 @@ class Imap {
       if (/\\sent/i.test(m[1]) || SENT_NAMES.has(leaf)) out.push(name);
     }
     return out;
+  }
+  /** Mails nach IMAP-Suchkriterium erneut lesen (nur lesend) – für einmalige Nachträge */
+  async fetchSearch(folder: string, kriterium: string, limit: number): Promise<Mail[]> {
+    await this.cmd(`EXAMINE ${quote(folder)}`);
+    const sr = await this.cmd(`UID SEARCH ${kriterium}`);
+    const uids = sr.flatMap((r) => (r.line.match(/^\* SEARCH(.*)$/i)?.[1] ?? "").trim().split(/\s+/)).map(Number).filter((u) => u > 0).sort((a, b) => b - a).slice(0, limit);
+    if (!uids.length) return [];
+    const fr = await this.cmd(`UID FETCH ${uids.join(",")} (UID BODY.PEEK[]<0.1500000>)`);
+    const mails: Mail[] = [];
+    for (const r of fr) {
+      const u = Number(r.line.match(/UID (\d+)/)?.[1] ?? 0);
+      if (!u || !r.lits.length) continue;
+      try { mails.push(parseMail(r.lits[r.lits.length - 1], folder, u)); } catch { /* unlesbar */ }
+    }
+    return mails;
   }
   async fetchNew(folder: string, st: Rec, limit: number): Promise<[Mail[], Rec]> {
     const { validity, next } = await this.status(folder);
@@ -747,7 +776,7 @@ export async function syncOnce(geheim: string, imapOpts: Rec = {}): Promise<Rec>
       await status(msg, false);
       return { error: msg };
     }
-    let inbox: Mail[] = [], stIn: Rec = {};
+    let inbox: Mail[] = [], stIn: Rec = {}, nachtrag: Mail[] = [], nachtragOk = false;
     const sent: Mail[] = [], stSent: Rec = { ...(stand.sent ?? {}) };
     try {
       [inbox, stIn] = await imap.fetchNew("INBOX", stand.inbox ?? {}, MAX_PER_RUN);
@@ -755,7 +784,25 @@ export async function syncOnce(geheim: string, imapOpts: Rec = {}): Promise<Rec>
         const [got, st] = await imap.fetchNew(folder, (stand.sent ?? {})[folder] ?? {}, MAX_PER_RUN);
         stSent[folder] = st; sent.push(...got);
       }
+      // Einmalig: bereits abgeholte ohne-makler-Anfragen erneut lesen, um E-Mail/Telefon nachzutragen
+      if (!stand.portalKontakt) {
+        try { nachtrag = await imap.fetchSearch("INBOX", 'SINCE 1-Sep-2026 FROM "anfragen.ohne-makler.net"', 60); nachtragOk = true; }
+        catch (e) { console.log("Portal-Nachtrag: " + (e as Error).message); }
+      }
     } finally { await imap.logout(); }
+    if (!stand.portalKontakt && nachtragOk) {
+      try {
+        const vorhanden = new Map<string, Rec>(((await load(["mails"])).mails ?? []).map((x: Rec) => [x.id, x]));
+        const neu: [string, Rec][] = [];
+        for (const m of nachtrag) {
+          const alt = vorhanden.get("mail-" + m.key), t = m.text.slice(0, 6000);
+          if (alt && alt.text !== t && /(Telefon|E-Mail):/i.test(t)) neu.push(["mails", { ...alt, text: t, updated: nowIso() }]);
+        }
+        if (neu.length) await upsert(neu, z.user_id);
+        console.log(`Portal-Nachtrag: ${nachtrag.length} gelesen, ${neu.length} ergänzt`);
+        stand.portalKontakt = 1;
+      } catch (e) { console.log("Portal-Nachtrag: " + (e as Error).message); }
+    }
 
     if (inbox.length || sent.length) {
       const oldest = Math.min(...[...inbox, ...sent].map((m) => (m.datum ?? new Date()).getTime()));

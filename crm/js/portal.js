@@ -17,7 +17,7 @@ export const STATUS = {
 export const OFFEN = ['neu', 'kontaktiert', 'besichtigung'];
 const digits = s => String(s || '').replace(/\D/g, '').replace(/^49/, '0');
 const norm = s => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
-const nameParts = n => { const p = String(n || '').trim().split(/\s+/).filter(Boolean); return p.length > 1 ? { vorname: p.slice(0, -1).join(' '), nachname: p[p.length - 1] } : { vorname: '', nachname: p[0] || '' }; };
+const nameParts = n => { const p = String(n || '').trim().replace(/^(Herr|Frau)\s+/i, '').split(/\s+/).filter(Boolean); return p.length > 1 ? { vorname: p.slice(0, -1).join(' '), nachname: p[p.length - 1] } : { vorname: '', nachname: p[0] || '' }; };
 
 export const alle = () => db.all('anfragen') || [];
 const schluessel = a => `${a.inseratNr || a.inseratTitel || ''}|${(a.email || '').toLowerCase() || digits(a.tel) || norm(a.name)}`;
@@ -55,14 +55,52 @@ export function angabenListe(ang = {}) {
     ...Object.entries(ang).filter(([k]) => !/haushalt|arbeit|einkommen|schufa|haustier/i.test(k)).map(([k, v]) => [k.replace(/:$/, ''), String(v)])].filter(x => x[1]);
 }
 
+// ---------------------------------------------------------------- Anfrage-Mails aus dem CRM-Posteingang (Geschäftspostfach)
+const OM_ABSENDER = /@anfragen\.ohne-makler\.net$/i, OM_BETREFF = /^Anfrage für (OM-[A-Za-z0-9]+) von (.+)$/;
+const abschnitt = (t, von, bis) => { const i = t.search(von); if (i < 0) return ''; const r = t.slice(i).replace(von, ''); const j = bis ? r.search(bis) : -1; return (j < 0 ? r : r.slice(0, j)).trim(); };
+/** ohne-makler-Mail (Text aus dem Posteingang) → Anfrage; null wenn es keine Anfrage-Mail ist */
+export function ausMail(m) {
+  const b = String(m.betreff || '').trim().match(OM_BETREFF);
+  if (!b || !OM_ABSENDER.test(m.vonAdresse || '')) return null;
+  const t = String(m.text || '').replace(/\r/g, '');
+  const kontakt = abschnitt(t, /Kontaktdaten des Interessenten\s*/i, /\n\s*(Wichtiger Rechtshinweis|Unser Tipp für Sie|ohne-makler —)/i);
+  const zeile = re => (kontakt.match(re) || t.match(re) || [])[1]?.trim() || '';
+  const angT = abschnitt(t, /Zusätzliche Angaben des Interessenten:\s*/i, /\n\s*Kontaktdaten des Interessenten/i), angaben = {};
+  // „Schufa-Auskunft:\n\nVorhanden“ – Bezeichnung endet mit Doppelpunkt, der Wert steht in der nächsten nicht leeren Zeile
+  const L = angT.split('\n').map(x => x.trim()).filter(Boolean);
+  for (let i = 0; i < L.length - 1; i++) if (/:$/.test(L[i]) && !/:$/.test(L[i + 1])) { angaben[L[i].replace(/:$/, '')] = L[i + 1].slice(0, 120); i++; }
+  const titel = (t.match(/Inserat\s+OM-[A-Za-z0-9]+,\s*\n?\s*([^\n]+)/i) || [])[1]?.trim() || '';
+  const url = (t.match(/https:\/\/www\.ohne-makler\.net\/immobilie\/[A-Za-z0-9]+\/?/) || [])[0] || '';
+  const email = (zeile(/E-?Mail:\s*([^\s<>]+@[^\s<>]+)/i) || m.antwortAn || '').toLowerCase();
+  return { id: 'anf-ohnemakler-' + String(m.id).replace(/^mail-/, ''), quelle: 'ohne-makler', mailId: m.id, eingang: m.datum || '', importiert: new Date().toISOString(), status: 'neu',
+    inseratNr: b[1], inseratTitel: titel, inseratUrl: url, name: (zeile(/Name:\s*([^\n]+)/i) || b[2]).trim(), email, tel: zeile(/(?:Telefon|Mobil|Tel\.?):\s*([+\d][\d\s/()+-]{5,})/i),
+    nachricht: abschnitt(t, /Nachricht des Interessenten\s*/i, /\n\s*(Zusätzliche Angaben des Interessenten|Kontaktdaten des Interessenten)/i), angaben };
+}
+/** Neue Anfrage-Mails aus dem Posteingang übernehmen; trägt bei schon übernommenen eine später gefundene Telefonnummer nach */
+export async function ausPosteingang() {
+  let n = 0;
+  for (const m of db.all('mails') || []) {
+    const a = ausMail(m); if (!a) continue;
+    const alt = db.get('anfragen', a.id);
+    if (!alt) { await db.save('anfragen', a); n++; }
+    else if ((a.tel && !alt.tel) || (a.email && !alt.email)) await db.save('anfragen', { ...alt, tel: alt.tel || a.tel, email: alt.email || a.email });
+  }
+  return n;
+}
+
 let laeuft = false;
 /** Neue Anfragen einordnen: Kontakt verknüpfen/anlegen, Verlaufseintrag schreiben */
 export async function verarbeiten() {
   if (laeuft || (db.isCloud() && !db.syncState().synced)) return 0;
   laeuft = true; let n = 0;
   try {
+    n += await ausPosteingang();
     for (const g of gruppen()) {
-      const h = g.haupt; if (h.contactId && db.get('contacts', h.contactId)) continue;
+      const h = g.haupt;
+      if (h.contactId && db.get('contacts', h.contactId)) {   // Telefon später bekannt geworden → beim Kontakt nachtragen
+        const k = db.get('contacts', h.contactId); if (g.tel && !k.mobil && !k.tel) await db.save('contacts', { ...k, mobil: g.tel });
+        continue;
+      }
       const email = g.email.toLowerCase(), tel = g.tel;
       let c = db.all('contacts').find(x => (email && (x.email || '').toLowerCase() === email) || (digits(tel).length > 5 && [x.tel, x.mobil].some(t => digits(t) === digits(tel))));
       const quelle = h.quelle || 'Portal', eingang = g.erste || new Date().toISOString();
@@ -87,5 +125,5 @@ export function start() {
   const bald = (ms = 1800) => { clearTimeout(t); t = setTimeout(() => verarbeiten().catch(e => console.warn('Anfragen', e)), ms); };
   db.onStatus(st => { if (st.synced) bald(); });
   if (!db.isCloud()) bald();
-  db.onChange(() => { if (gruppen().some(g => !g.haupt.contactId)) bald(2500); });
+  db.onChange(() => { if (gruppen().some(g => !g.haupt.contactId) || (db.all('mails') || []).some(m => OM_ABSENDER.test(m.vonAdresse || '') && OM_BETREFF.test(String(m.betreff || '').trim()) && !db.get('anfragen', 'anf-ohnemakler-' + String(m.id).replace(/^mail-/, '')))) bald(2500); });
 }
