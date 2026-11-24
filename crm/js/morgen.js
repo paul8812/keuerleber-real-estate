@@ -5,7 +5,7 @@ import { html, today, fullName } from './util.js';
 import { newCount as mailsNeu } from './views/inbox.js';
 import { neuAnzahl as anfragenNeu } from './portal.js';
 
-const STANDARD = { stimme: '', playlist: 'https://open.spotify.com/playlist/79LlED1T74BqFP2WmzC2x9', name: 'Arbeitsmotivation Hype Haftbefehl', vorlesen: true };
+const STANDARD = { stimme: '', kurzbefehl: '', playlist: 'https://open.spotify.com/playlist/79LlED1T74BqFP2WmzC2x9', name: 'Arbeitsmotivation Hype Haftbefehl', vorlesen: true };
 export const einstellung = () => ({ ...STANDARD, ...(db.settings().morgen || {}) });
 const speichern = patch => db.saveSettings({ ...db.settings(), morgen: { ...(db.settings().morgen || {}), ...patch } });
 const playlistId = url => (/playlist[/:]([A-Za-z0-9]{10,40})/.exec(String(url || '')) || [])[1] || '';
@@ -77,7 +77,9 @@ function geraeteStimme(text) {
 /** Playlist in der Spotify-App öffnen und abspielen lassen */
 export function musik() {
   const id = playlistId(einstellung().playlist); if (!id) return false;
-  location.href = `spotify:playlist:${id}:play`; return true;
+  // Am Mac startet ein Kurzbefehl („Morgenmusik“) die Wiedergabe sicher; der Spotify-Link allein öffnet die Playlist nur
+  const E = einstellung(), mac = /Mac/i.test(navigator.platform || '') && !(navigator.maxTouchPoints > 1);
+  location.href = E.kurzbefehl && mac ? `shortcuts://run-shortcut?name=${encodeURIComponent(E.kurzbefehl)}` : `spotify:playlist:${id}:play`; return true;
 }
 
 export function starten({ sofort = true } = {}) {
@@ -93,7 +95,8 @@ export function starten({ sofort = true } = {}) {
       <details class="morgen-e"><summary>Einstellungen</summary>
         <label class="f"><span>Spotify-Playlist (Link)</span><input name="playlist" value="${E.playlist}" placeholder="https://open.spotify.com/playlist/…"></label>
         <label class="chk"><input type="checkbox" name="vorlesen" ${E.vorlesen ? 'checked' : ''}><span>Briefing vorlesen</span></label>
-        <label class="chk"><input type="checkbox" name="stimme" ${E.stimme === 'geraet' ? '' : 'checked'}><span>ElevenLabs-Stimme verwenden (sonst Stimme des Geräts)</span></label></details></div>`.s;
+        <label class="chk"><input type="checkbox" name="stimme" ${E.stimme === 'geraet' ? '' : 'checked'}><span>ElevenLabs-Stimme verwenden (sonst Stimme des Geräts)</span></label>
+        <label class="chk"><input type="checkbox" name="kurzbefehl" ${E.kurzbefehl ? 'checked' : ''}><span>Am Mac: Musik über den Kurzbefehl „Morgenmusik“ starten (spielt sicher los)</span></label></details></div>`.s;
   document.body.appendChild(el);
   const stand = el.querySelector('[data-stand]'), los = el.querySelector('[data-los]'); let lauf = 0, hinweis = '';
   const zu = () => { lauf++; stopp(); el.remove(); document.removeEventListener('keydown', esc); };
@@ -102,6 +105,7 @@ export function starten({ sofort = true } = {}) {
   el.querySelector('[name=playlist]').onchange = async e => { const v = e.target.value.trim(); await speichern({ playlist: v }); const i = playlistId(v), a = el.querySelector('[data-web]'); a.hidden = !i; if (i) a.href = `https://open.spotify.com/playlist/${i}?go=1`; };
   el.querySelector('[name=vorlesen]').onchange = e => speichern({ vorlesen: e.target.checked });
   el.querySelector('[name=stimme]').onchange = e => speichern({ stimme: e.target.checked ? '' : 'geraet' });
+  el.querySelector('[name=kurzbefehl]').onchange = e => speichern({ kurzbefehl: e.target.checked ? 'Morgenmusik' : '' });
   const ablauf = async () => {
     const meins = ++lauf; los.hidden = true;
     if (einstellung().vorlesen) {
