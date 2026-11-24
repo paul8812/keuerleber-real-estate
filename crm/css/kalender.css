@@ -1,0 +1,211 @@
+/* Kalender – aufgeräumte Ansicht: eine Leiste (Navigation + Ansicht), Liste mit Datumsspalte, Woche, Monat */
+.kal-head{margin-bottom:12px}
+.kal-mehr .pe-mehr-m a{padding:9px 10px;border-radius:8px;color:var(--txt);font-size:14px;text-decoration:none}
+.kal-mehr .pe-mehr-m a:hover{background:rgba(255,255,255,.06)}
+.kal-mehr .pe-mehr-m .kal-chk{flex-direction:row;align-items:center;gap:10px;border-top:0;margin:0 0 4px;padding:9px 10px;border-bottom:1px solid var(--line);font-size:14px;color:var(--txt);cursor:pointer}
+
+.kal-schnell{margin-bottom:14px}
+.kal-schnell input{font-size:14.5px;padding:11px 14px}
+
+/* Leiste: links blättern + Zeitraum, rechts die Ansicht */
+.kal-bar{display:flex;align-items:center;justify-content:space-between;gap:12px 18px;flex-wrap:wrap;margin-bottom:14px}
+.kal-nav{display:flex;align-items:center;gap:6px;min-width:0}
+.kal-nav .btn{padding:7px 12px}
+.kal-nav .btn[disabled]{opacity:.45;cursor:default}
+.kal-nav b{font-family:'Cormorant Garamond',Georgia,serif;font-size:23px;font-weight:600;margin-left:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:lining-nums}
+.kal-seg{display:inline-flex;padding:3px;border:1px solid var(--line);border-radius:11px;background:var(--panel)}
+.kal-seg button{border:0;background:none;color:var(--mut);font:inherit;font-size:14px;font-weight:500;padding:7px 18px;border-radius:8px;cursor:pointer}
+.kal-seg button:hover{color:var(--txt)}
+.kal-seg button.on{background:var(--gold);color:#141210;font-weight:600}
+
+.calbody .legende{margin:12px 2px 0}
+
+/* ---------- Liste ---------- */
+.kal-liste{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:20px;align-items:start}
+.kal-tage{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:4px 18px}
+.kal-tag{position:relative;display:grid;grid-template-columns:64px minmax(0,1fr);gap:16px;padding:14px 34px 14px 0;border-top:1px solid rgba(255,255,255,.06)}
+.kal-tag:first-child{border-top:0}
+.kal-datum{display:flex;flex-direction:column;align-items:center;padding-top:4px;line-height:1.15;color:var(--mut)}
+.kal-datum span{font-size:11px;text-transform:uppercase;letter-spacing:.12em;font-weight:600}
+.kal-datum b{font-family:'Cormorant Garamond',Georgia,serif;font-size:30px;font-weight:600;color:var(--txt);font-variant-numeric:lining-nums}
+.kal-datum small{font-size:11px}
+.kal-tag.heute .kal-datum span{color:var(--gold)}
+.kal-tag.heute .kal-datum b{color:var(--gold)}
+.kal-tag.we:not(.heute) .kal-datum b{color:var(--mut)}
+.kal-inhalt{min-width:0;display:flex;flex-direction:column;justify-content:center}
+.kal-frei{color:var(--mut);font-size:13px;padding:8px 0}
+.kal-plus{position:absolute;right:0;top:16px;width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:none;color:var(--gold);font-size:17px;line-height:1;cursor:pointer;opacity:.55}
+.kal-plus:hover,.kal-tag:hover .kal-plus{opacity:1;border-color:var(--gold)}
+.kal-kw{display:flex;align-items:baseline;gap:10px;margin:0 -18px;padding:9px 18px;background:rgba(201,169,110,.06);border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-size:11.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.kal-kw span{color:var(--mut);font-weight:400;letter-spacing:0;text-transform:none;font-size:12px}
+.kal-kw+.kal-tag{border-top:0}
+
+/* Terminzeile */
+.calbody .cevs{margin:0}
+.calbody .cev{padding:9px 8px 9px 12px;margin-bottom:5px;gap:14px;background:rgba(255,255,255,.025)}
+.calbody .cev:last-child{margin-bottom:0}
+.calbody .cev:hover{background:rgba(255,255,255,.055)}
+.calbody .cev .zeit{min-width:58px}
+.calbody .cev .zeit b{font-size:15px;font-variant-numeric:tabular-nums}
+.calbody .cev .zeit small{font-size:11px;white-space:nowrap}
+.calbody .cev .ttl{font-size:14.5px;font-weight:500;overflow-wrap:anywhere}
+.calbody .cev .sub{margin-top:1px}
+.calbody .cev.next{background:color-mix(in srgb,var(--c) 13%,transparent)}
+.kal-next{display:inline-block;margin-left:4px;padding:1px 8px;border-radius:99px;background:var(--gold);color:#141210;font-size:10.5px;font-weight:700;letter-spacing:.04em;vertical-align:1px;white-space:nowrap}
+.calbody .cact a,.calbody .cact button{width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:8px;background:none;color:var(--txt);cursor:pointer;text-decoration:none;font-size:14px}
+.calbody .cact a:hover,.calbody .cact button:hover{border-color:var(--gold)}
+
+/* Aufgaben des Tages: eingeklappt */
+.kal-aufg{margin-top:6px}
+.kal-aufg summary{display:inline-flex;align-items:center;gap:6px;list-style:none;cursor:pointer;font-size:12.5px;color:var(--mut);padding:4px 10px;border:1px dashed var(--line);border-radius:99px}
+.kal-aufg summary::-webkit-details-marker{display:none}
+.kal-aufg summary::after{content:'▾';font-size:10px}
+.kal-aufg[open] summary::after{content:'▴'}
+.kal-aufg summary:hover{color:var(--txt);border-color:var(--gold)}
+.kal-aufg .ctasks{border-top:0;margin-top:4px;padding-top:0}
+
+/* Seitenspalte */
+.kal-seite{display:flex;flex-direction:column;gap:14px;position:sticky;top:12px}
+.kal-seite .card{margin:0;padding:14px}
+.kal-seite .legende{flex-direction:column;gap:7px;margin:2px 4px 0;font-size:12px}
+.kal-minikopf{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.kal-minikopf b{font-size:14px}
+.kal-minikopf button{width:28px;height:28px;border:0;border-radius:8px;background:none;color:var(--mut);font-size:17px;cursor:pointer}
+.kal-minikopf button:hover{background:rgba(255,255,255,.06);color:var(--txt)}
+.kal-minigrid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
+.kal-minigrid span{font-size:10px;color:var(--mut);padding:3px 0;text-transform:uppercase;letter-spacing:.06em}
+.kal-minigrid button{position:relative;aspect-ratio:1;border:0;border-radius:50%;background:none;color:var(--txt);font:inherit;font-size:12.5px;cursor:pointer;font-variant-numeric:tabular-nums}
+.kal-minigrid button:hover{background:rgba(255,255,255,.08)}
+.kal-minigrid button.hat::after{content:'';position:absolute;left:50%;bottom:3px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:var(--gold)}
+.kal-minigrid button.sel{box-shadow:0 0 0 1px var(--gold) inset}
+.kal-minigrid button.heute{background:var(--gold);color:#141210;font-weight:700}
+.kal-minigrid button.heute.hat::after{background:#141210}
+.kal-ueber{border-color:rgba(224,106,90,.4)}
+.kal-ueber h2{color:var(--bad);margin-bottom:6px}
+.kal-ueber h2 span{background:var(--bad);color:#141210;border-radius:99px;padding:0 8px;font-size:12px;letter-spacing:0}
+.kal-ueber .ctasks{border-top:0;margin-top:0;padding-top:0}
+.kal-ueber .ctask{align-items:flex-start;font-size:13px}
+.kal-ueber .ctask a{display:none}
+
+/* ---------- Woche ---------- */
+.calbody .wochecard{padding:8px 12px 12px;margin-bottom:0}
+.calbody .woche{grid-template-columns:52px repeat(7,minmax(96px,1fr))}
+.calbody .wkopf{height:54px;gap:3px;font-size:11px;text-transform:uppercase;letter-spacing:.1em}
+.calbody .wkopf b{font-size:17px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;letter-spacing:0}
+.calbody .wtag.heute{background:rgba(201,169,110,.045)}
+.calbody .wtag.heute .wkopf span{color:var(--gold)}
+.calbody .wtag.we .wraster{background:rgba(0,0,0,.16)}
+.calbody .wtag.we .wkopf b{color:var(--mut)}
+.calbody .wstd{font-size:10.5px;transform:translateY(-7px);font-variant-numeric:tabular-nums}
+.calbody .wganz{min-height:8px;padding:0 3px 4px}
+.calbody .woche.ohneganz .wganz{min-height:0;padding:0}
+.calbody .wev{display:flex;flex-direction:column;font-size:12px;line-height:1.25;padding:3px 6px;border-radius:6px;margin-left:2px;background:color-mix(in srgb,var(--c) 28%,#151517)}
+.calbody .wev b{font-size:11px;font-variant-numeric:tabular-nums;opacity:.85}
+.calbody .wev span{overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;font-weight:500}
+.calbody .wev.kurz{flex-direction:row;gap:5px;align-items:center;padding-top:1px;padding-bottom:1px}
+.calbody .wev.kurz span{display:block;white-space:nowrap;text-overflow:ellipsis}
+.calbody .wev.kurz b{flex:0 0 auto}
+.calbody .wev.ganz{display:block;position:static;margin:0 0 2px;padding:3px 6px}
+.calbody .wev.vorbei{opacity:.55}
+.calbody .wev:hover{filter:brightness(1.2);z-index:3}
+
+/* Woche am Handy: Tagesstreifen + ein Tag */
+.kal-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:12px}
+.kal-strip button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 6px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--txt);font:inherit;cursor:pointer}
+.kal-strip span{font-size:10.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.08em}
+.kal-strip b{font-size:17px}
+.kal-strip i{width:5px;height:5px;border-radius:50%}
+.kal-strip i.hat{background:var(--gold)}
+.kal-strip button.heute b{color:var(--gold)}
+.kal-strip button.on{background:var(--gold);border-color:var(--gold)}
+.kal-strip button.on span,.kal-strip button.on b{color:#141210}
+.kal-strip button.on i.hat{background:#141210}
+.kal-tagdetail{padding:14px;margin-bottom:0}
+.kal-tagkopf{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.kal-tagkopf b{font-size:15px}
+
+/* ---------- Monat ---------- */
+.kal-monat{padding:10px;margin-bottom:0}
+.kal-mgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-left:1px solid rgba(255,255,255,.06)}
+.kal-dow{text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--mut);padding:6px 0 10px}
+.kal-zelle{min-height:108px;padding:6px 6px 8px;border-right:1px solid rgba(255,255,255,.06);border-top:1px solid rgba(255,255,255,.06);cursor:pointer;min-width:0;display:flex;flex-direction:column;gap:3px}
+.kal-zelle:hover{background:rgba(255,255,255,.03)}
+.kal-zelle.we{background:rgba(0,0,0,.16)}
+.kal-zelle.fremd .kal-nr,.kal-zelle.fremd .kal-mev{opacity:.4}
+.kal-nr{align-self:flex-end;min-width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.kal-zelle:not(.vorbei) .kal-nr{color:var(--txt)}
+.kal-zelle.heute .kal-nr{background:var(--gold);color:#141210;font-weight:700}
+.kal-zelle.heute{background:rgba(201,169,110,.06)}
+.kal-mev{font-size:11.5px;line-height:1.35;padding:2px 6px;border-radius:5px;border-left:3px solid var(--c);background:color-mix(in srgb,var(--c) 20%,transparent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kal-mev b{font-weight:600;font-variant-numeric:tabular-nums}
+.kal-mev:hover{filter:brightness(1.25)}
+.kal-zelle.vorbei .kal-mev{opacity:.55}
+.kal-mehrev{font-size:11px;color:var(--mut);padding-left:6px}
+.kal-punkte{display:none;gap:3px;justify-content:center;margin-top:auto}
+.kal-punkte i{width:5px;height:5px;border-radius:50%}
+
+@media(max-width:1100px){
+  .kal-liste{grid-template-columns:minmax(0,1fr)}
+  .kal-seite{position:static;order:-1}
+  .kal-mini,.kal-seite .legende{display:none}
+}
+@media(max-width:700px){
+  .kal-head .actions{width:100%;justify-content:space-between}
+  .kal-head .pe-mehr{margin-left:0;order:2}
+  .kal-head .pe-mehr-m{left:auto;right:0}
+  .schnell.kal-schnell{grid-template-columns:1fr auto}
+  .kal-schnell .btn span{display:none}
+  .kal-schnell .btn::before{content:'＋';font-size:18px}
+  .kal-schnell .btn{min-width:48px}
+  .kal-bar{gap:10px}
+  .kal-seg{width:100%;order:-1}
+  .kal-seg button{flex:1;padding:9px 0}
+  .kal-nav{width:100%}
+  .kal-nav b{font-size:20px;margin-left:8px;flex:1;text-align:right}
+  .kal-tage{padding:2px 12px}
+  .kal-tag{grid-template-columns:46px minmax(0,1fr);gap:10px;padding-right:0}
+  .kal-datum b{font-size:25px}
+  .kal-plus{display:none}
+  .kal-kw{margin:0 -12px;padding:8px 12px}
+  .calbody .cev{gap:10px;padding:9px 6px 9px 10px;flex-wrap:wrap}
+  .calbody .cev .zeit{min-width:46px}
+  .calbody .cact a,.calbody .cact button{width:38px;height:38px}
+  .kal-next{display:none}
+  .kal-monat{padding:6px}
+  .kal-zelle{min-height:50px;align-items:center;padding:5px 2px}
+  .kal-nr{align-self:center}
+  .kal-mev,.kal-mehrev{display:none}
+  .kal-punkte{display:flex}
+  .kal-zelle.sel{box-shadow:0 0 0 1.5px var(--gold) inset;border-radius:8px}
+  .kal-monat{margin-bottom:12px}
+}
+@media(hover:none){.kal-plus{opacity:1}}
+
+/* Kopf: Titel links, Knöpfe rechts, Statuszeile darunter */
+.kal-head{align-items:center;gap:6px 14px}
+.kal-head h1{flex:1;min-width:0}
+.kal-status{order:3;flex:1 1 100%;margin:0}
+.kal-akt{flex-wrap:nowrap}
+.kal-mehr summary.btn{display:inline-flex;align-items:center;padding:9px 14px}
+.schnellvor:empty{display:none}
+.kal-ueber summary{list-style:none;cursor:pointer}
+.kal-ueber summary::-webkit-details-marker{display:none}
+.kal-ueber:not([open]) h2{margin-bottom:0}
+.kal-ueber h2::after{content:'▾';margin-left:8px;font-size:11px;color:var(--mut)}
+.kal-ueber[open] h2::after{content:'▴'}
+.kal-ueber h2 span{margin-left:auto}
+@media(max-width:700px){
+  .kal-head .actions{width:auto}
+  .kal-head .pe-mehr{order:0}
+  .kal-nav b{font-size:18px}
+}
+.calbody .wev span{-webkit-line-clamp:var(--z,3)}
+@media(max-width:700px){
+  .kal-tag{display:block;padding:12px 0}
+  .kal-datum{flex-direction:row;align-items:baseline;gap:8px;padding:0;margin-bottom:8px}
+  .kal-datum b{font-size:22px;order:-1}
+  .kal-datum span{font-size:12px}
+  .kal-datum small{font-size:12px}
+  .calbody .cev{flex-wrap:nowrap}
+  .calbody .cact a{display:none}
+}
