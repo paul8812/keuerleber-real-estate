@@ -64,11 +64,13 @@ async function holeAufnahme(text) {
 }
 export const stopp = () => { try { spieler?.pause(); } catch { } spieler = null; try { speechSynthesis.cancel(); } catch { } };
 /** Liest vor; liefert { ok, art: 'elevenlabs' | 'geraet', hinweis } */
-export async function vorlesen(text, bereit = null) {
+/** Aufnahme schon holen, während noch etwas anderes läuft – das Ergebnis an vorlesen() übergeben */
+export const vorbereiten = text => stimmeVerfuegbar() ? holeAufnahme(text).catch(() => '') : Promise.resolve('');
+export async function vorlesen(text, bereit = null, vorab = null) {
   if (stimmeVerfuegbar()) {
     try {
       // Das Audio-Element wurde schon beim Klick angelegt (bereit) – sonst blockt Safari das Abspielen nach dem Laden
-      const a = bereit || new Audio(); spieler = a; a.src = await holeAufnahme(text);
+      const a = bereit || new Audio(); spieler = a; a.src = (vorab && await vorab) || await holeAufnahme(text);
       await new Promise((ja, nein) => { a.onended = ja; a.onerror = () => nein(new Error('Abspielen fehlgeschlagen')); a.play().catch(nein); });
       return { ok: true, art: 'elevenlabs' };
     } catch (e) { if (spieler === null) return { ok: false, art: 'elevenlabs' }; const r = await geraeteStimme(text); return { ok: r, art: 'geraet', hinweis: e.message }; }

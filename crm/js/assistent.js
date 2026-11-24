@@ -8,7 +8,7 @@ import { adresse } from './ui.js';
 import * as ki from './ki.js';
 import { parseTermin, FARBE } from './views/calendar.js';
 import { completeTask } from './views/tasks.js';
-import { vorlesen, stopp, stimmeVerfuegbar, stimmenWahl } from './morgen.js';
+import { vorlesen, vorbereiten, stopp, stimmeVerfuegbar, stimmenWahl } from './morgen.js';
 
 const ARTEN = Object.keys(FARBE), AKT = ['notiz', 'anruf', 'meeting', 'whatsapp', 'besichtigung', 'email'];
 const WT = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
@@ -33,15 +33,15 @@ function wissen() {
   const T = db.all('tasks').filter(t => !t.done || G.neu.has(t.id)).sort((a, b) => (a.faellig || '9').localeCompare(b.faellig || '9')).slice(0, 70);
   const name = id => { const c = id && db.get('contacts', id); return c ? ' | Kontakt ' + ref('K', c.id) + ' ' + fullName(c) : ''; };
   const neu = id => G.neu.has(id) ? ' | IN DIESEM GESPRÄCH ANGELEGT' : '';
-  return [`Heute ist ${WT[new Date().getDay()]}, ${t0}. Uhrzeit ${new Date().toTimeString().slice(0, 5)}.`,
-    'KONTAKTE:', ...K.map(c => `${ref('K', c.id)} ${[c.anrede, c.vorname, c.nachname].filter(Boolean).join(' ')}${c.firma ? ' (' + c.firma + ')' : ''}${c.kategorie ? ' [' + c.kategorie + ']' : ''}`),
-    'OBJEKTE:', ...P.map(p => `${ref('P', p.id)} ${p.titel || ''} | ${adresse(p)}`),
-    'TERMINE (vorgestern bis +45 Tage):', ...E.map(e => `${ref('E', e.id)} ${e.datum} ${e.start ? e.start + (e.ende ? '–' + e.ende : '') : 'ganztägig'} ${e.titel} [${e.art || 'Sonstiges'}]${e.ort ? ' | Ort ' + e.ort : ''}${name(e.contactId)}${e.notiz ? ' | Notiz: ' + String(e.notiz).slice(0, 120) : ''}${neu(e.id)}`),
-    'AUFGABEN (offen):', ...T.map(t => `${ref('T', t.id)} ${t.faellig || 'ohne Datum'} ${String(t.titel).replace(/^⚡ /, '')}${t.prio === 'hoch' ? ' [hoch]' : ''}${t.done ? ' [erledigt]' : ''}${name(t.contactId)}${t.notiz ? ' | Notiz: ' + String(t.notiz).slice(0, 120) : ''}${neu(t.id)}`)].join('\n');
+  // fest = ändert sich im Gespräch kaum (wird bei der KI zwischengespeichert → schnellere Antwort), lauf = aktueller Stand
+  return { fest: ['KONTAKTE:', ...K.map(c => `${ref('K', c.id)} ${[c.anrede, c.vorname, c.nachname].filter(Boolean).join(' ')}${c.firma ? ' (' + c.firma + ')' : ''}${c.kategorie ? ' [' + c.kategorie + ']' : ''}`),
+    'OBJEKTE:', ...P.map(p => `${ref('P', p.id)} ${p.titel || ''} | ${adresse(p)}`)].join('\n'),
+    lauf: [`Heute ist ${WT[new Date().getDay()]}, ${t0}. Uhrzeit ${new Date().toTimeString().slice(0, 5)}.`, 'TERMINE (vorgestern bis +45 Tage):', ...E.map(e => `${ref('E', e.id)} ${e.datum} ${e.start ? e.start + (e.ende ? '–' + e.ende : '') : 'ganztägig'} ${e.titel} [${e.art || 'Sonstiges'}]${e.ort ? ' | Ort ' + e.ort : ''}${name(e.contactId)}${e.notiz ? ' | Notiz: ' + String(e.notiz).slice(0, 120) : ''}${neu(e.id)}`),
+    'AUFGABEN (offen):', ...T.map(t => `${ref('T', t.id)} ${t.faellig || 'ohne Datum'} ${String(t.titel).replace(/^⚡ /, '')}${t.prio === 'hoch' ? ' [hoch]' : ''}${t.done ? ' [erledigt]' : ''}${name(t.contactId)}${t.notiz ? ' | Notiz: ' + String(t.notiz).slice(0, 120) : ''}${neu(t.id)}`)].join('\n') };
 }
 const SYSTEM = `Du bist der persönliche Sprach-Assistent im CRM eines Immobilienvertriebs (Kapitalanlage-Wohnungen). Der Nutzer spricht unterwegs kurze Anweisungen ein; die Spracherkennung schreibt Namen und Straßen oft falsch – ordne sie dem ähnlichsten Kontakt/Objekt zu.
 Du führst ein GESPRÄCH: Der bisherige Verlauf steht in den Nachrichten. Beziehe dich darauf. „der Termin“, „dazu“, „da noch“, „stattdessen“, „doch lieber“, „und trag noch ein …“ meinen fast immer das, was du zuletzt angelegt oder besprochen hast (in den Listen mit „IN DIESEM GESPRÄCH ANGELEGT“ markiert). Lege dafür NICHTS doppelt an, sondern ändere den vorhandenen Eintrag mit termin_aendern bzw. aufgabe_aendern.
-Antworte NUR mit JSON: {"antwort":"...","aktionen":[...]}.
+Antworte NUR mit JSON, "antwort" immer als ERSTES Feld: {"antwort":"...","aktionen":[...]}.
 "antwort" wird vorgelesen: ein bis zwei kurze, natürliche Sätze in Du-Form, ohne Kennungen (K3/E5), ohne Aufzählungszeichen. Bestätige konkret, was du getan hast (z. B. „Alles klar, Besichtigung am Freitag um 14 Uhr mit Herrn Weber steht drin.“). Wenn es naheliegt, biete EINEN sinnvollen nächsten Schritt an oder frage nach einer fehlenden wichtigen Angabe (z. B. Uhrzeit). Nicht bei jeder Antwort eine Frage stellen.
 Mögliche Aktionen:
 {"typ":"termin","titel":"","datum":"JJJJ-MM-TT","start":"HH:MM","ende":"HH:MM","art":"${ARTEN.join('|')}","kontakt":"K3","objekt":"P1","ort":"","notiz":""}
@@ -57,12 +57,15 @@ Regeln: Felder ohne Angabe weglassen. Ohne Uhrzeit ist ein Termin ganztägig (st
 Fragen („was steht heute an“, „wann ist der Notartermin“, „was habe ich gerade eingetragen“) beantwortest du in "antwort" aus den Daten und dem Verlauf, mit leeren "aktionen". Ist etwas wirklich unklar (z. B. zwei passende Kontakte), frage kurz nach und lass "aktionen" leer.`;
 
 // ---------- Verstehen ----------
-async function verstehen(satz) {
+async function verstehen(satz, frueh) {
   if (Date.now() - G.zuletzt > 30 * 60000) vergessen();   // nach einer halben Stunde Pause beginnt ein neues Gespräch
   G.zuletzt = Date.now();
   if (ki.hasKey()) {
     const frage = (G.zusatz ? `(Ergebnis deiner letzten Aktionen: ${G.zusatz})\n` : '') + satz;
-    const j = await ki.dialog(SYSTEM + '\n\nAKTUELLER STAND DES CRM:\n' + wissen(), [...G.verlauf, { role: 'user', content: frage }]);
+    const W = wissen(); let gemeldet = false;
+    // Sobald der Antwortsatz vollständig da ist (er steht im JSON vorn), geht er schon an die Sprachausgabe
+    const j = await ki.dialogStrom([{ type: 'text', text: SYSTEM + '\n\nSTAMMDATEN DES CRM:\n' + W.fest, cache_control: { type: 'ephemeral' } }, { type: 'text', text: 'AKTUELLER STAND:\n' + W.lauf }], [...G.verlauf, { role: 'user', content: frage }],
+      { onText: t => { if (gemeldet || !frueh) return; const m = /"antwort"\s*:\s*"((?:[^"\\]|\\.)*)"/.exec(t); if (m) { gemeldet = true; try { frueh(JSON.parse('"' + m[1] + '"')); } catch { } } } });
     const r = { antwort: String(j.antwort || ''), aktionen: Array.isArray(j.aktionen) ? j.aktionen : [], ki: true };
     G.verlauf.push({ role: 'user', content: frage }, { role: 'assistant', content: JSON.stringify({ antwort: r.antwort, aktionen: r.aktionen }) });
     if (G.verlauf.length > 16) G.verlauf.splice(0, G.verlauf.length - 16);
@@ -153,7 +156,9 @@ const SR = () => window.SpeechRecognition || window.webkitSpeechRecognition;
 let ton = null;
 const STILLE = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
 function tonBereit() { try { if (!stimmeVerfuegbar() || localStorage.getItem('kre-assi-stumm') === '1') return; if (!ton) ton = new Audio(); ton.src = STILLE; ton.play().catch(() => { }); } catch { } }
-async function sag(text) { try { if (!text || localStorage.getItem('kre-assi-stumm') === '1') return; stopp(); await vorlesen(text.replace(/[▦✓📝📞☺🗑⚠]/g, '').slice(0, 700), stimmeVerfuegbar() ? ton : null); } catch { } }
+const sauberText = t => String(t || '').replace(/[▦✓📝📞☺🗑⚠]/g, '').slice(0, 700);
+/** vorab/vorabText: bereits angeforderte Aufnahme für genau diesen Text (spart die Wartezeit) */
+async function sag(text, vorab = null, vorabText = '') { try { if (!text || localStorage.getItem('kre-assi-stumm') === '1') return; const t = sauberText(text); stopp(); await vorlesen(t, stimmeVerfuegbar() ? ton : null, vorab && vorabText === t ? vorab : null); } catch { } }
 
 export function oeffnen() {
   if (offen) return offen.querySelector('input')?.focus();
@@ -180,7 +185,8 @@ export function oeffnen() {
     satz = String(satz || '').trim(); if (!satz) return;
     log.querySelector('.assi-tipp')?.remove(); zeile('ich', satz); const warte = zeile('er warte', '…');
     try {
-      const r = await verstehen(satz); warte.remove();
+      let vorab = null, vorabText = '';
+      const r = await verstehen(satz, t => { if (t && localStorage.getItem('kre-assi-stumm') !== '1') { vorabText = sauberText(t); vorab = vorbereiten(vorabText); } }); warte.remove();
       const gesagt = [], kurz = [];
       for (const a of r.aktionen.slice(0, 6)) {
         const x = await ausfuehren(a), z = zeile('er ' + (x.fehler ? 'fehler' : x.bestaetigen ? 'frage' : 'ok'), x.text); if (x.kurz) kurz.push(x.kurz);
@@ -190,7 +196,7 @@ export function oeffnen() {
       if (kurz.length) G.zusatz = (G.zusatz ? G.zusatz + ' ' : '') + kurz.join('; ') + '.';
       if (r.antwort && (!r.aktionen.length || r.ki)) zeile('er', r.antwort);
       const wartet = r.aktionen.length && r.aktionen.some(a => /loeschen|aendern/.test(a.typ)) && log.querySelector('.assi-z.frage .assi-b');
-      await sag(wartet ? gesagt.join('. ') : r.aktionen.length ? (r.antwort || 'Erledigt. ' + gesagt.join('. ')) : r.antwort);
+      await sag(wartet ? gesagt.join('. ') : r.aktionen.length ? (r.antwort || 'Erledigt. ' + gesagt.join('. ')) : r.antwort, vorab, vorabText);
       // Rückfrage des Assistenten nach einer Spracheingabe → gleich wieder zuhören
       if (perStimme && offen && !r.aktionen.length && /\?\s*$/.test(r.antwort) && SR() && !rec) mik.click();
     } catch (e) { warte.remove(); zeile('er fehler', '⚠ ' + (e.message || 'Fehler')); }
