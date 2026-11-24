@@ -14,7 +14,7 @@
 <meta property="og:title" content="Theodor-Körner-Straße: 6 kernsanierte Wohnungen"><meta property="og:description" content="Kernsaniert · 2 Zimmer · 53–61 m². Jetzt virtuell besichtigen.">
 <meta property="og:url" content="https://keuerleber-immobilien.de/theodor-k%C3%B6rner-stra%C3%9Fe/"><meta property="og:image" content="https://keuerleber-immobilien.de/theodor-k%C3%B6rner-stra%C3%9Fe/bilder/og.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="projekt.css?v=4">
+<link rel="stylesheet" href="projekt.css?v=5">
 </head>
 <body class="locked">
 
@@ -35,32 +35,31 @@
 <main>
 <!-- 1 HERO -->
 <section class="hero" id="start" aria-labelledby="h1">
-  <div class="hero-bg" aria-hidden="true"><img src="bilder/hero-mobil.webp" alt=""></div>
+  <div class="hero-bg" aria-hidden="true"><img src="bilder/hero-360.webp" alt=""></div>
   <div class="hero-in">
     <div class="hero-txt">
       <p class="welcome" id="welcome"></p>
-      <p class="lbl" id="ort">Theodor-Körner-Straße · Hof · Nur 6 Wohnungen</p>
-      <h1 id="h1">Kernsaniert. Modern. <em>Steuerlich attraktiv.</em></h1>
-      <p class="lead">2-Zimmer-Wohnungen mit 53–61&nbsp;m², neuer Einbauküche und Balkon – ideal zum Selbstbewohnen oder als Kapitalanlage mit voraussichtlich <b style="color:#fff">4–5&nbsp;% AfA*</b>.</p>
+      <p class="lbl">Virtueller 360°-Rundgang · Hof</p>
+      <h1 id="h1">Ihre neue Wohnung. <em>In 360° besichtigen.</em></h1>
+      <p class="lead">Gehen Sie Raum für Raum durch die kernsanierte Wohnung – vom Wohnzimmer bis auf den Balkon. Jetzt sofort, ohne Termin, bequem am Handy oder PC.</p>
       <div class="btns">
-        <a class="btn" href="rundgang/?apt=01">Wohnung 01 in 360° ansehen</a>
-        <button class="btn-g" type="button" data-gate="hero" data-tour="02">Alle 6 Wohnungen freischalten</button>
+        <a class="btn" href="rundgang/?apt=01">Rundgang starten</a>
+        <button class="btn-g" type="button" data-gate="hero" data-tour="02">Alle 6 Wohnungen in 360°</button>
       </div>
       <p class="avail" id="avail" hidden><i class="dot" aria-hidden="true"></i><span></span></p>
-      <div class="trust"><span>Nur 6 Einheiten</span><span>Referenzprojekt: 6 von 6 verkauft</span><span>Persönlich in Hof</span></div>
-      <p class="hint" style="margin-top:14px">Rundgänge und Nachher-Bilder sind Visualisierungen – Ausführung kann abweichen. *Nur bei Vermietung und mit Gutachten, <a href="#steuervorteil" style="color:inherit">Details unten</a>.</p>
+      <div class="trust"><span>Wohnung 01 ohne Anmeldung</span><span>Möbliert, Raum für Raum</span><span>Auch am Handy</span></div>
     </div>
-    <div class="hero-media">
-      <video id="heroVid" muted playsinline loop preload="metadata" poster="bilder/hero-mobil.webp" aria-label="Drohnenaufnahme des Hauses, Stand Oktober 2026">
-        <source src="bilder/hero-mobil.mp4" type="video/mp4">
-      </video>
-      <span class="tag">Heute · Oktober 2026</span>
-    </div>
+    <a class="hero-media pano" href="rundgang/?apt=01" aria-label="360°-Rundgang Wohnung 01 starten">
+      <div class="pan" id="heroPan" aria-hidden="true"></div>
+      <span class="play" aria-hidden="true"><b>360°</b><small>Starten</small></span>
+      <span class="tag">Wohnung 01 · Visualisierung</span>
+      <span class="drag" aria-hidden="true">Rundum schauen, Räume wechseln, auf den Balkon</span>
+    </a>
   </div>
 </section>
 
 <div class="stats" aria-label="Kennzahlen">
-  <div class="stat"><b>Nur 6</b><span>Wohnungen</span></div>
+  <div class="stat"><b>6 × 360°</b><span>Wohnungen begehbar</span></div>
   <div class="stat"><b>53–61 m²</b><span>2 Zimmer</span></div>
   <div class="stat"><b>4–5 %*</b><span>AfA voraussichtlich</span></div>
   <div class="stat"><b>5 von 6</b><span>mit Balkon</span></div>
@@ -69,8 +68,8 @@
 <!-- 4 WOHNUNGEN -->
 <section class="sec" id="wohnungen" aria-labelledby="h-un">
   <div class="wrap">
-    <p class="lbl">Die Wohnungen</p>
-    <h2 id="h-un">Ihre neue Wohnung. <em>Schon heute begehbar.</em></h2>
+    <p class="lbl">Alle Rundgänge</p>
+    <h2 id="h-un">Wählen Sie Ihre <em>Wohnung.</em></h2>
     <p class="lead">Wohnung 01 sofort in 360° ansehen. Für alle sechs Wohnungen und das 3D-Modell einmal kostenlos freischalten – in 30 Sekunden.</p>
     <div class="units" id="units"></div>
     <div class="disc-box" role="note" style="margin-top:22px"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16.5v.5"/></svg><p><b>Alle Wohnungsbilder und Rundgänge sind Visualisierungen.</b> Möblierung beispielhaft, Ausführung kann abweichen. Flächen laut Grundriss (Balkon zur Hälfte angerechnet).</p></div>
@@ -321,7 +320,7 @@
   </div>
 </footer>
 
-<script src="projekt.js?v=4" defer></script>
+<script src="projekt.js?v=5" defer></script>
 <script src="/consent.js?v=2" defer></script>
 <script src="/lead-sync.js?v=2" defer></script>
 </body>

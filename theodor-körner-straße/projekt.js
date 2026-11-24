@@ -78,7 +78,7 @@ var WE = [
   function angesehenListe() { try { return JSON.parse(sessionStorage.getItem('kp_tks_seen') || '[]').join(', '); } catch (e) { return ''; } }
 
   /* ---------- Zusatz-Kacheln & Texte aus PROJEKT ---------- */
-  if (PROJEKT.ort) $('#ort').textContent = PROJEKT.ort;
+  if (PROJEKT.ort && $('#ort')) $('#ort').textContent = PROJEKT.ort;
   if (PROJEKT.adresse) $('#adresse').textContent = PROJEKT.adresse;
   var extra = [['energie', 'Energie', '<path d="M13 2L3 14h9l-1 8 10-12h-9z"/>'], ['heizung', 'Heizung', '<path d="M8 2v4M12 2v4M16 2v4M4 10h16v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/>'],
     ['stellplatz', 'Stellplatz', '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/>'], ['bezug', 'Bezug', '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>']];
@@ -246,6 +246,14 @@ var WE = [
     new IntersectionObserver(function (en) { en.forEach(function (x) { if (x.isIntersecting) { var p = v.play(); if (p && p.catch) p.catch(function () {}); } else v.pause(); }); }, { threshold: .2 }).observe(v);
   }
 
+
+  /* ---------- Hero-Panorama: nahtlose Drehung ---------- */
+  (function () {
+    var el = document.getElementById('heroPan'); if (!el) return;
+    var im = new Image();
+    function set() { if (!im.naturalWidth) return; var tw = el.clientHeight * im.naturalWidth / im.naturalHeight; el.style.setProperty('--tw', tw + 'px'); el.style.setProperty('--dur', Math.round(tw / 28) + 's'); }
+    im.onload = set; im.src = 'bilder/hero-360.webp'; window.addEventListener('resize', set);
+  })();
 
   /* ---------- AfA-Beispielrechnung ---------- */
   (function () {
