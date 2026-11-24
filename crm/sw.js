@@ -1,7 +1,7 @@
 // Keuerleber CRM – App-Dateien fürs Öffnen ohne Netz (Handy im Funkloch, Zug, Keller).
 // Immer zuerst frisch aus dem Netz; nur wenn kein Netz da ist (oder es länger als 4 s hängt), die zuletzt geladene Fassung.
 // Daten (Supabase), Telegram usw. werden nie angefasst – die laufen über den Gerätespeicher der App.
-const CACHE = 'kre-crm-app-v26';
+const CACHE = 'kre-crm-app-v27';
 const START = ['./', './index.html', './style.css', './css/social.css', './css/haptik.css', './css/fahrten.css', './css/politur.css', './css/anfragen.css', './css/dashboard.css', './css/expose.css', './css/unterlagen.css', './css/posteingang.css', './css/kundenlinks.css', './css/angebote.css', './css/kalender.css', './css/vorlagen.css', './css/assistent.css', './manifest.webmanifest', './vendor/supabase.js?v=2.45.4'];
 const eigen = u => { try { return new URL(u, self.location.href).origin === self.location.origin; } catch { return false; } };
 
