@@ -1,7 +1,7 @@
 // Keuerleber CRM – Text vorlesen (Supabase Edge Function „sprache“).
 //
 // Macht aus einem kurzen Text (Morgen-Briefing) eine Sprachaufnahme mit einer ElevenLabs-Stimme.
-//   POST { text }   mit dem Login des CRM-Benutzers (Authorization: Bearer <Sitzung>)   → audio/mpeg
+//   POST { text, stimme? }   (stimme = ElevenLabs-Voice-ID, im CRM wählbar)   mit dem Login des CRM-Benutzers (Authorization: Bearer <Sitzung>)   → audio/mpeg
 //   POST { pruefen: true } → { ok, eingerichtet }
 // Der ElevenLabs-Schlüssel liegt nur hier als Secret ELEVENLABS_API_KEY – nie im Browser und nie im Repository.
 // Stimme: Secret ELEVENLABS_VOICE_ID (sonst die unten hinterlegte ruhige deutsche Stimme). Keine Texte in Logs.
@@ -10,7 +10,7 @@ const SB_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const erster = (name: string) => { try { return Object.values(JSON.parse(Deno.env.get(name) ?? "{}") as Record<string, string>)[0] ?? ""; } catch { return ""; } };
 const SB_ANON = Deno.env.get("SUPABASE_ANON_KEY") || erster("SUPABASE_PUBLISHABLE_KEYS");
 const KEY = Deno.env.get("ELEVENLABS_API_KEY") ?? "";
-const STIMME = Deno.env.get("ELEVENLABS_VOICE_ID") || "MMwckqU477oQxnAk1SgA";   // „Ben – Conversational Voice“: ruhig, natürlich, deutsch
+const STIMME = Deno.env.get("ELEVENLABS_VOICE_ID") || "z1EhmmPwF0ENGYE8dBE6";   // „Christian Plasa – Conversational“: warm, natürlich, deutsch
 const MODELL = Deno.env.get("ELEVENLABS_MODEL") || "eleven_multilingual_v2";
 const MAX = 900;
 const CORS = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type, authorization, apikey, x-client-info", "access-control-allow-methods": "POST, OPTIONS" };
@@ -39,9 +39,10 @@ Deno.serve(async (req) => {
   if (!text) return antwort({ ok: false, fehler: "Kein Text" }, 400);
   if (text.length > MAX) return antwort({ ok: false, fehler: `Text zu lang (höchstens ${MAX} Zeichen)` }, 413);
   try {
-    const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(STIMME)}?output_format=mp3_44100_128`, {
+    const stimme = /^[A-Za-z0-9]{15,40}$/.test(String(b.stimme ?? "")) ? String(b.stimme) : STIMME;
+    const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(stimme)}?output_format=mp3_44100_128`, {
       method: "POST", headers: { "xi-api-key": KEY, "content-type": "application/json", accept: "audio/mpeg" },
-      body: JSON.stringify({ text, model_id: MODELL, voice_settings: { stability: 0.6, similarity_boost: 0.8, style: 0.1, speed: 0.97 } }),
+      body: JSON.stringify({ text, model_id: MODELL, voice_settings: { stability: 0.45, similarity_boost: 0.8, style: 0.2, use_speaker_boost: true, speed: 1.0 } }),
     });
     if (!r.ok) {
       let grund = ""; try { const j = await r.json(); grund = String(j?.detail?.message ?? j?.detail?.status ?? "").slice(0, 160); } catch { /* egal */ }
