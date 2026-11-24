@@ -265,7 +265,7 @@ footer a{color:#cfc8bb;text-decoration:none}footer a:hover{color:#fff}
 
 /* ---------- Steuervorteil ---------- */
 .tax{display:grid;grid-template-columns:1.15fr 1fr;gap:clamp(16px,3vw,40px);margin-top:34px;align-items:start}
-.tax-steps{list-style:none;counter-reset:t;display:grid;gap:14px;padding:0;margin:0}
+.x-old-tax-steps{list-style:none;counter-reset:t;display:grid;gap:14px;padding:0;margin:0}
 .tax-steps li{counter-increment:t;position:relative;padding:20px 20px 20px 70px;background:var(--card);border:1px solid var(--line);border-radius:20px}
 .tax-steps li::before{content:counter(t);position:absolute;left:20px;top:18px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700;color:var(--ink);background:var(--gold)}
 .tax-steps b{display:block;font-size:18px;color:#fff;margin-bottom:6px}.tax-steps span{font-size:15px;color:var(--mu);line-height:1.6}
@@ -283,3 +283,22 @@ footer a{color:#cfc8bb;text-decoration:none}footer a:hover{color:#fff}
 .tc-sum{margin-top:14px;font-size:14.5px;color:#fff;line-height:1.5}.tc-sum b{color:var(--g1)}
 @media(max-width:860px){.tax{grid-template-columns:1fr}}
 @media(max-width:420px){.tax-calc input,.tax-calc select{width:130px}.tax-steps li{padding-left:62px}.tax-steps li::before{left:16px}}
+
+/* ---------- Umbau v4 ---------- */
+.vt .fact{min-height:170px;text-decoration:none}
+.fact.gold{border-color:rgba(217,188,127,.45);background:linear-gradient(150deg,rgba(217,188,127,.16),rgba(217,188,127,.03));transition:border-color .2s}
+.fact.gold:hover{border-color:var(--g1)}.fact.gold b{color:var(--g1)}
+.tax-pts{list-style:none;padding:0;margin:22px 0 0;display:grid;gap:10px}
+.tax-pts li{position:relative;padding-left:30px;color:var(--mu);font-size:16px}.tax-pts b{color:#fff}
+.tax-pts li::before{content:"";position:absolute;left:0;top:4px;width:18px;height:18px;border-radius:50%;background:var(--gold)}
+.tax-pts li::after{content:"";position:absolute;left:6px;top:8px;width:6px;height:9px;border:solid var(--ink);border-width:0 2px 2px 0;transform:rotate(45deg)}
+details.more,.qa details{border:1px solid var(--line);border-radius:16px;background:var(--card);margin-top:18px}
+details.more summary,.qa summary{cursor:pointer;list-style:none;padding:16px 48px 16px 18px;font-weight:600;color:#fff;position:relative}
+details.more summary::-webkit-details-marker,.qa summary::-webkit-details-marker{display:none}
+details.more summary::after,.qa summary::after{content:"+";position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:22px;font-weight:400;color:var(--g1)}
+details[open].more summary::after,.qa details[open] summary::after{content:"–"}
+details.more p,.qa details p{padding:0 18px 18px;color:var(--mu);font-size:15px;line-height:1.6}
+.faq{display:grid;grid-template-columns:.8fr 1.2fr;gap:clamp(20px,4vw,60px);align-items:start}
+.qa details{margin-top:0;margin-bottom:10px}
+@media(max-width:860px){.faq{grid-template-columns:1fr}}
+@media(min-width:561px){.vn-pic{aspect-ratio:1/1}.vn-pic img{object-position:50% 55%}}
