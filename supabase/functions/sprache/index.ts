@@ -11,7 +11,8 @@ const erster = (name: string) => { try { return Object.values(JSON.parse(Deno.en
 const SB_ANON = Deno.env.get("SUPABASE_ANON_KEY") || erster("SUPABASE_PUBLISHABLE_KEYS");
 const KEY = Deno.env.get("ELEVENLABS_API_KEY") ?? "";
 const STIMME = Deno.env.get("ELEVENLABS_VOICE_ID") || "z1EhmmPwF0ENGYE8dBE6";   // „Christian Plasa – Conversational“: warm, natürlich, deutsch
-const MODELL = Deno.env.get("ELEVENLABS_MODEL") || "eleven_multilingual_v2";
+// Schnelles Modell: die Stimme soll ohne spürbare Wartezeit kommen (mit ELEVENLABS_MODEL umstellbar, z. B. eleven_multilingual_v2)
+const MODELL = Deno.env.get("ELEVENLABS_MODEL") || "eleven_turbo_v2_5";
 const MAX = 900;
 const CORS = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type, authorization, apikey, x-client-info", "access-control-allow-methods": "POST, OPTIONS" };
 const antwort = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...CORS, "content-type": "application/json", "cache-control": "no-store" } });
@@ -39,10 +40,11 @@ Deno.serve(async (req) => {
   if (!text) return antwort({ ok: false, fehler: "Kein Text" }, 400);
   if (text.length > MAX) return antwort({ ok: false, fehler: `Text zu lang (höchstens ${MAX} Zeichen)` }, 413);
   try {
+    const v25 = /_v2_5$/.test(MODELL);
     const stimme = /^[A-Za-z0-9]{15,40}$/.test(String(b.stimme ?? "")) ? String(b.stimme) : STIMME;
-    const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(stimme)}?output_format=mp3_44100_128`, {
+    const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(stimme)}?output_format=mp3_44100_64`, {
       method: "POST", headers: { "xi-api-key": KEY, "content-type": "application/json", accept: "audio/mpeg" },
-      body: JSON.stringify({ text, model_id: MODELL, voice_settings: { stability: 0.45, similarity_boost: 0.8, style: 0.2, use_speaker_boost: true, speed: 1.0 } }),
+      body: JSON.stringify({ text, model_id: MODELL, ...(v25 ? { language_code: "de" } : {}), voice_settings: { stability: 0.45, similarity_boost: 0.8, style: 0.2, use_speaker_boost: true, speed: 1.0 } }),
     });
     if (!r.ok) {
       let grund = ""; try { const j = await r.json(); grund = String(j?.detail?.message ?? j?.detail?.status ?? "").slice(0, 160); } catch { /* egal */ }

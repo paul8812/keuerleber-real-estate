@@ -38,6 +38,26 @@ export async function dialog(system, messages, { model = MODELL, max_tokens = 10
   const m = txt.match(/\{[\s\S]*\}/); if (!m) throw new Error('KI-Antwort nicht lesbar');
   return JSON.parse(m[0]);
 }
+/** Wie dialog(), aber die Antwort wird schon beim Eintreffen gemeldet (onText mit dem bisherigen Text) – so kann das Vorlesen früher starten.
+ *  system darf eine Liste von Textblöcken sein (mit cache_control für gleichbleibende Teile). */
+export async function dialogStrom(system, messages, { model = MODELL_SCHNELL, max_tokens = 900, onText } = {}) {
+  const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-api-key': key(), 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({ model, max_tokens, system, messages, stream: true }) });
+  if (!r.ok) { const j = await r.json().catch(() => ({})), m = j.error?.message || r.statusText;
+    if (r.status === 401) throw new Error('KI-Schlüssel ungültig – bitte unter Einstellungen → KI-Belegerkennung prüfen.');
+    if (r.status === 402 || /credit|balance|billing/i.test(m)) throw new Error('Kein Guthaben im Anthropic-Konto – bitte unter console.anthropic.com → Billing aufladen.');
+    if (r.status === 429) throw new Error('Zu viele Anfragen gleichzeitig – kurz warten und erneut versuchen.');
+    throw new Error('KI-Fehler: ' + m); }
+  let txt = '';
+  if (!/event-stream/.test(r.headers.get('content-type') || '') || !r.body) { const j = await r.json(); txt = (j.content || []).filter(c => c.type === 'text').map(c => c.text).join(''); onText?.(txt); }
+  else { const leser = r.body.getReader(), dek = new TextDecoder(); let rest = '';
+    for (;;) { const { done, value } = await leser.read(); if (done) break; rest += dek.decode(value, { stream: true });
+      const zeilen = rest.split('\n'); rest = zeilen.pop();
+      for (const z of zeilen) { if (!z.startsWith('data:')) continue; try { const e = JSON.parse(z.slice(5)); if (e.type === 'content_block_delta' && e.delta?.type === 'text_delta') { txt += e.delta.text; onText?.(txt); } else if (e.type === 'error') throw new Error('KI-Fehler: ' + (e.error?.message || 'unbekannt')); } catch (x) { if (/^KI-Fehler/.test(x.message)) throw x; } } } }
+  const m = txt.match(/\{[\s\S]*\}/); if (!m) throw new Error('KI-Antwort nicht lesbar');
+  return JSON.parse(m[0]);
+}
 /** Datei(en)/Text an die KI geben, Antwort als JSON (für Importe wie den myOpel-Fahrtbericht) */
 export async function dateiJson(system, inhalt, { model = MODELL, max_tokens = 8000, frage = 'Bitte als JSON zurückgeben.' } = {}) {
   const block = d => typeof d === 'string' ? { type: 'text', text: d.slice(0, 120000) } : d.kind === 'pdf' ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: d.data } } : { type: 'image', source: { type: 'base64', media_type: d.media_type, data: d.data } };
