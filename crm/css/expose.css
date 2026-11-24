@@ -77,3 +77,7 @@
 .obj-exz:first-of-type{border-top:0}
 .obj-exz span{display:flex;flex-direction:column}.obj-exz b{font-size:17px}.obj-exz small{color:var(--mut);font-size:12px}
 .obj-exz span:last-child b{color:var(--gold)}
+.ex-weg{margin:8px 2px 0;line-height:1.45}
+.ex-rund select{padding:8px 10px}
+.ex-pruef{margin:12px 2px 0;font-weight:500}.ex-pruef.ok{color:var(--ok)}.ex-pruef.warn{color:var(--bad)}
+#ex-vinfo.warn{color:var(--warn)}

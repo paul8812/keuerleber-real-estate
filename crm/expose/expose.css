@@ -6,6 +6,13 @@
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
 
 @page { size: A4; margin: 0; }
+/* Druck: jede Seite minimal niedriger als das Blatt (sonst rutscht bei Rundung ein Rest auf ein leeres Folgeblatt),
+   nie mittendrin umbrechen und nach der letzten Seite kein Umbruch mehr. */
+@media print {
+  html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
+  .page { height: 296.4mm !important; margin: 0 !important; box-shadow: none !important; break-inside: avoid; page-break-inside: avoid; }
+  .page:last-child { break-after: auto !important; page-break-after: auto !important; }
+}
 .page { --cu: #c9a96e; --cu-deep: #8a6f3d; --cu-mid: #a88951; --cu-light: #d9c08a; --gold: #9a7a42;
   --black: #0b0b0b; --line: #e9e3d8; --soft: #f7f4ee; --ink: #141414; --text: #3a3a3a; --mute: #7a7a7a;
   width: 210mm; height: 297mm; box-sizing: border-box; padding: 12mm 16mm 9mm; background: #fff; color: var(--ink);
@@ -119,3 +126,7 @@
 .page.fit2 .row2, .page.fit3 .row2 { min-height: 30mm; } .page.fit2 .ph.mid, .page.fit3 .ph.mid { min-height: 30mm; }
 .page.fit2 .cover-hero, .page.fit3 .cover-hero { min-height: 120mm; }
 .page.fit3 .band, .page.fit3 .kpis { margin-top: 4mm; margin-bottom: 3mm; }
+
+/* fit4: Seite ist trotz kleinerer Schrift zu voll → Bildreihe weglassen, damit kein Text abgeschnitten wird */
+.page.fit4 .row2 { display: none; }
+.page.fit4 .contact { margin-top: 4mm; padding: 4mm 6mm; }

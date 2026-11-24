@@ -3,7 +3,7 @@
 // Auslesen, Kalkulation und Layout stammen aus dem bisherigen Exposé-Tool (js/expose/*).
 import * as db from '../db.js';
 import { html, raw, esc, toast, modal, confirmDlg, uid, today, fmtDate } from '../util.js';
-import { berechne, renderExpose, eur0, eur2, pct, sgn } from '../expose/layout.js';
+import { berechne, kontrolle, einpassen, renderExpose, eur0, eur2, pct, sgn } from '../expose/layout.js';
 import { parse, leer } from '../expose/parse.js';
 import { renderStory, renderAd } from '../expose/social.js';
 import { haptik } from '../haptik.js';
@@ -22,7 +22,14 @@ export function einstellungen() {
 const alle = () => [...(db.all('exposes') || [])].sort((a, b) => (b.created || '').localeCompare(a.created || ''));
 const fehlend = p => ['kaufpreis_partner', 'kaltmiete', 'wohnflaeche'].filter(k => !(+(p.objekt || {})[k] > 0));
 const dateiId = (p, bildId) => `exp-${p.id}-${bildId}`;
-const zahl = v => parseFloat(String(v).replace(/\./g, '').replace(',', '.')) || 0;
+/** Eingabe als Zahl lesen: „156.500“ und „156.500,00“ sind Tausenderpunkte, „64.26“ und „64,26“ Dezimalstellen */
+export function zahl(v) {
+  let t = String(v ?? '').replace(/[^\d.,-]/g, ''); if (!t) return 0;
+  if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.');
+  else if (/^-?\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, '');
+  else if ((t.match(/\./g) || []).length > 1) t = t.replace(/\./g, '');
+  const n = parseFloat(t); return Number.isFinite(n) ? n : 0;
+}
 const de = v => v != null && v !== 0 && v !== '' ? String(v).replace('.', ',') : '';
 export function pdfName(p) {
   const o = p.objekt || {}; let et = (o.etage || '').replace(/\s*Obergeschoss/, '. OG').replace('..', '.'); if (/erdgeschoss/i.test(et)) et = 'EG';
@@ -205,7 +212,10 @@ function detail(el, p) {
         <section class="card ex-s"><h2><i>1</i>Deine Provision</h2>
           <div class="ex-prov"><input type="range" id="ex-range" min="0" max="15" step="0.5" value="${p.aufschlag ?? 8}" aria-label="Provision in Prozent"><label><input type="text" id="ex-pct" inputmode="decimal" value="${de(p.aufschlag ?? 8) || '0'}" aria-label="Provision in Prozent"> %</label></div>
           <div class="ex-zahlen" id="ex-zahlen"></div>
+          <p class="ex-weg muted small" id="ex-rweg"></p>
           <label class="ex-fest"><span>Oder Kaufpreis fest eintragen (€)</span><input type="text" id="ex-fest" inputmode="numeric" value="${p.preis_override ? Math.round(p.preis_override).toLocaleString('de-DE') : ''}" placeholder="leer = Verkäufer-Preis + Provision"></label>
+          <label class="ex-fest ex-rund"><span>Kaufpreis runden auf</span><select id="ex-rund">${[[1, 'gar nicht (auf den Euro genau)'], [100, '100 €'], [500, '500 €'], [1000, '1.000 €']].map(([v, l]) => html`<option value="${v}" ${Number((p.annahmen || {}).rundung ?? s.annahmen.rundung) === v ? raw('selected') : ''}>${l}</option>`)}</select></label>
+          <p class="ex-pruef small" id="ex-pruef" role="status"></p>
         </section>
         <section class="card ex-s"><details id="ex-daten" ${miss.length ? raw('open') : ''}><summary><h2><i>2</i>Objektdaten prüfen<span class="ex-st" id="ex-dst"></span></h2></summary>
           <p class="muted small">Automatisch aus dem Verkäufer-Exposé gelesen. Nur ändern, wenn etwas nicht stimmt – Vorschau und Rechnung passen sich sofort an.</p>
@@ -231,24 +241,34 @@ function detail(el, p) {
   range.oninput = () => setzeProv(parseFloat(range.value) || 0);
   pctIn.oninput = () => setzeProv(zahl(pctIn.value));
   const fest = $('#ex-fest');
-  fest.oninput = () => { const v = Math.round(zahl(fest.value)), vk = +akt().objekt?.kaufpreis_partner || 0;
-    if (v > 0 && vk > 0) { const a = Math.round((v / vk - 1) * 1000) / 10; range.value = Math.min(15, Math.max(0, a)); range.style.setProperty('--p', Math.min(15, Math.max(0, a)) / 15 * 100 + '%'); pctIn.value = de(a) || '0'; sichern({ preis_override: v, aufschlag: a }); }
-    else sichern({ preis_override: null }); };
+  // Fester Kaufpreis: erst übernehmen, wenn er plausibel ist (nicht schon beim ersten getippten Zeichen „1 €“ speichern)
+  const festSetzen = endgueltig => { const v = Math.round(zahl(fest.value)), vk = +akt().objekt?.kaufpreis_partner || 0;
+    fest.classList.remove('miss');
+    if (!fest.value.trim()) { if (akt().preis_override) sichern({ preis_override: null }); return; }
+    if (!(v > 0 && vk > 0) || v < vk * 0.5 || v > vk * 3) { if (endgueltig) { fest.classList.add('miss'); toast(`Der Kaufpreis ${eur0(v)} passt nicht zum Preis vom Verkäufer (${eur0(vk)}) – bitte prüfen`, 'err'); } return; }
+    const a = Math.round((v / vk - 1) * 1000) / 10, r = Math.min(15, Math.max(0, a)); range.value = r; range.style.setProperty('--p', r / 15 * 100 + '%'); pctIn.value = de(a) || '0';
+    sichern({ preis_override: v, aufschlag: a }); if (endgueltig) fest.value = v.toLocaleString('de-DE'); };
+  fest.oninput = () => festSetzen(false); fest.onchange = () => festSetzen(true);
+  $('#ex-rund').onchange = e => { const neu = akt(); sichern({ annahmen: { ...(neu.annahmen || {}), rundung: +e.target.value } }); };
   range.style.setProperty('--p', (p.aufschlag ?? 8) / 15 * 100 + '%');
   el.querySelectorAll('.ex-felder [data-k]').forEach(f => f.addEventListener('input', () => {
     const neu = akt(), k = f.dataset.k, t = f.dataset.t; neu.objekt = { ...neu.objekt }; neu.annahmen = { ...(neu.annahmen || {}) };
-    if (t === 'annahme') { const v = parseFloat(f.value.replace(',', '.')); if (isNaN(v)) delete neu.annahmen[k]; else neu.annahmen[k] = v; }
+    if (t === 'annahme') { const v = f.value.trim() === '' ? NaN : zahl(f.value); if (isNaN(v) || v < 0 || v > 100) delete neu.annahmen[k]; else neu.annahmen[k] = v; }
     else if (t === 'root') neu[k] = f.value.trim();
     else neu.objekt[k] = t === 'text' ? f.value.trim() : t === 'bool' ? f.value === 'true' : t === 'wahl' ? f.value : zahl(f.value);
     if (k === 'restnutzungsdauer') neu.objekt[k] = Math.round(neu.objekt[k]);
+    let fix;   // neuer Verkäufer-Preis: ein fest eingetragener Kaufpreis gilt nicht mehr, es zählt wieder Verkäufer-Preis + Provision
+    if (k === 'kaufpreis_partner' && neu.preis_override) { fix = null; fest.value = ''; pctIn.value = de(Math.min(15, Math.max(0, neu.aufschlag ?? 8))) || '0'; }
     if (k === 'strasse' || k === 'ort') { neu.name = `${neu.objekt.strasse || ''} ${neu.objekt.ort || ''}`.trim() || neu.name; el.querySelector('.ex-kopft h1').textContent = neu.name; }
     if (k === 'vermietung_status' && neu.pages) {      // Texte passend neu schreiben, eigene Zahlen behalten
       try { const r = parse(neu.pages, (neu.images || []).map(i => ({ ...i })), f.value); neu.texte = r.texte; neu.objekt.vermietung = r.objekt.vermietung; } catch { /* Texte bleiben */ }
     }
-    sichern({ objekt: neu.objekt, annahmen: neu.annahmen, name: neu.name, texte: neu.texte, story_titel: neu.story_titel || '' });
+    sichern({ objekt: neu.objekt, annahmen: neu.annahmen, name: neu.name, texte: neu.texte, story_titel: neu.story_titel || '', ...(fix === null ? { preis_override: null, aufschlag: Math.min(15, Math.max(0, neu.aufschlag ?? 8)) } : {}) });
   }));
   $('#ex-go').onclick = async () => {
     const cur = akt(); if (fehlend(cur).length) { $('#ex-daten').open = true; return toast('Bitte erst die rot markierten Werte ergänzen', 'err'); }
+    const fehler = kontrolle(cur, einstellungen()); if (fehler.length) return toast('Die Rechnung ist nicht stimmig – PDF wird nicht erstellt: ' + fehler[0], 'err');
+    try { const vd = $('#ex-frame').contentDocument, voll = z.format === 'expose' && vd ? einpassen(vd) : []; if (voll.length) toast(`Achtung: Seite ${voll.join(', ')} ist zu voll, dort wird Text abgeschnitten – bitte Texte kürzen`, 'err'); } catch { /* Vorschau nicht offen */ }
     // Druckansicht ist eine eigene Seite (crm/expose/druck.html); sie holt sich die fertigen Seiten aus diesem Fenster
     await bilderVon(cur); window.__exposeDruck = { titel: pdfName(cur), html: seitenHtml(cur) };
     const w = window.open(BASIS + 'druck.html', '_blank'); if (!w) return toast('Das Fenster wurde blockiert – bitte Pop-ups für das CRM erlauben', 'err');
@@ -279,6 +299,9 @@ function aktualisieren(el, p, mitVorschau) {
   const z2 = (l, v, cls = '') => `<div class="${cls}"><span>${l}</span><b>${v}</b></div>`;
   zl.innerHTML = z2('Preis vom Verkäufer', ok ? eur0(c.basis) : '–') + z2('Dein Kaufpreis', ok ? eur0(c.kp) : '–', 'haupt') + z2('Deine Provision', ok ? '+ ' + eur0(c.marge) : '–', 'gold')
     + z2('Brutto-Rendite', ok ? pct(c.rendite) : '–') + z2('Cashflow vor Steuern', ok ? sgn(c.vorSt, eur2) : '–', ok ? (c.vorSt < 0 ? 'neg' : 'pos') : '') + z2('Cashflow nach Steuern', ok ? sgn(c.nachSt, eur2) : '–', ok ? (c.nachSt < 0 ? 'neg' : 'pos') : '');
+  const rw = el.querySelector('#ex-rweg'); if (rw) rw.textContent = !ok ? '' : c.fest ? `Kaufpreis fest eingetragen: ${eur0(c.kp)} – das sind ${pct(c.aufschlagEcht, 1)} auf den Preis vom Verkäufer.`
+    : `${eur0(c.basis)} + ${de(p.aufschlag || 0) || '0'} % = ${eur0(c.basis * (1 + (+p.aufschlag || 0) / 100))}${c.rundung > 1 ? `, gerundet auf ${c.rundung.toLocaleString('de-DE')} € = ${eur0(c.kp)}` : ''}${Math.abs(c.aufschlagEcht - (+p.aufschlag || 0)) >= 0.05 ? ` (tatsächlich ${pct(c.aufschlagEcht, 1)})` : ''}`;
+  const pf = el.querySelector('#ex-pruef'); if (pf) { const F = ok ? kontrolle(p, s) : []; pf.className = 'ex-pruef small ' + (!ok ? '' : F.length ? 'warn' : 'ok'); pf.textContent = !ok ? '' : F.length ? '⚠ Rechnung nicht stimmig: ' + F[0] : '✓ Rechnung doppelt geprüft – alle Zeilen und Summen stimmen'; }
   el.querySelectorAll('.ex-felder input[data-k]').forEach(i => i.classList.toggle('miss', miss.includes(i.dataset.k)));
   const st = el.querySelector('#ex-dst'); st.textContent = ok ? '✓ vollständig' : `${miss.length} Wert${miss.length === 1 ? '' : 'e'} fehl${miss.length === 1 ? 't' : 'en'}`; st.className = 'ex-st ' + (ok ? 'ok' : 'warn');
   const go = el.querySelector('#ex-go'); go.textContent = p.pdfDatum ? 'Exposé neu als PDF erstellen' : 'Exposé als PDF erstellen';
@@ -291,7 +314,8 @@ async function vorschau(el, p) {
   await bilderVon(p);
   const f = z.format, breite = FORMATE[f][1];
   const info = el.querySelector('#ex-vinfo'), fertig = () => { try { const d = fr.contentDocument, n = d.querySelectorAll('.page, .story, .ad').length; fr.style.width = breite + 'px'; fr.style.height = Math.max(d.body.scrollHeight, d.documentElement.scrollHeight) + 'px';
-    if (info) info.textContent = (f === 'expose' ? `${n} Seiten` : f === 'story' ? `${n} Story-Bilder` : 'Anzeige 4:5') + ` · ${de(p.aufschlag || 0) || '0'} % Provision`; skalieren(); } catch { /* Rahmen weg */ } };
+    const voll = f === 'expose' ? einpassen(d) : [];
+    if (info) { info.textContent = (f === 'expose' ? `${n} Seiten` : f === 'story' ? `${n} Story-Bilder` : 'Anzeige 4:5') + ` · ${de(p.aufschlag || 0) || '0'} % Provision` + (voll.length ? ` · ⚠ Seite ${voll.join(', ')} ist zu voll – Text kürzen` : ''); info.classList.toggle('warn', !!voll.length); } skalieren(); } catch { /* Rahmen weg */ } };
   if (fr.dataset.fmt === f && fr.contentDocument?.querySelector('#out')) { fr.contentDocument.getElementById('out').innerHTML = seitenHtml(p, f); fertig(); setTimeout(fertig, 400); }
   else { fr.dataset.fmt = f; fr.onload = () => { fertig(); setTimeout(fertig, 500); setTimeout(fertig, 1500); }; fr.srcdoc = dokument(p, f); }
 }

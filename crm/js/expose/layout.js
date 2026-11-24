@@ -10,33 +10,81 @@ export const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&': '&amp;', 
 
 // Alle angezeigten Werte werden gerundet und JEDE Summe aus den gerundeten Werten gebildet,
 // damit jede Zeile im Exposé exakt nachrechenbar ist.
+// Gerechnet wird in ganzen Zahlen (Euro bzw. Cent, Prozentsätze in Tausendstel-Prozent) – so gibt es keine
+// Rundungsfehler durch Kommazahlen; gerundet wird kaufmännisch (ab ,5 vom Betrag weg).
 export const r0 = n => Math.round(n), r2 = n => Math.round(n * 100) / 100;
+const zahlOder = (v, sonst = 0) => { const n = typeof v === 'string' ? parseFloat(v.replace(',', '.')) : +v; return Number.isFinite(n) ? n : sonst; };
+/** ganzzahlige Division, kaufmännisch gerundet */
+export const teile = (z, n) => { if (!n) return 0; const neg = (z < 0) !== (n < 0), q = Math.floor((2 * Math.abs(z) + Math.abs(n)) / (2 * Math.abs(n))); return neg ? -q : q; };
+const P = x => Math.round(zahlOder(x) * 1000);     // Prozent → Tausendstel-Prozent
+const C = x => Math.round(zahlOder(x) * 100);      // Euro → Cent
 export function berechne(p, s) {
   const o = p.objekt || {}, a = Object.assign({}, s.annahmen, p.annahmen || {});
-  const basis = +o.kaufpreis_partner || 0;
-  const rd = +a.rundung || 100;
-  const kp = p.preis_override ? r0(+p.preis_override) : Math.round(basis * (1 + (+p.aufschlag || 0) / 100) / rd) * rd;
-  const nk = r0(kp * a.nebenkosten / 100);
-  const ek = nk + r0(kp * a.ek_quote / 100);
+  for (const k of ['ek_quote', 'zins', 'tilgung', 'nebenkosten', 'steuersatz', 'gebaeudeanteil', 'afa_standard']) a[k] = zahlOder(a[k], zahlOder(s.annahmen[k]));
+  const basis = zahlOder(o.kaufpreis_partner), rd = Math.max(1, Math.round(zahlOder(a.rundung, 100)));
+  const fest = zahlOder(p.preis_override) > 0;
+  const kp = fest ? Math.round(zahlOder(p.preis_override)) : teile(C(basis) * (100000 + P(p.aufschlag)), 100 * 100000 * rd) * rd;
+  const nk = teile(kp * P(a.nebenkosten), 100000);
+  const ek = nk + teile(kp * P(a.ek_quote), 100000);
   const darlehen = kp + nk - ek;
-  const rate = r2(darlehen * (a.zins + a.tilgung) / 100 / 12);
-  const miete = r2(+o.kaltmiete || 0), hgnu = r2(+o.hausgeld_nicht_umlagefaehig || 0);
-  const vorSt = r2(miete - rate - hgnu);
-  const rnd = +o.restnutzungsdauer || 0;
-  // fester AfA-Satz pro Objekt (z. B. aus Pauls eigener Rechnung) hat Vorrang vor 1/RND
-  const afaSatz = +o.afa_satz ? r2(+o.afa_satz) : rnd > 0 ? r2(100 / rnd) : a.afa_standard;
-  const gebaeude = r0(kp * a.gebaeudeanteil / 100);
-  const afa = r0(gebaeude * afaSatz / 100);
-  const afaStd = r0(gebaeude * a.afa_standard / 100);
-  const miete12 = r0(miete * 12), zinsen = r0(darlehen * a.zins / 100), hg12 = r0(hgnu * 12);
+  const rateC = teile(darlehen * (P(a.zins) + P(a.tilgung)), 12000);              // Cent pro Monat
+  const mieteC = C(o.kaltmiete), hgnuC = C(o.hausgeld_nicht_umlagefaehig);
+  const vorStC = mieteC - rateC - hgnuC;
+  const rnd = Math.max(0, Math.round(zahlOder(o.restnutzungsdauer)));
+  // fester AfA-Satz pro Objekt (z. B. aus Pauls eigener Rechnung) hat Vorrang vor 1/RND; Satz in Hundertstel-Prozent
+  const afaH = zahlOder(o.afa_satz) > 0 ? Math.round(zahlOder(o.afa_satz) * 100) : rnd > 0 ? teile(10000, rnd) : Math.round(a.afa_standard * 100);
+  const gebaeude = teile(kp * P(a.gebaeudeanteil), 100000);
+  const afa = teile(gebaeude * afaH, 10000);
+  const afaStd = teile(gebaeude * P(a.afa_standard), 100000);
+  const miete12 = teile(mieteC * 12, 100), zinsen = teile(darlehen * P(a.zins), 100000), hg12 = teile(hgnuC * 12, 100);
   const ergebnis = miete12 - afa - zinsen - hg12;
-  const steuer = r0(-ergebnis * a.steuersatz / 100);          // positiv = Ersparnis, pro Jahr
-  const steuerMonat = r2(steuer / 12);
-  const nachSt = r2(vorSt + steuerMonat);
-  return {a, basis, kp, nk, ek, darlehen, rate, miete, hgnu, vorSt, rnd, afaSatz, gebaeude, afa, afaStd,
-    miete12, zinsen, hg12, ergebnis, steuer, steuerMonat, nachSt, marge: kp - basis,
-    rendite: kp ? r2(miete * 12 / kp * 100) : 0, faktor: miete ? Math.round(kp / (miete * 12) * 10) / 10 : 0,
-    qm: o.wohnflaeche ? r0(kp / o.wohnflaeche) : 0, mieteQm: o.wohnflaeche ? r2(miete / o.wohnflaeche) : 0};
+  const steuer = teile(-ergebnis * P(a.steuersatz), 100000);                       // positiv = Ersparnis, pro Jahr
+  const steuerMonatC = teile(steuer * 100, 12);
+  const nachStC = vorStC + steuerMonatC;
+  const W = C(o.wohnflaeche);
+  return {a, basis, kp, nk, ek, darlehen, rate: rateC / 100, miete: mieteC / 100, hgnu: hgnuC / 100, vorSt: vorStC / 100, rnd, afaSatz: afaH / 100, gebaeude, afa, afaStd,
+    miete12, zinsen, hg12, ergebnis, steuer, steuerMonat: steuerMonatC / 100, nachSt: nachStC / 100, marge: kp - Math.round(basis), fest, rundung: rd,
+    aufschlagEcht: basis > 0 ? teile((kp - basis) * 100000, basis) / 1000 : 0,       // tatsächlicher Aufschlag nach Rundung, in %
+    rendite: kp ? teile(mieteC * 12 * 100, kp) / 100 : 0, faktor: mieteC ? teile(kp * 1000, mieteC * 12) / 10 : 0,
+    qm: W ? teile(kp * 100, W) : 0, mieteQm: W ? teile(mieteC * 100, W) / 100 : 0};
+}
+/** Gegenprobe: rechnet jede Zeile des Exposés unabhängig nach (mit Kommazahlen statt ganzen Zahlen) und prüft alle Summen.
+ *  Liefert eine Liste von Abweichungen – leer heißt: alles stimmt. */
+export function kontrolle(p, s) {
+  const c = berechne(p, s), a = c.a, o = p.objekt || {}, F = [];
+  const cent = x => Math.round(x * 100), nah = (ist, soll, tol, name) => { if (!(Math.abs(ist - soll) <= tol)) F.push(`${name}: ${ist} statt ${soll}`); };
+  const gleich = (ist, soll, name) => { if (ist !== soll) F.push(`${name}: ${ist} statt ${soll}`); };
+  if (![c.kp, c.nk, c.ek, c.darlehen, c.rate, c.miete, c.vorSt, c.afa, c.zinsen, c.ergebnis, c.steuer, c.nachSt, c.rendite].every(Number.isFinite)) F.push('ungültige Zahl in der Rechnung');
+  // 1. Summen genau so, wie sie im Exposé untereinander stehen
+  gleich(c.kp + c.nk - c.ek, c.darlehen, 'Gesamtinvestition − Eigenkapital = Darlehen');
+  gleich(cent(c.miete) - cent(c.rate) - cent(c.hgnu), cent(c.vorSt), 'Miete − Rate − Hausgeld = vor Steuern (Cent)');
+  gleich(cent(c.vorSt) + cent(c.steuerMonat), cent(c.nachSt), 'vor Steuern + Steuerwirkung = nach Steuern (Cent)');
+  gleich(c.miete12 - c.afa - c.zinsen - c.hg12, c.ergebnis, 'Mieteinnahmen − AfA − Zinsen − Hausgeld = steuerliches Ergebnis');
+  // 2. jede Einzelzeile unabhängig nachgerechnet (höchstens Rundung auf den letzten Euro/Cent darf abweichen)
+  const ae = +a.ek_quote, az = +a.zins, at = +a.tilgung, an = +a.nebenkosten, ast = +a.steuersatz, ag = +a.gebaeudeanteil;
+  if (!c.fest) nah(c.kp, Math.round((+o.kaufpreis_partner || 0) * (1 + (+p.aufschlag || 0) / 100) / c.rundung) * c.rundung, c.rundung, 'Kaufpreis');
+  nah(c.nk, c.kp * an / 100, 0.51, 'Kaufnebenkosten'); nah(c.ek, c.nk + c.kp * ae / 100, 0.51, 'Eigenkapital');
+  nah(c.rate, c.darlehen * (az + at) / 100 / 12, 0.0051, 'Kreditrate'); nah(c.zinsen, c.darlehen * az / 100, 0.51, 'Schuldzinsen');
+  nah(c.gebaeude, c.kp * ag / 100, 0.51, 'Gebäudeanteil'); nah(c.afa, c.gebaeude * c.afaSatz / 100, 0.51, 'Abschreibung');
+  nah(c.miete12, c.miete * 12, 0.51, 'Jahresmiete'); nah(c.hg12, c.hgnu * 12, 0.51, 'Hausgeld pro Jahr');
+  nah(c.steuer, -c.ergebnis * ast / 100, 0.51, 'Steuerwirkung pro Jahr'); nah(c.steuerMonat, c.steuer / 12, 0.0051, 'Steuerwirkung pro Monat');
+  if (c.kp) nah(c.rendite, c.miete * 12 / c.kp * 100, 0.0051, 'Brutto-Mietrendite');
+  if (c.miete) nah(c.faktor, c.kp / (c.miete * 12), 0.051, 'Kaufpreisfaktor');
+  if (+o.wohnflaeche > 0) { nah(c.qm, c.kp / +o.wohnflaeche, 0.51, 'Preis je m²'); nah(c.mieteQm, c.miete / +o.wohnflaeche, 0.0051, 'Miete je m²'); }
+  return F;
+}
+/** Zu volle Seiten schrittweise verkleinern (Schrift/Abstände), damit nichts abgeschnitten wird. Liefert die Nummern der Seiten, die trotzdem zu voll sind. */
+const FIT = ['fit1', 'fit2', 'fit3', 'fit4'];   // fit4: zusätzlich die Bildreihe der Seite weglassen – Text geht vor
+export function einpassen(root) {
+  const voll = [];
+  root.querySelectorAll('.page').forEach((pg, i) => {
+    const m = pg.querySelector('main'); if (!m) return;
+    pg.classList.remove(...FIT);
+    const zuViel = () => m.scrollHeight > m.clientHeight + 1 || [...m.children].some(k => k.getBoundingClientRect().bottom > m.getBoundingClientRect().bottom + 1.5);
+    for (const f of FIT) { if (!zuViel()) break; pg.classList.remove(...FIT); pg.classList.add(f); if (f === 'fit4') pg.classList.add('fit3'); }
+    if (zuViel()) voll.push(i + 1);
+  });
+  return voll;
 }
 
 export function renderExpose(p, s, basis) {
@@ -61,11 +109,12 @@ export function renderExpose(p, s, basis) {
   const box = (v, l) => `<div class="kpi"><b>${v}</b><span>${l}</span></div>`;
   const row = (l, v, cls = '') => `<tr class="${cls}"><td>${l}</td><td>${v}</td></tr>`;
   const money = n => `<span class="${n < 0 ? 'neg' : 'pos'}">${sgn(n, eur2)}</span>`;
+  const kosten = n => `<span class="neg">− ${eur2(Math.abs(n))}</span>`;   // Abzüge stehen immer mit Minus da, auch bei 0,00 €
 
   // Seite 1 – Titel
   const titelBild = imgs[b.titel] ? `style="background-image:url('${src(b.titel)}')"` : '';
   let html = page(`
-    <div class="kpis">${box(eur0(c.kp), 'Kaufpreis')}${box(num(+o.wohnflaeche || 0) + ' m²', 'Wohnfläche')}${box(num(+o.zimmer || 0, o.zimmer % 1 ? 1 : 0), 'Zimmer')}${box(pct(c.rendite), 'Brutto-Mietrendite')}</div>
+    <div class="kpis" style="grid-template-columns:repeat(${2 + (+o.wohnflaeche > 0) + (+o.zimmer > 0)},1fr)">${box(eur0(c.kp), 'Kaufpreis')}${+o.wohnflaeche > 0 ? box(num(+o.wohnflaeche) + ' m²', 'Wohnfläche') : ''}${+o.zimmer > 0 ? box(num(+o.zimmer, o.zimmer % 1 ? 1 : 0), 'Zimmer') : ''}${box(pct(c.rendite), 'Brutto-Mietrendite')}</div>
     <p class="intro">${esc(t.intro)}</p>
     <div class="chips">${(t.chips || []).map(x => `<span>${esc(x)}</span>`).join('')}</div>`, 'cover', `
     <div class="cover-hero" ${titelBild}>
@@ -79,8 +128,8 @@ export function renderExpose(p, s, basis) {
 
   // Seite 2 – Objekt
   const eck = [
-    ['Objektart', o.objektart], ['Wohnfläche', num(+o.wohnflaeche || 0) + ' m²'], ['Zimmer', o.zimmer], ['Etage', o.etage],
-    ['Baujahr', o.baujahr], ['Preis je m²', eur0(c.qm)], ['Kaltmiete', eur2(c.miete) + ' / Monat'],
+    ['Objektart', o.objektart], ['Wohnfläche', +o.wohnflaeche > 0 ? num(+o.wohnflaeche) + ' m²' : ''], ['Zimmer', +o.zimmer > 0 ? num(+o.zimmer, o.zimmer % 1 ? 1 : 0) : ''], ['Etage', o.etage],
+    ['Baujahr', o.baujahr], ['Preis je m²', c.qm ? eur0(c.qm) : ''], ['Kaltmiete', eur2(c.miete) + ' / Monat'],
     ['Miete je m²', o.wohnflaeche ? eur2(c.mieteQm) : ''], ['Hausgeld gesamt', o.hausgeld ? eur2(+o.hausgeld) + ' / Monat' : ''],
     ['davon nicht umlagefähig', c.hgnu ? eur2(c.hgnu) + ' / Monat' : ''], ['Vermietung', o.vermietung], ['Provision für Käufer', o.provision || 'keine'],
   ].filter(r => r[1] !== '' && r[1] != null && r[1] !== 0);
@@ -107,14 +156,14 @@ export function renderExpose(p, s, basis) {
   html += page(`
     <div class="kicker">Kalkulation</div>
     <h2>Was die Wohnung monatlich bedeutet</h2>
-    <p class="txt">Gerechnet mit ${pct(a.ek_quote, 0)} Eigenkapital, ${pct(a.zins)} Sollzins, ${pct(a.tilgung)} anfänglicher Tilgung, ${pct(a.nebenkosten, 1)} Kaufnebenkosten und einem persönlichen Steuersatz von ${pct(a.steuersatz, 0)}. Ihre tatsächlichen Konditionen können abweichen.</p>
+    <p class="txt">Gerechnet mit ${pct(a.ek_quote, 0)} Eigenkapital auf den Kaufpreis (zuzüglich der Kaufnebenkosten), ${pct(a.zins)} Sollzins, ${pct(a.tilgung)} anfänglicher Tilgung, ${pct(a.nebenkosten, 1)} Kaufnebenkosten und einem persönlichen Steuersatz von ${pct(a.steuersatz, 0)}. Ihre tatsächlichen Konditionen können abweichen.</p>
     <div class="cols">
       <div><div class="kicker sm">Die Investition</div><table>
         ${row('Kaufpreis', eur0(c.kp))}${row(`+ Kaufnebenkosten (${pct(a.nebenkosten, 1)})`, eur0(c.nk))}
-        ${row('= Gesamtinvestition', eur0(c.kp + c.nk), 'strong')}${row('davon Eigenkapital', eur0(c.ek))}${row('Darlehen', eur0(c.darlehen))}</table></div>
+        ${row('= Gesamtinvestition', eur0(c.kp + c.nk), 'strong')}${row(`davon Eigenkapital (${pct(a.ek_quote, 0)} + Nebenkosten)`, eur0(c.ek))}${row('Darlehen', eur0(c.darlehen))}</table></div>
       <div><div class="kicker sm">Monatlich</div><table>
-        ${row('Kaltmiete', money(c.miete))}${row('Kreditrate (Zins + Tilgung)', money(-c.rate))}
-        ${row('Hausgeld, nicht umlagefähig', money(-c.hgnu))}${row('= vor Steuern', money(c.vorSt), 'strong')}
+        ${row('Kaltmiete', money(c.miete))}${row('Kreditrate (Zins + Tilgung)', kosten(c.rate))}
+        ${row('Hausgeld, nicht umlagefähig', kosten(c.hgnu))}${row('= vor Steuern', money(c.vorSt), 'strong')}
         ${row('Steuerwirkung', money(c.steuerMonat))}${row('= nach Steuern', money(c.nachSt), 'strong')}</table></div>
     </div>
     <div class="kicker sm">So entsteht die Steuerwirkung — pro Jahr</div>
