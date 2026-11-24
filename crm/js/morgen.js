@@ -41,10 +41,24 @@ export function briefing(jetzt = new Date()) {
 
 // Stimme: bevorzugt die ElevenLabs-Stimme über die Function „sprache“ (Schlüssel liegt nur auf dem Server), sonst die Stimme des Geräts
 let spieler = null;
+/** Stimmen zur Auswahl (ElevenLabs). Die erste ist der Standard. */
+export const STIMMEN = [['z1EhmmPwF0ENGYE8dBE6', 'Christian – warm, natürlich (Mann)'], ['gGjaVIGkCSfKUIBYtNT2', 'Marc – ruhig, sachlich (Mann)'], ['zKHQdbB8oaQ7roNTiDTK', 'Laura – freundlich, klar (Frau)'], ['otF9rqKzRHFgfwf6serQ', 'Dana – tief, warm (Frau)'], ['MMwckqU477oQxnAk1SgA', 'Ben – die bisherige Stimme (Mann)']];
+export const stimmeId = () => { const v = db.settings().morgen?.stimmeId; return STIMMEN.some(x => x[0] === v) ? v : STIMMEN[0][0]; };
+export const stimmeSetzen = id => db.saveSettings({ ...db.settings(), morgen: { ...(db.settings().morgen || {}), stimmeId: id } });
+/** Auswahlfeld + Probe hören (für Assistent und Morgenroutine) */
+export function stimmenWahl(wurzel) {
+  const sel = wurzel.querySelector('[data-stimme]'), probe = wurzel.querySelector('[data-stimmprobe]'), hin = wurzel.querySelector('[data-stimmhin]'); if (!sel) return;
+  sel.innerHTML = STIMMEN.map(([id, name]) => `<option value="${id}" ${id === stimmeId() ? 'selected' : ''}>${name}</option>`).join('');
+  const spiel = async () => { if (hin) hin.textContent = 'Probe wird geladen …'; stopp(); const a = new Audio(); a.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA='; a.play().catch(() => { });
+    try { spieler = a; a.src = await holeAufnahme('Hallo Paul, so klinge ich. Heute stehen zwei Termine an, um 14 Uhr die Besichtigung in der Leopoldstraße.'); await a.play(); if (hin) hin.textContent = ''; }
+    catch (e) { if (hin) hin.textContent = '⚠ ' + (/voice|404|not.?found/i.test(e.message) ? 'Diese Stimme ist in deinem ElevenLabs-Konto nicht freigeschaltet – dort unter „Stimmen“ hinzufügen oder eine andere wählen.' : e.message); } };
+  sel.onchange = async () => { await stimmeSetzen(sel.value); if (stimmeVerfuegbar()) spiel(); };
+  if (probe) probe.onclick = spiel;
+}
 export const stimmeVerfuegbar = () => db.isCloud() && !!db.klient() && db.settings().morgen?.stimme !== 'geraet';
 async function holeAufnahme(text) {
   const { data } = await db.klient().auth.getSession(), token = data?.session?.access_token; if (!token) throw new Error('nicht angemeldet');
-  const r = await fetch(`${(db.cfg().url || '').replace(/\/$/, '')}/functions/v1/sprache`, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + token, apikey: db.cfg().key }, body: JSON.stringify({ text }) });
+  const r = await fetch(`${(db.cfg().url || '').replace(/\/$/, '')}/functions/v1/sprache`, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + token, apikey: db.cfg().key }, body: JSON.stringify({ text, stimme: stimmeId() }) });
   if (!r.ok || !/audio/.test(r.headers.get('content-type') || '')) { let f = ''; try { f = (await r.json()).fehler || ''; } catch { } throw new Error(f || 'Sprachausgabe nicht erreichbar'); }
   return URL.createObjectURL(await r.blob());
 }
@@ -96,6 +110,7 @@ export function starten({ sofort = true } = {}) {
         <label class="f"><span>Spotify-Playlist (Link)</span><input name="playlist" value="${E.playlist}" placeholder="https://open.spotify.com/playlist/…"></label>
         <label class="chk"><input type="checkbox" name="vorlesen" ${E.vorlesen ? 'checked' : ''}><span>Briefing vorlesen</span></label>
         <label class="chk"><input type="checkbox" name="stimme" ${E.stimme === 'geraet' ? '' : 'checked'}><span>ElevenLabs-Stimme verwenden (sonst Stimme des Geräts)</span></label>
+        <label class="f"><span>Stimme</span><select data-stimme></select></label><button type="button" class="lnk small" data-stimmprobe>▶ Probe hören</button> <span class="small" data-stimmhin></span>
         <label class="chk"><input type="checkbox" name="kurzbefehl" ${E.kurzbefehl ? 'checked' : ''}><span>Am Mac: Musik über den Kurzbefehl „Morgenmusik“ starten (spielt sicher los)</span></label></details></div>`.s;
   document.body.appendChild(el);
   const stand = el.querySelector('[data-stand]'), los = el.querySelector('[data-los]'); let lauf = 0, hinweis = '';
@@ -103,6 +118,7 @@ export function starten({ sofort = true } = {}) {
   const esc = e => { if (e.key === 'Escape') zu(); }; document.addEventListener('keydown', esc);
   el.querySelectorAll('[data-zu]').forEach(b => b.onclick = zu); el.onclick = e => { if (e.target === el) zu(); };
   el.querySelector('[name=playlist]').onchange = async e => { const v = e.target.value.trim(); await speichern({ playlist: v }); const i = playlistId(v), a = el.querySelector('[data-web]'); a.hidden = !i; if (i) a.href = `https://open.spotify.com/playlist/${i}?go=1`; };
+  stimmenWahl(el);
   el.querySelector('[name=vorlesen]').onchange = e => speichern({ vorlesen: e.target.checked });
   el.querySelector('[name=stimme]').onchange = e => speichern({ stimme: e.target.checked ? '' : 'geraet' });
   el.querySelector('[name=kurzbefehl]').onchange = e => speichern({ kurzbefehl: e.target.checked ? 'Morgenmusik' : '' });

@@ -8,7 +8,7 @@ import { adresse } from './ui.js';
 import * as ki from './ki.js';
 import { parseTermin, FARBE } from './views/calendar.js';
 import { completeTask } from './views/tasks.js';
-import { vorlesen, stopp, stimmeVerfuegbar } from './morgen.js';
+import { vorlesen, stopp, stimmeVerfuegbar, stimmenWahl } from './morgen.js';
 
 const ARTEN = Object.keys(FARBE), AKT = ['notiz', 'anruf', 'meeting', 'whatsapp', 'besichtigung', 'email'];
 const WT = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
@@ -146,7 +146,7 @@ async function ausfuehren(a) {
 }
 
 // ---------- Oberfläche ----------
-let offen = null;
+let offen = null, erkennung = null;   // eine Spracherkennung für die ganze Sitzung – der Browser fragt dann seltener nach dem Mikrofon
 const SR = () => window.SpeechRecognition || window.webkitSpeechRecognition;
 // Vorlesen mit der ruhigen ElevenLabs-Stimme (wie in der Morgenroutine); ohne Cloud oder bei Fehler die Stimme des Geräts.
 // Das Audio-Element wird beim Tippen/Klicken „entsperrt“, damit der Browser das Abspielen nach der KI-Antwort erlaubt.
@@ -161,12 +161,14 @@ export function oeffnen() {
   const stumm = () => { try { return localStorage.getItem('kre-assi-stumm') === '1'; } catch { return false; } };
   el.innerHTML = html`<div class="assi-k">
       <div class="assi-kopf"><b>Assistent</b><span class="muted small">${ki.hasKey() ? 'merkt sich das Gespräch' : 'einfache Befehle – KI-Schlüssel fehlt'}</span><button type="button" class="assi-ton" data-neu title="Neues Gespräch beginnen" aria-label="Neues Gespräch beginnen">↺</button><button type="button" class="assi-ton" data-ton title="Antworten vorlesen an/aus" aria-label="Antworten vorlesen an oder aus">${stumm() ? '🔇' : '🔊'}</button><button type="button" class="assi-x" data-zu aria-label="Schließen">×</button></div>
+      <details class="assi-stimme" ${stimmeVerfuegbar() ? '' : 'hidden'}><summary>Stimme ändern</summary><div><select data-stimme aria-label="Stimme"></select><button type="button" class="assi-b" data-stimmprobe>▶ Probe</button><span class="small" data-stimmhin></span></div></details>
       <div class="assi-log" data-log aria-live="polite"><p class="assi-tipp">Sag oder schreib, was ich tun soll, z. B.:<br>„Freitag 14 Uhr Besichtigung Leopoldstraße mit Herrn Weber“<br>„Aufgabe: morgen Exposé an Frau Sommer schicken“<br>„Ich habe gerade mit Herrn Bauer telefoniert, er meldet sich Montag“<br>„Was steht heute an?“</p></div>
       <form class="assi-f" data-f><button type="button" class="assi-mik" data-mik aria-label="Sprechen" ${SR() ? '' : 'hidden'}>🎙</button><input name="q" autocomplete="off" enterkeyhint="send" placeholder="${SR() ? 'Sprechen oder tippen …' : 'Tippen – oder das Mikrofon der Tastatur nutzen …'}" aria-label="Anweisung"><button class="btn primary" aria-label="Senden">➤</button></form></div>`.s;
   document.body.appendChild(el); offen = el;
   const log = el.querySelector('[data-log]'), f = el.querySelector('[data-f]'), mik = el.querySelector('[data-mik]'); let rec = null;
   const zu = () => { try { rec?.abort(); } catch { } stopp(); el.remove(); offen = null; document.removeEventListener('keydown', esc); };
   const esc = e => { if (e.key === 'Escape') zu(); }; document.addEventListener('keydown', esc);
+  stimmenWahl(el);
   el.querySelector('[data-zu]').onclick = zu; el.onclick = e => { if (e.target === el) zu(); };
   el.querySelector('[data-ton]').onclick = e => { const an = !stumm(); try { localStorage.setItem('kre-assi-stumm', an ? '1' : '0'); } catch { } e.currentTarget.textContent = an ? '🔇' : '🔊'; if (an) stopp(); };
   el.querySelector('[data-neu]').onclick = () => { vergessen(); stopp(); log.innerHTML = ''; zeile('er', 'Neues Gespräch – was kann ich für dich tun?'); };
@@ -197,7 +199,7 @@ export function oeffnen() {
   if (SR()) mik.onclick = () => {
     if (rec) { try { rec.stop(); } catch { } return; }
     stopp(); tonBereit();
-    rec = new (SR())(); rec.lang = 'de-DE'; rec.interimResults = true; rec.continuous = false; let fertig = '';
+    rec = erkennung || (erkennung = new (SR())()); rec.lang = 'de-DE'; rec.interimResults = true; rec.continuous = false; let fertig = '';
     rec.onresult = ev => { let t = ''; for (const r of ev.results) t += r[0].transcript; f.q.value = t; if (ev.results[ev.results.length - 1].isFinal) fertig = t; };
     rec.onerror = ev => { if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') zeile('er fehler', '⚠ Mikrofon nicht erlaubt. Tippe ins Feld und nutze das Mikrofon der Tastatur.'); };
     rec.onend = () => { rec = null; mik.classList.remove('an'); const v = (fertig || f.q.value).trim(); if (v) { f.q.value = ''; perStimme = true; senden(v); } };
