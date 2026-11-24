@@ -292,7 +292,9 @@ function detail(el, p) {
     // Druckansicht ist eine eigene Seite (crm/expose/druck.html); sie holt sich die fertigen Seiten aus diesem Fenster
     await bilderVon(cur);
     let fertig = ''; try { const h = $('#ex-frame').contentDocument?.querySelector('.cover-hero'), r = h?.getBoundingClientRect(); fertig = await titelbildFertig(cur, r && r.width > 0 ? r.height / r.width : 0); } catch { /* dann wie in der Vorschau */ }
-    window.__exposeDruck = { titel: pdfName(cur), html: seitenHtml({ ...cur, titelFertig: fertig }) };
+    // Alle Fotos fest in die Druckseite einbetten: Bild-Adressen dieses Fensters (blob:) kann das Druckfenster nicht in jedem Browser laden
+    let druckHtml = seitenHtml({ ...cur, titelFertig: fertig }); for (const [u, d] of datenVon) if (druckHtml.includes(u)) druckHtml = druckHtml.split(u).join(d);
+    window.__exposeDruck = { titel: pdfName(cur), html: druckHtml };
     const w = window.open(BASIS + 'druck.html', '_blank'); if (!w) return toast('Das Fenster wurde blockiert – bitte Pop-ups für das CRM erlauben', 'err');
     const c = berechne(cur, einstellungen()); clearTimeout(speichernT);
     await db.save('exposes', Object.assign(akt(), { pdfDatum: today(), pdfKaufpreis: c.kp, pdfAufschlag: cur.aufschlag })); haptik('erfolg');
