@@ -48,9 +48,9 @@ async function holeAufnahme(text) {
   if (!r.ok || !/audio/.test(r.headers.get('content-type') || '')) { let f = ''; try { f = (await r.json()).fehler || ''; } catch { } throw new Error(f || 'Sprachausgabe nicht erreichbar'); }
   return URL.createObjectURL(await r.blob());
 }
-const stopp = () => { try { spieler?.pause(); } catch { } spieler = null; try { speechSynthesis.cancel(); } catch { } };
+export const stopp = () => { try { spieler?.pause(); } catch { } spieler = null; try { speechSynthesis.cancel(); } catch { } };
 /** Liest vor; liefert { ok, art: 'elevenlabs' | 'geraet', hinweis } */
-async function vorlesen(text, bereit = null) {
+export async function vorlesen(text, bereit = null) {
   if (stimmeVerfuegbar()) {
     try {
       // Das Audio-Element wurde schon beim Klick angelegt (bereit) – sonst blockt Safari das Abspielen nach dem Laden
