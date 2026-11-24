@@ -81,3 +81,4 @@
 .ex-rund select{padding:8px 10px}
 .ex-pruef{margin:12px 2px 0;font-weight:500}.ex-pruef.ok{color:var(--ok)}.ex-pruef.warn{color:var(--bad)}
 #ex-vinfo.warn{color:var(--warn)}
+.ex-vk{margin:0 0 14px}.ex-vk input{font-size:18px;font-weight:600;padding:11px 12px}.ex-vk input.miss{border-color:var(--bad)}

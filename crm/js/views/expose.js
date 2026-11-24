@@ -209,7 +209,8 @@ function detail(el, p) {
     <div class="ex-kopf"><a class="btn ghost small" href="#/exposes">← Alle Exposés</a><div class="ex-kopft"><h1>${p.name || 'Exposé'}</h1><small class="muted">aus „${p.quelle || 'PDF'}“ · ${p.seiten || '?'} Seiten · ${(p.images || []).length} Bilder</small></div></div>
     <div class="ex-zwei">
       <div class="ex-links">
-        <section class="card ex-s"><h2><i>1</i>Deine Provision</h2>
+        <section class="card ex-s"><h2><i>1</i>Preis und Provision</h2>
+          <label class="ex-fest ex-vk"><span>Abgabepreis vom Verkäufer (€)</span><input type="text" id="ex-vk" inputmode="decimal" value="${+o.kaufpreis_partner > 0 ? Math.round(+o.kaufpreis_partner * 100 / 100).toLocaleString('de-DE', { maximumFractionDigits: 2 }) : ''}" placeholder="z. B. 156.500"></label>
           <div class="ex-prov"><input type="range" id="ex-range" min="0" max="15" step="0.5" value="${p.aufschlag ?? 8}" aria-label="Provision in Prozent"><label><input type="text" id="ex-pct" inputmode="decimal" value="${de(p.aufschlag ?? 8) || '0'}" aria-label="Provision in Prozent"> %</label></div>
           <div class="ex-zahlen" id="ex-zahlen"></div>
           <p class="ex-weg muted small" id="ex-rweg"></p>
@@ -251,6 +252,12 @@ function detail(el, p) {
   fest.oninput = () => festSetzen(false); fest.onchange = () => festSetzen(true);
   $('#ex-rund').onchange = e => { const neu = akt(); sichern({ annahmen: { ...(neu.annahmen || {}), rundung: +e.target.value } }); };
   range.style.setProperty('--p', (p.aufschlag ?? 8) / 15 * 100 + '%');
+  // Abgabepreis oben und das Feld „Preis vom Verkäufer“ unter „Objektdaten“ sind dasselbe – oben eintragen genügt
+  const vkOben = $('#ex-vk'), vkUnten = el.querySelector('.ex-felder [data-k=kaufpreis_partner]');
+  vkOben.oninput = () => { vkUnten.value = vkOben.value; vkUnten.dispatchEvent(new Event('input', { bubbles: true })); vkOben.classList.toggle('miss', !(zahl(vkOben.value) > 0)); };
+  vkOben.onchange = () => { const v = zahl(vkOben.value); if (v > 0) vkOben.value = v.toLocaleString('de-DE', { maximumFractionDigits: 2 }); };
+  vkUnten.addEventListener('input', () => { if (document.activeElement !== vkOben) vkOben.value = vkUnten.value; });
+  vkOben.classList.toggle('miss', !(+o.kaufpreis_partner > 0));
   el.querySelectorAll('.ex-felder [data-k]').forEach(f => f.addEventListener('input', () => {
     const neu = akt(), k = f.dataset.k, t = f.dataset.t; neu.objekt = { ...neu.objekt }; neu.annahmen = { ...(neu.annahmen || {}) };
     if (t === 'annahme') { const v = f.value.trim() === '' ? NaN : zahl(f.value); if (isNaN(v) || v < 0 || v > 100) delete neu.annahmen[k]; else neu.annahmen[k] = v; }
