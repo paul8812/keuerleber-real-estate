@@ -14,6 +14,7 @@ import { vorWann } from '../kontakt.js';
 import { istUeberfaellig } from '../finanzen.js';
 import { offene as fahrtenOffen } from '../fahrtenbuch.js';
 import { assistent as ueberfaelligAssistent } from '../ueberfaellig.js';
+import { starten as morgenStarten } from '../morgen.js';
 
 /** Was heute ansteht: vier große Kacheln (Anfragen, Termine, Aufgaben, Pipeline) + kleine Zähler für den Rest */
 export function tagesleiste() {
@@ -116,6 +117,7 @@ export function render(el) {
         <h1>${gruss}${vorname ? html`, <em>${vorname}</em>` : ''}${hour < 5 ? '?' : ''}</h1>
         <p class="briefing">${satz}</p>
         <div class="hero-a"><button class="btn primary" data-q="anfrage">＋ Anfrage einfügen</button><button class="btn" data-q="task">Aufgabe</button><button class="btn" data-q="event">Termin</button><button class="btn" data-q="note">Notiz</button><button class="btn" data-q="contact">Kontakt</button></div>
+        <button type="button" class="btn morgen-btn" data-morgen>☀ Morgenroutine starten</button>
       </div>
       <div class="hero-r" title="${gesamtHeute ? `${erledigtHeute} von ${gesamtHeute} Aufgaben für heute erledigt` : 'Heute sind keine Aufgaben fällig'}">
         <div class="dring"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" class="rb"/><circle cx="60" cy="60" r="52" class="rf" style="stroke-dasharray:${U.toFixed(1)};stroke-dashoffset:${(U * (1 - anteil)).toFixed(1)}"/></svg>
@@ -162,4 +164,6 @@ export function render(el) {
   el.querySelectorAll('[data-ev]').forEach(li => li.onclick = e => { if (!e.target.closest('a')) eventForm(db.get('events', li.dataset.ev)); });
   const q = { anfrage: () => schnellerfassung(), contact: () => contactForm({}, c => location.hash = '#/kontakte/' + c.id), property: () => propertyForm({}, p => location.hash = '#/objekte/' + p.id), task: () => taskForm(), event: () => eventForm(), note: () => activityForm() };
   el.querySelectorAll('[data-q]').forEach(b => b.onclick = q[b.dataset.q]);
+  el.querySelector('[data-morgen]').onclick = () => morgenStarten();
+  if (location.hash.startsWith('#/morgen')) { history.replaceState(null, '', '#/dashboard'); morgenStarten({ sofort: false }); }
 }
