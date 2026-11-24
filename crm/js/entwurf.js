@@ -6,13 +6,19 @@ import { adresse } from './ui.js';
 import { completeTask } from './views/tasks.js';
 import * as mail from './mail.js';
 
-export function fuellen(txt, c, p, datum) {
-  const s = db.settings();
+const WOCHENTAG = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+export const PLATZHALTER = [['{{anrede_name}}', 'Herr/Frau + Nachname'], ['{{vorname}}', 'Vorname'], ['{{nachname}}', 'Nachname'], ['{{objekt.titel}}', 'Objekt-Titel'], ['{{objekt.adresse}}', 'Objekt-Adresse'], ['{{objekt.ort}}', 'Objekt-Ort'], ['{{objekt.preis}}', 'Kaufpreis'], ['{{termin}}', 'Wochentag, Datum und Uhrzeit'], ['{{datum}}', 'Datum'], ['{{uhrzeit}}', 'Uhrzeit'], ['{{ort}}', 'Ort (Objekt oder Kontakt)'], ['{{absender}}', 'dein Name'], ['{{firma}}', 'Firma'], ['{{tel}}', 'deine Telefonnummer'], ['{{firma_ort}}', 'dein Firmensitz']];
+/** Platzhalter füllen. o.luecken: fehlende Angaben als [Kontakt]/[Objekt] sichtbar lassen (Vorschau), sonst leer und Satz geglättet */
+export function fuellen(txt, c, p, datum, zeit = '', o = {}) {
+  const s = db.settings(), L = (v, name) => v || (o.luecken ? `[${name}]` : '');
   const anrede = c ? (c.anrede === 'Frau' && c.nachname ? `Frau ${c.nachname}` : c.anrede === 'Herr' && c.nachname ? `Herr ${c.nachname}` : fullName(c)) : '';
-  const map = { anrede_name: anrede, vorname: c?.vorname || '', nachname: c?.nachname || '', ort: p?.ort || c?.ort || '', 'objekt.titel': p?.titel || '', 'objekt.titel_zu': p?.titel ? ` zu „${p.titel}“` : '', 'objekt.adresse': p ? adresse(p) : '',
-    'objekt.preis': p?.preis ? new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(p.preis) : '', datum: datum ? fmtDate(datum) : '[Datum]',
+  const tag = datum ? fmtDate(datum) : '[Datum]', termin = datum ? `${WOCHENTAG[new Date(datum + 'T12:00:00').getDay()]}, ${tag}${zeit ? ` um ${zeit} Uhr` : ''}` : '[Termin]';
+  const map = { anrede_name: L(anrede, 'Kontakt'), vorname: L(c?.vorname, 'Vorname'), nachname: L(c?.nachname, 'Nachname'), ort: L(p?.ort || c?.ort, 'Ort'), 'objekt.titel': L(p?.titel, 'Objekt'), 'objekt.titel_zu': p?.titel ? ` zu „${p.titel}“` : '', 'objekt.adresse': L(p ? adresse(p) : '', 'Objekt-Adresse'), 'objekt.ort': L(p?.ort, 'Ort'),
+    'objekt.preis': L(p?.preis ? new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(p.preis) : '', 'Preis'), datum: tag, uhrzeit: zeit ? zeit + ' Uhr' : (o.luecken ? '[Uhrzeit]' : ''), termin,
     absender: s.inhaber || '', firma: s.firma || '', tel: s.tel || '', firma_ort: s.ort || '' };
-  return (txt || '').replace(/\{\{\s*([\w.]+)\s*\}\}/g, (_, k) => map[k] ?? '');
+  // Zeilen, deren einziger Inhalt eine leere Angabe war („– Kaufpreis: “), fallen weg; verwaiste Satzteile werden geglättet
+  return (txt || '').split('\n').map(z => { let leer = false; const r = z.replace(/\{\{\s*([\w.]+)\s*\}\}/g, (_, k) => { const v = map[k] ?? ''; if (!v) leer = true; return v; }); return leer && /[:(]\s*$|^\s*$/.test(r.replace(/\(\)/g, '')) && z.trim() ? null : r; }).filter(z => z !== null).join('\n')
+    .replace(/(Guten Tag|Hallo|Liebe\/r) ,/g, '$1,').replace(/„“ ?/g, '').replace(/ \(\)/g, '').replace(/ in(?=[.,])/g, '').replace(/ {2,}/g, ' ');
 }
 const vorlage = name => db.all('templates').find(t => t.name === name);
 const gruss = () => { const s = db.settings(); return `\n\nMit freundlichen Grüßen\n${s.inhaber || ''}\n${s.firma || ''}\n${s.tel || ''}`.trimEnd(); };
@@ -20,12 +26,12 @@ const gruss = () => { const s = db.settings(); return `\n\nMit freundlichen Grü
 // Welcher Text passt zu welcher Aufgabe?
 export function entwurf(t) {
   const key = t.auto || '', p = t.propertyId ? db.get('properties', t.propertyId) : null;
-  let c = t.contactId ? db.get('contacts', t.contactId) : null, name = '', datum = '', betreff = '', text = '';
+  let c = t.contactId ? db.get('contacts', t.contactId) : null, name = '', datum = '', zeit = '', betreff = '', text = '';
   if (key.startsWith('ni:') || /:Anfrage$/.test(key)) name = 'Exposé & Kurzkalkulation an Anleger';
   else if (/:Beratungsgespräch$/.test(key)) name = 'Einladung Beratungsgespräch';
   else if (/:(Besichtigung|Finanzierung \/ Prüfung)$/.test(key)) name = 'Finanzierungsunterlagen anfordern';
   else if (/:Reservierung$/.test(key)) { name = 'Reservierung an Verkäufer melden'; const v = p?.eigentuemerId && db.get('contacts', p.eigentuemerId); if (v) c = v; }
-  else if (key.startsWith('tb:')) { name = 'Terminbestätigung'; const e = db.get('events', key.slice(3)); datum = e?.datum || ''; if (e?.start) datum = datum; betreff = e ? `Terminbestätigung ${fmtDate(e.datum)}${e.start ? ', ' + e.start + ' Uhr' : ''}` : ''; }
+  else if (key.startsWith('tb:')) { name = 'Terminbestätigung'; const e = db.get('events', key.slice(3)); datum = e?.datum || ''; zeit = e?.start || ''; betreff = e ? `Terminbestätigung ${fmtDate(e.datum)}${e.start ? ', ' + e.start + ' Uhr' : ''}` : ''; }
   else if (key.startsWith('bf:')) name = 'Nachfassen nach Besichtigung';
   else if (key.startsWith('sp:')) { betreff = 'Ihre Wunsch-Kapitalanlage – kurze Rückfrage'; text = `Guten Tag {{anrede_name}},\n\ndamit ich Ihnen gezielt passende Wohnungen vorschlagen kann, helfen mir ein paar kurze Angaben:\n\n– Gewünschte Lage / Orte\n– Budget bzw. gewünschte Finanzierung\n– Wohnungsgröße / Zimmer\n– Ab wann möchten Sie investieren?\n\nGerne können wir das auch in einem kurzen Telefonat klären.` + gruss(); }
   else if (key.startsWith('mt:')) { betreff = `Passende Kapitalanlage: {{objekt.titel}}`; text = `Guten Tag {{anrede_name}},\n\nich habe eine Wohnung, die gut zu Ihren Vorstellungen passt: „{{objekt.titel}}“ in {{ort}}.\n\nGerne sende ich Ihnen Exposé und eine persönliche Berechnung zu. Für Sie als Käufer fällt keine Provision an.` + gruss(); }
@@ -33,7 +39,7 @@ export function entwurf(t) {
   const tpl = name && vorlage(name);
   if (tpl) { betreff = betreff || tpl.betreff; text = tpl.text; }
   if (!text) { betreff = betreff || (t.titel || '').replace(/^⚡ /, '').split(':')[0]; text = `Guten Tag {{anrede_name}},\n\n` + gruss(); }
-  return { an: c?.email || '', c, betreff: fuellen(betreff, c, p, datum), text: fuellen(text, c, p, datum), vorlage: tpl?.name || '' };
+  return { an: c?.email || '', c, betreff: fuellen(betreff, c, p, datum, zeit), text: fuellen(text, c, p, datum, zeit), vorlage: tpl?.name || '' };
 }
 
 export function entwurfDialog(t) {
