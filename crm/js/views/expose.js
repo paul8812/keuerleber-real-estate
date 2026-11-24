@@ -49,6 +49,19 @@ async function bildLaden(fid) {
 async function bilderVon(p) { await Promise.all((p.images || []).map(async i => { i.src = await bildLaden(dateiId(p, i.id)); })); return p; }
 function listenBilder(root) { root.querySelectorAll('img[data-exbild]').forEach(async img => { const u = await bildLaden(img.dataset.exbild); if (u) img.src = u; else img.closest('.ex-cov')?.classList.add('leer'); }); }
 
+/** Titelbild für den Druck: Foto + Abdunklung (wie in der Vorschau) zu EINEM Bild verrechnen. verh = Höhe/Breite der Titelfläche. */
+async function titelbildFertig(p, verh) {
+  const bild = (p.images || []).find(i => i.id === p.bilder?.titel); if (!bild?.src) return '';
+  const img = new Image(); await new Promise((ja, nein) => { img.onload = ja; img.onerror = () => nein(new Error('Titelbild nicht lesbar')); img.src = bild.src; });
+  if (!(verh > 0.3 && verh < 1.6)) verh = 0.82;
+  const W = 1654, H = Math.round(W * verh), mm = W / 210, c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
+  x.fillStyle = '#222'; x.fillRect(0, 0, W, H);
+  const s = Math.max(W / img.naturalWidth, H / img.naturalHeight), bw = img.naturalWidth * s, bh = img.naturalHeight * s; x.drawImage(img, (W - bw) / 2, (H - bh) / 2, bw, bh);   // wie background-size: cover, mittig
+  const g = x.createLinearGradient(0, 0, 0, H); for (const [o, a] of [[0, .6], [.14, .35], [.32, 0], [.45, 0], [1, .78]]) g.addColorStop(o, `rgba(0,0,0,${a})`); x.fillStyle = g; x.fillRect(0, 0, W, H);
+  x.save(); x.translate(37 * mm, 20 * mm); x.scale(72 * mm, 30 * mm); const r = x.createRadialGradient(0, 0, 0, 0, 0, 1); for (const [o, a] of [[0, .62], [.45, .4], [1, 0]]) r.addColorStop(o, `rgba(0,0,0,${a})`); x.fillStyle = r; x.beginPath(); x.arc(0, 0, 1, 0, Math.PI * 2); x.fill(); x.restore();
+  return c.toDataURL('image/jpeg', 0.9);
+}
+
 // ---- Dokument (Vorschau + Druck)
 const FORMATE = { expose: ['Exposé', 794], story: ['Insta-Story', 1080], ad: ['Werbeanzeige', 1080] };
 const seitenHtml = (p, f = 'expose') => f === 'story' ? renderStory(p, einstellungen(), BASIS) : f === 'ad' ? renderAd(p, einstellungen(), BASIS) : renderExpose(p, einstellungen(), BASIS);
@@ -277,7 +290,9 @@ function detail(el, p) {
     const fehler = kontrolle(cur, einstellungen()); if (fehler.length) return toast('Die Rechnung ist nicht stimmig – PDF wird nicht erstellt: ' + fehler[0], 'err');
     try { const vd = $('#ex-frame').contentDocument, voll = z.format === 'expose' && vd ? einpassen(vd) : []; if (voll.length) toast(`Achtung: Seite ${voll.join(', ')} ist zu voll, dort wird Text abgeschnitten – bitte Texte kürzen`, 'err'); } catch { /* Vorschau nicht offen */ }
     // Druckansicht ist eine eigene Seite (crm/expose/druck.html); sie holt sich die fertigen Seiten aus diesem Fenster
-    await bilderVon(cur); window.__exposeDruck = { titel: pdfName(cur), html: seitenHtml(cur) };
+    await bilderVon(cur);
+    let fertig = ''; try { const h = $('#ex-frame').contentDocument?.querySelector('.cover-hero'), r = h?.getBoundingClientRect(); fertig = await titelbildFertig(cur, r && r.width > 0 ? r.height / r.width : 0); } catch { /* dann wie in der Vorschau */ }
+    window.__exposeDruck = { titel: pdfName(cur), html: seitenHtml({ ...cur, titelFertig: fertig }) };
     const w = window.open(BASIS + 'druck.html', '_blank'); if (!w) return toast('Das Fenster wurde blockiert – bitte Pop-ups für das CRM erlauben', 'err');
     const c = berechne(cur, einstellungen()); clearTimeout(speichernT);
     await db.save('exposes', Object.assign(akt(), { pdfDatum: today(), pdfKaufpreis: c.kp, pdfAufschlag: cur.aufschlag })); haptik('erfolg');
