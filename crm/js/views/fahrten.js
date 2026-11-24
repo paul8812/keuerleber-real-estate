@@ -60,7 +60,22 @@ export async function strecke(von, nach) {
 }
 
 // ---------------------------------------------------------------- Ansicht
+// Automatisch erfasste Fahrten kommen nur mit Koordinaten an (der Server darf keine Adressen suchen) – Adresse und Strecke trägt der Browser nach
+let nachtragLaeuft = false; const nachtragVersucht = new Set();
+async function adressenNachtragen() {
+  if (nachtragLaeuft || !db.isCloud()) return; nachtragLaeuft = true;
+  try {
+    const L = (db.all('fahrten') || []).filter(f => f.status !== 'unterwegs' && !nachtragVersucht.has(f.id) && !FB.festgeschrieben(f) && ((f.start?.lat != null && !f.start.adresse) || (f.ende?.lat != null && !f.ende.adresse) || (f.start?.lat != null && f.ende?.lat != null && f.kmRoute == null && f.kmManuell == null))).slice(0, 5);
+    for (const f of L) {
+      nachtragVersucht.add(f.id); const neu = JSON.parse(JSON.stringify(f)); let anders = false;
+      for (const k of ['start', 'ende']) if (neu[k]?.lat != null && !neu[k].adresse) { const a = await ortName(neu[k]); if (a) { neu[k].adresse = a; anders = true; } }
+      if (neu.start?.lat != null && neu.ende?.lat != null && neu.kmRoute == null && neu.kmManuell == null) { try { const r = await strecke({ lat: neu.start.lat, lon: neu.start.lon, adresse: neu.start.adresse }, { lat: neu.ende.lat, lon: neu.ende.lon, adresse: neu.ende.adresse }); if (r.km != null) { neu.kmRoute = r.km; neu.minRoute = r.min; anders = true; } } catch { /* später erneut */ } }
+      if (anders) await db.save('fahrten', neu);
+    }
+  } finally { nachtragLaeuft = false; }
+}
 export function render(el, arg) {
+  adressenNachtragen();
   const offen = FB.offene(), unterwegs = FB.unterwegs();
   // Tab: per Link (#/fahrten/kosten) oder angetippt; sonst automatisch – offene Fahrten zuerst
   if (arg && ['benennen', 'fahrten', 'kosten', 'einrichten'].includes(arg)) z.wahl = arg;
@@ -615,6 +630,7 @@ function einrichten() {
           <li>Genauso eine zweite Automation für CarPlay „<b>Trennt</b>“ mit dem <b>Ziel-Link</b>.</li>
         </ol>
         <p class="muted small">Ohne CarPlay geht es auch mit dem Auslöser „Bluetooth“ (dein Auto) – oder du trägst Fahrten mit „+ Fahrt eintragen“ ein.</p>
+        ${protokollKarte()}
       </div>
     </section>
     <section class="card fb-schritt">
@@ -644,6 +660,20 @@ function einrichten() {
     </section>
   </div>`;
 }
+/** Was zuletzt vom iPhone ankam – zeigt, ob die Automation überhaupt auslöst und woran es scheitert */
+function protokollKarte() {
+  const E = (db.get('fahrtstatus', 'fahrt-protokoll')?.eintraege || []).slice(0, 8), NAME = { start: 'Start', ende: 'Ziel', test: 'Test' };
+  return html`<div class="fb-prot"><b>Meldungen vom iPhone</b>
+    ${E.length ? html`<ul>${E.map(e => html`<li class="${e.ok ? 'ok' : 'err'}"><span>${e.ok ? '✓' : '✗'}</span><time>${fmtDT(e.zeit)}</time><b>${NAME[e.a] || e.a}</b><em>${e.text}${e.form ? ` (angekommen: „${e.form}“)` : ''}</em></li>`)}</ul>`
+      : html`<p class="muted small">Bisher ist <b>keine einzige Meldung</b> vom iPhone angekommen. Dann löst die Automation nicht aus oder der Link im Kurzbefehl stimmt nicht.</p>`}
+    <details class="fb-hilfe"><summary>Es kommt nichts an – so findest du den Fehler</summary><ol>
+      <li><b>Verbindung prüfen:</b> „Test-Link kopieren“, am iPhone in Safari einfügen und öffnen. Erscheint „✓ Verbindung zum Fahrtenbuch steht“ und hier ein Eintrag „Test“, stimmen Link und Schlüssel.</li>
+      <li><b>Kurzbefehl von Hand starten:</b> Kurzbefehle → Automation → die CarPlay-Automation antippen → unten ▶. Steht danach hier „✗ Standort fehlt“, sind im Link hinter <code>lat=</code> und <code>lon=</code> die blauen Variablen <b>Breitengrad</b> und <b>Längengrad</b> nicht eingesetzt (auf die Variable „Aktueller Standort“ tippen und das Feld wählen).</li>
+      <li><b>Standort erlauben:</b> iPhone-Einstellungen → Datenschutz &amp; Sicherheit → Ortungsdienste → <b>Kurzbefehle</b> → „Beim Verwenden“ und „Genauer Standort“ an.</li>
+      <li><b>Ohne Nachfrage ausführen:</b> In der Automation muss „Sofort ausführen“ gewählt sein, „Bei Ausführung benachrichtigen“ ist egal. Steht dort „Nach Bestätigung ausführen“, wartet das iPhone auf einen Tipp.</li>
+      <li><b>Löst CarPlay gar nicht aus</b> (auch von Hand geht es, im Auto aber nicht)? Dann als Auslöser <b>Bluetooth → dein Auto</b> „Ist verbunden“ / „Ist getrennt“ nehmen.</li>
+    </ol></details></div>`;
+}
 async function linksLaden(el) {
   const box = el.querySelector('#fb-links'); if (!box) return;
   if (!db.isCloud()) { box.innerHTML = '<p class="warn small">Nur mit Cloud-Anmeldung verfügbar.</p>'; return; }
@@ -653,11 +683,12 @@ async function linksLaden(el) {
     box.innerHTML = String(html`
       <div class="fb-link"><span>Start-Link (CarPlay verbindet)</span><code>${link('start')}<i>[Breitengrad]</i>&amp;lon=<i>[Längengrad]</i></code><button type="button" class="btn small" data-kopie="${link('start')}">Kopieren</button></div>
       <div class="fb-link"><span>Ziel-Link (CarPlay trennt)</span><code>${link('ende')}<i>[Breitengrad]</i>&amp;lon=<i>[Längengrad]</i></code><button type="button" class="btn small" data-kopie="${link('ende')}">Kopieren</button></div>
-      <p class="small"><button type="button" class="btn ghost small" id="fb-test">Verbindung testen</button> <button type="button" class="btn ghost small" id="fb-neuerschluessel">Neuen Schlüssel erzeugen</button> <span id="fb-teststat" class="muted"></span></p>`);
+      <p class="small"><button type="button" class="btn ghost small" id="fb-test">Verbindung testen</button> <button type="button" class="btn ghost small" data-kopie-test="${b}?k=${k}&a=test">Test-Link kopieren</button> <button type="button" class="btn ghost small" id="fb-neuerschluessel">Neuen Schlüssel erzeugen</button> <span id="fb-teststat" class="muted"></span></p>`);
     box.querySelectorAll('[data-kopie]').forEach(bt => bt.onclick = async () => {
       // Für die Kurzbefehle-App: Link bis „lat=“; danach Variable Breitengrad, „&lon=“, Variable Längengrad
       try { await navigator.clipboard.writeText(bt.dataset.kopie); haptik('erfolg'); toast('Kopiert – im Kurzbefehl hinten Breitengrad, „&lon=“ und Längengrad ergänzen'); } catch { toast('Kopieren nicht möglich – Link bitte markieren', 'err'); }
     });
+    box.querySelector('[data-kopie-test]').onclick = async e => { try { await navigator.clipboard.writeText(e.currentTarget.dataset.kopieTest); toast('Test-Link kopiert – am iPhone in Safari öffnen'); } catch { toast('Kopieren nicht möglich', 'err'); } };
     box.querySelector('#fb-test').onclick = async () => {
       const s = box.querySelector('#fb-teststat'); s.textContent = 'teste …';
       try { const r = await strecke('Hof', 'Oberkotzau'); s.textContent = `✅ Server erreichbar · Testroute Hof → Oberkotzau: ${num(r.km, 1)} km`; } catch (e) { s.textContent = '❌ ' + e.message; }

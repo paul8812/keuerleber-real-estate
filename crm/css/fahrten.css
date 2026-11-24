@@ -269,3 +269,14 @@
 .fb-alt .chip.on,.fb-tagwahl .chip.on{border-color:var(--gold);color:var(--gold)}
 .fb-alt .chip small{color:var(--mut)}
 .fb-tagwahl{margin:0}
+
+/* Meldungen vom iPhone */
+.fb-prot{margin-top:14px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
+.fb-prot ul{list-style:none;margin:8px 0 0;padding:0}
+.fb-prot li{display:grid;grid-template-columns:18px 118px 46px 1fr;gap:8px;align-items:baseline;padding:5px 0;border-top:1px solid var(--line);font-size:13.5px}
+.fb-prot li:first-child{border-top:0}
+.fb-prot li.ok span{color:var(--ok)}.fb-prot li.err span,.fb-prot li.err em{color:#e07a5a}
+.fb-prot time{color:var(--mut);font-variant-numeric:tabular-nums}.fb-prot em{font-style:normal;overflow-wrap:anywhere}
+.fb-hilfe{margin-top:10px}.fb-hilfe summary{cursor:pointer;color:var(--gold);font-size:14px}
+.fb-hilfe ol{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.5}
+@media (max-width:560px){.fb-prot li{grid-template-columns:18px 1fr;row-gap:0}.fb-prot li b,.fb-prot li em{grid-column:2}}

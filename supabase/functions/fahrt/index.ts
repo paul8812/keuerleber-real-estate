@@ -94,11 +94,20 @@ Deno.serve(async (req) => {
   if (req.method === "POST") { try { Object.assign(p, await req.json()); } catch { /* nur Query */ } }
   const k = String(p.k ?? p.geheim ?? ""), a = String(p.a ?? p.art ?? "").toLowerCase();
   if (!k) return antwort("Fahrtenbuch-Endpunkt: Zugangsschlüssel fehlt.", 401);
+  // Jede Meldung vom iPhone wird kurz protokolliert (ohne Standort), damit im CRM sichtbar ist, ob und warum etwas nicht ankommt
+  const merke = (ok: boolean, text: string, mehr: Record<string, unknown> = {}) =>
+    rpc("fahrt_protokoll", { p_geheim: k, p_eintrag: { zeit: new Date().toISOString(), a, ok, text, q: String(p.q ?? "").slice(0, 20), ...mehr } }).catch(() => {});
   try {
+    if (a === "test") { await rpc("fahrt_ergaenzen", { p_geheim: k, p_id: "-", p_daten: {} }); await merke(true, "Testaufruf"); return antwort("✓ Verbindung zum Fahrtenbuch steht. Du kannst die Seite schließen."); }
     if (a === "start" || a === "ende") {
       const lat = zahl(p.lat), lon = zahl(p.lon);
-      if (!Number.isFinite(lat) || !Number.isFinite(lon)) return antwort("Standort fehlt (lat/lon).", 400);
+      if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+        const roh = `${String(p.lat ?? "").slice(0, 24)} / ${String(p.lon ?? "").slice(0, 24)}`.replace(/[\d]/g, "9");   // nur die Form, nicht der Wert
+        await merke(false, !String(p.lat ?? "").trim() && !String(p.lon ?? "").trim() ? "Standort fehlt – im Kurzbefehl sind Breiten- und Längengrad nicht eingesetzt oder das iPhone durfte den Standort nicht abrufen" : "Standort nicht lesbar – statt Zahlen kam Text an", { form: roh });
+        return antwort("Standort fehlt (lat/lon).", 400);
+      }
       const r = await rpc("fahrt_punkt", { p_geheim: k, p_art: a, p_lat: lat, p_lon: lon, p_genau: Number.isFinite(zahl(p.genau)) ? zahl(p.genau) : null, p_quelle: String(p.q ?? "carplay").slice(0, 20) });
+      await merke(true, r?.fortgesetzt ? "Fahrt geht weiter" : a === "start" ? "Fahrt gestartet" : "Fahrt beendet", { genau: Number.isFinite(zahl(p.genau)) ? Math.round(zahl(p.genau)) : null });
       if (r?.fortgesetzt) return antwort("✓ Fahrt geht weiter");
       // Adressen + Strecke: im Hintergrund nachtragen, damit der Kurzbefehl sofort fertig ist
       const arbeit = (async () => {
@@ -125,9 +134,10 @@ Deno.serve(async (req) => {
       const rts = (await mitZeit(routen(von, nach), 8000)) || [], rt = rts[0] || (await mitZeit(route(von, nach), 6000));
       return antwort({ ok: !!rt, von, nach, km: rt?.km ?? null, min: rt?.min ?? null, alternativen: rts.slice(1) });
     }
-    return antwort("Unbekannte Aktion (a=start|ende|strecke).", 400);
+    return antwort("Unbekannte Aktion (a=start|ende|strecke|test).", 400);
   } catch (e) {
     const m = (e as Error).message || "Fehler";
+    if ((a === "start" || a === "ende") && !/nicht erlaubt/.test(m)) await merke(false, m.slice(0, 160));
     return antwort(/nicht erlaubt/.test(m) ? "Zugangsschlüssel ungültig – im CRM unter Fahrtenbuch → Einrichten neu kopieren." : "Fehler: " + m, /nicht erlaubt/.test(m) ? 403 : 500);
   }
 });
