@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Theodor-Körner-Straße: 6 kernsanierte Wohnungen in Hof | Keuerleber Immobilien</title>
-<meta name="description" content="Sechs kernsanierte 2-Zimmer-Wohnungen (53–61 m²) in der Theodor-Körner-Straße. Neue Bäder, Einbauküchen, Balkon. Jetzt virtuell besichtigen – 360°-Rundgang und Grundrisse.">
+<meta name="description" content="Sechs kernsanierte 2-Zimmer-Wohnungen (53–61 m²) in der Theodor-Körner-Straße. Neue Bäder, Einbauküchen, Balkon. Jetzt virtuell besichtigen – 360°-Rundgang durch die Wohnungen.">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <link rel="canonical" href="https://keuerleber-immobilien.de/theodor-k%C3%B6rner-stra%C3%9Fe/">
 <link rel="icon" href="/favicon.ico?g3" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?g3"><link rel="apple-touch-icon" href="/apple-touch-icon.png?g3">
@@ -14,7 +14,7 @@
 <meta property="og:title" content="Theodor-Körner-Straße: 6 kernsanierte Wohnungen"><meta property="og:description" content="Kernsaniert · 2 Zimmer · 53–61 m². Jetzt virtuell besichtigen.">
 <meta property="og:url" content="https://keuerleber-immobilien.de/theodor-k%C3%B6rner-stra%C3%9Fe/"><meta property="og:image" content="https://keuerleber-immobilien.de/theodor-k%C3%B6rner-stra%C3%9Fe/bilder/og.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="projekt.css?v=1">
+<link rel="stylesheet" href="projekt.css?v=2">
 </head>
 <body class="locked">
 
@@ -43,11 +43,12 @@
       <h1 id="h1">Hier entstehen 6&nbsp;moderne <em>Wohnungen.</em></h1>
       <p class="lead">Kernsaniert · 2 Zimmer · 53–61&nbsp;m². Neue Bäder, Einbauküchen und Balkon – zum Selbstbewohnen oder als Kapitalanlage.</p>
       <div class="btns">
-        <button class="btn" type="button" data-gate="hero" data-tour="01">Jetzt virtuell besichtigen</button>
+        <a class="btn" href="rundgang/?apt=01">Jetzt virtuell besichtigen</a>
         <a class="btn-g" href="#kontakt">Beratung anfragen</a>
       </div>
       <p class="avail" id="avail" hidden><i class="dot" aria-hidden="true"></i><span></span></p>
-      <div class="trust"><span>360°-Rundgang aller 6 Wohnungen</span><span>Grundrisse zum Download</span><span>Persönlich in Hof</span></div>
+      <div class="trust"><span>Wohnung 01 sofort in 360° ansehen</span><span>Kostenlos &amp; unverbindlich</span><span>Persönlich in Hof</span></div>
+      <p class="hint" style="margin-top:14px">Rundgänge und Nachher-Bilder sind Visualisierungen – Ausführung kann abweichen.</p>
     </div>
     <div class="hero-media">
       <video id="heroVid" muted playsinline loop preload="metadata" poster="bilder/hero-mobil.webp" aria-label="Drohnenaufnahme des Hauses, Stand Oktober 2026">
@@ -68,29 +69,16 @@
 <!-- 2 VORHER / NACHHER -->
 <section class="sec" id="vorher-nachher" aria-labelledby="h-ba">
   <div class="wrap">
-    <div class="ba-head">
-      <div><p class="lbl">Vorher / Nachher</p><h2 id="h-ba">Aus Altbau wird <em>Zuhause.</em></h2></div>
-      <div class="seg" role="tablist" aria-label="Ansicht wählen">
-        <button role="tab" aria-selected="true" data-ba="aussen">Außen</button><button role="tab" aria-selected="false" data-ba="innen">Innen</button>
-      </div>
+    <p class="lbl">Vorher / Nachher</p>
+    <h2 id="h-ba">Aus Altbau wird <em>Zuhause.</em></h2>
+    <div class="vn">
+      <figure><div class="vn-pic"><img src="bilder/aussen-vorher.webp" alt="Das Haus heute mit gelber Fassade, Drohnenaufnahme Oktober 2026" width="941" height="1176" loading="lazy"><span class="vn-tag">Vorher · Heute</span></div>
+        <figcaption>Das Haus heute – Drohnenaufnahme, Oktober 2026.</figcaption></figure>
+      <figure><div class="vn-pic"><img src="bilder/aussen-visualisierung.webp" alt="Visualisierung des Hauses nach der Sanierung mit heller Fassade und Balkonen" width="941" height="1176" loading="lazy"><span class="vn-tag gold">Nachher · Visualisierung</span></div>
+        <figcaption>So soll das Haus nach der Sanierung aussehen.</figcaption></figure>
     </div>
-    <div class="ba-grid">
-      <div class="ba" id="ba" style="--p:50%" tabindex="0" role="slider" aria-label="Vorher-Nachher-Vergleich. Mit den Pfeiltasten verschieben." aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
-        <img id="baA" src="bilder/aussen-vorher.webp" alt="Das Haus heute mit gelber Fassade (Drohnenaufnahme Oktober 2026)" width="940" height="1175">
-        <div class="top"><img id="baB" src="bilder/aussen-visualisierung.webp" alt="Visualisierung nach der Sanierung mit heller Fassade und Balkonen" width="940" height="1175"></div>
-        <span class="bar" aria-hidden="true"></span><span class="knob" aria-hidden="true">⇆</span>
-        <span class="t1" id="baT1">Heute</span><span class="t2" id="baT2">Visualisierung</span>
-      </div>
-      <div class="ba-txt" id="baTxt">
-        <p id="baP">Ziehen Sie den Regler: links das Haus, wie es heute steht, rechts die Visualisierung nach der Sanierung.</p>
-        <ul class="chk" id="baList">
-          <li>Helle, ruhige Fassade statt Gelb</li>
-          <li>Balkone mit Glasbrüstung an der Giebelseite</li>
-          <li>Gepflegter Vorgarten und neue Außenbeleuchtung</li>
-        </ul>
-        <p class="hint">Visualisierung – die tatsächliche Ausführung kann abweichen.</p>
-      </div>
-    </div>
+    <div class="disc-box" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16.5v.5"/></svg>
+      <p><b>Hinweis: Visualisierung.</b> Das Nachher-Bild, alle Wohnungsbilder und die 360°-Rundgänge sind computergenerierte Visualisierungen nach Planungsstand. Die tatsächliche Ausführung, Farben, Materialien, Ausstattung, Möblierung und Umgebung können abweichen. Möbel und Deko sind nicht im Kaufpreis bzw. in der Miete enthalten.</p></div>
   </div>
 </section>
 
@@ -117,9 +105,9 @@
   <div class="wrap">
     <p class="lbl">Die Wohnungen</p>
     <h2 id="h-un">Jetzt virtuell <em>besichtigen.</em></h2>
-    <p class="lead">Gehen Sie in 360° durch jede Wohnung – möbliert, Raum für Raum – oder laufen Sie frei durch das 3D-Modell. Einmal freischalten, dann stehen alle Rundgänge und Grundrisse offen.</p>
+    <p class="lead">Wohnung 01 können Sie sofort in 360° besichtigen – möbliert, Raum für Raum. Für die Rundgänge der Wohnungen 02 bis 06 und das 3D-Modell einmal kostenlos anmelden.</p>
     <div class="units" id="units"></div>
-    <p class="note">Rundgänge und Bilder sind fotorealistische Visualisierungen nach Grundriss. Möblierung beispielhaft; Ausführung, Ausstattung und Umgebung können abweichen. Flächen laut Grundriss (Balkon zur Hälfte angerechnet).</p>
+    <div class="disc-box" role="note" style="margin-top:22px"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16.5v.5"/></svg><p><b>Alle Wohnungsbilder und Rundgänge sind Visualisierungen</b> nach Grundriss. Möblierung beispielhaft; Ausführung, Ausstattung und Umgebung können abweichen. Flächen laut Grundriss (Balkon zur Hälfte angerechnet).</p></div>
     <div class="cta-band"><p>Lieber vor Ort ansehen?<small>Wir zeigen Ihnen das Haus gern persönlich.</small></p><a class="btn" href="#kontakt">Besichtigung vereinbaren</a></div>
   </div>
 </section>
@@ -208,7 +196,7 @@
     <form id="gForm" novalidate>
       <p class="lbl" style="margin-bottom:10px">Kostenlos &amp; unverbindlich</p>
       <h2 id="g-h">Rundgänge <em>freischalten.</em></h2>
-      <p class="sub" id="g-sub">Vier kurze Fragen – dann sehen Sie alle 360°-Rundgänge, das 3D-Modell und die Grundrisse aller 6 Wohnungen.</p>
+      <p class="sub" id="g-sub">Vier kurze Fragen – dann sehen Sie die 360°-Rundgänge aller 6 Wohnungen und das 3D-Modell.</p>
       <div class="prog" aria-hidden="true"><i id="g-bar"></i><span id="g-cnt">Schritt 1 von 4</span></div>
 
       <fieldset class="step on" data-s="1">
@@ -278,8 +266,8 @@
     <div class="done" id="gDone" hidden>
       <div class="ok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></div>
       <h2>Alles <em>freigeschaltet.</em></h2>
-      <p class="sub" id="d-sub">Danke! Alle Rundgänge und Grundrisse stehen Ihnen jetzt offen.</p>
-      <ul class="perks"><li>360°-Rundgang aller 6 Wohnungen</li><li>Freies Laufen im 3D-Modell</li><li>Grundrisse als PDF</li></ul>
+      <p class="sub" id="d-sub">Danke! Alle Rundgänge stehen Ihnen jetzt offen.</p>
+      <ul class="perks"><li>360°-Rundgänge aller 6 Wohnungen</li><li>Freies Laufen im 3D-Modell</li><li>Persönliche Beratung auf Wunsch</li></ul>
       <p class="q" style="margin-bottom:10px">Möchten Sie direkt einen Besichtigungstermin?</p>
       <div class="btns">
         <a class="btn" id="d-tour" href="rundgang/?apt=01">Rundgang starten</a>
@@ -304,7 +292,7 @@
   </div>
 </footer>
 
-<script src="projekt.js?v=1" defer></script>
+<script src="projekt.js?v=2" defer></script>
 <script src="/consent.js?v=2" defer></script>
 <script src="/lead-sync.js?v=2" defer></script>
 </body>

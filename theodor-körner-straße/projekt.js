@@ -28,12 +28,12 @@ var PROJEKT = {
 };
 /* Feste Daten laut Grundriss (PlanKult, 03.11.2026) */
 var WE = [
-  { id: '01', etage: 'Erdgeschoss', m2: '60,65', balkon: '9,93', keller: '9,86', pdf: 'Grundriss_WE_01_EG.pdf' },
-  { id: '02', etage: 'Erdgeschoss', m2: '58,99', balkon: '6,63', keller: '10,38', pdf: 'Grundriss_WE_02_EG.pdf' },
-  { id: '03', etage: 'Obergeschoss', m2: '60,65', balkon: '9,93', keller: '4,90', pdf: 'Grundriss_WE_03_OG.pdf' },
-  { id: '04', etage: 'Obergeschoss', m2: '58,99', balkon: '6,63', keller: '4,90', pdf: 'Grundriss_WE_04_OG.pdf' },
-  { id: '05', etage: 'Dachgeschoss', m2: '57,52', balkon: '9,93', keller: '4,90', pdf: 'Grundriss_WE_05_DG.pdf' },
-  { id: '06', etage: 'Dachgeschoss', m2: '53,12', balkon: '', keller: '4,90', pdf: 'Grundriss_WE_06_DG.pdf' }
+  { id: '01', etage: 'Erdgeschoss', m2: '60,65', balkon: '9,93', keller: '9,86' },
+  { id: '02', etage: 'Erdgeschoss', m2: '58,99', balkon: '6,63', keller: '10,38' },
+  { id: '03', etage: 'Obergeschoss', m2: '60,65', balkon: '9,93', keller: '4,90' },
+  { id: '04', etage: 'Obergeschoss', m2: '58,99', balkon: '6,63', keller: '4,90' },
+  { id: '05', etage: 'Dachgeschoss', m2: '57,52', balkon: '9,93', keller: '4,90' },
+  { id: '06', etage: 'Dachgeschoss', m2: '53,12', balkon: '', keller: '4,90' }
 ];
 
 (function () {
@@ -103,19 +103,19 @@ var WE = [
 
   /* ---------- Wohnungskarten ---------- */
   var LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
-  var DL = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>';
   $('#units').innerHTML = WE.map(function (w) {
     var p = PROJEKT.wohnungen[w.id] || {}; var s = p.status;
     var badge = s ? '<span class="u-badge ' + s + '"><i></i>' + { frei: 'Frei', reserviert: 'Reserviert', verkauft: 'Verkauft', vermietet: 'Vermietet' }[s] + '</span>' : '';
-    return '<article class="unit" data-apt="' + w.id + '">' +
-      '<div class="u-pic"><img src="bilder/wohnung-' + w.id + '.webp" alt="Visualisierung Wohnung ' + w.id + ', ' + w.etage + '" width="1200" height="800" loading="lazy">' + badge + '<span class="u-360">360°</span>' +
-      '<button class="u-lock" type="button" data-gate="karte" data-tour="' + w.id + '">' + LOCK + 'Kompletten Rundgang freischalten<small>Kostenlos – alle 6 Wohnungen</small></button></div>' +
+    var frei01 = w.id === '01';
+    return '<article class="unit' + (frei01 ? ' free' : '') + '" data-apt="' + w.id + '">' +
+      '<div class="u-pic"><img src="bilder/wohnung-' + w.id + '.webp" alt="Visualisierung Wohnung ' + w.id + ', ' + w.etage + '" width="1200" height="800" loading="lazy">' + badge + '<span class="u-360">360°</span><span class="u-vis">Visualisierung</span>' + (frei01 && !badge ? '<span class="u-free">Ohne Anmeldung ansehen</span>' : '') +
+      '<button class="u-lock" type="button" data-gate="karte" data-tour="' + w.id + '">' + LOCK + 'Rundgang freischalten<small>Kostenlos – alle 6 Wohnungen</small></button></div>' +
       '<div class="u-body"><div class="u-top"><h3>Wohnung ' + w.id + '</h3><span class="m2">' + w.m2 + ' m²</span></div>' +
       '<div class="u-meta"><span>' + w.etage + '</span><span>2 Zimmer</span>' + (w.balkon ? '<span>Balkon ' + w.balkon + ' m²</span>' : '<span>Dachgeschoss ohne Balkon</span>') + '<span>Keller ' + w.keller + ' m³</span></div>' +
       (p.preis ? '<p class="u-price">' + esc(p.preis) + '</p>' : '') +
-      '<div class="u-act"><a class="btn" href="rundgang/?apt=' + w.id + '" data-gate="tour" data-tour="' + w.id + '">360°-Rundgang</a>' +
+      '<div class="u-act"><a class="btn" href="rundgang/?apt=' + w.id + '"' + (frei01 ? '' : ' data-gate="tour" data-tour="' + w.id + '"') + '>' + (frei01 ? '360°-Rundgang ansehen' : '360°-Rundgang') + '</a>' +
       '<a class="btn-g" href="rundgang/?apt=' + w.id + '&amp;modus=3d" data-gate="tour3d" data-tour="' + w.id + '">3D-Rundsicht</a></div>' +
-      '<button class="u-dl" type="button" data-gate="grundriss" data-pdf="' + w.pdf + '" data-tour="' + w.id + '">' + DL + 'Grundriss als PDF</button></div></article>';
+      '</div></article>';
   }).join('');
   $('#g-units').innerHTML = WE.map(function (w) {
     return '<label class="opt"><input type="checkbox" name="wohnung" value="WE ' + w.id + '"><span>WE ' + w.id + '<small>' + w.etage.replace('geschoss', 'G.') + ' · ' + w.m2 + ' m²</small></span></label>';
@@ -150,9 +150,8 @@ var WE = [
   var dlg = $('#gate'), form = $('#gForm'), schritt = 1, letzterFokus = null;
   function oeffnen(grund, apt) {
     letzterFokus = document.activeElement;
-    $('#g-sub').textContent = grund === 'exit' ? 'Bevor Sie gehen: Sichern Sie sich die Grundrisse und alle 360°-Rundgänge – vier kurze Fragen, kostenlos.'
-      : grund === 'grundriss' ? 'Vier kurze Fragen – dann laden Sie alle Grundrisse herunter und sehen die 360°-Rundgänge aller 6 Wohnungen.'
-      : 'Vier kurze Fragen – dann sehen Sie alle 360°-Rundgänge, das 3D-Modell und die Grundrisse aller 6 Wohnungen.';
+    $('#g-sub').textContent = grund === 'exit' ? 'Bevor Sie gehen: Sehen Sie alle 6 Wohnungen in 360° – vier kurze Fragen, kostenlos.'
+      : 'Vier kurze Fragen – dann sehen Sie die 360°-Rundgänge aller 6 Wohnungen und das 3D-Modell.';
     if (apt) { var cb = form.querySelector('input[name=wohnung][value="WE ' + apt + '"]'); if (cb && grund !== 'exit') cb.checked = true; }
     dlg.hidden = false; dlg.classList.add('open'); document.documentElement.style.overflow = 'hidden';
     zeigen(schritt); setTimeout(function () { var f = dlg.querySelector('.step.on input, #gDone:not([hidden]) a'); if (f) f.focus(); }, 60);
@@ -218,7 +217,7 @@ var WE = [
       .catch(function () {}).then(function () {
         speichern(vor); anwenden();
         form.hidden = true; $('#gDone').hidden = false;
-        $('#d-sub').textContent = 'Danke, ' + vor + '! Alle Rundgänge und Grundrisse stehen Ihnen jetzt offen. Wir melden uns werktags innerhalb von 24 Stunden.';
+        $('#d-sub').textContent = 'Danke, ' + vor + '! Alle Rundgänge stehen Ihnen jetzt offen. Wir melden uns werktags innerhalb von 24 Stunden.';
         var z = ziel || { url: 'rundgang/?apt=01', art: 'tour' }, a = $('#d-tour');
         a.href = z.url; a.textContent = z.art === 'grundriss' ? 'Grundriss öffnen' : 'Rundgang starten';
         if (z.art === 'grundriss') { a.target = '_blank'; a.rel = 'noopener'; }
@@ -232,7 +231,7 @@ var WE = [
     document.addEventListener('mouseout', function (e) {
       if (e.relatedTarget || e.clientY > 8 || zugang() || !dlg.hidden) return;
       try { if (sessionStorage.getItem('kp_tks_exit')) return; sessionStorage.setItem('kp_tks_exit', '1'); } catch (er) {}
-      ziel = { url: 'grundrisse/Grundriss_WE_01_EG.pdf', art: 'grundriss' }; oeffnen('exit');
+      ziel = { url: 'rundgang/?apt=02', art: 'tour', apt: '02' }; oeffnen('exit');
     });
   }
 
@@ -245,38 +244,6 @@ var WE = [
   var v = $('#heroVid');
   if (v && !matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window) {
     new IntersectionObserver(function (en) { en.forEach(function (x) { if (x.isIntersecting) { var p = v.play(); if (p && p.catch) p.catch(function () {}); } else v.pause(); }); }, { threshold: .2 }).observe(v);
-  }
-
-  /* ---------- Vorher / Nachher ---------- */
-  var ba = $('#ba'), BA = {
-    aussen: { a: 'bilder/aussen-vorher.webp', b: 'bilder/aussen-visualisierung.webp', w: 940, h: 1175, t1: 'Heute', t2: 'Visualisierung',
-      aa: 'Das Haus heute mit gelber Fassade (Drohnenaufnahme Oktober 2026)', ab: 'Visualisierung nach der Sanierung mit heller Fassade und Balkonen',
-      p: 'Ziehen Sie den Regler: links das Haus, wie es heute steht, rechts die Visualisierung nach der Sanierung.',
-      l: ['Helle, ruhige Fassade statt Gelb', 'Balkone mit Glasbrüstung an der Giebelseite', 'Gepflegter Vorgarten und neue Außenbeleuchtung'] },
-    innen: { a: 'bilder/innen-vorher.webp', b: 'bilder/innen-nachher.webp', w: 1000, h: 840, t1: 'Während der Sanierung', t2: 'Übergabe',
-      aa: 'Wohnzimmer während der Sanierung mit Baumaterial', ab: 'Dasselbe Wohnzimmer bei Übergabe mit neuem Boden und Deckenleuchte',
-      p: 'Ein Wohnzimmer aus dem Haus: links mitten in der Sanierung, rechts der Stand zur Übergabe.',
-      l: ['Neuer Boden in Holzoptik', 'Glatte, frisch gestrichene Decken und Wände', 'Neue Deckenleuchte und Elektrik'] }
-  };
-  function baSet(p) { p = Math.max(0, Math.min(100, p)); ba.style.setProperty('--p', p + '%'); ba.setAttribute('aria-valuenow', Math.round(p)); }
-  function baPos(x) { var r = ba.getBoundingClientRect(); baSet((x - r.left) / r.width * 100); }
-  var ziehen = false;
-  ba.addEventListener('pointerdown', function (e) { ziehen = true; ba.setPointerCapture(e.pointerId); baPos(e.clientX); });
-  ba.addEventListener('pointermove', function (e) { if (ziehen) baPos(e.clientX); });
-  ba.addEventListener('pointerup', function () { ziehen = false; }); ba.addEventListener('pointercancel', function () { ziehen = false; });
-  ba.addEventListener('keydown', function (e) { var p = +ba.getAttribute('aria-valuenow'); if (e.key === 'ArrowLeft') { baSet(p - 5); e.preventDefault(); } if (e.key === 'ArrowRight') { baSet(p + 5); e.preventDefault(); } });
-  $$('[data-ba]').forEach(function (b) {
-    b.addEventListener('click', function () {
-      var d = BA[b.getAttribute('data-ba')]; $$('[data-ba]').forEach(function (x) { x.setAttribute('aria-selected', x === b ? 'true' : 'false'); });
-      var A = $('#baA'), B = $('#baB'); A.src = d.a; B.src = d.b; A.alt = d.aa; B.alt = d.ab; A.width = B.width = d.w; A.height = B.height = d.h;
-      $('#baT1').textContent = d.t1; $('#baT2').textContent = d.t2; $('#baP').textContent = d.p;
-      $('#baList').innerHTML = d.l.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join(''); baSet(50);
-    });
-  });
-  var einmal = false;  // kleiner Hinweis-Schwenk, wenn der Regler ins Bild kommt
-  if ('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    new IntersectionObserver(function (en, ob) { if (en[0].isIntersecting && !einmal) { einmal = true; ob.disconnect(); var t0 = performance.now();
-      (function f(t) { var k = (t - t0) / 1400; if (k > 1 || ziehen) return; baSet(50 + Math.sin(k * Math.PI * 2) * 18); requestAnimationFrame(f); })(t0); } }, { threshold: .6 }).observe(ba);
   }
 
   /* ---------- Karte erst nach Klick ---------- */
