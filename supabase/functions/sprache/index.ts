@@ -9,7 +9,12 @@
 const SB_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const erster = (name: string) => { try { return Object.values(JSON.parse(Deno.env.get(name) ?? "{}") as Record<string, string>)[0] ?? ""; } catch { return ""; } };
 const SB_ANON = Deno.env.get("SUPABASE_ANON_KEY") || erster("SUPABASE_PUBLISHABLE_KEYS");
-const KEY = Deno.env.get("ELEVENLABS_API_KEY") ?? "";
+// Schlüssel: bevorzugt das Secret ELEVENLABS_API_KEY; wurde er unter einem anderen Namen gespeichert, wird er an seiner Form (sk_…) erkannt
+const KEY = (() => {
+  const direkt = (Deno.env.get("ELEVENLABS_API_KEY") ?? "").trim(); if (direkt) return direkt;
+  try { for (const [name, wert] of Object.entries(Deno.env.toObject())) { const w = String(wert).trim(); if (!/^(SUPABASE_|SB_|DENO_)/.test(name) && /^sk_[A-Za-z0-9]{30,}$/.test(w)) return w; } } catch { /* kein Zugriff */ }
+  return "";
+})();
 const STIMME = Deno.env.get("ELEVENLABS_VOICE_ID") || "MMwckqU477oQxnAk1SgA";   // „Ben – Conversational Voice“: ruhig, natürlich, deutsch
 const MODELL = Deno.env.get("ELEVENLABS_MODEL") || "eleven_multilingual_v2";
 const MAX = 900;
