@@ -111,13 +111,15 @@ export function renderExpose(p, s, basis) {
   const money = n => `<span class="${n < 0 ? 'neg' : 'pos'}">${sgn(n, eur2)}</span>`;
   const kosten = n => `<span class="neg">− ${eur2(Math.abs(n))}</span>`;   // Abzüge stehen immer mit Minus da, auch bei 0,00 €
 
-  // Seite 1 – Titel
+  // Seite 1 – Titel. Für den Druck liegt das Titelbild fertig abgedunkelt als ein Bild vor (p.titelFertig) – manche Browser
+  // drucken ein Hintergrundbild mit halbtransparentem Verlauf darüber sonst als schwarze Fläche.
   const titelBild = imgs[b.titel] ? `style="background-image:url('${src(b.titel)}')"` : '';
   let html = page(`
     <div class="kpis" style="grid-template-columns:repeat(${2 + (+o.wohnflaeche > 0) + (+o.zimmer > 0)},1fr)">${box(eur0(c.kp), 'Kaufpreis')}${+o.wohnflaeche > 0 ? box(num(+o.wohnflaeche) + ' m²', 'Wohnfläche') : ''}${+o.zimmer > 0 ? box(num(+o.zimmer, o.zimmer % 1 ? 1 : 0), 'Zimmer') : ''}${box(pct(c.rendite), 'Brutto-Mietrendite')}</div>
     <p class="intro">${esc(t.intro)}</p>
     <div class="chips">${(t.chips || []).map(x => `<span>${esc(x)}</span>`).join('')}</div>`, 'cover', `
-    <div class="cover-hero" ${titelBild}>
+    <div class="cover-hero ${p.titelFertig ? 'gebacken' : ''}" ${p.titelFertig ? '' : titelBild}>
+      ${p.titelFertig ? `<img class="cover-img" src="${p.titelFertig}" alt="">` : ''}
       <div class="cover-top">${kopfFoto}</div>
       <div class="cover-text">
         <div class="kicker">${esc(t.kicker || 'Exposé · Eigentumswohnung')}</div>

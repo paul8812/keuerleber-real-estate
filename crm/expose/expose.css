@@ -130,3 +130,8 @@
 /* fit4: Seite ist trotz kleinerer Schrift zu voll → Bildreihe weglassen, damit kein Text abgeschnitten wird */
 .page.fit4 .row2 { display: none; }
 .page.fit4 .contact { margin-top: 4mm; padding: 4mm 6mm; }
+
+/* Titelbild für den Druck: ein fertiges, bereits abgedunkeltes Bild statt Hintergrundbild + halbtransparentem Verlauf */
+.cover-hero.gebacken { background: #222; overflow: hidden; }
+.cover-hero.gebacken::before { display: none; }
+.cover-img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
