@@ -30,6 +30,7 @@ import { initMobil } from './mobil.js';
 import { initHaptik, uebergang } from './haptik.js';
 import { initAktionen } from './aktionen.js';
 import * as mail from './mail.js';
+import * as assistent from './assistent.js';
 mail.einrichten();
 import { initCrmPlus } from './crmplus.js';
 import { initKontakt, kontaktErfassen } from './kontakt.js';
@@ -94,6 +95,7 @@ function syncAnzeige() {
   el.onclick = async () => { toast(el.title); try { await db.resume({ force: true }); } catch { /* Anzeige zeigt den Fehler */ } };
 }
 function shell() {
+  assistent.einrichten();
   const navE = Object.fromEntries(NAV.map(n => [n[0], n]));
   const link = k => { const [, l, ic] = navE[k]; return `<a href="#/${k}" data-k="${k}"><i>${ic}</i><span>${l}</span></a>`; };
   const gruppiert = new Set(NAV_GRUPPEN.flatMap(g => g[1]));
