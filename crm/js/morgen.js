@@ -5,7 +5,7 @@ import { html, today, fullName } from './util.js';
 import { newCount as mailsNeu } from './views/inbox.js';
 import { neuAnzahl as anfragenNeu } from './portal.js';
 
-const STANDARD = { playlist: 'https://open.spotify.com/playlist/79LlED1T74BqFP2WmzC2x9', name: 'Arbeitsmotivation Hype Haftbefehl', vorlesen: true };
+const STANDARD = { stimme: '', playlist: 'https://open.spotify.com/playlist/79LlED1T74BqFP2WmzC2x9', name: 'Arbeitsmotivation Hype Haftbefehl', vorlesen: true };
 export const einstellung = () => ({ ...STANDARD, ...(db.settings().morgen || {}) });
 const speichern = patch => db.saveSettings({ ...db.settings(), morgen: { ...(db.settings().morgen || {}), ...patch } });
 const playlistId = url => (/playlist[/:]([A-Za-z0-9]{10,40})/.exec(String(url || '')) || [])[1] || '';
@@ -39,7 +39,29 @@ export function briefing(jetzt = new Date()) {
   return { zeilen, sprechen: S2.join(' '), datum, gruss: gruss + (vorname ? ', ' + vorname : '') };
 }
 
-function vorlesen(text) {
+// Stimme: bevorzugt die ElevenLabs-Stimme über die Function „sprache“ (Schlüssel liegt nur auf dem Server), sonst die Stimme des Geräts
+let spieler = null;
+export const stimmeVerfuegbar = () => db.isCloud() && !!db.klient() && db.settings().morgen?.stimme !== 'geraet';
+async function holeAufnahme(text) {
+  const { data } = await db.klient().auth.getSession(), token = data?.session?.access_token; if (!token) throw new Error('nicht angemeldet');
+  const r = await fetch(`${(db.cfg().url || '').replace(/\/$/, '')}/functions/v1/sprache`, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + token, apikey: db.cfg().key }, body: JSON.stringify({ text }) });
+  if (!r.ok || !/audio/.test(r.headers.get('content-type') || '')) { let f = ''; try { f = (await r.json()).fehler || ''; } catch { } throw new Error(f || 'Sprachausgabe nicht erreichbar'); }
+  return URL.createObjectURL(await r.blob());
+}
+const stopp = () => { try { spieler?.pause(); } catch { } spieler = null; try { speechSynthesis.cancel(); } catch { } };
+/** Liest vor; liefert { ok, art: 'elevenlabs' | 'geraet', hinweis } */
+async function vorlesen(text, bereit = null) {
+  if (stimmeVerfuegbar()) {
+    try {
+      // Das Audio-Element wurde schon beim Klick angelegt (bereit) – sonst blockt Safari das Abspielen nach dem Laden
+      const a = bereit || new Audio(); spieler = a; a.src = await holeAufnahme(text);
+      await new Promise((ja, nein) => { a.onended = ja; a.onerror = () => nein(new Error('Abspielen fehlgeschlagen')); a.play().catch(nein); });
+      return { ok: true, art: 'elevenlabs' };
+    } catch (e) { if (spieler === null) return { ok: false, art: 'elevenlabs' }; const r = await geraeteStimme(text); return { ok: r, art: 'geraet', hinweis: e.message }; }
+  }
+  return { ok: await geraeteStimme(text), art: 'geraet' };
+}
+function geraeteStimme(text) {
   return new Promise(fertig => {
     const sy = window.speechSynthesis; if (!sy || !window.SpeechSynthesisUtterance) return fertig(false);
     try {
@@ -70,18 +92,25 @@ export function starten({ sofort = true } = {}) {
       <div class="morgen-a"><button type="button" class="btn primary" data-los>▶ Routine starten</button><a class="btn" data-web href="${web}" target="_blank" rel="noopener" ${web ? '' : 'hidden'}>♫ Playlist öffnen</a><button type="button" class="btn ghost" data-zu>Zum CRM</button></div>
       <details class="morgen-e"><summary>Einstellungen</summary>
         <label class="f"><span>Spotify-Playlist (Link)</span><input name="playlist" value="${E.playlist}" placeholder="https://open.spotify.com/playlist/…"></label>
-        <label class="chk"><input type="checkbox" name="vorlesen" ${E.vorlesen ? 'checked' : ''}><span>Briefing vorlesen</span></label></details></div>`.s;
+        <label class="chk"><input type="checkbox" name="vorlesen" ${E.vorlesen ? 'checked' : ''}><span>Briefing vorlesen</span></label>
+        <label class="chk"><input type="checkbox" name="stimme" ${E.stimme === 'geraet' ? '' : 'checked'}><span>ElevenLabs-Stimme verwenden (sonst Stimme des Geräts)</span></label></details></div>`.s;
   document.body.appendChild(el);
-  const stand = el.querySelector('[data-stand]'), los = el.querySelector('[data-los]'); let lauf = 0;
-  const zu = () => { lauf++; try { speechSynthesis.cancel(); } catch { } el.remove(); document.removeEventListener('keydown', esc); };
+  const stand = el.querySelector('[data-stand]'), los = el.querySelector('[data-los]'); let lauf = 0, hinweis = '';
+  const zu = () => { lauf++; stopp(); el.remove(); document.removeEventListener('keydown', esc); };
   const esc = e => { if (e.key === 'Escape') zu(); }; document.addEventListener('keydown', esc);
   el.querySelectorAll('[data-zu]').forEach(b => b.onclick = zu); el.onclick = e => { if (e.target === el) zu(); };
   el.querySelector('[name=playlist]').onchange = async e => { const v = e.target.value.trim(); await speichern({ playlist: v }); const i = playlistId(v), a = el.querySelector('[data-web]'); a.hidden = !i; if (i) a.href = `https://open.spotify.com/playlist/${i}?go=1`; };
   el.querySelector('[name=vorlesen]').onchange = e => speichern({ vorlesen: e.target.checked });
+  el.querySelector('[name=stimme]').onchange = e => speichern({ stimme: e.target.checked ? '' : 'geraet' });
   const ablauf = async () => {
     const meins = ++lauf; los.hidden = true;
-    if (einstellung().vorlesen) { stand.textContent = '🔊 Briefing läuft …'; await vorlesen(B.sprechen); if (meins !== lauf) return; }
-    if (playlistId(einstellung().playlist)) { stand.textContent = `♫ Starte „${einstellung().name}“ in Spotify … Falls nichts passiert: „Playlist öffnen“.`; musik(); }
+    if (einstellung().vorlesen) {
+      // Audio-Element sofort im Klick anlegen und „entsperren“, damit der Browser das spätere Abspielen erlaubt
+      let a = null; if (stimmeVerfuegbar()) { a = new Audio(); a.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA='; a.play().catch(() => { }); }
+      stand.textContent = '🔊 Briefing läuft …'; const r = await vorlesen(B.sprechen, a); if (meins !== lauf) return;
+      if (r.hinweis) hinweis = ` (Gerätestimme, weil: ${r.hinweis})`;
+    }
+    if (playlistId(einstellung().playlist)) { stand.textContent = `♫ Starte „${einstellung().name}“ in Spotify … Falls nichts passiert: „Playlist öffnen“.${hinweis}`; musik(); }
     else stand.textContent = 'Keine Playlist hinterlegt – unter „Einstellungen“ den Spotify-Link einfügen.';
   };
   los.onclick = ablauf;
