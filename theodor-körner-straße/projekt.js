@@ -246,6 +246,23 @@ var WE = [
     new IntersectionObserver(function (en) { en.forEach(function (x) { if (x.isIntersecting) { var p = v.play(); if (p && p.catch) p.catch(function () {}); } else v.pause(); }); }, { threshold: .2 }).observe(v);
   }
 
+
+  /* ---------- AfA-Beispielrechnung ---------- */
+  (function () {
+    var p = document.getElementById('tc-p'); if (!p) return;
+    var g = document.getElementById('tc-g'), st = document.getElementById('tc-s');
+    var eur = function (v) { return Math.round(v).toLocaleString('de-DE') + ' €'; };
+    function rechne() {
+      var basis = Math.max(0, +p.value || 0) * Math.min(100, Math.max(0, +g.value || 0)) / 100, s = (+st.value || 0) / 100;
+      [2, 4, 5].forEach(function (r) {
+        document.getElementById('tc-a' + r).textContent = eur(basis * r / 100);
+        document.getElementById('tc-e' + r).textContent = eur(basis * r / 100 * s);
+      });
+      document.getElementById('tc-sum').innerHTML = 'Gegenüber 2&nbsp;% sparen Sie im Beispiel <b>' + eur(basis * 0.02 * s) + ' bis ' + eur(basis * 0.03 * s) + ' mehr Steuern pro Jahr</b> – über 10 Jahre rund ' + eur(basis * 0.2 * s) + ' bis ' + eur(basis * 0.3 * s) + '.';
+    }
+    [p, g, st].forEach(function (el) { el.addEventListener('input', rechne); });
+    rechne();
+  })();
   /* ---------- Karte erst nach Klick ---------- */
   $('#mapBtn').addEventListener('click', function () {
     var k = PROJEKT.karte;

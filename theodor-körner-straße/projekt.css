@@ -262,3 +262,24 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;
 footer a{color:#cfc8bb;text-decoration:none}footer a:hover{color:#fff}
 .disc{max-width:var(--max);margin:0 auto 18px;font-size:12.5px;color:var(--mu2)}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+
+/* ---------- Steuervorteil ---------- */
+.tax{display:grid;grid-template-columns:1.15fr 1fr;gap:clamp(16px,3vw,40px);margin-top:34px;align-items:start}
+.tax-steps{list-style:none;counter-reset:t;display:grid;gap:14px;padding:0;margin:0}
+.tax-steps li{counter-increment:t;position:relative;padding:20px 20px 20px 70px;background:var(--card);border:1px solid var(--line);border-radius:20px}
+.tax-steps li::before{content:counter(t);position:absolute;left:20px;top:18px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700;color:var(--ink);background:var(--gold)}
+.tax-steps b{display:block;font-size:18px;color:#fff;margin-bottom:6px}.tax-steps span{font-size:15px;color:var(--mu);line-height:1.6}
+.tax-calc{background:var(--card);border:1px solid rgba(217,188,127,.35);border-radius:24px;padding:24px}
+.tax-calc h3{font-size:20px;margin-bottom:4px}
+.tax-calc label{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:14.5px;color:var(--mu);margin:10px 0}
+.tax-calc input,.tax-calc select{background:#0a0b0a;color:#fff;border:1px solid var(--line-2);border-radius:12px;padding:10px 12px;font:600 15px var(--f-sans);width:150px;text-align:right}
+.tax-calc select{text-align:left}
+.tc-in{position:relative}.tc-in input{padding-right:30px}.tc-in i{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-style:normal;color:var(--mu2)}
+.tc-t{width:100%;border-collapse:collapse;margin-top:18px;font-size:14px}
+.tc-t th{font-weight:600;color:var(--mu2);font-size:12px;letter-spacing:.04em;text-align:right;padding:6px 4px}
+.tc-t td{padding:10px 4px;text-align:right;color:#d9d2c4;border-top:1px solid var(--line);white-space:nowrap}
+.tc-t td:first-child{text-align:left;color:var(--mu);white-space:normal}
+.tc-t .hl{color:var(--g1);font-weight:700}.tc-t th.hl{color:var(--g1)}
+.tc-sum{margin-top:14px;font-size:14.5px;color:#fff;line-height:1.5}.tc-sum b{color:var(--g1)}
+@media(max-width:860px){.tax{grid-template-columns:1fr}}
+@media(max-width:420px){.tax-calc input,.tax-calc select{width:130px}.tax-steps li{padding-left:62px}.tax-steps li::before{left:16px}}
