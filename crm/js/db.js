@@ -1,6 +1,6 @@
 // Datenschicht: lokal (localStorage) oder Cloud (Supabase). Gleiche API für beide.
 import { uid, today, toast, idFor } from './util.js';
-export const COLS = ['contacts', 'properties', 'deals', 'tasks', 'events', 'activities', 'templates', 'settings', 'mails', 'sync', 'buchungen', 'rechnungen', 'social', 'fahrten', 'anfragen', 'exposes', 'unterlagen', 'links', 'linkstatus', 'angebote'];
+export const COLS = ['contacts', 'properties', 'deals', 'tasks', 'events', 'activities', 'templates', 'settings', 'mails', 'sync', 'buchungen', 'rechnungen', 'social', 'fahrten', 'anfragen', 'exposes', 'unterlagen', 'links', 'linkstatus', 'angebote', 'fahrtstatus'];
 const LS = 'kre-crm-data', CFG = 'kre-crm-cfg';
 // Supabase-Bibliothek liegt im eigenen Repository (kein fremdes CDN zur Laufzeit)
 const SB_LIB = new URL('../vendor/supabase.js?v=2.45.4', import.meta.url).href;
@@ -399,6 +399,21 @@ end $$;
 revoke all on function public.fahrt_punkt(text, text, double precision, double precision, double precision, text), public.fahrt_ergaenzen(text, text, jsonb), public.fahrt_geheim(boolean) from public;
 grant execute on function public.fahrt_punkt(text, text, double precision, double precision, double precision, text), public.fahrt_ergaenzen(text, text, jsonb) to anon, authenticated;
 grant execute on function public.fahrt_geheim(boolean) to authenticated;`;
+// Fahrtenbuch: Protokoll der letzten Meldungen vom iPhone (für die Fehlersuche unter Fahrtenbuch → Einrichten)
+export const FAHRT_PROTOKOLL_SQL = `create or replace function public.fahrt_protokoll(p_geheim text, p_eintrag jsonb) returns void language plpgsql security definer set search_path = public, privat as $$
+declare u uuid; alt jsonb; neu jsonb;
+begin
+  if not exists (select 1 from privat.fahrt f where f.id = 1 and f.geheim = coalesce(p_geheim, '')) then return; end if;
+  select r.user_id into u from public.records r where r.id = 'main' and r.collection = 'settings' limit 1;
+  if u is null or p_eintrag is null or pg_column_size(p_eintrag) > 2000 then return; end if;
+  select r.data->'eintraege' into alt from public.records r where r.id = 'fahrt-protokoll' and r.user_id = u;
+  select coalesce(jsonb_agg(x order by n), '[]'::jsonb) into neu from (select x, n from jsonb_array_elements(jsonb_build_array(p_eintrag) || coalesce(alt, '[]'::jsonb)) with ordinality t(x, n) order by n limit 25) q;
+  insert into public.records (id, collection, data, user_id, updated_at)
+  values ('fahrt-protokoll', 'fahrtstatus', jsonb_build_object('id', 'fahrt-protokoll', 'eintraege', neu), u, now())
+  on conflict (id) do update set data = excluded.data, updated_at = now() where public.records.user_id = excluded.user_id;
+end $$;
+revoke all on function public.fahrt_protokoll(text, jsonb) from public;
+grant execute on function public.fahrt_protokoll(text, jsonb) to anon, authenticated, service_role;`;
 // E-Mail senden aus dem CRM (Edge Function „mailsenden“): Einmal-Schein für den angemeldeten Benutzer, den nur der Server gegen die
 // Postfach-Daten aus dem Vault tauschen kann. Höchstens 60 Mails je Stunde.
 export const MAILSENDEN_SQL = `create table if not exists privat.mailticket (ticket text primary key, user_id uuid not null, ablauf timestamptz not null);
