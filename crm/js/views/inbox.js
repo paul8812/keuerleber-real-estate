@@ -7,9 +7,9 @@ import { cLink, empty, badge, contactOpts, contactName } from '../ui.js';
 import { ORDNER, verschieben, sortieren, absenderKey } from '../mailsort.js';
 import * as ki from '../ki.js';
 
-const FILTERS = [['neu', 'Neu'], ['bearbeitet', 'Bearbeitet'], ['alle', 'Alle']];
+const FILTERS = [['alle', 'Alle'], ['neu', 'Neu'], ['bearbeitet', 'Bearbeitet']];
 const TYP = { anfrage: ['Anfrage', '#5bbf8a'], kontakt: ['Kontakt', '#5fa8d3'], unbekannt: ['Unbekannt', '#e0a84a'] };
-let filter = 'neu', ordnerFilter = 'alle', suche = '', gewaehlt = '';
+let filter = 'alle', ordnerFilter = 'alle', suche = '', gewaehlt = '';
 
 export const mails = () => db.all('mails') || [];
 // Portal-Anfragen (ohne-makler) stehen schon unter „Anfragen“ – sie zählen hier nicht mehr als „neu“
@@ -42,20 +42,22 @@ const tagGruppe = d => { const t = (d || '').slice(0, 10), h = today(); return t
 function lesen(m) {
   const o = m.ordner && ORDNER[m.ordner];
   return html`<div class="pe-mail" data-lesen="${m.id}">
+    <h2 class="pe-betreff">${m.betreff || '(ohne Betreff)'}</h2>
+    <div class="pe-von"><span class="pe-av" style="--k:${o ? o.farbe : '#888'}" aria-hidden="true">${ini(m)}</span>
+      <div class="grow"><b>${m.vonName || m.vonAdresse}</b>${m.vonName ? html` <span class="muted small">${m.vonAdresse}</span>` : ''}
+        <div class="muted small">${fmtDT(m.datum)}${m.contactId ? html` · ${cLink(m.contactId)}` : ''}${istAnfrage(m) ? html` · <a class="lnk" href="#/anfragen">steht unter Anfragen →</a>` : ''}${o ? html` · <span class="pe-ord" style="--k:${o.farbe}">${o.name}</span>` : ''}</div>
+        ${m.anhaenge?.length ? html`<div class="muted small">📎 ${m.anhaenge.join(', ')}</div>` : ''}</div></div>
     <div class="pe-akt">
       <a class="btn primary" href="${replyHref(m)}" data-a="reply">↩ Antworten</a>
       ${m.status === 'neu' ? html`<button type="button" class="btn" data-a="done">✓ Erledigt</button>` : html`<button type="button" class="btn" data-a="reopen">Wieder als neu</button>`}
-      <button type="button" class="btn" data-a="task">Aufgabe</button>
-      ${m.contactId ? '' : html`<button type="button" class="btn" data-a="contact">Kontakt anlegen</button><button type="button" class="btn ghost" data-a="link">zuordnen</button>`}
-      ${m.status === 'neu' ? html`<button type="button" class="btn ghost" data-a="ignore" title="Aus „Neu“ entfernen, ohne etwas zu tun">Ignorieren</button>` : ''}
+      <details class="pe-mehr"><summary class="btn ghost">Mehr ▾</summary><div class="pe-mehr-m">
+        <button type="button" data-a="task">＋ Aufgabe daraus machen</button>
+        ${m.contactId ? '' : html`<button type="button" data-a="contact">☺ Kontakt anlegen</button><button type="button" data-a="link">⇄ Einem Kontakt zuordnen</button>`}
+        ${m.status === 'neu' ? html`<button type="button" data-a="ignore">Ignorieren (ohne Erledigt)</button>` : ''}
+        <label title="${m.ordnerVon === 'ki' ? 'von der KI sortiert' : m.ordnerVon === 'hand' ? 'von dir sortiert' : m.ordnerVon ? 'automatisch sortiert' : 'noch nicht sortiert'}"><span>In Ordner verschieben</span>
+          <select data-ordner>${Object.entries(ORDNER).map(([k, x]) => html`<option value="${k}" ${k === (m.ordner || '') ? raw('selected') : ''}>${x.name}</option>`)}${m.ordner ? '' : html`<option value="" selected>– unsortiert –</option>`}</select></label>
+      </div></details>
     </div>
-    <h2 class="pe-betreff">${m.betreff || '(ohne Betreff)'}</h2>
-    <div class="pe-von"><span class="pe-av" style="--k:${o ? o.farbe : '#888'}" aria-hidden="true">${ini(m)}</span>
-      <div class="grow"><b>${m.vonName || m.vonAdresse}</b>${m.vonName ? html` <span class="muted">&lt;${m.vonAdresse}&gt;</span>` : ''}
-        <div class="muted small">${fmtDT(m.datum)}${m.an ? ' · an ' + m.an : ''}${m.contactId ? html` · ${cLink(m.contactId)}` : ''}${istAnfrage(m) ? html` · <a class="lnk" href="#/anfragen">steht unter Anfragen →</a>` : ''}</div>
-        ${m.anhaenge?.length ? html`<div class="muted small">📎 ${m.anhaenge.join(', ')}</div>` : ''}</div>
-      <label class="pe-ow" title="${m.ordnerVon === 'ki' ? 'von der KI sortiert' : m.ordnerVon === 'hand' ? 'von dir sortiert' : m.ordnerVon ? 'automatisch sortiert' : 'noch nicht sortiert'}"><span class="muted small">Ordner</span>
-        <select data-ordner>${Object.entries(ORDNER).map(([k, x]) => html`<option value="${k}" ${k === (m.ordner || '') ? raw('selected') : ''}>${x.name}</option>`)}${m.ordner ? '' : html`<option value="" selected>– unsortiert –</option>`}</select></label></div>
     <div class="pe-text">${m.text || '(kein Text)'}</div>
   </div>`;
 }
@@ -105,21 +107,21 @@ export function render(el, arg) {
       <span class="muted small pe-sync">${st ? (st.error ? html`⚠️ ${st.error}` : html`abgeglichen ${fmtDT(st.lastOk || st.lastRun)}`) : 'Mail-Abgleich noch nicht eingerichtet'}</span></div>
     <div class="pe-body">
       <nav class="pe-ordner" aria-label="Ordner">
-        ${FILTERS.map(([k, l]) => html`<button type="button" class="${k === filter ? 'on' : ''}" data-f="${k}"><span>${{ neu: '●', bearbeitet: '✓', alle: '≡' }[k]}</span><b>${l}</b>${k === 'neu' && neuN ? html`<i class="gold">${neuN}</i>` : ''}</button>`)}
-        <hr>
-        <button type="button" class="${ordnerFilter === 'alle' ? 'on' : ''}" data-o="alle"><span>▢</span><b>Alle Ordner</b><i>${nachStatus.length}</i></button>
-        ${Object.entries(ORDNER).filter(([k]) => zahl(k)).map(([k, o]) => html`<button type="button" class="${ordnerFilter === k ? 'on' : ''}" data-o="${k}"><span class="kd" style="--k:${o.farbe}"></span><b>${o.name}</b><i>${zahl(k)}</i></button>`)}
+        <button type="button" class="${ordnerFilter === 'alle' ? 'on' : ''}" data-o="alle"><span>✉</span><b>Alle E-Mails</b><i>${nachStatus.length}</i></button>
+        <p class="pe-nt">Ordner</p>
+        ${Object.entries(ORDNER).filter(([k]) => zahl(k) || ordnerFilter === k).map(([k, o]) => html`<button type="button" class="${ordnerFilter === k ? 'on' : ''}" data-o="${k}" title="${o.name}"><span class="kd" style="--k:${o.farbe}"></span><b>${o.name}</b><i>${zahl(k)}</i></button>`)}
         ${unsortiert ? html`<p class="muted small">${unsortiert} werden gerade sortiert …</p>` : ''}
         <hr><button type="button" class="pe-neu" data-sort title="Alle automatisch sortierten Mails neu einordnen (von Hand sortierte bleiben)"><span>⟳</span><b>Neu sortieren</b></button>
       </nav>
       <div class="pe-mitte">
-        <div class="pe-leiste"><b>${{ neu: 'Neu', bearbeitet: 'Bearbeitet', alle: 'Alle Mails' }[filter]}${ordnerFilter !== 'alle' ? ' · ' + ORDNER[ordnerFilter].name : ''}</b><span class="muted small">${list.length} ${list.length === 1 ? 'Mail' : 'Mails'}${list.length > 300 ? ' · die neuesten 300' : ''}</span>
+        <div class="pe-reiter" role="tablist" aria-label="Anzeige">${FILTERS.map(([k, l]) => html`<button type="button" role="tab" aria-selected="${k === filter}" class="${k === filter ? 'on' : ''}" data-f="${k}">${l}${k === 'neu' && neuN ? html`<i>${neuN}</i>` : ''}</button>`)}</div>
+        <div class="pe-leiste"><span class="muted small">${ordnerFilter !== 'alle' ? ORDNER[ordnerFilter].name + ' · ' : ''}${list.length} ${list.length === 1 ? 'Mail' : 'Mails'}${list.length > 300 ? ' · die neuesten 300' : ''}</span>
           ${filter === 'neu' && list.length > 1 ? html`<button type="button" class="btn ghost small" data-alle>Alle ${list.length} erledigen</button>` : ''}</div>
-        <div class="pe-liste">${zeigen.length ? gruppen.map(([g, L]) => html`<div class="pe-tag">${g}</div><ul class="list mails">${L.map(m => { const o = m.ordner && ORDNER[m.ordner]; return html`<li data-m="${m.id}" class="${istNeu(m) ? 'unread' : ''} ${sel && sel.id === m.id ? 'sel' : ''}">
-            <span class="pe-av" style="--k:${o ? o.farbe : '#888'}" aria-hidden="true">${ini(m)}</span>
+        <div class="pe-liste">${zeigen.length ? gruppen.map(([g, L]) => html`<div class="pe-tag">${g}</div><ul class="list mails">${L.map(m => { const o = m.ordner && ORDNER[m.ordner]; return html`<li data-m="${m.id}" class="${istNeu(m) ? 'unread' : 'gelesen'} ${sel && sel.id === m.id ? 'sel' : ''}">
+            <span class="pe-av" style="--k:${o ? o.farbe : '#888'}" title="${o ? o.name : 'unsortiert'}" aria-hidden="true">${ini(m)}</span>
             <div class="grow"><div class="pe-z1"><span class="ttl">${absender(m)}</span><time>${zeit(m.datum)}</time></div>
               <div class="pe-z2">${m.typ === 'anfrage' ? `Anfrage über ${m.quelle || 'Website'}` : m.betreff || '(ohne Betreff)'}</div>
-              <div class="pe-z3"><span class="sub">${snippet(m)}</span>${istAnfrage(m) ? html`<em class="pe-anf">Anfrage</em>` : ''}${o && ordnerFilter === 'alle' ? html`<em style="--k:${o.farbe}">${o.name}</em>` : ''}</div></div>
+              <div class="pe-z3"><span class="sub">${snippet(m)}</span>${istAnfrage(m) ? html`<em class="pe-anf">Anfrage</em>` : ''}${filter === 'alle' && !istNeu(m) && !['ignoriert', 'archiv'].includes(m.status) ? html`<em class="pe-erl">✓ erledigt</em>` : ''}</div></div>
             ${istNeu(m) ? html`<button type="button" class="pe-ok" data-ok title="Erledigt" aria-label="${absender(m)}: als erledigt markieren">✓</button>` : ''}</li>`; })}</ul>`)
           : html`<div class="pe-leer">${suche ? html`<b>Nichts gefunden</b><span>Keine Mail passt zu „${suche}“.</span>` : filter === 'neu' ? html`<b>Alles erledigt ✓</b><span>Keine neuen Mails${ordnerFilter !== 'alle' ? ' in diesem Ordner' : ''}.</span>` : html`<b>Keine Mails</b><span>${st ? '' : 'Den Mail-Abgleich richtest du einmal unter Automationen → E-Mail ein.'}</span>`}</div>`}</div>
       </div>

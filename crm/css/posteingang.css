@@ -6,7 +6,7 @@
 .pe-such input{flex:1;border:0!important;background:none;padding:10px 0;outline:none;color:var(--txt);min-width:0}
 .pe-such:focus-within{border-color:var(--gold)}
 .pe-sync{margin-left:auto}
-.pe-body{display:grid;grid-template-columns:200px minmax(320px,430px) minmax(0,1fr);gap:14px;align-items:start}
+.pe-body{display:grid;grid-template-columns:230px minmax(320px,440px) minmax(0,1fr);gap:14px;align-items:start}
 .pe-ordner{display:flex;flex-direction:column;gap:2px;position:sticky;top:12px}
 .pe-ordner button{display:flex;align-items:center;gap:10px;padding:8px 10px;border:0;border-radius:9px;background:none;color:#b9b4ab;font:inherit;font-size:14px;cursor:pointer;text-align:left}
 .pe-ordner button:hover{background:var(--panel);color:var(--txt)}
@@ -43,7 +43,7 @@
 .pe-ok:hover{border-color:var(--ok);color:var(--ok)}
 .pe-lesen{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);min-width:0;position:sticky;top:12px;max-height:calc(100vh - 150px);overflow-y:auto}
 .pe-mail{padding:16px 20px 20px}
-.pe-akt{display:flex;flex-wrap:wrap;gap:8px;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.pe-akt{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px 0;margin-bottom:16px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .pe-akt .btn{padding:7px 13px}
 .pe-betreff{font-family:'Cormorant Garamond',Georgia,serif;font-size:26px;line-height:1.15;margin:0 0 12px;display:block}
 .pe-von{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px}
@@ -54,7 +54,7 @@
 .pe-text{white-space:pre-wrap;word-break:break-word;line-height:1.6;font-size:14.5px;color:#ddd8cf;max-width:76ch}
 .pe-leer{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:60px 20px;color:var(--mut)}
 .pe-leer b{font-family:'Cormorant Garamond',Georgia,serif;font-size:24px;color:var(--txt)}
-@media(max-width:1250px){.pe-body{grid-template-columns:180px minmax(300px,380px) minmax(0,1fr)}}
+@media(max-width:1250px){.pe-body{grid-template-columns:205px minmax(300px,380px) minmax(0,1fr)}}
 @media(max-width:999px){
   .pe-body{grid-template-columns:1fr;gap:10px}
   .pe-lesen{display:none}
@@ -68,4 +68,32 @@
   .pe-ok{opacity:1}
   .pe-sync{margin-left:0;width:100%}
   .modal .pe-mail{padding:0}.modal .pe-text{max-height:none}
+}
+
+/* klarer: Status als Reiter über der Liste, links nur Ordner, Aktionen aufgeräumt */
+.pe-nt{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);padding:12px 10px 4px!important}
+.pe-ordner button[data-o=alle]{font-size:15px}.pe-ordner button[data-o=alle] b{font-weight:600}
+.pe-ordner b{white-space:normal;overflow:visible;line-height:1.25}
+.pe-reiter{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line)}
+.pe-reiter button{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 8px 11px;border:0;border-bottom:2px solid transparent;background:none;color:var(--mut);font:inherit;font-size:14.5px;font-weight:500;cursor:pointer;margin-bottom:-1px}
+.pe-reiter button:hover{color:var(--txt)}
+.pe-reiter button.on{color:var(--txt);border-bottom-color:var(--gold);font-weight:600}
+.pe-reiter i{font-style:normal;font-size:12px;font-weight:700;background:var(--gold);color:#111;padding:0 7px;border-radius:99px}
+.pe-leiste{padding:8px 14px;min-height:38px}
+.pe .list.mails li.gelesen .pe-av{opacity:.55}
+.pe .list.mails li.gelesen .pe-z1 .ttl,.pe .list.mails li.gelesen .pe-z2{color:#a8a299;font-weight:400}
+.pe-z3 em.pe-erl{border:0;padding:0;color:var(--mut);font-size:11px}
+.pe-ord{color:var(--k)}
+.pe-betreff{margin-bottom:14px}
+.pe-mehr{position:relative;margin-left:auto}
+.pe-mehr summary{list-style:none;cursor:pointer;padding:7px 13px}.pe-mehr summary::-webkit-details-marker{display:none}
+.pe-mehr-m{position:absolute;right:0;top:calc(100% + 6px);z-index:5;min-width:250px;display:flex;flex-direction:column;gap:2px;padding:6px;border:1px solid var(--line2,var(--line));border-radius:12px;background:var(--panel2);box-shadow:0 14px 40px rgba(0,0,0,.5)}
+.pe-mehr-m button{text-align:left;padding:9px 10px;border:0;border-radius:8px;background:none;color:var(--txt);font:inherit;font-size:14px;cursor:pointer}
+.pe-mehr-m button:hover{background:rgba(255,255,255,.06)}
+.pe-mehr-m label{display:flex;flex-direction:column;gap:4px;padding:8px 10px 6px;border-top:1px solid var(--line);margin-top:4px;font-size:12px;color:var(--mut)}
+.pe-mehr-m select{padding:7px 8px;font-size:14px;width:100%}
+@media(max-width:999px){
+  .pe-nt{display:none}
+  .pe-reiter{padding:4px 4px 0}
+  .modal .pe-mehr-m{position:static;box-shadow:none;margin-top:8px}.modal .pe-mehr{margin-left:0;flex:1 1 100%}
 }
