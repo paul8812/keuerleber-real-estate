@@ -108,7 +108,7 @@ var WE = [
     var badge = s ? '<span class="u-badge ' + s + '"><i></i>' + { frei: 'Frei', reserviert: 'Reserviert', verkauft: 'Verkauft', vermietet: 'Vermietet' }[s] + '</span>' : '';
     var frei01 = w.id === '01';
     return '<article class="unit' + (frei01 ? ' free' : '') + '" data-apt="' + w.id + '">' +
-      '<div class="u-pic"><img src="bilder/wohnung-' + w.id + '.webp" alt="Visualisierung Wohnung ' + w.id + ', ' + w.etage + '" width="1200" height="800" loading="lazy">' + badge + '<span class="u-360">360°</span><span class="u-vis">Visualisierung</span>' + (frei01 && !badge ? '<span class="u-free">Ohne Anmeldung ansehen</span>' : '') +
+      '<div class="u-pic"><img src="bilder/wohnung-' + w.id + '.webp?v=3" alt="Visualisierung Wohnung ' + w.id + ', ' + w.etage + '" width="1200" height="800" loading="lazy">' + badge + '<span class="u-360">360°</span><span class="u-vis">Visualisierung</span>' + (frei01 && !badge ? '<span class="u-free">Ohne Anmeldung ansehen</span>' : '') +
       '<button class="u-lock" type="button" data-gate="karte" data-tour="' + w.id + '">' + LOCK + 'Rundgang freischalten<small>Kostenlos – alle 6 Wohnungen</small></button></div>' +
       '<div class="u-body"><div class="u-top"><h3>Wohnung ' + w.id + '</h3><span class="m2">' + w.m2 + ' m²</span></div>' +
       '<div class="u-meta"><span>' + w.etage + '</span><span>2 Zimmer</span>' + (w.balkon ? '<span>Balkon ' + w.balkon + ' m²</span>' : '<span>Dachgeschoss ohne Balkon</span>') + '<span>Keller ' + w.keller + ' m³</span></div>' +
