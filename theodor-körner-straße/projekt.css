@@ -322,3 +322,9 @@ details.more p,.qa details p{padding:0 18px 18px;color:var(--mu);font-size:15px;
 @media(prefers-reduced-motion:reduce){.pan{animation:none;background-position-x:-35%}.play::after{animation:none}}
 .pano .tag{top:18px;left:18px;bottom:auto}
 @media(max-width:900px){.drag{display:none}.pano .play{top:40%}.pano .tag{top:84px}}
+
+.facts.vt{grid-template-columns:repeat(3,1fr)}
+@media(max-width:860px){.facts.vt{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.facts.vt{grid-template-columns:1fr}}
+
+.pvid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
