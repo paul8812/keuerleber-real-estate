@@ -70,6 +70,8 @@
 .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; margin: 8mm 0 5mm; }
 .kpi { background: var(--soft); border: 1px solid var(--line); border-radius: 9px; padding: 4.2mm 4.5mm 3.4mm; }
 .kpi b { display: block; font-weight: 700; font-size: 14pt; letter-spacing: -.015em; color: var(--ink); }
+.kpi.nachlass b s { display: block; font-size: 8.5pt; font-weight: 400; color: var(--mute); text-decoration-thickness: 1px; letter-spacing: 0; margin-bottom: .4mm; }
+.chips span.chip-nachlass { background: var(--cu, #b8955a); border-color: var(--cu, #b8955a); color: #fff; font-weight: 700; }
 .kpi span { display: block; margin-top: .6mm; font-size: 6.6pt; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); }
 .chips { display: flex; flex-wrap: wrap; gap: 2mm; margin: 2mm 0 0; }
 .chips span { font-size: 7.8pt; padding: 1.6mm 3.6mm; border-radius: 99px; border: 1px solid #e3d6bd; color: #5e4a26; background: #fbf7ef; }

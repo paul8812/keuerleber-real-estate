@@ -229,6 +229,8 @@ function detail(el, p) {
           <p class="ex-weg muted small" id="ex-rweg"></p>
           <label class="ex-fest"><span>Oder Kaufpreis fest eintragen (€)</span><input type="text" id="ex-fest" inputmode="numeric" value="${p.preis_override ? Math.round(p.preis_override).toLocaleString('de-DE') : ''}" placeholder="leer = Verkäufer-Preis + Provision"></label>
           <label class="ex-fest ex-rund"><span>Kaufpreis runden auf</span><select id="ex-rund">${[[1, 'gar nicht (auf den Euro genau)'], [100, '100 €'], [500, '500 €'], [1000, '1.000 €']].map(([v, l]) => html`<option value="${v}" ${Number((p.annahmen || {}).rundung ?? s.annahmen.rundung) === v ? raw('selected') : ''}>${l}</option>`)}</select></label>
+          <label class="ex-fest"><span>Nachlass im Exposé zeigen (€)</span><input type="text" id="ex-nachlass" inputmode="numeric" value="${+p.nachlass > 0 ? Math.round(+p.nachlass).toLocaleString('de-DE') : ''}" placeholder="z. B. 7.000 – leer = kein Nachlass"></label>
+          <p class="muted small">Der Nachlass wird oben draufgerechnet und im Exposé wieder abgezogen – der Kunde zahlt genau deinen Kaufpreis.</p>
           <p class="ex-pruef small" id="ex-pruef" role="status"></p>
         </section>
         <section class="card ex-s"><details id="ex-daten" ${miss.length ? raw('open') : ''}><summary><h2><i>2</i>Objektdaten prüfen<span class="ex-st" id="ex-dst"></span></h2></summary>
@@ -263,6 +265,12 @@ function detail(el, p) {
     const a = Math.round((v / vk - 1) * 1000) / 10, r = Math.min(15, Math.max(0, a)); range.value = r; range.style.setProperty('--p', r / 15 * 100 + '%'); pctIn.value = de(a) || '0';
     sichern({ preis_override: v, aufschlag: a }); if (endgueltig) fest.value = v.toLocaleString('de-DE'); };
   fest.oninput = () => festSetzen(false); fest.onchange = () => festSetzen(true);
+  const nl = $('#ex-nachlass');
+  const nachlassSetzen = endgueltig => { const roh = nl.value.trim(), v = Math.round(zahl(roh)); nl.classList.remove('miss');
+    if (!roh) { if (akt().nachlass) sichern({ nachlass: null }); return; }
+    if (!(v > 0) || v >= (berechne(akt(), einstellungen()).kp || 0) * 0.5) { if (endgueltig) { nl.classList.add('miss'); toast('Der Nachlass passt nicht – bitte prüfen', 'err'); } return; }
+    sichern({ nachlass: v }); if (endgueltig) nl.value = v.toLocaleString('de-DE'); };
+  nl.oninput = () => nachlassSetzen(false); nl.onchange = () => nachlassSetzen(true);
   $('#ex-rund').onchange = e => { const neu = akt(); sichern({ annahmen: { ...(neu.annahmen || {}), rundung: +e.target.value } }); };
   range.style.setProperty('--p', (p.aufschlag ?? 8) / 15 * 100 + '%');
   // Abgabepreis oben und das Feld „Preis vom Verkäufer“ unter „Objektdaten“ sind dasselbe – oben eintragen genügt
@@ -325,6 +333,7 @@ function aktualisieren(el, p, mitVorschau) {
     + z2('Brutto-Rendite', ok ? pct(c.rendite) : '–') + z2('Cashflow vor Steuern', ok ? sgn(c.vorSt, eur2) : '–', ok ? (c.vorSt < 0 ? 'neg' : 'pos') : '') + z2('Cashflow nach Steuern', ok ? sgn(c.nachSt, eur2) : '–', ok ? (c.nachSt < 0 ? 'neg' : 'pos') : '');
   const rw = el.querySelector('#ex-rweg'); if (rw) rw.textContent = !ok ? '' : c.fest ? `Kaufpreis fest eingetragen: ${eur0(c.kp)} – das sind ${pct(c.aufschlagEcht, 1)} auf den Preis vom Verkäufer.`
     : `${eur0(c.basis)} + ${de(p.aufschlag || 0) || '0'} % = ${eur0(c.basis * (1 + (+p.aufschlag || 0) / 100))}${c.rundung > 1 ? `, gerundet auf ${c.rundung.toLocaleString('de-DE')} € = ${eur0(c.kp)}` : ''}${Math.abs(c.aufschlagEcht - (+p.aufschlag || 0)) >= 0.05 ? ` (tatsächlich ${pct(c.aufschlagEcht, 1)})` : ''}`;
+  if (rw && ok && c.nachlass) rw.textContent += ` Im Exposé: ${eur0(c.listenpreis)} − ${eur0(c.nachlass)} Nachlass = ${eur0(c.kp)}.`;
   const pf = el.querySelector('#ex-pruef'); if (pf) { const F = ok ? kontrolle(p, s) : []; pf.className = 'ex-pruef small ' + (!ok ? '' : F.length ? 'warn' : 'ok'); pf.textContent = !ok ? '' : F.length ? '⚠ Rechnung nicht stimmig: ' + F[0] : '✓ Rechnung doppelt geprüft – alle Zeilen und Summen stimmen'; }
   el.querySelectorAll('.ex-felder input[data-k]').forEach(i => i.classList.toggle('miss', miss.includes(i.dataset.k)));
   const st = el.querySelector('#ex-dst'); st.textContent = ok ? '✓ vollständig' : `${miss.length} Wert${miss.length === 1 ? '' : 'e'} fehl${miss.length === 1 ? 't' : 'en'}`; st.className = 'ex-st ' + (ok ? 'ok' : 'warn');

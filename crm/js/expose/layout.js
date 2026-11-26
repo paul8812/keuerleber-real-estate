@@ -24,6 +24,7 @@ export function berechne(p, s) {
   const basis = zahlOder(o.kaufpreis_partner), rd = Math.max(1, Math.round(zahlOder(a.rundung, 100)));
   const fest = zahlOder(p.preis_override) > 0;
   const kp = fest ? Math.round(zahlOder(p.preis_override)) : teile(C(basis) * (100000 + P(p.aufschlag)), 100 * 100000 * rd) * rd;
+  const nachlass = Math.max(0, Math.round(zahlOder(p.nachlass)));   // im Exposé gezeigter Nachlass (€) – der Kaufpreis kp bleibt der Endpreis
   const nk = teile(kp * P(a.nebenkosten), 100000);
   const ek = nk + teile(kp * P(a.ek_quote), 100000);
   const darlehen = kp + nk - ek;
@@ -44,6 +45,7 @@ export function berechne(p, s) {
   const W = C(o.wohnflaeche);
   return {a, basis, kp, nk, ek, darlehen, rate: rateC / 100, miete: mieteC / 100, hgnu: hgnuC / 100, vorSt: vorStC / 100, rnd, afaSatz: afaH / 100, gebaeude, afa, afaStd,
     miete12, zinsen, hg12, ergebnis, steuer, steuerMonat: steuerMonatC / 100, nachSt: nachStC / 100, marge: kp - Math.round(basis), fest, rundung: rd,
+    nachlass, listenpreis: kp + nachlass,             // Nachlass nur für die Darstellung: gerechnet wird immer mit dem Preis nach Nachlass (kp)
     aufschlagEcht: basis > 0 ? teile((kp - basis) * 100000, basis) / 1000 : 0,       // tatsächlicher Aufschlag nach Rundung, in %
     rendite: kp ? teile(mieteC * 12 * 100, kp) / 100 : 0, faktor: mieteC ? teile(kp * 1000, mieteC * 12) / 10 : 0,
     qm: W ? teile(kp * 100, W) : 0, mieteQm: W ? teile(mieteC * 100, W) / 100 : 0};
@@ -57,6 +59,8 @@ export function kontrolle(p, s) {
   if (![c.kp, c.nk, c.ek, c.darlehen, c.rate, c.miete, c.vorSt, c.afa, c.zinsen, c.ergebnis, c.steuer, c.nachSt, c.rendite].every(Number.isFinite)) F.push('ungültige Zahl in der Rechnung');
   // 1. Summen genau so, wie sie im Exposé untereinander stehen
   gleich(c.kp + c.nk - c.ek, c.darlehen, 'Gesamtinvestition − Eigenkapital = Darlehen');
+  gleich(c.listenpreis - c.nachlass, c.kp, 'Angebotspreis − Nachlass = Kaufpreis');
+  if (c.nachlass && !(c.nachlass < c.listenpreis)) F.push('Nachlass ist größer als der Preis');
   gleich(cent(c.miete) - cent(c.rate) - cent(c.hgnu), cent(c.vorSt), 'Miete − Rate − Hausgeld = vor Steuern (Cent)');
   gleich(cent(c.vorSt) + cent(c.steuerMonat), cent(c.nachSt), 'vor Steuern + Steuerwirkung = nach Steuern (Cent)');
   gleich(c.miete12 - c.afa - c.zinsen - c.hg12, c.ergebnis, 'Mieteinnahmen − AfA − Zinsen − Hausgeld = steuerliches Ergebnis');
@@ -115,9 +119,9 @@ export function renderExpose(p, s, basis) {
   // drucken ein Hintergrundbild mit halbtransparentem Verlauf darüber sonst als schwarze Fläche.
   const titelBild = imgs[b.titel] ? `style="background-image:url('${src(b.titel)}')"` : '';
   let html = page(`
-    <div class="kpis" style="grid-template-columns:repeat(${2 + (+o.wohnflaeche > 0) + (+o.zimmer > 0)},1fr)">${box(eur0(c.kp), 'Kaufpreis')}${+o.wohnflaeche > 0 ? box(num(+o.wohnflaeche) + ' m²', 'Wohnfläche') : ''}${+o.zimmer > 0 ? box(num(+o.zimmer, o.zimmer % 1 ? 1 : 0), 'Zimmer') : ''}${box(pct(c.rendite), 'Brutto-Mietrendite')}</div>
+    <div class="kpis" style="grid-template-columns:repeat(${2 + (+o.wohnflaeche > 0) + (+o.zimmer > 0)},1fr)">${c.nachlass ? `<div class="kpi nachlass"><b><s>${eur0(c.listenpreis)}</s>${eur0(c.kp)}</b><span>Kaufpreis</span></div>` : box(eur0(c.kp), 'Kaufpreis')}${+o.wohnflaeche > 0 ? box(num(+o.wohnflaeche) + ' m²', 'Wohnfläche') : ''}${+o.zimmer > 0 ? box(num(+o.zimmer, o.zimmer % 1 ? 1 : 0), 'Zimmer') : ''}${box(pct(c.rendite), 'Brutto-Mietrendite')}</div>
     <p class="intro">${esc(t.intro)}</p>
-    <div class="chips">${(t.chips || []).map(x => `<span>${esc(x)}</span>`).join('')}</div>`, 'cover', `
+    <div class="chips">${c.nachlass ? `<span class="chip-nachlass">${eur0(c.nachlass)} Nachlass</span>` : ''}${(t.chips || []).map(x => `<span>${esc(x)}</span>`).join('')}</div>`, 'cover', `
     <div class="cover-hero ${p.titelFertig ? 'gebacken' : ''}" ${p.titelFertig ? '' : titelBild}>
       ${p.titelFertig ? `<img class="cover-img" src="${p.titelFertig}" alt="">` : ''}
       <div class="cover-top">${kopfFoto}</div>
@@ -161,7 +165,7 @@ export function renderExpose(p, s, basis) {
     <p class="txt">Gerechnet mit ${pct(a.ek_quote, 0)} Eigenkapital auf den Kaufpreis (zuzüglich der Kaufnebenkosten), ${pct(a.zins)} Sollzins, ${pct(a.tilgung)} anfänglicher Tilgung, ${pct(a.nebenkosten, 1)} Kaufnebenkosten und einem persönlichen Steuersatz von ${pct(a.steuersatz, 0)}. Ihre tatsächlichen Konditionen können abweichen.</p>
     <div class="cols">
       <div><div class="kicker sm">Die Investition</div><table>
-        ${row('Kaufpreis', eur0(c.kp))}${row(`+ Kaufnebenkosten (${pct(a.nebenkosten, 1)})`, eur0(c.nk))}
+        ${c.nachlass ? row('Angebotspreis', eur0(c.listenpreis)) + row('− Nachlass', `<span class="neg">− ${eur0(c.nachlass)}</span>`) + row('= Kaufpreis', eur0(c.kp), 'strong') : row('Kaufpreis', eur0(c.kp))}${row(`+ Kaufnebenkosten (${pct(a.nebenkosten, 1)})`, eur0(c.nk))}
         ${row('= Gesamtinvestition', eur0(c.kp + c.nk), 'strong')}${row(`davon Eigenkapital (${pct(a.ek_quote, 0)} + Nebenkosten)`, eur0(c.ek))}${row('Darlehen', eur0(c.darlehen))}</table></div>
       <div><div class="kicker sm">Monatlich</div><table>
         ${row('Kaltmiete', money(c.miete))}${row('Kreditrate (Zins + Tilgung)', kosten(c.rate))}
